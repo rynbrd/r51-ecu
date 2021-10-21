@@ -328,14 +328,14 @@ functionality here.
 The following housings or harness parts are assumed to be compatible. This is
 pending confirmation.
 
-| Connector | Pin | Housing      | Alternate Part                            | 
+| Connector | Pin | Housing      | Harness or Alternate Part                 | 
 | --------- | --- | ------------ | ----------------------------------------- |
 | M42       |  20 |              | Metra 70-7552, ["Upgraded" Metra 70-7552] |
 | M43       |  12 |              |                                           |
-| M44       |   3 |              |                                           |
+| M44       |   3 |              | Metra 40-NI12                             |
 | M45       |  24 | TE 1376103-1 |                                           |
 | M46       |  16 | TE 1376106-1 |                                           |
-| M69       |  12 | TE 1379675-5 | TE 1379675-1, Metra 70-7554               |
+| M69       |  12 | TE 1379675-5 | Metra 70-7554, TE 1379675-1               |
 | M70       |  32 | TE 1473799-1 |                                           |
 
 #### Connector M42
