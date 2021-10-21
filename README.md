@@ -323,6 +323,8 @@ service manual as M42, M43, M44, M45, M46, M69, and M70. Pins on the connectors
 are labeled 1 through 119. I've attempted to document their relevant
 functionality here.
 
+![R51 AV Control Unit Connectors](images/r51_av_connectors.jpg "R51 AV Control Unit Connectors")
+
 #### Connector M42
 
 Contains wires for the speakers, accessor power, dash illumination, and
