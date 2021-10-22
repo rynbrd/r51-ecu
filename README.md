@@ -131,33 +131,39 @@ the same as the driver side value except the range is different. The range is
 
 _Byte 6: Temperature Control and A/C Compressor_
 
-* Bits 1-2: Always 0.
-* Bit 3: Flipped any time a temperature change occurs.
-* Bit 4: Always 0.
-* Bit 5: Indicates to the A/C Auto Amp whether or not to enable the A/C compressor. 1 is on, 0 is off as one might expect.
-* Bits 6-8: Always 0.
-
 Possible values:
 * `00000000` temperature change; compressor off
 * `00100000` temperature change; compressor off
 * `00001000` temperature change; compressor on
 * `00101000` temperature change; compressor on
 
-_Byte 7: Mode, Front Defrost, and Dual Zone Control_
-
-* Bit 1: Flipped to toggle the A/C compressor.
+Bit meanings (left to right):
+* Bit 1: Always 0.
 * Bit 2: Always 0.
-* Bit 3: Flipped to enable the "auto" mode of the climate control unit.
-* Bit 5: Flipped to toggle dual zone climate control.
-* Bit 6: Always 1.
-* Bit 7: Flipped to toggle front defrost.
-* Bit 8: Flipped to toggle the "mode" - the direction of the airflow.
+* Bit 3: Flipped any time a temperature change occurs.
+* Bit 4: Always 0.
+* Bit 5: Indicates to the A/C Auto Amp whether or not to enable the A/C compressor. 1 is on, 0 is off as one might expect.
+* Bit 6: Always 0.
+* Bit 7: Always 0.
+* Bit 8: Always 0.
+
+_Byte 7: Mode, Front Defrost, and Dual Zone Control_
 
 Examples:
 * `00100100` auto mode toggled
 * `00001100` dual zone climate control toggled
 * `00000110` front defrost toggled
 * `00000101` air flow mode toggled
+
+Bit meanings (left to right):
+* Bit 1: Flipped to toggle the unit off.
+* Bit 2: Always 0.
+* Bit 3: Flipped to enable the "auto" mode of the climate control unit.
+* Bit 4: Always 0.
+* Bit 5: Flipped to toggle dual zone climate control.
+* Bit 6: Always 1.
+* Bit 7: Flipped to toggle front defrost.
+* Bit 8: Flipped to toggle the "mode" - the direction of the airflow.
 
 ##### CAN Frame ID 541
 This frame is sent by the AV Control Unit to change fan speed and toggle
@@ -174,9 +180,27 @@ recirculation.
 
 _Byte 1: Change Fan Speed_
 
-* Bits 1-2: Always 0.
+Bit meanings (left to right):
+* Bit 1: Always 0.
+* Bit 2: Always 0.
 * Bit 3: Flipped to increase fan speed.
 * Bit 4: Flipped to decrease fan speed.
+* Bit 5: Always 0.
+* Bit 6: Always 0.
+* Bit 7: Always 0.
+* Bit 8: Always 0.
+
+_Byte 2: Toggle Recirculation_
+
+Bit meanings (left to right):
+* Bit 1: Always 0.
+* Bit 2: Flip to toggle recirculation.
+* Bit 3: Always 0.
+* Bit 4: Always 0.
+* Bit 5: Always 0.
+* Bit 6: Always 0.
+* Bit 7: Always 0.
+* Bit 8: Always 0.
 
 ##### CAN Frame ID 54A
 This frame is sent by the A/C Auto Amp to indicate the zone temperatures.
@@ -219,25 +243,36 @@ defrost, fan speed, recirculation, and dual climate zone mode.
 
 _Byte 1: A/C Compressor, Auto Mode, Power Off_
 
-The following values are possible:
-* `0x41` A/C compressor Off, Auto Mode On
-* `0x42` A/C compressor Off, Auto Mode Off
-* `0x59` A/C compressor On, Auto Mode On
-* `0x5A` A/C compressor On, Auto Mode Off
-* `0xF2` Power Off
+Possible values:
+* `0x41 (01000001)` A/C compressor Off, Auto Mode On
+* `0x42 (01000010)` A/C compressor Off, Auto Mode Off
+* `0x59 (01011001)` A/C compressor On, Auto Mode On
+* `0x5A (01011010)` A/C compressor On, Auto Mode Off
+* `0x72 (01110010)` system not operational
+* `0xF2 (11110010)` power Off
+
+Bit meanings (left to right):
+* Bit 1: Unit operational state. Unit is not operational when 0 and unit is off.
+* Bit 2: Always 1.
+* Bit 3: Unit power. Set to 1 when power is off.
+* Bit 4: Unknown. Set to 1 when A/C is on or when unit is off.
+* Bit 5: A/C power. Set to 1 when A/C is enabled.
+* Bit 6: Always 0.
+* Bit 7: Unknown. Set to 1 when auto is off or power is off.
+* Bit 8: Auto setting. Set to 1 when auto is on.
 
 _Byte 2: Mode, Defrost_
 
-The following values are possible:
-* `0x00` Power Off
-* `0x04` Face
-* `0x08` Face and Feet
-* `0x0C` Feet
-* `0x10` Feet and Windshield
-* `0x34` Windshield
-* `0x84` Auto; Cooling; Face
-* `0x88` Auto; Neutral; Face and Feet
-* `0x8C` Auto; Heating; Feet
+Possible values:
+* `0x00 (00000000)` Power Off
+* `0x04 (00000100)` Face
+* `0x08 (00001000)` Face and Feet
+* `0x0C (00001100)` Feet
+* `0x10 (00010000)` Feet and Windshield
+* `0x34 (00110100)` Windshield
+* `0x84 (10000100)` Auto; Cooling; Face
+* `0x88 (10001000)` Auto; Neutral; Face and Feet
+* `0x8C (10001100)` Auto; Heating; Feet
 
 Windshield (defrost) is not possible in auto mode. Change the mode or enabling
 defrost takes the unit out of auto mode. 
@@ -250,6 +285,24 @@ indicate half speeds. It is assumed that the value is rounded up in these
 cases.
 
 Fan speed it reported as 0x00 when the unit is off.
+
+_Byte 4: Recirculation and Dual Zone Control_
+
+Possible values:
+* `0x12 (00010010)` recirculation on, dual off
+* `0x24 (00100100)` recirculation off, dual off
+* `0xD2 (11010010)` recirculation on, dual on
+* `0xE2 (11100010)` recirculation off, dual on
+
+Bit meanings (left to right):
+* Bit 1: Dual zone control. 0 is off, 1 is on.
+* Bit 2: Dual zone control. 0 is off, 1 is on.
+* Bit 3: Recirculation. 0 is on, 1 is off.
+* Bit 4: Recirculation. 1 is on, 0 is off.
+* Bit 5: Always 0.
+* Bit 6: Unknown.
+* Bit 7: Unknown.
+* Bit 8: Always 0.
 
 ##### Frame ID 625
 This frame is sent when the A/C compressor or rear defrost is toggled. The
