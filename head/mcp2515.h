@@ -6,7 +6,7 @@
 
 namespace ECU {
 
-class Mcp2515 : public CanXcvr {
+class Mcp2515 : public CanTranceiver {
     public:
         // Initialize a new MCP2515 tranceiver connected to the provided CS pin.
         Mcp2515(uint8_t cs_pin, CanSpeed can_speed);
@@ -23,10 +23,10 @@ class Mcp2515 : public CanXcvr {
 
         // Recieve a frame. Return OK on success, ERROR on failure, or NOENT if
         // there is no frame ready to be read.
-        Status receive(Frame* frame) const override;
+        Status read(Frame* frame) const override;
 
         // Send a frame. Return OK on success or ERROR on failure.
-        Status send(const Frame& frame) override;
+        Status write(const Frame& frame) override;
     private:
         CanSpeed speed_;
         MCP_CAN* client_;

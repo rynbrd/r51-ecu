@@ -28,11 +28,11 @@ typedef enum : int8_t {
     CAN_SPEED_500K,
 } CanSpeed;
 
-// Base class for all CAN tranceivers.
-class CanXcvr {
+// Base class for all CAN tranceivers. A tranceiver connects to a CAN bus (or something that looks like one) 
+class CanTranceiver {
     public:
-        CanXvcr() {}
-        virtual ~CanXcvr() {}
+        CanTranceiver() {}
+        virtual ~CanTranceiver() {}
 
         // Start the tranceiver. Must be called before any other method. Return
         // OK on success or ERROR on failure. 
@@ -43,10 +43,10 @@ class CanXcvr {
 
         // Recieve a frame. Return OK on success, ERROR on failure, or NOENT if
         // there is no frame ready to be read.
-        virtual Status receive(Frame* frame) const;
+        virtual Status read(Frame* frame) const;
 
         // Send a frame. Return OK on success or ERROR on failure.
-        virtual Status send(const Frame& frame);
+        virtual Status write(const Frame& frame);
 };
 
 }

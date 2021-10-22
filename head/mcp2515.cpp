@@ -38,7 +38,7 @@ bool Mcp2515::available() const {
     return client_->checkReceive() == CAN_MSGAVAIL;
 }
 
-Status Mcp2515::receive(Frame* frame) const {
+Status Mcp2515::read(Frame* frame) const {
     /*
     uint8_t ext;
     uint8_t mcp_err = client_->readMsgBuf(&frame->id, &ext, &frame->size, frame->data);
@@ -59,7 +59,7 @@ Status Mcp2515::receive(Frame* frame) const {
     return ERROR;
 }
 
-Status Mcp2515::send(const Frame& frame) {
+Status Mcp2515::write(const Frame& frame) {
     uint8_t ext;
     switch (frame.type) {
         default:

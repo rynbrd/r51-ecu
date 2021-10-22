@@ -26,7 +26,7 @@ void setup() {
 }
 
 void loop() {
-    Status status = mcp.receive(&frame);
+    Status status = mcp.read(&frame);
     if (status == ECU::OK) {
         Debug.println(frame);
     } else {
