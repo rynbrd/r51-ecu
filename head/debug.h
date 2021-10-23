@@ -1,12 +1,8 @@
-#ifndef __ECU_DEBUG_H__
-#define __ECU_DEBUG_H__
+#ifndef __DEBUG_H__
+#define __DEBUG_H__
 
 #include <Stream.h>
 #include <stdint.h>
-#include "can.h"
-#include "status.h"
-
-namespace ECU {
 
 // Stream wrapper class used for debug logging. Reading is not supported.
 class Debug_ : public Stream {
@@ -38,17 +34,9 @@ class Debug_ : public Stream {
         // Peek.
         int peek() override;
 
-        // Print a frame.
-        size_t print(const Frame& frame);
-
-        // Print a frame and a newline.
-        size_t println(const Frame& frame);
-
-        // Print a status.
-        size_t print(Status status);
-
-        // Print a status and a newline.
-        size_t println(Status status);
+        // Print a human readable frame.
+        size_t print(uint32_t id, uint8_t len, uint8_t* date);
+        size_t println(uint32_t id, uint8_t len, uint8_t* date);
 
         using Stream::print;
         using Stream::println;
@@ -57,7 +45,5 @@ class Debug_ : public Stream {
 };
 
 extern Debug_ Debug;
-
-}
 
 #endif

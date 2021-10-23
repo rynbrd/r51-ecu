@@ -24,8 +24,6 @@
 
 #include "debug.h"
 
-using ECU::Debug;
-
 #define spi_readwrite SPI.transfer
 #define spi_read() spi_readwrite(0x00)
 

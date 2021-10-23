@@ -1,37 +1,35 @@
-
-#include "can.h"
+#include "climate.h"
 #include "debug.h"
-#include "mcp2515.h"
+#include "mcp_can.h"
 
-using ECU::Debug;
-using ECU::Frame;
-using ECU::Mcp2515;
-using ECU::Status;
+#define SERIAL_BAUDRATE 1000000
+#define CAN_CS_PIN 17
+#define CAN_BAUDRATE CAN_500KBPS
 
-Frame frame;
-Mcp2515 mcp(17, ECU::CAN_SPEED_500K);
+struct {
+    uint32_t id;
+    uint8_t len;
+    byte data[8];
+} frame;
+
+ClimateController climate;
+MCP_CAN can(CAN_CS_PIN);
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(SERIAL_BAUDRATE);
     while (!Serial) {
         delay(100);
     }
     Debug.begin(&Serial);
 
-    if (mcp.begin() != ECU::OK) {
-        Debug.println("initialization error");
-    } else {
-        Debug.println("initialized");
+    if (can.begin(CAN_BAUDRATE) != CAN_OK) {
+        Debug.println("can init failure");
     }
 }
 
 void loop() {
-    Status status = mcp.read(&frame);
-    if (status == ECU::OK) {
-        Debug.println(frame);
-    } else {
-        Debug.print("receieve error: ");
-        Debug.println(status);
-        delay(200);
+    if (can.readMsgBufID(&frame.id, &frame.len, frame.data) == CAN_OK) {
+        climate.update(frame.id, frame.len, frame.data);
     }
+    climate.emit(&can);
 }

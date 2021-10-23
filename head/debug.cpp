@@ -2,10 +2,6 @@
 
 #include <Arduino.h>
 #include <stdint.h>
-#include "can.h"
-#include "status.h"
-
-namespace ECU {
 
 void Debug_::begin(Stream* stream) {
   stream_ = stream;
@@ -50,35 +46,25 @@ int Debug_::peek() {
   return stream_->peek();
 }
 
-size_t Debug_::print(const Frame& frame) {
-    if (stream_ == nullptr) {
-        return 0;
+size_t Debug_::print(uint32_t id, uint8_t len, uint8_t* data) {
+    size_t n = 0;
+    n += print(id, HEX);
+    n += print("#");
+    for (int i = 0; i < len; i++) {
+        if (data[i] <= 0x0F) {
+            n += print("0");
+        }
+        n += print(data[i], HEX);
+        if (i < len-1) {
+            n += print(":");
+        }
     }
-    return printFrame(stream_, frame);
+    return n;
 }
 
-// Print a frame and a newline.
-size_t Debug_::println(const Frame& frame) {
-    if (stream_ == nullptr) {
-        return 0;
-    }
-    return print(frame) + print("\n");
-}
-
-size_t Debug_::print(Status status) {
-    if (stream_ == nullptr) {
-        return 0;
-    }
-    return printStatus(stream_, status);
-}
-
-size_t Debug_::println(Status status) {
-    if (stream_ == nullptr) {
-        return 0;
-    }
-    return print(status) + print("\n");
+size_t Debug_::println(uint32_t id, uint8_t len, uint8_t* data) {
+    print(id, len, data);
+    print("\n");
 }
 
 Debug_ Debug;
-
-}

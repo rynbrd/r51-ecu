@@ -1,44 +1,37 @@
-#ifndef __ECU_CLIMATE__
-#define __ECU_CLIMATE__
+#ifndef __CLIMATE_H__
+#define __CLIMATE_H__
 
-#include "can.h"
-#include "status.h"
+#include <stdint.h>
+#include "mcp_can.h"
 
-namespace ECU {
-
-// Manages the climate control system over CAN.
-class ClimateControl {
+// Controls the vehicle's climate control system over CAN. On initialization it
+// is in the "intiialization" state and will attempt to handshake with the A/C
+// Auto Amp to bring it online. The controller will heartbeat control frames at
+// least every 200ms to ensure the A/C Auto Amp remains active.
+class ClimateController {
     public:
-        // 
-        ClimateControl();
+        // Create a ClimateControl object in its initialization state.
+        ClimateController();
 
-        // Return true if the climate control is off.
-        bool isOff() const;
+        // Return true if the climate control system has exited initialization
+        // and is taking commands. Climate control commands are noops until
+        // this is true.
+        bool online() const;
 
         // Turn off the climate control.
-        void turnOff();
-
-        // Return true if auto mode is enabled. Returns false when off.
-        bool isAuto() const;
+        void deactivate();
 
         // Toggle the auto setting.
         void toggleAuto();
 
-        // Return true if A/C is enabled. Returns false when off.
-        bool isAc() const;
-
         // Toggle the AC setting.
         void toggleAc();
 
-        // Return true if face air vents are open. Returns false when off.
-        bool isFace() const;
+        // Toggle the dual zone setting.
+        void toggleDual();
 
-        // Return true if feet air vents are open. Returns false when off.
-        bool isFeet() const;
-
-        // Return true if windshield (defrost) air vents are open. Returns
-        // false when off.
-        bool isWindshield() const;
+        // Toggle air recirculation.
+        void toggleRecirculate();
 
         // Cycle the airflow mode.
         void cycleMode();
@@ -46,21 +39,9 @@ class ClimateControl {
         // Toggle front defrost. This toggles windshield airflow.
         void toggleFrontDefrost();
 
-        // Return true if dual zone climate control is active. Returns false
-        // when off.
-        bool isDualZone() const;
-
-        // Toggle the dual zone setting.
-        void toggleDualZone();
-
-        // Return true if recirculation is enabled.
-        bool isRecirculating() const;
-
-        // Toggle air recirculation.
-        void toggleRecirculation();
-
-        // Return the fan speed. Valid values are between 0 (off) and 8 (max speed).
-        uint8_t getFanSpeed() const;
+        // Toggle rear defrost. This toggles the rear window heating element.
+        // Currently a noop.
+        void toggleRearDefrost();
 
         // Increase the fan speed by one notch.
         void increaseFanSpeed();
@@ -68,61 +49,36 @@ class ClimateControl {
         // Decrease the fan speed by one notch.
         void decreaseFanSpeed();
 
-        // Return the driver zone temperature in Fahrenheit. Return value is 0
-        // when or from 60 to 90 when active.
-        uint8_t getDriverTemp() const;
-
         // Set the driver zone temperature in degrees from 60 to 90.
         void setDriverTemp(uint8_t temp);
-
-        // Return the passenger zone temperature in Fahrenheit. Return value is
-        // 0 when or from 60 to 90 when active.
-        uint8_t getPassengerTemp() const;
 
         // Set the passenger zone temperature in degrees from 60 to 90.
         void setPassengerTemp(uint8_t temp);
 
-        // Process an incoming frame to update the stored state. Accepts frames
-        // 54A and 54B.
-        void process(const Frame& frame);
+        // Update state from an incoming 0x54B frame. This frame contains the
+        // current A/C Auto Amp state and is needed to perform the
+        // initialization handshake.
+        void update(uint32_t id, uint8_t len, byte* data);
 
-        // Emit control frames if any control methods have been called.
-        void emit(CanTranceiver* tranceiver);
+        // Send pending control frames.
+        void emit(MCP_CAN* can);
 
     private:
-        // Set to true if control frames should be sent.
-        bool emit_;
+        // True if the A/C Auto Amp is operational.
+        bool unit_online_;
 
-        // The time the last control frame was sent.
-        uint32_t heartbeat_;
+        // Set to true if the control state has been changed. Control frames
+        // will be sent on next emit call.
+        bool state_changed_;
 
-        // Control frames.
-        Frame frame540_;
-        Frame frame541_;
+        // The time the last control frame was sent and how frequently to send
+        // them.
+        uint32_t last_heartbeat_;
+        uint8_t heartbeat_delay_;
 
-        // Current state.
-        bool running_;
-        bool off_;
-        bool auto_;
-        bool ac_;
-        bool face_;
-        bool feet_;
-        bool windshield_;
-        bool dual_;
-        bool recirculate_;
-        uint8_t fan_speed_;
-        uint8_t driver_temp_;
-        uint8_t passenger_temp_;
-
-        // Process a 54A frame.
-        void process54A(const Frame& frame);
-
-        // Process a 54B frame.
-        void process54B(const Frame& frame);
-
-        bool operational() const;
+        // Control frames. These are standard (11-bit ID) frames.
+        byte frame540_[8];
+        byte frame541_[8];
 };
-
-}
 
 #endif
