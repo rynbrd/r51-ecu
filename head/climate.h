@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "mcp_can.h"
+#include "realdash.h"
 
 // Controls the vehicle's climate control system over CAN. On initialization it
 // is in the "intiialization" state and will attempt to handshake with the A/C
@@ -82,6 +83,56 @@ class ClimateController {
 
         // Toggle a function controlled by a single bit.
         bool toggle(byte* frame, uint8_t offset, uint8_t bit);
+};
+
+// Listens for climate state changes from the A/C Auto Amp and translates them
+// to frames suitable for use by the dashboard.
+//
+// id: 5400
+// byte 1: unit status, airflow
+//   0 active
+//   1 auto
+//   2 ac
+//   3 dual
+//   4 face
+//   5 feet
+//   6 recirculate
+//   7 front defrost
+// byte 2: other
+//   0 rear defrost
+// byte 3: fan speed
+//   0-8 fan speed, 0 to 8
+// byte 5: driver temperature
+//   0-8 temperature
+// byte 6: passenger temperature
+//   0-8 temperature
+class ClimateListener {
+    public:
+        // Construct an empty climate listener.
+        ClimateListener();
+
+        // Update state from incoming climate state frames. Accepts frames
+        // 0x54A, 0x54B, and 0x625.
+        void update(uint32_t id, uint8_t len, byte* data);
+
+        // Emit state frames to RealDash.
+        void emit(RealDash* dash);
+
+    private:
+        // True if an incoming state frame was received.
+        bool state_changed_;
+
+        // Control frame that is sent to the dashboard.
+        byte frame5400_[8];
+
+        // Update state from a 0x54A frame.
+        void update54A(byte* data);
+
+        // Update state from a 0x54B frame.
+        void update54B(byte* data);
+
+        // Update state from a 0x625 frame.
+        void update625(byte* data);
 };
 
 #endif

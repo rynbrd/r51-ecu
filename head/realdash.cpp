@@ -2,9 +2,6 @@
 
 static const byte frame44Prefix[4] = {0x44, 0x33, 0x22, 0x11};
 
-bool parseBuffer(byte* buf, uint32_t* id, byte* data) {
-}
-
 bool RealDash::read(uint32_t* id, uint8_t* len, byte* data) {
     // Read serial data into the incoming buffer.
     while (incoming_size_ < 17 && stream_->available() > 0) {
