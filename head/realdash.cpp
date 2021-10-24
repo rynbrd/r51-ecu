@@ -1,12 +1,15 @@
 #include "realdash.h"
 
+#include <Arduino.h>
+#include "binary.h"
+
 static const byte frame44Prefix[4] = {0x44, 0x33, 0x22, 0x11};
 
-void RealDash::begin(Stream* stream) {
+void RealDashSerial::begin(Stream* stream) {
     stream_ = stream;
 }
 
-bool RealDash::read(uint32_t* id, uint8_t* len, byte* data) {
+bool RealDashSerial::read(uint32_t* id, uint8_t* len, byte* data) {
     if (stream_ == nullptr) {
         return false;
     }
@@ -51,7 +54,7 @@ bool RealDash::read(uint32_t* id, uint8_t* len, byte* data) {
     return true;
 }
 
-void RealDash::write(uint32_t id, uint8_t len, byte* data) {
+void RealDashSerial::write(uint32_t id, uint8_t len, byte* data) {
     if (stream_ == nullptr) {
         return;
     }
@@ -63,5 +66,87 @@ void RealDash::write(uint32_t id, uint8_t len, byte* data) {
     stream_->write(data, len);
     for (int i = 0; i < 8-len; i++) {
         stream_->write((byte)0);
+    }
+}
+
+RealDashController::RealDashController() {
+    realdash_ = nullptr;
+    memset(frame5400_, 0, 8);
+    frame5400_changed_ = false;
+}
+
+void RealDashController::connect(RealDashSerial* realdash) {
+    realdash_ = realdash;
+}
+
+void RealDashController::setClimateActive(bool value) {
+    setBit(frame5400_, 0, 0, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateAuto(bool value) {
+    setBit(frame5400_, 0, 1, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateAc(bool value) {
+    setBit(frame5400_, 0, 2, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateDual(bool value) {
+    setBit(frame5400_, 0, 3, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateFace(bool value) {
+    setBit(frame5400_, 0, 4, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateFeet(bool value) {
+    setBit(frame5400_, 0, 5, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateRecirculate(bool value) {
+    setBit(frame5400_, 0, 6, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateFrontDefrost(bool value) {
+    setBit(frame5400_, 0, 7, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateRearDefrost(bool value) {
+    setBit(frame5400_, 1, 0, value);
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimateFanSpeed(uint8_t value) {
+    if (value <= 8) {
+        frame5400_[2] = value;
+        frame5400_changed_ = true;
+    }
+}
+
+void RealDashController::setClimateDriverTemp(uint8_t value) {
+    frame5400_[4] = value;
+    frame5400_changed_ = true;
+}
+
+void RealDashController::setClimatePassengerTemp(uint8_t value) {
+    frame5400_[5] = value;
+    frame5400_changed_ = true;
+}
+
+void RealDashController::push() {
+    if (realdash_ == nullptr) {
+        return;
+    }
+    if (frame5400_changed_) {
+        realdash_->write(0x5400, 8, frame5400_);
+        frame5400_changed_ = false;
     }
 }

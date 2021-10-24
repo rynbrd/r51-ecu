@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "mcp_can.h"
 #include "realdash.h"
+#include "vehicle.h"
 
 #define SERIAL_BAUDRATE 1000000
 #define CAN_CS_PIN 17
@@ -13,9 +14,12 @@ struct {
     byte data[8];
 } frame;
 
-ClimateController climate;
 MCP_CAN can(CAN_CS_PIN);
-RealDash dash;
+RealDashSerial realdash;
+
+VehicleController vehicle_controller;
+VehicleListener vehicle_listener;
+RealDashController dash_controller;
 
 void setup() {
     Serial.begin(SERIAL_BAUDRATE);
@@ -26,12 +30,23 @@ void setup() {
     if (can.begin(CAN_BAUDRATE) != CAN_OK) {
         Debug.println("can init failure");
     }
-    dash.begin(&Serial);
+    realdash.begin(&Serial);
+
+    vehicle_controller.connect(&can);
+    vehicle_listener.connect(&dash_controller);
+    dash_controller.connect(&realdash);
 }
 
+// The loop must push out all state changes for each frame before processing
+// another frame. This means that for each data source all controllers need to
+// have their push methods called in order to flush state changes to connected
+// hardware. Otherwise state changes in the controller could get clobbered by a
+// new frame before those changes are pushed out.
 void loop() {
     if (can.readMsgBufID(&frame.id, &frame.len, frame.data) == CAN_OK) {
-        climate.update(frame.id, frame.len, frame.data);
+        vehicle_controller.update(frame.id, frame.len, frame.data);
+        vehicle_listener.update(frame.id, frame.len, frame.data);
     }
-    climate.emit(&can);
+    vehicle_controller.push();
+    dash_controller.push();
 }
