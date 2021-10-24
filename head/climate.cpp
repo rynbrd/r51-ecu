@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include "debug.h"
+#include "binary.h"
+
 
 ClimateController::ClimateController() {
     unit_online_ = false;
@@ -26,57 +28,33 @@ void ClimateController::deactivate() {
     if (!online()) {
         return;
     }
-    frame540_[6] = frame540_[6] ^ (1<<7);
+    toggleBit(frame540_, 6, 7);
     state_changed_ = true;
 }
 
 void ClimateController::toggleAuto() {
-    if (!online()) {
-        return;
-    }
-    frame540_[6] = frame540_[6] ^ (1<<5);
-    state_changed_ = true;
+    toggle(frame540_, 6, 5);
 }
 
 void ClimateController::toggleAc() {
-    if (!online()) {
-        return;
-    }
-    frame540_[5] = frame540_[5] ^ (1<<3);
-    state_changed_ = true;
+    toggle(frame540_, 5, 3);
 }
 
 void ClimateController::toggleDual() {
-    if (!online()) {
-        return;
-    }
-    frame540_[6] = frame540_[6] ^ (1<<3);
-    state_changed_ = true;
+    toggle(frame540_, 6, 3);
 }
 
 void ClimateController::toggleRecirculate() {
-    if (!online()) {
-        return;
-    }
-    frame541_[1] = frame541_[1] ^ (1<<6);
-    state_changed_ = true;
+    toggle(frame541_, 1, 6);
 }
 
 
 void ClimateController::cycleMode() {
-    if (!online()) {
-        return;
-    }
-    frame540_[6] = frame540_[6] ^ 1;
-    state_changed_ = true;
+    toggle(frame540_, 6, 0);
 }
 
 void ClimateController::toggleFrontDefrost() {
-    if (!online()) {
-        return;
-    }
-    frame540_[6] = frame540_[6] ^ (1<<1);
-    state_changed_ = true;
+    toggle(frame540_, 6, 1);
 }
 
 void ClimateController::toggleRearDefrost() {
@@ -84,37 +62,23 @@ void ClimateController::toggleRearDefrost() {
 }
 
 void ClimateController::increaseFanSpeed() {
-    if (!online()) {
-        return;
-    }
-    frame541_[0] = frame541_[0] ^ (1<<5);
-    state_changed_ = true;
+    toggle(frame541_, 0, 5);
 }
 
 void ClimateController::decreaseFanSpeed() {
-    if (!online()) {
-        return;
-    }
-    frame541_[0] = frame541_[0] ^ (1<<4);
-    state_changed_ = true;
+    toggle(frame541_, 0, 4);
 }
 
 void ClimateController::setDriverTemp(uint8_t temp) {
-    if (!online()) {
-        return;
+    if (toggle(frame540_, 5, 5)) {
+        frame540_[3] = temp + 0xB8;
     }
-    frame540_[5] = frame540_[5] ^ (1<<5);
-    frame540_[3] = temp + 0xB8;
-    state_changed_ = true;
 }
 
 void ClimateController::setPassengerTemp(uint8_t temp) {
-    if (!online()) {
-        return;
+    if (toggle(frame540_, 5, 5)) {
+        frame540_[4] = temp - 0x33;
     }
-    frame540_[5] = frame540_[5] ^ (1<<5);
-    frame540_[4] = temp - 0x33;
-    state_changed_ = true;
 }
 
 void ClimateController::update(uint32_t id, uint8_t len, byte* data) {
@@ -172,4 +136,13 @@ void ClimateController::emit(MCP_CAN* can) {
         state_changed_ = false;
         last_heartbeat_ = millis();
     }
+}
+
+bool ClimateController::toggle(byte* frame, uint8_t offset, uint8_t bit) {
+    if (!online()) {
+        return false;
+    }
+    toggleBit(frame, offset, bit);
+    state_changed_ = true;
+    return true;
 }

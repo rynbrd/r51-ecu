@@ -79,6 +79,9 @@ class ClimateController {
         // Control frames. These are standard (11-bit ID) frames.
         byte frame540_[8];
         byte frame541_[8];
+
+        // Toggle a function controlled by a single bit.
+        bool toggle(byte* frame, uint8_t offset, uint8_t bit);
 };
 
 #endif
