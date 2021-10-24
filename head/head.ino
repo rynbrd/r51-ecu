@@ -1,6 +1,7 @@
 #include "climate.h"
 #include "debug.h"
 #include "mcp_can.h"
+#include "realdash.h"
 
 #define SERIAL_BAUDRATE 1000000
 #define CAN_CS_PIN 17
@@ -14,17 +15,18 @@ struct {
 
 ClimateController climate;
 MCP_CAN can(CAN_CS_PIN);
+RealDash dash;
 
 void setup() {
     Serial.begin(SERIAL_BAUDRATE);
     while (!Serial) {
         delay(100);
     }
-    Debug.begin(&Serial);
 
     if (can.begin(CAN_BAUDRATE) != CAN_OK) {
         Debug.println("can init failure");
     }
+    dash.begin(&Serial);
 }
 
 void loop() {

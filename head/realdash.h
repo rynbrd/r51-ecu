@@ -7,10 +7,12 @@
 // type frames. Other incoming frame types are discarded.
 class RealDash {
     public:
-        // Construct a new RealDash instance. Data is sent and received over
-        // the given stream. This is typically Serial or SerialUSB but any
-        // stream can be used.
-        RealDash(Stream* stream) : stream_(stream) {}
+        // Construct an uninitialized RealDash instance.
+        RealDash() : stream_(nullptr) {}
+
+        // Start the RealDash instance. Data is transmitted over the given
+        // serial stream. This is typically Serial or SerialUSB.
+        void begin(Stream* stream);
 
         // Read a frame from RealDash. Returns true if a frame was read or
         // false if not. Should be called on every loop or the connected serial

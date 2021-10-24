@@ -2,7 +2,15 @@
 
 static const byte frame44Prefix[4] = {0x44, 0x33, 0x22, 0x11};
 
+void RealDash::begin(Stream* stream) {
+    stream_ = stream;
+}
+
 bool RealDash::read(uint32_t* id, uint8_t* len, byte* data) {
+    if (stream_ == nullptr) {
+        return false;
+    }
+
     // Read serial data into the incoming buffer.
     while (incoming_size_ < 17 && stream_->available() > 0) {
         incoming_buffer_[incoming_size_++] = stream_->read();
@@ -44,6 +52,9 @@ bool RealDash::read(uint32_t* id, uint8_t* len, byte* data) {
 }
 
 void RealDash::write(uint32_t id, uint8_t len, byte* data) {
+    if (stream_ == nullptr) {
+        return;
+    }
     if (len > 8) {
         len = 8;
     }
