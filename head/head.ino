@@ -21,10 +21,19 @@ RealDashSerial realdash;
 VehicleController vehicle_controller;
 VehicleListener vehicle_listener;
 RealDashController dash_controller;
+RealDashListener dash_listener;
+
+void connect() {
+    vehicle_controller.connect(&can);
+    vehicle_listener.connect(&dash_controller);
+    dash_controller.connect(&realdash);
+    dash_listener.connect(&vehicle_controller);
+}
 
 void receive(uint32_t id, uint8_t len, byte* data) {
     vehicle_controller.receive(frame.id, frame.len, frame.data);
     vehicle_listener.receive(frame.id, frame.len, frame.data);
+    dash_listener.receive(frame.id, frame.len, frame.data);
 }
 
 void push() {
@@ -43,9 +52,7 @@ void setup() {
     }
     realdash.begin(&Serial);
 
-    vehicle_controller.connect(&can);
-    vehicle_listener.connect(&dash_controller);
-    dash_controller.connect(&realdash);
+    connect();
 }
 
 // The loop must push out all state changes for each frame before processing
@@ -55,6 +62,11 @@ void setup() {
 // new frame before those changes are pushed out.
 void loop() {
     if (can.readMsgBufID(&frame.id, &frame.len, frame.data) == CAN_OK) {
+        receive(frame.id, frame.len, frame.data);
+    }
+    push();
+
+    if (realdash.read(&frame.id, &frame.len, frame.data)) {
         receive(frame.id, frame.len, frame.data);
     }
     push();

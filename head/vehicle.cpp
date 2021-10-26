@@ -77,12 +77,18 @@ void VehicleController::decreaseClimateFanSpeed() {
 }
 
 void VehicleController::setClimateDriverTemp(uint8_t temp) {
+    if (temp < 60 || temp > 90) {
+        return;
+    }
     if (toggle(frame540_, 5, 5)) {
         frame540_[3] = temp + 0xB8;
     }
 }
 
 void VehicleController::setClimatePassengerTemp(uint8_t temp) {
+    if (temp < 60 || temp > 90) {
+        return;
+    }
     if (toggle(frame540_, 5, 5)) {
         frame540_[4] = temp - 0x33;
     }

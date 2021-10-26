@@ -150,3 +150,50 @@ void RealDashController::push() {
         frame5400_changed_ = false;
     }
 }
+
+void RealDashListener::connect(ClimateController* climate) {
+    climate_ = climate;
+}
+
+void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
+    if (len != 8 && id != 0x5401) {
+        return;
+    }
+
+    if (getBit(data, 0, 0)) {
+        climate_->deactivateClimate();
+    }
+    if (getBit(data, 0, 1)) {
+        climate_->toggleClimateAuto();
+    }
+    if (getBit(data, 0, 2)) {
+        climate_->toggleClimateAc();
+    }
+    if (getBit(data, 0, 3)) {
+        climate_->toggleClimateDual();
+    }
+    if (getBit(data, 0, 4)) {
+        climate_->toggleClimateRecirculate();
+    }
+    if (getBit(data, 0, 5)) {
+        climate_->cycleClimateMode();
+    }
+    if (getBit(data, 0, 6)) {
+        climate_->toggleClimateFrontDefrost();
+    }
+    if (getBit(data, 0, 7)) {
+        climate_->toggleClimateRearDefrost();
+    }
+    if (getBit(data, 1, 0)) {
+        climate_->increaseClimateFanSpeed();
+    }
+    if (getBit(data, 1, 1)) {
+        climate_->decreaseClimateFanSpeed();
+    }
+    if (data[2] != 0) {
+        climate_->setClimateDriverTemp(data[2]);
+    }
+    if (data[3] != 0) {
+        climate_->setClimatePassengerTemp(data[3]);
+    }
+}

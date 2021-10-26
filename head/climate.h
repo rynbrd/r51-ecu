@@ -1,10 +1,6 @@
 #ifndef __CLIMATE_H__
 #define __CLIMATE_H__
 
-#include <stdint.h>
-#include "mcp_can.h"
-#include "realdash.h"
-
 // Controls a climate control system.
 class ClimateController {
     public:

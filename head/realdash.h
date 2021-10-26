@@ -2,7 +2,9 @@
 #define __REALDASH_H__
 
 #include <Arduino.h>
+#include "climate.h"
 #include "dash.h"
+#include "listener.h"
 
 // Reads and writes frames to RealDash over serial. Only supports RealDash 0x44
 // type frames. Other incoming frame types are discarded.
@@ -106,6 +108,42 @@ class RealDashController : public DashController {
         RealDashSerial* realdash_;
         byte frame5400_[8];
         bool frame5400_changed_;
+};
+
+// Process RealDash frames into vehicle control commands.
+//
+// Frame 5401: Set Climate
+//   Byte 1: unit status, airflow
+//     0 turn off
+//     1 toggle auto
+//     2 toggle a/c 
+//     3 toggle dual zone
+//     4 toggle recirculate
+//     5 cyle airflow mode
+//     6 toggle front defrost
+//     7 toggle rear defrost
+//     8 always 0
+//   Byte 2: fan speed
+//     0 increase fan speed
+//     1 decrease fan speed
+//     2-8 always 0
+//   Byte 3: driver temperature
+//     0-8: temperature (60 - 90)
+//   Byte 4: passenger temperature
+//     0-8: temperature (60 - 90)
+//   Bytes 5-8: Always 0
+class RealDashListener : public FrameListener {
+    public:
+        RealDashListsner();
+
+        // Connect to vehicle systems.
+        void connect(ClimateController* climate);
+
+        // Process a RealDash frame.
+        void receive(uint32_t id, uint8_t len, byte* data);
+    private:
+        // Climate controller to send climate commands to.
+        ClimateController* climate_; 
 };
 
 #endif
