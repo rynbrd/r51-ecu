@@ -443,23 +443,23 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canSpeed, const INT8U clock)            
 
     mcp2515_reset();
 
+    INFO_MSG("mcp_can: begin set baudrate");
     res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
     if(res > 0)
     {
-      Debug.println("Enter setting mode fail!!");
+      ERROR_MSG("mcp_can: enter setting mode fail");
       delay(10);
       return res;
     }
-    Debug.println("Enter setting mode Logger.");
     delay(10);
                                                                         /* set boadrate                 */
     if (mcp2515_configRate(canSpeed, clock))
     {
-      Debug.println("Set rate fail!!");
+      ERROR_MSG("mcp_can: set baudrate fail");
       delay(10);
       return res;
     }
-    Debug.println("Set rate Logger.");
+    INFO_MSG("mcp_can: set baudrate complete");
     delay(10);
 
     if ( res == MCP2515_OK ) {
@@ -494,12 +494,12 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canSpeed, const INT8U clock)            
                                                                         /* enter normal mode            */
         res = mcp2515_setCANCTRL_Mode(MODE_NORMAL);                                                                
         if (res) {
-          Debug.println("Enter Normal Mode fail!!");
+          ERROR_MSG("mcp_can: failed to enter normal mode");
           delay(10);
           return res;
         }
 
-        Debug.println("Enter Normal Mode Logger.");
+        INFO_MSG("mcp_can: enter normal mode");
         delay(10);
 
     }
@@ -673,11 +673,11 @@ INT8U MCP_CAN::begin(INT8U speedset, const INT8U clockset)
 INT8U MCP_CAN::init_Mask(INT8U num, INT8U ext, INT32U ulData)
 {
     INT8U res = MCP2515_OK;
-    Debug.println("Begin to set Mask");
+    INFO_MSG("mcp_can: begin to set mask");
     delay(10);
     res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
     if (res > 0) {
-        Debug.println("Enter setting mode fail!!");
+        ERROR_MSG("mcp_can: enter setting mode fail");
         delay(10);
         return res;
     }
@@ -693,11 +693,11 @@ INT8U MCP_CAN::init_Mask(INT8U num, INT8U ext, INT32U ulData)
     
     res = mcp2515_setCANCTRL_Mode(MODE_NORMAL);
     if (res > 0) {
-        Debug.println("Enter normal mode fail!!");
+        ERROR_MSG("mcp_can: enter normal mode fail");
         delay(10);
         return res;
     }
-    Debug.println("Set Mask Logger.");
+    INFO_MSG("mcp_can: set mask complete");
     delay(10);
     return res;
 }
@@ -709,11 +709,11 @@ INT8U MCP_CAN::init_Mask(INT8U num, INT8U ext, INT32U ulData)
 INT8U MCP_CAN::init_Filt(INT8U num, INT8U ext, INT32U ulData)
 {
     INT8U res = MCP2515_OK;
-    Debug.println("Begin to set Filter");
+    INFO_MSG("mcp_can: begin to set filter");
     delay(10);
     res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
     if (res > 0) {
-        Debug.print("Enter setting mode fail!!");
+        ERROR_MSG("mcp_can enter setting mode fail");
         delay(10);
         return res;
     }
@@ -751,12 +751,12 @@ INT8U MCP_CAN::init_Filt(INT8U num, INT8U ext, INT32U ulData)
     res = mcp2515_setCANCTRL_Mode(MODE_NORMAL);
     if(res > 0)
     {
-        Debug.println("Enter normal mode fail!!");
-        Debug.println("Set filter fail!!");
+        ERROR_MSG("mcp_can: enter normal mode fail");
+        ERROR_MSG("mcp_can: set filter fail");
         delay(10);
         return res;
     }
-    Debug.println("Set Filter Logger.");
+    INFO_MSG("mcp_can: set filter complete");
     delay(10);
 
     return res;

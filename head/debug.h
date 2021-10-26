@@ -4,46 +4,66 @@
 #include <Stream.h>
 #include <stdint.h>
 
-// Stream wrapper class used for debug logging. Reading is not supported.
-class Debug_ : public Stream {
-    public:
-        // Create an uninitialized debug logger. Methods other than begin() are
-        // a noop. Calling begin() will activate the debug logger.
-        Debug_() : stream_(nullptr) {}
 
-        // Start debug logging to the given stream. This activates the other
-        // methods and their calls are forwarded to stream.
-        void begin(Stream* stream);
+#ifdef DEBUG_STREAM
+extern Stream* Debug = &DEBUG_STREAM;
 
-        // Stop debug logging to the stream. This deactivates methods other
-        // than begin() until begin() is called again.
-        void stop();
+size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
 
-        // Write a character.
-        size_t write(uint8_t ch) override;
+#define INFO_MSG(MSG) ({\
+    Debug->print("[INFO]  ");\
+    Debug->println(MSG);\
+})
+#define INFO_MSG_VAL(MSG, VAL) ({\
+    Debug->print("[INFO]  ");\
+    Debug->print(MSG);\
+    Debug->println(VAL);\
+})
+#define INFO_MSG_VAL_FMT(MSG, VAL, FMT) ({\
+    Debug->print("[INFO]  ");\
+    Debug->print(MSG);\
+    Debug->println(VAL, FMT);\
+})
+#define INFO_MSG_FRAME(MSG, ID, LEN, DATA) ({\
+    Debug->print("[INFO]  ");\
+    Debug->print(MSG);\
+    Debug->printDebugFrame(ID, LEN, Data);\
+    Debug->println("");\
+})
 
-        // Write a string.
-        size_t write(const uint8_t *str, size_t size) override;
+#define ERROR_MSG(MSG) ({\
+    Debug->print("[ERROR] ");\
+    Debug->println(MSG);\
+})
+#define ERROR_MSG_VAL(MSG, VAL) ({\
+    Debug->print("[ERROR] ");\
+    Debug->print(MSG);\
+    Debug->println(VAL);\
+})
+#define ERROR_MSG_VAL_FMT(MSG, VAL, FMT) ({\
+    Debug->print("[ERROR] ");\
+    Debug->print(MSG);\
+    Debug->println(VAL, FMT);\
+})
+#define ERROR_MSG_FRAME(MSG, ID, LEN, DATA) ({\
+    Debug->print("[ERROR] ");\
+    Debug->print(MSG);\
+    Debug->printDebugFrame(ID, LEN, Data);\
+    Debug->println("");\
+})
 
-        // Check if data is available to read.
-        int available() override;
+#else
 
-        // Read a character.
-        int read() override;
+#define INFO_MSG(MSG)
+#define INFO_MSG_VAL(MSG, VAL)
+#define INFO_MSG_VAL_FMT(MSG, VAL, FMT)
+#define INFO_MSG_FRAME(MSG, ID, LEN, DATA)
 
-        // Peek.
-        int peek() override;
+#define ERROR_MSG(MSG)
+#define ERROR_MSG_VAL(MSG, VAL)
+#define ERROR_MSG_VAL_FMT(MSG, VAL, FMT)
+#define ERROR_FRAME(MSG, ID, LEN, DATA)
 
-        // Print a human readable frame.
-        size_t print(uint32_t id, uint8_t len, uint8_t* date);
-        size_t println(uint32_t id, uint8_t len, uint8_t* date);
-
-        using Stream::print;
-        using Stream::println;
-    private:
-        Stream* stream_;
-};
-
-extern Debug_ Debug;
+#endif
 
 #endif

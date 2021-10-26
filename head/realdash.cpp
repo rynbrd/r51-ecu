@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "binary.h"
+#include "debug.h"
 
 static const byte frame44Prefix[4] = {0x44, 0x33, 0x22, 0x11};
 
@@ -80,51 +81,61 @@ void RealDashController::connect(RealDashSerial* realdash) {
 }
 
 void RealDashController::setClimateActive(bool value) {
+    INFO_MSG_VAL("realdash: climate set active: ", value);
     setBit(frame5400_, 0, 0, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateAuto(bool value) {
+    INFO_MSG_VAL("realdash: climate: set auto: ", value);
     setBit(frame5400_, 0, 1, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateAc(bool value) {
+    INFO_MSG_VAL("realdash: climate: set a/c: ", value);
     setBit(frame5400_, 0, 2, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateDual(bool value) {
+    INFO_MSG_VAL("realdash: climate: set dual zone: ", value);
     setBit(frame5400_, 0, 3, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateFace(bool value) {
+    INFO_MSG_VAL("realdash: climate: set face vent: ", value);
     setBit(frame5400_, 0, 4, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateFeet(bool value) {
+    INFO_MSG_VAL("realdash: climate: set feet vent: ", value);
     setBit(frame5400_, 0, 5, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateRecirculate(bool value) {
+    INFO_MSG_VAL("realdash: climate: set recirculate: ", value);
     setBit(frame5400_, 0, 6, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateFrontDefrost(bool value) {
+    INFO_MSG_VAL("realdash: climate: set front defrost: ", value);
     setBit(frame5400_, 0, 7, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateRearDefrost(bool value) {
+    INFO_MSG_VAL("realdash: climate: set rear defrost: ", value);
     setBit(frame5400_, 1, 0, value);
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimateFanSpeed(uint8_t value) {
+    INFO_MSG_VAL("realdash: climate: set fan speed: ", value);
     if (value <= 8) {
         frame5400_[2] = value;
         frame5400_changed_ = true;
@@ -132,11 +143,13 @@ void RealDashController::setClimateFanSpeed(uint8_t value) {
 }
 
 void RealDashController::setClimateDriverTemp(uint8_t value) {
+    INFO_MSG_VAL("realdash: climate: set driver temperature: ", value);
     frame5400_[4] = value;
     frame5400_changed_ = true;
 }
 
 void RealDashController::setClimatePassengerTemp(uint8_t value) {
+    INFO_MSG_VAL("realdash: climate: set passenger temperature: ", value);
     frame5400_[5] = value;
     frame5400_changed_ = true;
 }
@@ -146,6 +159,7 @@ void RealDashController::push() {
         return;
     }
     if (frame5400_changed_) {
+        INFO_MSG_FRAME("realdash: send ", 0x5400, 8, frame5400_);
         realdash_->write(0x5400, 8, frame5400_);
         frame5400_changed_ = false;
     }
@@ -159,6 +173,7 @@ void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
     if (len != 8 && id != 0x5401) {
         return;
     }
+    INFO_MSG_FRAME("realdash: receive ", id, len, data);
 
     if (getBit(data, 0, 0)) {
         climate_->deactivateClimate();

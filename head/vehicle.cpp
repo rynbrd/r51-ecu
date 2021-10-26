@@ -32,66 +32,93 @@ bool VehicleController::climateOnline() const {
 }
 
 void VehicleController::deactivateClimate() {
-    if (!climateOnline()) {
-        return;
+    if (toggle(frame540_, 6, 7)) {
+        INFO_MSG("vehicle: climate: deactivate");
     }
-    toggleBit(frame540_, 6, 7);
-    frame54x_changed_ = true;
 }
 
 void VehicleController::toggleClimateAuto() {
-    toggle(frame540_, 6, 5);
+    if (toggle(frame540_, 6, 5)) {
+        INFO_MSG("vehicle: climate: toggle auto");
+    }
 }
 
 void VehicleController::toggleClimateAc() {
-    toggle(frame540_, 5, 3);
+    if (toggle(frame540_, 5, 3)) {
+        INFO_MSG("vehicle: climate: toggle a/c");
+    }
 }
 
 void VehicleController::toggleClimateDual() {
-    toggle(frame540_, 6, 3);
+    if (toggle(frame540_, 6, 3)) {
+        INFO_MSG("vehicle: climate: toggle dual zone");
+    }
 }
 
 void VehicleController::toggleClimateRecirculate() {
-    toggle(frame541_, 1, 6);
+    if (toggle(frame541_, 1, 6)) {
+        INFO_MSG("vehicle: climate: toggle recirculate");
+    }
 }
 
 
 void VehicleController::cycleClimateMode() {
-    toggle(frame540_, 6, 0);
+    if (toggle(frame540_, 6, 0)) {
+        INFO_MSG("vehicle: climate: cycle mode");
+    }
 }
 
 void VehicleController::toggleClimateFrontDefrost() {
-    toggle(frame540_, 6, 1);
+    if (toggle(frame540_, 6, 1)) {
+        INFO_MSG("vehicle: climate: toggle front defrost");
+    }
 }
 
 void VehicleController::toggleClimateRearDefrost() {
     // TODO: determine rear defrost control signal
+    if (climateOnline()) {
+        INFO_MSG("vehicle: climate: toggle rear defrost (noop)");
+    }
 }
 
 void VehicleController::increaseClimateFanSpeed() {
-    toggle(frame541_, 0, 5);
+    if (toggle(frame541_, 0, 5)) {
+        INFO_MSG("vehicle: climate: increase fan speed");
+    }
 }
 
 void VehicleController::decreaseClimateFanSpeed() {
-    toggle(frame541_, 0, 4);
+    if (toggle(frame541_, 0, 4)) {
+        INFO_MSG("vehicle: climate: decrease fan speed");
+    }
 }
 
 void VehicleController::setClimateDriverTemp(uint8_t temp) {
-    if (temp < 60 || temp > 90) {
+    if (!climateOnline()) {
         return;
     }
-    if (toggle(frame540_, 5, 5)) {
-        frame540_[3] = temp + 0xB8;
+    if (temp < 60 || temp > 90) {
+        ERROR_MSG_VAL("vehicle: climate: driver temperature out of range: ", temp);
+        return;
     }
+    toggleBit(frame540_, 5, 5);
+    frame540_[3] = temp + 0xB8;
+    frame54x_changed_ = true;
+    INFO_MSG_VAL("vehicle: climate: set driver temperature to ", temp);
 }
 
 void VehicleController::setClimatePassengerTemp(uint8_t temp) {
-    if (temp < 60 || temp > 90) {
+    if (!climateOnline()) {
         return;
     }
-    if (toggle(frame540_, 5, 5)) {
-        frame540_[4] = temp - 0x33;
+    if (temp < 60 || temp > 90) {
+        ERROR_MSG_VAL("vehicle: climate: passenger temperature out of range: ", temp);
+        return;
     }
+    toggleBit(frame540_, 5, 5);
+    frame540_[4] = temp - 0x33;
+    frame54x_changed_ = true;
+    INFO_MSG_VAL("vehicle: climate: set passenger temperature to ", temp);
 }
 
 void VehicleController::receive(uint32_t id, uint8_t len, byte* data) {
@@ -114,7 +141,7 @@ void VehicleController::receive(uint32_t id, uint8_t len, byte* data) {
         frame540_[0] = 0;
         frame54x_changed_ = true;
         heartbeat_delay_ = 200;
-        Debug.println("climate system reports online"); 
+        INFO_MSG("vehicle: climate system reports online"); 
     }
 }
 
@@ -130,15 +157,13 @@ void VehicleController::push() {
     }
 
     if (frame54x_changed_) {
-        Debug.print("send ");
-        Debug.println(0x540, 8, frame540_);
+        INFO_MSG_FRAME("vehicle: send ", 0x540, 8, frame540_);
         if (can_->sendMsgBuf(0x540, false, 8, frame540_) != CAN_OK) {
-            Debug.println("error sending climate control frame 540");
+            ERROR_MSG("vehicle: failed to send frame 0x540");
         }
-        Debug.print("send ");
-        Debug.println(0x541, 8, frame540_);
+        INFO_MSG_FRAME("vehicle: send ", 0x541, 8, frame541_);
         if (can_->sendMsgBuf(0x541, false, 8, frame541_) != CAN_OK) {
-            Debug.println("error sending climate control frame 541");
+            ERROR_MSG("vehicle: failed to send frame 0x541");
         }
 
         if (climate_online_ && frame540_[0] == 0x00) {
@@ -147,7 +172,7 @@ void VehicleController::push() {
             frame540_[0] = 0x60;
             frame540_[1] = 0x40;
             frame540_[6] = 0x04;
-            Debug.println("climate system fully operational");
+            INFO_MSG("vehicle: climate system handshake complete");
         }
 
         frame54x_changed_ = false;
@@ -186,11 +211,13 @@ void VehicleListener::receive(uint32_t id, uint8_t len, byte* data) {
 }
 
 void VehicleListener::receive54A(byte* data) {
+    INFO_MSG_FRAME("vehicle: receive ", 0x54A, 8, data);
     dash_->setClimateDriverTemp(data[4]);
     dash_->setClimatePassengerTemp(data[5]);
 }
 
 void VehicleListener::receive54B(byte* data) {
+    INFO_MSG_FRAME("vehicle: receive ", 0x54B, 8, data);
     dash_->setClimateActive(!getBit(data, 0, 5));
     dash_->setClimateAuto(getBit(data, 0, 0));
     dash_->setClimateAc(getBit(data, 0, 3));
@@ -248,5 +275,6 @@ void VehicleListener::receive54B(byte* data) {
 }
 
 void VehicleListener::receive625(byte* data) {
+    INFO_MSG_FRAME("vehicle: receive ", 0x625, 8, data);
     dash_->setClimateRearDefrost(getBit(data, 0, 0));
 }

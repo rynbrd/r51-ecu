@@ -1,5 +1,10 @@
-#include "climate.h"
+#include <Arduino.h>
+
+// Replace with something reasonable to enable debug logging.
+//#define DEBUG_STREAM Serial
+
 #include "debug.h"
+#include "climate.h"
 #include "listener.h"
 #include "mcp_can.h"
 #include "realdash.h"
@@ -47,12 +52,14 @@ void setup() {
         delay(100);
     }
 
-    if (can.begin(CAN_BAUDRATE) != CAN_OK) {
-        Debug.println("can init failure");
+    while (can.begin(CAN_BAUDRATE) != CAN_OK) {
+        ERROR_MSG("setup: can bus init failure");
+        delay(1000);
     }
     realdash.begin(&Serial);
 
     connect();
+    INFO_MSG("setup: ecu started");
 }
 
 // The loop must push out all state changes for each frame before processing
