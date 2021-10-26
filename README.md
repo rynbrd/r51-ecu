@@ -381,15 +381,29 @@ functionality here.
 The following housings or harness parts are assumed to be compatible. This is
 pending confirmation.
 
-| Connector | Pin | Housing      | Harness or Alternate Part                 | 
-| --------- | --- | ------------ | ----------------------------------------- |
-| M42       |  20 |              | Metra 70-7552, ["Upgraded" Metra 70-7552] |
-| M43       |  12 |              |                                           |
-| M44       |   3 |              | Metra 40-NI12                             |
-| M45       |  24 | TE 1376103-1 |                                           |
-| M46       |  16 | TE 1376106-1 |                                           |
-| M69       |  12 | TE 1379675-5 | Metra 70-7554, TE 1379675-1               |
-| M70       |  32 | TE 1473799-1 |                                           |
+| Connector | Pin | Housing      | Harness or Alternate Part   | 
+| --------- | --- | ------------ | --------------------------- |
+| M42       |  20 |              | ["Upgraded" Metra 70-7552]  |
+| M43       |  12 |              |                             |
+| M44       |   3 |              | Metra 40-NI12               |
+| M45       |  24 | TE 1376103-1 |                             |
+| M46       |  16 | TE 1376106-1 |                             |
+| M69       |  12 | TE 1379675-5 | Metra 70-7554, TE 1379675-1 |
+| M70       |  32 | TE 1473799-1 |                             |
+
+The "upgraded" 70-7552 is not a Metra product but contains all the necessary
+wires to connect to the stock harness. There are extras, particularly if your
+system is equipped with the Bose sound system. I recommend using a pin removal
+tool to remove the wires you do not need from this harness.
+
+The Metra 70-7554 contains two pigtails: one for M69 for the Bose amplifier
+pre-outs and one for M42. The M42 pigtail only has a few of its pins populated
+and isn't suitable for use. You must either use the upgraded 70-7552 or
+purchase additional terminals and crimp your own.
+
+The pre-amp pigtail does not contain an amp-on wire. I recommend you use a pin
+removal tool to remove one of the wires from the included M42 connector and
+insert it for your amp-on wire.
 
 #### Connector M42
 
@@ -503,9 +517,9 @@ This connector is for video input.
 |  61 |       |                | not connected           |
 |  62 |       |                | not connected           |
 |  63 |       |                | not connected           |
-|  64 | W     | VTR+           | DVD player              |
-|  65 | B     | VTR-           | DVD player              |
-|  66 | G     | COMP_IN+       |                         |
+|  64 | W     | VTR+           | backup camera           |
+|  65 | B     | VTR-           | backup camera           |
+|  66 | G     | COMP_IN+       | DVD player              |
 |  67 |       |                | not connected           |
 |  68 | BR    | RV_CAM_SIG     | backup camera signal    |
 |  69 |       |                | not connected           |
@@ -513,7 +527,7 @@ This connector is for video input.
 |  71 |       |                | not connected           |
 |  72 |       | COMP_IN_SHIELD |                         |
 |  73 |       | GND            | shield                  |
-|  74 | R     | COMP_IN-       |                         |
+|  74 | R     | COMP_IN-       | DVD player              |
 |  75 |       |                | not connected           |
 
 #### Connector M69
