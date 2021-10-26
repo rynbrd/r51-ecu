@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-// Replace with something reasonable to enable debug logging.
-//#define DEBUG_STREAM Serial
+// Uncomment to enable serial debugging.
+//#define DEBUG_STREAM Serial1
 
 #include "debug.h"
 #include "climate.h"
