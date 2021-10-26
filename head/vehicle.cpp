@@ -88,7 +88,7 @@ void VehicleController::setClimatePassengerTemp(uint8_t temp) {
     }
 }
 
-void VehicleController::update(uint32_t id, uint8_t len, byte* data) {
+void VehicleController::receive(uint32_t id, uint8_t len, byte* data) {
     // Ignore invalid frames.
     if (id != 0x54B || len < 8) {
         return;
@@ -162,29 +162,29 @@ void VehicleListener::connect(DashController* dash) {
     dash_ = dash;
 }
 
-void VehicleListener::update(uint32_t id, uint8_t len, byte* data) {
+void VehicleListener::receive(uint32_t id, uint8_t len, byte* data) {
     if (dash_ == nullptr || len !=8) {
         return;
     }
     switch(id) {
         case 0x54A:
-            update54A(data);
+            receive54A(data);
             break;
         case 0x54B:
-            update54B(data);
+            receive54B(data);
             break;
         case 0x625:
-            update625(data);
+            receive625(data);
             break;
     }
 }
 
-void VehicleListener::update54A(byte* data) {
+void VehicleListener::receive54A(byte* data) {
     dash_->setClimateDriverTemp(data[4]);
     dash_->setClimatePassengerTemp(data[5]);
 }
 
-void VehicleListener::update54B(byte* data) {
+void VehicleListener::receive54B(byte* data) {
     dash_->setClimateActive(!getBit(data, 0, 5));
     dash_->setClimateAuto(getBit(data, 0, 0));
     dash_->setClimateAc(getBit(data, 0, 3));
@@ -241,6 +241,6 @@ void VehicleListener::update54B(byte* data) {
     }
 }
 
-void VehicleListener::update625(byte* data) {
+void VehicleListener::receive625(byte* data) {
     dash_->setClimateRearDefrost(getBit(data, 0, 0));
 }

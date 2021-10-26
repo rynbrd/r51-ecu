@@ -2,15 +2,16 @@
 #define __VEHICLE_H__
 
 #include <stdint.h>
-#include "dash.h"
 #include "climate.h"
+#include "dash.h"
+#include "listener.h"
 #include "mcp_can.h"
 
 // Controls the vehicle's climate control system over CAN. On initialization it
 // is in the "intiialization" state and will attempt to handshake with the A/C
 // Auto Amp to bring it online. The controller will heartbeat control frames at
 // least every 200ms to ensure the A/C Auto Amp remains active.
-class VehicleController : public ClimateController {
+class VehicleController : public ClimateController, public FrameListener {
     public:
         // Create a ClimateControl object in its initialization state.
         VehicleController();
@@ -58,7 +59,7 @@ class VehicleController : public ClimateController {
         // Update state from an incoming 0x54B frame. This frame contains the
         // current A/C Auto Amp state and is needed to perform the
         // initialization handshake.
-        void update(uint32_t id, uint8_t len, byte* data);
+        void receive(uint32_t id, uint8_t len, byte* data);
 
         // Push state changes to the CAN bus.
         void push();
@@ -93,7 +94,7 @@ class VehicleController : public ClimateController {
 };
 
 // Listens for vehicle signals and updates state in connected dashboards.
-class VehicleListener {
+class VehicleListener : public FrameListener {
     public:
         // Construct an empty listener.
         VehicleListener() : dash_(nullptr) {}
@@ -103,20 +104,20 @@ class VehicleListener {
 
         // Update state from incoming climate state frames. Accepts frames
         // 0x54A, 0x54B, and 0x625.
-        void update(uint32_t id, uint8_t len, byte* data);
+        void receive(uint32_t id, uint8_t len, byte* data);
 
     private:
         // A dashboard to update.
         DashController* dash_;
 
         // Update state from a 0x54A frame.
-        void update54A(byte* data);
+        void receive54A(byte* data);
 
         // Update state from a 0x54B frame.
-        void update54B(byte* data);
+        void receive54B(byte* data);
 
         // Update state from a 0x625 frame.
-        void update625(byte* data);
+        void receive625(byte* data);
 };
 
 #endif

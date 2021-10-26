@@ -1,5 +1,6 @@
 #include "climate.h"
 #include "debug.h"
+#include "listener.h"
 #include "mcp_can.h"
 #include "realdash.h"
 #include "vehicle.h"
@@ -20,6 +21,16 @@ RealDashSerial realdash;
 VehicleController vehicle_controller;
 VehicleListener vehicle_listener;
 RealDashController dash_controller;
+
+void receive(uint32_t id, uint8_t len, byte* data) {
+    vehicle_controller.receive(frame.id, frame.len, frame.data);
+    vehicle_listener.receive(frame.id, frame.len, frame.data);
+}
+
+void push() {
+    vehicle_controller.push();
+    dash_controller.push();
+}
 
 void setup() {
     Serial.begin(SERIAL_BAUDRATE);
@@ -44,9 +55,7 @@ void setup() {
 // new frame before those changes are pushed out.
 void loop() {
     if (can.readMsgBufID(&frame.id, &frame.len, frame.data) == CAN_OK) {
-        vehicle_controller.update(frame.id, frame.len, frame.data);
-        vehicle_listener.update(frame.id, frame.len, frame.data);
+        receive(frame.id, frame.len, frame.data);
     }
-    vehicle_controller.push();
-    dash_controller.push();
+    push();
 }
