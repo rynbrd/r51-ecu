@@ -194,29 +194,38 @@ void VehicleListener::connect(DashController* dash) {
 }
 
 void VehicleListener::receive(uint32_t id, uint8_t len, byte* data) {
-    if (dash_ == nullptr || len !=8) {
+    if (dash_ == nullptr) {
+        ERROR_MSG("vehicle: dash not connected");
         return;
     }
     switch(id) {
         case 0x54A:
-            receive54A(data);
+            receive54A(len, data);
             break;
         case 0x54B:
-            receive54B(data);
+            receive54B(len, data);
             break;
         case 0x625:
-            receive625(data);
+            receive625(len, data);
             break;
     }
 }
 
-void VehicleListener::receive54A(byte* data) {
+void VehicleListener::receive54A(uint8_t len, byte* data) {
+    if (len != 8) {
+        ERROR_MSG_VAL("vehicle: frame 0x54A has invalid length: 8 != ", len);
+        return;
+    }
     INFO_MSG_FRAME("vehicle: receive ", 0x54A, 8, data);
     dash_->setClimateDriverTemp(data[4]);
     dash_->setClimatePassengerTemp(data[5]);
 }
 
-void VehicleListener::receive54B(byte* data) {
+void VehicleListener::receive54B(uint8_t len, byte* data) {
+    if (len != 8) {
+        ERROR_MSG_VAL("vehicle: frame 0x54B has invalid length: 8 != ", len);
+        return;
+    }
     INFO_MSG_FRAME("vehicle: receive ", 0x54B, 8, data);
     dash_->setClimateActive(!getBit(data, 0, 5));
     dash_->setClimateAuto(getBit(data, 0, 0));
@@ -274,7 +283,11 @@ void VehicleListener::receive54B(byte* data) {
     }
 }
 
-void VehicleListener::receive625(byte* data) {
+void VehicleListener::receive625(uint8_t len, byte* data) {
+    if (len != 6) {
+        ERROR_MSG_VAL("vehicle: frame 0x625 has invalid length: 6 != ", len);
+        return;
+    }
     INFO_MSG_FRAME("vehicle: receive ", 0x625, 8, data);
     dash_->setClimateRearDefrost(getBit(data, 0, 0));
 }

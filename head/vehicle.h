@@ -111,13 +111,13 @@ class VehicleListener : public FrameListener {
         DashController* dash_;
 
         // Update state from a 0x54A frame.
-        void receive54A(byte* data);
+        void receive54A(uint8_t len, byte* data);
 
         // Update state from a 0x54B frame.
-        void receive54B(byte* data);
+        void receive54B(uint8_t len, byte* data);
 
         // Update state from a 0x625 frame.
-        void receive625(byte* data);
+        void receive625(uint8_t len, byte* data);
 };
 
 #endif  // __R51_VEHICLE_H__
