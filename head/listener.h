@@ -12,7 +12,7 @@ class FrameListener {
         virtual ~FrameListener() {}
 
         // Receive and process a frame.
-        void receive(uint32_t id, uint8_t len, byte* data);
+        virtual void receive(uint32_t id, uint8_t len, byte* data) = 0;
 };
 
 #endif  // __R51_LISTENER_H__

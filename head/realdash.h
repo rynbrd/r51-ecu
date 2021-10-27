@@ -66,43 +66,43 @@ class RealDashController : public DashController {
         void connect(RealDashSerial* realdash);
 
         // Update the on/off state of the climate control.
-        void setClimateActive(bool value);
+        void setClimateActive(bool value) override;
 
         // Update the auto setting of the climate control.
-        void setClimateAuto(bool value);
+        void setClimateAuto(bool value) override;
 
         // Update the state of the A/C compressor.
-        void setClimateAc(bool value);
+        void setClimateAc(bool value) override;
 
         // Update dual zone state.
-        void setClimateDual(bool value);
+        void setClimateDual(bool value) override;
 
         // Update state of the face vents.
-        void setClimateFace(bool value);
+        void setClimateFace(bool value) override;
 
         // Update state of the feet vents.
-        void setClimateFeet(bool value);
+        void setClimateFeet(bool value) override;
 
         // Update state of air recirculation.
-        void setClimateRecirculate(bool value);
+        void setClimateRecirculate(bool value) override;
 
         // Update state of the front defrost.
-        void setClimateFrontDefrost(bool value);
+        void setClimateFrontDefrost(bool value) override;
 
         // Update state of the rear defrost.
-        void setClimateRearDefrost(bool value);
+        void setClimateRearDefrost(bool value) override;
 
         // Update ste of the fan speed.
-        void setClimateFanSpeed(uint8_t value);
+        void setClimateFanSpeed(uint8_t value) override;
 
         // Update the driver temperature state.
-        void setClimateDriverTemp(uint8_t value);
+        void setClimateDriverTemp(uint8_t value) override;
 
         // Update the passenger temperature state.
-        void setClimatePassengerTemp(uint8_t value);
+        void setClimatePassengerTemp(uint8_t value) override;
 
         // Send state changes to the dashboard.
-        void push();
+        void push() override;
 
     private:
         RealDashSerial* realdash_;
@@ -140,7 +140,7 @@ class RealDashListener : public FrameListener {
         void connect(ClimateController* climate);
 
         // Process a RealDash frame.
-        void receive(uint32_t id, uint8_t len, byte* data);
+        void receive(uint32_t id, uint8_t len, byte* data) override;
     private:
         // Climate controller to send climate commands to.
         ClimateController* climate_; 

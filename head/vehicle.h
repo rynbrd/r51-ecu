@@ -62,7 +62,7 @@ class VehicleController : public ClimateController, public FrameListener {
         void receive(uint32_t id, uint8_t len, byte* data);
 
         // Push state changes to the CAN bus.
-        void push();
+        void push() override;
 
     private:
         // The CAN bus to push state change frames to.
@@ -104,7 +104,7 @@ class VehicleListener : public FrameListener {
 
         // Update state from incoming climate state frames. Accepts frames
         // 0x54A, 0x54B, and 0x625.
-        void receive(uint32_t id, uint8_t len, byte* data);
+        void receive(uint32_t id, uint8_t len, byte* data) override;
 
     private:
         // A dashboard to update.
