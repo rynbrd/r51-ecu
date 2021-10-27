@@ -134,7 +134,7 @@ class RealDashController : public DashController {
 //   Bytes 5-8: Always 0
 class RealDashListener : public FrameListener {
     public:
-        RealDashListsner();
+        RealDashListener() : climate_(nullptr) {};
 
         // Connect to vehicle systems.
         void connect(ClimateController* climate);

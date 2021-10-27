@@ -132,7 +132,7 @@ void VehicleController::receive(uint32_t id, uint8_t len, byte* data) {
         return;
     }
 
-    climate_online_ = data[0] & 0xA0 != 0x20;
+    climate_online_ = (data[0] & 0xA0) != 0x20;
     if (climate_online_) {
         // Unit transitions to online mode. Send empty control frames to ack.
         // Increase heartbeat time to 200ms.

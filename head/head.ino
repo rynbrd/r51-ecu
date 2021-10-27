@@ -32,7 +32,7 @@ void connect() {
     dash_listener.connect(&vehicle_controller);
 }
 
-void receive(uint32_t id, uint8_t len, byte* data) {
+void receive() {
     vehicle_controller.receive(frame.id, frame.len, frame.data);
     vehicle_listener.receive(frame.id, frame.len, frame.data);
     dash_listener.receive(frame.id, frame.len, frame.data);
@@ -68,12 +68,12 @@ void setup() {
 // new frame before those changes are pushed out.
 void loop() {
     if (can.readMsgBufID(&frame.id, &frame.len, frame.data) == CAN_OK) {
-        receive(frame.id, frame.len, frame.data);
+        receive();
     }
     push();
 
     if (realdash.read(&frame.id, &frame.len, frame.data)) {
-        receive(frame.id, frame.len, frame.data);
+        receive();
     }
     push();
 }
