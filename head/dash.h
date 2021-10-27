@@ -1,5 +1,5 @@
-#ifndef __DASH_H__
-#define __DASH_H__
+#ifndef __R51_DASH_H__
+#define __R51_DASH_H__
 
 // Controls a connected climate control system.
 class DashController {
@@ -44,4 +44,4 @@ class DashController {
         virtual void setClimatePassengerTemp(uint8_t value) {}
 };
 
-#endif
+#endif  // __R51_DASH_H__

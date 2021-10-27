@@ -1,5 +1,5 @@
-#ifndef __REALDASH_H__
-#define __REALDASH_H__
+#ifndef __R51_REALDASH_H__
+#define __R51_REALDASH_H__
 
 #include <Arduino.h>
 #include "climate.h"
@@ -146,4 +146,4 @@ class RealDashListener : public FrameListener {
         ClimateController* climate_; 
 };
 
-#endif
+#endif  // __R51_REALDASH_H__

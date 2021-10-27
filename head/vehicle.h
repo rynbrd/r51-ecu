@@ -1,5 +1,5 @@
-#ifndef __VEHICLE_H__
-#define __VEHICLE_H__
+#ifndef __R51_VEHICLE_H__
+#define __R51_VEHICLE_H__
 
 #include <stdint.h>
 #include "climate.h"
@@ -120,4 +120,4 @@ class VehicleListener : public FrameListener {
         void receive625(byte* data);
 };
 
-#endif
+#endif  // __R51_VEHICLE_H__

@@ -1,5 +1,5 @@
-#ifndef __LISTENER_H__
-#define __LISTENER_H__
+#ifndef __R51_LISTENER_H__
+#define __R51_LISTENER_H__
 
 #include <Arduino.h>
 
@@ -15,4 +15,4 @@ class FrameListener {
         void receive(uint32_t id, uint8_t len, byte* data);
 };
 
-#endif
+#endif  // __R51_LISTENER_H__

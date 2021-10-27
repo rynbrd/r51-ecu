@@ -1,5 +1,5 @@
-#ifndef __DEBUG_H__
-#define __DEBUG_H__
+#ifndef __R51_DEBUG_H__
+#define __R51_DEBUG_H__
 
 #include <Stream.h>
 #include <stdint.h>
@@ -84,4 +84,4 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data) {
 
 #endif
 
-#endif
+#endif  // __R51_DEBUG_H__

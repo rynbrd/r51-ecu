@@ -1,5 +1,5 @@
-#ifndef __CLIMATE_H__
-#define __CLIMATE_H__
+#ifndef __R51_CLIMATE_H__
+#define __R51_CLIMATE_H__
 
 // Controls a climate control system.
 class ClimateController {
@@ -44,4 +44,4 @@ class ClimateController {
         virtual void setClimatePassengerTemp(uint8_t temp) {}
 };
 
-#endif
+#endif  // __R51_CLIMATE_H__
