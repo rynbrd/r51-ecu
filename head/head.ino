@@ -1,8 +1,5 @@
 #include <Arduino.h>
 
-// Uncomment to enable serial debugging.
-//#define DEBUG_STREAM Serial1
-
 #include "debug.h"
 #include "climate.h"
 #include "listener.h"
@@ -47,6 +44,8 @@ void push() {
 }
 
 void setup() {
+    DEBUG_BEGIN();
+
     Serial.begin(SERIAL_BAUDRATE);
     while (!Serial) {
         delay(100);

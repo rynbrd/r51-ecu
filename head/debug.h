@@ -4,26 +4,19 @@
 #include <Stream.h>
 #include <stdint.h>
 
+// Uncomment the following line to enable debug output.
+//#define DEBUG
 
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG
 
-size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data) {
-    size_t n = 0;
-    n += DEBUG_SERIAL.print(id, HEX);
-    n += DEBUG_SERIAL.print("#");
-    for (int i = 0; i < len; i++) {
-        if (data[i] <= 0x0F) {
-            n += DEBUG_SERIAL.print("0");
-        }
-        n += DEBUG_SERIAL.print(data[i], HEX);
-        if (i < len-1) {
-            n += DEBUG_SERIAL.print(":");
-        }
-    }
-    return n;
-}
+// Update these to change debug output settings.
+#define DEBUG_SERIAL Serial1
+#define DEBUG_BAUDRATE 115200
 
-#define DEBUG_BEGIN(BAUD) DEBUG_SERIAL.begin(BAUD)
+size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
+
+#define D(x) x
+#define DEBUG_BEGIN() DEBUG_SERIAL.begin(DEBUG_BAUDRATE)
 
 #define INFO_MSG(MSG) ({\
     DEBUG_SERIAL.print("[INFO]  ");\
@@ -69,8 +62,8 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data) {
 
 #else
 
-#define DEBUG_BEGIN(BAUD)
-#define DEBUG_BEGIN(BAUD, CONFIG)
+#define D(x)
+#define DEBUG_BEGIN()
 
 #define INFO_MSG(MSG)
 #define INFO_MSG_VAL(MSG, VAL)
@@ -82,6 +75,6 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data) {
 #define ERROR_MSG_VAL_FMT(MSG, VAL, FMT)
 #define ERROR_FRAME(MSG, ID, LEN, DATA)
 
-#endif
+#endif  // DEBUG
 
 #endif  // __R51_DEBUG_H__
