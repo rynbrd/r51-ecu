@@ -170,8 +170,11 @@ void RealDashListener::connect(ClimateController* climate) {
 }
 
 void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
-    if (len != 8 && id != 0x5401) {
+    if (id != 0x5401) {
         return;
+    }
+    if (len != 8) {
+        ERROR_MSG_VAL("realdash: frame 0x5401 has invalid length: 8 != ", len);
     }
     INFO_MSG_FRAME("realdash: receive ", id, len, data);
 
