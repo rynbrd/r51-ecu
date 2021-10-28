@@ -1,26 +1,21 @@
-# Nissan Pathfinder R51 Head Unit Adapter
+# Nissan Pathfinder R51 Systems
 
-This repo contains documentation and code to turn an Arduino into a CAN Bus
-climate control adapter for the Nissan Pathfinder R51 (2005 - 2012). This is
-compatible with Pathfinders that came stock with the screen based infotainment
-systems. This adapter allows the replacement of the infotainment system and
-will not work with the infotainment system installed.
+This repo contains documentation and code to allow integration of custom ECU's
+into the Nissan Pathfinder R51 (2005 - 2012). Some of these integrations may
+work with other Nissan vehicles (Armada, QX56, etc) but have not been tested.
 
-This system may be compatible with with other Nissan models (Armada, QX56, etc)
-of the same years.
+## Head Unit and Climate Control
 
-
-## Arduino Hardware
+The [climate] directory contains an Arduino sketch that allows the stock
+LCD screen infotainment system to be replaced by an aftermarket head unit. It
+replaces the climate control systems with [RealDash]. The stock infotainment
+system must be removed for this to operate properly.
 
 The software targets the Arduino Lenoardo compatible [CAN Bed v1] but should
 work with any MCP2515 implementation with some small updates.
 
-
-## Software Interface
-
-The software exposes a serial protocal compatible with [RealDash].
-
-_Serial protocol TBD._
+The software exposes a serial protocal compatible with [RealDash]. Serial
+protocol TBD.
 
 
 ## Vehicle Details 
