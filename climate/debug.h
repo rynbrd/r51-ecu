@@ -73,7 +73,7 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
 #define ERROR_MSG(MSG)
 #define ERROR_MSG_VAL(MSG, VAL)
 #define ERROR_MSG_VAL_FMT(MSG, VAL, FMT)
-#define ERROR_FRAME(MSG, ID, LEN, DATA)
+#define ERROR_MSG_FRAME(MSG, ID, LEN, DATA)
 
 #endif  // DEBUG
 

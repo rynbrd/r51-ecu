@@ -1,13 +1,15 @@
 #include <Arduino.h>
 
-#include "debug.h"
 #include "climate.h"
+#include "debug.h"
 #include "listener.h"
 #include "mcp_can.h"
 #include "realdash.h"
+#include "serial.h"
 #include "vehicle.h"
 
-#define SERIAL_BAUDRATE 1000000
+#define REALDASH_SERIAL Serial
+#define REALDASH_BAUDRATE 1000000
 #define CAN_CS_PIN 17
 #define CAN_BAUDRATE CAN_500KBPS
 
@@ -19,6 +21,7 @@ struct {
 
 MCP_CAN can(CAN_CS_PIN);
 RealDashSerial realdash;
+D(SerialReceiver serial_receiver);
 
 VehicleController vehicle_controller;
 VehicleListener vehicle_listener;
@@ -45,17 +48,19 @@ void push() {
 
 void setup() {
     DEBUG_BEGIN();
+    INFO_MSG("setup: initializing ecu");
+    D(serial_receiver.begin(&DEBUG_SERIAL));
 
-    Serial.begin(SERIAL_BAUDRATE);
-    while (!Serial) {
+    REALDASH_SERIAL.begin(REALDASH_BAUDRATE);
+    while (!REALDASH_SERIAL) {
         delay(100);
     }
+    realdash.begin(&REALDASH_SERIAL);
 
     while (can.begin(CAN_BAUDRATE) != CAN_OK) {
         ERROR_MSG("setup: can bus init failure");
         delay(1000);
     }
-    realdash.begin(&Serial);
 
     connect();
     INFO_MSG("setup: ecu started");
@@ -76,4 +81,11 @@ void loop() {
         receive();
     }
     push();
+
+    D({
+        if (serial_receiver.read(&frame.id, &frame.len, frame.data)) {
+            receive();
+        }
+        push();
+    })
 }
