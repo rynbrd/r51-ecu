@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RealDashCAN version="2">
+  <frames>
+    <!-- Climate Control -->
+    <frame id="0x5400" signed="false">
+      <value name="Climate Active"
+        targetId="335" offset="0" startbit="0" bitcount="1"></value>
+      <!-- Dummy 06 -->
+      <value name="Climate Auto"
+        targetId="121" offset="0" startbit="1" bitcount="1"></value>
+      <!-- Dummy 07 -->
+      <value name="Climate A/C"
+        targetId="122" offset="0" startbit="2" bitcount="1"></value>
+      <!-- Dummy 08 -->
+      <value name="Climate Sync"
+        targetId="123" offset="0" startbit="3" bitcount="1" conversion="!V"></value>
+      <!-- Dummy 09 -->
+      <value name="Climate Cycle Mode"
+        targetId="286" offset="0" startbit="4" bitcount="1"></value>
+      <value name="Climate Face"
+        targetId="317" offset="0" startbit="5" bitcount="1"></value>
+      <value name="Climate Feet"
+        targetId="316" offset="0" startbit="6" bitcount="1"></value>
+      <value name="Climate Recirculate"
+        targetId="336" offset="0" startbit="7" bitcount="1"></value>
+
+      <!-- Defrost Zone 1 -->
+      <value name="Climate Front Defrost"
+        targetId="315" offset="1" startbit="0" bitcount="1"></value>
+      <!-- Defrost Zone 2 -->
+      <value name="Climate Rear Defrost"
+        targetId="318" offset="1" startbit="1" bitcount="1"></value>
+      <!-- Defrost Zone 3 -->
+      <value name="Climate Mirror Defrost"
+        targetId="321" offset="1" startbit="2" bitcount="1"></value>
+
+      <!-- Dummy 10 -->
+      <value name="Climate Fan Speed"
+        targetId="125"  offset="2" startbit="0" bitcount="4"></value>
+      <!-- Dummy 11 -->
+      <value name="Climate Increase Fan Speed"
+        targetId="126" offset="2" startbit="4" bitcount="1"></value>
+      <!-- Dummy 12 -->
+      <value name="Climate Decrease Fan Speed"
+        targetId="127" offset="2" startbit="5" bitcount="1"></value>
+
+      <!-- Temperature Zone 1 -->
+      <value name="Climate Driver Temperature"
+        targetId="175" offset="3" length="1" units="C"></value>
+      <!-- Temperature Zone 2 -->
+      <value name="Climate Passenger Temperature"
+        targetId="312" offset="4" length="1" units="C"></value>
+    </frame>
+  </frames>
+</RealDashCAN>
