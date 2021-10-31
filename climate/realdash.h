@@ -6,12 +6,40 @@
 #include "dash.h"
 #include "listener.h"
 
+/* RealDash Control Frames
+ *
+ * Frame 0x5400: Climate Controls
+ *   Byte 0: Unit Status
+ *     Bit 0: active; send 0 to deactivate, 1 to enable auto mode
+ *     Bit 1: auto
+ *     Bit 2: ac
+ *     Bit 3: dual
+ *     Bit 4: mode; command only; flip to trigger
+ *     Bit 5: face; status only
+ *     Bit 6: feet; status only
+ *     Bit 7: recirculate
+ *   Byte 1: defrost
+ *     Bit 0: defrost front
+ *     Bit 1: defrost rear
+ *     Bit 2: defrost mirrors
+ *     Bit 3-7: unused
+ *   Byte 2: fan speed
+ *     Bits 0-3: fan speed; status only
+ *     Bit 4: fan+; command only; flip to trigger
+ *     Bit 5: fan-; command only; flip to trigger
+ *     Buts 6-7: unused
+ *   Byte 3: driver temp
+ *     Bits 0-8: driver temp
+ *   Byte 4: passenger temp
+ *     Bits 0-8: passenger temp
+ */
+
 // Reads and writes frames to RealDash over serial. Only supports RealDash 0x44
 // type frames. Other incoming frame types are discarded.
-class RealDashSerial {
+class RealDashReceiver {
     public:
         // Construct an uninitialized RealDash instance.
-        RealDashSerial() : stream_(nullptr) {}
+        RealDashReceiver() : stream_(nullptr) {}
 
         // Start the RealDash instance. Data is transmitted over the given
         // serial stream. This is typically Serial or SerialUSB.
@@ -37,33 +65,12 @@ class RealDashSerial {
 };
 
 // Sends climate state changes to the dashboard.
-//
-// Frame format:
-// id: 5400
-//   data:
-//     byte 1: unit status, airflow
-//       0 active
-//       1 auto
-//       2 ac
-//       3 dual
-//       4 face
-//       5 feet
-//       6 recirculate
-//       7 front defrost
-//     byte 2: other
-//       0 rear defrost
-//     byte 3: fan speed
-//       0-8 fan speed, 0 to 8
-//     byte 5: driver temperature
-//       0-8 temperature
-//     byte 6: passenger temperature
-//       0-8 temperature
-class RealDashController : public DashController {
+class RealDash : public DashController, public FrameListener  {
     public:
-        RealDashController();
+        RealDash();
 
-        // Connect the controller to a dashboard.
-        void connect(RealDashSerial* realdash);
+        // Connect the controller to a dashboard and vehicle systems.
+        void connect(RealDashReceiver* realdash, ClimateController* climate);
 
         // Update the on/off state of the climate control.
         void setClimateActive(bool value) override;
@@ -104,49 +111,23 @@ class RealDashController : public DashController {
         // Update the passenger temperature state.
         void setClimatePassengerTemp(uint8_t value) override;
 
-        // Send state changes to the dashboard.
+        // Process a RealDash frame.
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+
+        // Send state changes to RealDash.
         void push() override;
 
     private:
-        RealDashSerial* realdash_;
+        RealDashReceiver* realdash_;
+        ClimateController* climate_; 
+
+        // State frame. Dashboard state is tracked in order to avoid toggling
+        // items on/off when not needed.
         byte frame5400_[8];
         bool frame5400_changed_;
-};
 
-// Process RealDash frames into vehicle control commands.
-//
-// Frame 5401: Set Climate
-//   Byte 1: unit status, airflow
-//     0 turn off
-//     1 toggle auto
-//     2 toggle a/c 
-//     3 toggle dual zone
-//     4 toggle recirculate
-//     5 cyle airflow mode
-//     6 toggle front defrost
-//     7 toggle rear defrost
-//     8 always 0
-//   Byte 2: fan speed
-//     0 increase fan speed
-//     1 decrease fan speed
-//     2-8 always 0
-//   Byte 3: driver temperature
-//     0-8: temperature (60 - 90)
-//   Byte 4: passenger temperature
-//     0-8: temperature (60 - 90)
-//   Bytes 5-8: Always 0
-class RealDashListener : public FrameListener {
-    public:
-        RealDashListener() : climate_(nullptr) {};
-
-        // Connect to vehicle systems.
-        void connect(ClimateController* climate);
-
-        // Process a RealDash frame.
-        void receive(uint32_t id, uint8_t len, byte* data) override;
-    private:
-        // Climate controller to send climate commands to.
-        ClimateController* climate_; 
+        // The last time a control frame was sent.
+        uint32_t last_write_;
 };
 
 #endif  // __R51_REALDASH_H__

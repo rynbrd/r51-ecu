@@ -9,7 +9,7 @@
 #include "vehicle.h"
 
 #define REALDASH_SERIAL Serial
-#define REALDASH_BAUDRATE 1000000
+#define REALDASH_BAUDRATE 512000
 #define CAN_CS_PIN 17
 #define CAN_BAUDRATE CAN_500KBPS
 
@@ -20,30 +20,28 @@ struct {
 } frame;
 
 MCP_CAN can(CAN_CS_PIN);
-RealDashSerial realdash;
+RealDashReceiver realdash;
 D(SerialReceiver serial_receiver);
 
 VehicleController vehicle_controller;
 VehicleListener vehicle_listener;
-RealDashController dash_controller;
-RealDashListener dash_listener;
+RealDash dashboard;
 
 void connect() {
     vehicle_controller.connect(&can);
-    vehicle_listener.connect(&dash_controller);
-    dash_controller.connect(&realdash);
-    dash_listener.connect(&vehicle_controller);
+    vehicle_listener.connect(&dashboard);
+    dashboard.connect(&realdash, &vehicle_controller);
 }
 
 void receive() {
     vehicle_controller.receive(frame.id, frame.len, frame.data);
     vehicle_listener.receive(frame.id, frame.len, frame.data);
-    dash_listener.receive(frame.id, frame.len, frame.data);
+    dashboard.receive(frame.id, frame.len, frame.data);
 }
 
 void push() {
     vehicle_controller.push();
-    dash_controller.push();
+    dashboard.push();
 }
 
 void setup() {
