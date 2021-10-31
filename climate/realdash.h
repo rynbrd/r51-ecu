@@ -92,6 +92,9 @@ class RealDashController : public DashController {
         // Update state of the rear defrost.
         void setClimateRearDefrost(bool value) override;
 
+        // Update state of the mirror defrost.
+        void setClimateMirrorDefrost(bool value) override;
+
         // Update ste of the fan speed.
         void setClimateFanSpeed(uint8_t value) override;
 

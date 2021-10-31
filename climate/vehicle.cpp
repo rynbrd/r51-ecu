@@ -81,6 +81,13 @@ void VehicleController::toggleClimateRearDefrost() {
     }
 }
 
+void VehicleController::toggleClimateMirrorDefrost() {
+    // TODO: determine mirror defrost control signal
+    if (climateOnline()) {
+        INFO_MSG("vehicle: climate: toggle rear defrost (noop)");
+    }
+}
+
 void VehicleController::increaseClimateFanSpeed() {
     if (toggle(frame541_, 0, 5)) {
         INFO_MSG("vehicle: climate: increase fan speed");

@@ -36,6 +36,9 @@ class DashController : public Controller {
         // Update state of the rear defrost.
         virtual void setClimateRearDefrost(bool value) = 0;
 
+        // Update state of the mirror defrost.
+        virtual void setClimateMirrorDefrost(bool value) = 0;
+
         // Update ste of the fan speed.
         virtual void setClimateFanSpeed(uint8_t value) = 0;
 

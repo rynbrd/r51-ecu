@@ -134,6 +134,10 @@ void RealDashController::setClimateRearDefrost(bool value) {
     frame5400_changed_ = true;
 }
 
+void RealDashController::setClimateMirrorDefrost(bool value) {
+    //TODO: Implement this.
+}
+
 void RealDashController::setClimateFanSpeed(uint8_t value) {
     INFO_MSG_VAL("realdash: climate: set fan speed: ", value);
     if (value <= 8) {
