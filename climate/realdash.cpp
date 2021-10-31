@@ -90,6 +90,7 @@ RealDash::RealDash() {
     climate_ = nullptr;
     memset(frame5400_, 0, 8);
     frame5400_changed_ = false;
+    last_write_ = 0;
 }
 
 void RealDash::connect(RealDashReceiver* realdash, ClimateController* climate) {
@@ -160,7 +161,7 @@ void RealDash::setClimateMirrorDefrost(bool value) {
 void RealDash::setClimateFanSpeed(uint8_t value) {
     INFO_MSG_VAL("realdash: climate: set fan speed: ", value);
     if (value <= 8) {
-        frame5400_[2] = frame5400_[2] & 0xF0 | value;
+        frame5400_[2] = (frame5400_[2] & 0xF0) | value;
         frame5400_changed_ = true;
     }
 }
@@ -250,10 +251,10 @@ void RealDash::push() {
     if (realdash_ == nullptr) {
         return;
     }
-    if (millis() - last_write_ >= 500) {
-        frame5400_changed_ = true;
-    }
-    if (frame5400_changed_) {
+    if (frame5400_changed_ || millis() - last_write_ >= 500) {
+        D(if (frame5400_changed_) {
+          INFO_MSG_FRAME("realdash: send ", 0x5400, 8, frame5400_);
+        })
         realdash_->write(0x5400, 8, frame5400_);
         frame5400_changed_ = false;
     }

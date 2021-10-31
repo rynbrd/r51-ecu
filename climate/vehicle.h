@@ -9,7 +9,7 @@
 
 // Controls the vehicle's climate control system over CAN. On initialization it
 // is in the "intiialization" state and will attempt to handshake with the A/C
-// Auto Amp to bring it online. The controller will heartbeat control frames at
+// Auto Amp to bring it online. The controller will send control frames at
 // least every 200ms to ensure the A/C Auto Amp remains active.
 class VehicleController : public ClimateController, public FrameListener {
     public:
@@ -81,8 +81,8 @@ class VehicleController : public ClimateController, public FrameListener {
 
         // The time the last control frame was sent and how frequently to send
         // them.
-        uint32_t last_heartbeat_;
-        uint8_t heartbeat_delay_;
+        uint32_t last_write_;
+        uint8_t keepalive_interval_;
 
         // Control frames. These are standard (11-bit ID) frames.
         byte frame540_[8];

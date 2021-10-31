@@ -64,7 +64,10 @@ class RealDashReceiver {
         int8_t incoming_size_;
 };
 
-// Sends climate state changes to the dashboard.
+// Manages the RealDash dashboard. A single control frame (0x5400) is exchanged
+// with the dashboard to manage the state of the climate control system. The
+// frame is sent at least every 200ms to ensure the dashboard remains active
+// and has the latest state.
 class RealDash : public DashController, public FrameListener  {
     public:
         RealDash();

@@ -11,9 +11,9 @@ VehicleController::VehicleController() {
     can_ = nullptr;
     climate_online_ = false;
 
-    // Send heartbeat every 100ms during handshake.
-    heartbeat_delay_ = 100;
-    last_heartbeat_ = 0;
+    // Send keepalive every 100ms during handshake.
+    last_write_ = 0;
+    keepalive_interval_ = 100;
 
     // Set control frames to send handshake.
     memset(frame540_, 0, 8);
@@ -142,12 +142,12 @@ void VehicleController::receive(uint32_t id, uint8_t len, byte* data) {
     climate_online_ = (data[0] & 0xA0) != 0x20;
     if (climate_online_) {
         // Unit transitions to online mode. Send empty control frames to ack.
-        // Increase heartbeat time to 200ms.
+        // Increase keepalive interval to 200ms.
         climate_online_ = true;
         frame540_[0] = 0;
         frame540_[0] = 0;
         frame54x_changed_ = true;
-        heartbeat_delay_ = 200;
+        keepalive_interval_ = 200;
         INFO_MSG("vehicle: climate system reports online"); 
     }
 }
@@ -157,18 +157,17 @@ void VehicleController::push() {
         return;
     }
 
-    // Heartbeat control frames at least every 200ms to keep the A/C Auto Amp
-    // alive.
-    if (millis() - last_heartbeat_ > heartbeat_delay_) {
-        frame54x_changed_ = true;
-    }
-
-    if (frame54x_changed_) {
-        INFO_MSG_FRAME("vehicle: send ", 0x540, 8, frame540_);
+    // Send control frames at least every 200ms to keep the A/C Auto Amp alive.
+    if (frame54x_changed_ || millis() - last_write_ >= keepalive_interval_) {
+        D(if (frame54x_changed_) {
+          INFO_MSG_FRAME("vehicle: send ", 0x540, 8, frame540_);
+        })
         if (can_->sendMsgBuf(0x540, false, 8, frame540_) != CAN_OK) {
             ERROR_MSG("vehicle: failed to send frame 0x540");
         }
-        INFO_MSG_FRAME("vehicle: send ", 0x541, 8, frame541_);
+        D(if (frame54x_changed_) {
+          INFO_MSG_FRAME("vehicle: send ", 0x541, 8, frame541_);
+        })
         if (can_->sendMsgBuf(0x541, false, 8, frame541_) != CAN_OK) {
             ERROR_MSG("vehicle: failed to send frame 0x541");
         }
@@ -183,7 +182,7 @@ void VehicleController::push() {
         }
 
         frame54x_changed_ = false;
-        last_heartbeat_ = millis();
+        last_write_ = millis();
     }
 }
 
