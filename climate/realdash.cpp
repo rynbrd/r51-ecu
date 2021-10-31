@@ -250,7 +250,7 @@ void RealDash::push() {
     if (realdash_ == nullptr) {
         return;
     }
-    if (millis() - last_write_ >= 200) {
+    if (millis() - last_write_ >= 500) {
         frame5400_changed_ = true;
     }
     if (frame5400_changed_) {
