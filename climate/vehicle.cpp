@@ -32,46 +32,32 @@ bool VehicleController::climateOnline() const {
 }
 
 void VehicleController::deactivateClimate() {
-    if (toggle(frame540_, 6, 7)) {
-        INFO_MSG("vehicle: climate: deactivate");
-    }
+    toggle(frame540_, 6, 7);
 }
 
 void VehicleController::toggleClimateAuto() {
-    if (toggle(frame540_, 6, 5)) {
-        INFO_MSG("vehicle: climate: toggle auto");
-    }
+    toggle(frame540_, 6, 5);
 }
 
 void VehicleController::toggleClimateAc() {
-    if (toggle(frame540_, 5, 3)) {
-        INFO_MSG("vehicle: climate: toggle a/c");
-    }
+    toggle(frame540_, 5, 3);
 }
 
 void VehicleController::toggleClimateDual() {
-    if (toggle(frame540_, 6, 3)) {
-        INFO_MSG("vehicle: climate: toggle dual zone");
-    }
+    toggle(frame540_, 6, 3);
 }
 
 void VehicleController::toggleClimateRecirculate() {
-    if (toggle(frame541_, 1, 6)) {
-        INFO_MSG("vehicle: climate: toggle recirculate");
-    }
+    toggle(frame541_, 1, 6);
 }
 
 
 void VehicleController::cycleClimateMode() {
-    if (toggle(frame540_, 6, 0)) {
-        INFO_MSG("vehicle: climate: cycle mode");
-    }
+    toggle(frame540_, 6, 0);
 }
 
 void VehicleController::toggleClimateFrontDefrost() {
-    if (toggle(frame540_, 6, 1)) {
-        INFO_MSG("vehicle: climate: toggle front defrost");
-    }
+    toggle(frame540_, 6, 1);
 }
 
 void VehicleController::toggleClimateRearDefrost() {
@@ -89,15 +75,11 @@ void VehicleController::toggleClimateMirrorDefrost() {
 }
 
 void VehicleController::increaseClimateFanSpeed() {
-    if (toggle(frame541_, 0, 5)) {
-        INFO_MSG("vehicle: climate: increase fan speed");
-    }
+    toggle(frame541_, 0, 5);
 }
 
 void VehicleController::decreaseClimateFanSpeed() {
-    if (toggle(frame541_, 0, 4)) {
-        INFO_MSG("vehicle: climate: decrease fan speed");
-    }
+    toggle(frame541_, 0, 4);
 }
 
 void VehicleController::setClimateDriverTemp(uint8_t temp) {
@@ -111,7 +93,6 @@ void VehicleController::setClimateDriverTemp(uint8_t temp) {
     toggleBit(frame540_, 5, 5);
     frame540_[3] = temp + 0xB8;
     frame54x_changed_ = true;
-    INFO_MSG_VAL("vehicle: climate: set driver temperature to ", temp);
 }
 
 void VehicleController::setClimatePassengerTemp(uint8_t temp) {
@@ -125,7 +106,6 @@ void VehicleController::setClimatePassengerTemp(uint8_t temp) {
     toggleBit(frame540_, 5, 5);
     frame540_[4] = temp - 0x33;
     frame54x_changed_ = true;
-    INFO_MSG_VAL("vehicle: climate: set passenger temperature to ", temp);
 }
 
 void VehicleController::receive(uint32_t id, uint8_t len, byte* data) {

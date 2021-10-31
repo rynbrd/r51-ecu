@@ -99,67 +99,56 @@ void RealDash::connect(RealDashReceiver* realdash, ClimateController* climate) {
 }
 
 void RealDash::setClimateActive(bool value) {
-    INFO_MSG_VAL("realdash: climate set active: ", value);
     setBit(frame5400_, 0, 0, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateAuto(bool value) {
-    INFO_MSG_VAL("realdash: climate: set auto: ", value);
     setBit(frame5400_, 0, 1, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateAc(bool value) {
-    INFO_MSG_VAL("realdash: climate: set a/c: ", value);
     setBit(frame5400_, 0, 2, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateDual(bool value) {
-    INFO_MSG_VAL("realdash: climate: set dual zone: ", value);
     setBit(frame5400_, 0, 3, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateFace(bool value) {
-    INFO_MSG_VAL("realdash: climate: set face vent: ", value);
     setBit(frame5400_, 0, 5, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateFeet(bool value) {
-    INFO_MSG_VAL("realdash: climate: set feet vent: ", value);
     setBit(frame5400_, 0, 6, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateRecirculate(bool value) {
-    INFO_MSG_VAL("realdash: climate: set recirculate: ", value);
     setBit(frame5400_, 0, 7, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateFrontDefrost(bool value) {
-    INFO_MSG_VAL("realdash: climate: set front defrost: ", value);
     setBit(frame5400_, 1, 0, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateRearDefrost(bool value) {
-    INFO_MSG_VAL("realdash: climate: set rear defrost: ", value);
     setBit(frame5400_, 1, 1, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateMirrorDefrost(bool value) {
-    INFO_MSG_VAL("realdash: climate: set mirror defrost: ", value);
     setBit(frame5400_, 1, 2, value);
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimateFanSpeed(uint8_t value) {
-    INFO_MSG_VAL("realdash: climate: set fan speed: ", value);
     if (value <= 8) {
         frame5400_[2] = (frame5400_[2] & 0xF0) | value;
         frame5400_changed_ = true;
@@ -167,13 +156,11 @@ void RealDash::setClimateFanSpeed(uint8_t value) {
 }
 
 void RealDash::setClimateDriverTemp(uint8_t value) {
-    INFO_MSG_VAL("realdash: climate: set driver temperature: ", value);
     frame5400_[3] = value;
     frame5400_changed_ = true;
 }
 
 void RealDash::setClimatePassengerTemp(uint8_t value) {
-    INFO_MSG_VAL("realdash: climate: set passenger temperature: ", value);
     frame5400_[4] = value;
     frame5400_changed_ = true;
 }
