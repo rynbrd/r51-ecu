@@ -10,7 +10,7 @@
 #ifdef DEBUG
 
 // Update these to change debug output settings.
-#define DEBUG_SERIAL Serial1
+#define DEBUG_SERIAL Serial
 #define DEBUG_BAUDRATE 115200
 
 size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
