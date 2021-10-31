@@ -9,7 +9,7 @@
 #include "vehicle.h"
 
 #define REALDASH_SERIAL Serial1
-#define REALDASH_BAUDRATE 512000
+#define REALDASH_BAUDRATE 115200
 #define CAN_CS_PIN 17
 #define CAN_BAUDRATE CAN_500KBPS
 
