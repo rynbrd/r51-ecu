@@ -169,6 +169,7 @@ void RealDashReceiver::writeBytes(const byte* b, uint8_t len) {
 
 bool RealDashReceiver::write(uint32_t id, uint8_t len, byte* data) {
     if (stream_ == nullptr) {
+        ERROR_MSG("realdash: not initialized");
         return false;
     }
     if (data == nullptr) {
@@ -199,12 +200,17 @@ bool RealDashReceiver::write(uint32_t id, uint8_t len, byte* data) {
     return true;
 }
 
-RealDash::RealDash() {
+RealDash::RealDash(uint8_t repeat) {
     realdash_ = nullptr;
     climate_ = nullptr;
     memset(frame5400_, 0, 8);
-    frame5400_changed_ = false;
     last_write_ = 0;
+    if (repeat < 1) {
+        repeat_ = 1;
+    } else {
+        repeat_ = repeat;
+    }
+    write_count_ = repeat_;
 }
 
 void RealDash::connect(RealDashReceiver* realdash, ClimateController* climate) {
@@ -214,69 +220,69 @@ void RealDash::connect(RealDashReceiver* realdash, ClimateController* climate) {
 
 void RealDash::setClimateActive(bool value) {
     setBit(frame5400_, 0, 0, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateAuto(bool value) {
     setBit(frame5400_, 0, 1, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateAc(bool value) {
     setBit(frame5400_, 0, 2, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateDual(bool value) {
     setBit(frame5400_, 0, 3, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateFace(bool value) {
     setBit(frame5400_, 0, 5, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateFeet(bool value) {
     setBit(frame5400_, 0, 6, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateRecirculate(bool value) {
     setBit(frame5400_, 0, 7, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateFrontDefrost(bool value) {
     setBit(frame5400_, 1, 0, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateRearDefrost(bool value) {
     setBit(frame5400_, 1, 1, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateMirrorDefrost(bool value) {
     setBit(frame5400_, 1, 2, value);
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimateFanSpeed(uint8_t value) {
     if (value <= 8) {
         frame5400_[2] = (frame5400_[2] & 0xF0) | value;
-        frame5400_changed_ = true;
+        write_count_ = 0;
     }
 }
 
 void RealDash::setClimateDriverTemp(uint8_t value) {
     frame5400_[3] = value;
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::setClimatePassengerTemp(uint8_t value) {
     frame5400_[4] = value;
-    frame5400_changed_ = true;
+    write_count_ = 0;
 }
 
 void RealDash::receive(uint32_t id, uint8_t len, byte* data) {
@@ -352,12 +358,12 @@ void RealDash::push() {
     if (realdash_ == nullptr) {
         return;
     }
-    if (frame5400_changed_ || millis() - last_write_ >= 500) {
-        D(if (frame5400_changed_) {
-          INFO_MSG_FRAME("realdash: send ", 0x5400, 8, frame5400_);
-        })
+    if (write_count_ < repeat_ || millis() - last_write_ >= 500) {
+        if (write_count_ < repeat_) {
+            INFO_MSG_FRAME("realdash: send ", 0x5400, 8, frame5400_);
+            write_count_++;
+        }
         realdash_->write(0x5400, 8, frame5400_);
-        frame5400_changed_ = false;
     }
 }
 

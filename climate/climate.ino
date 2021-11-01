@@ -21,7 +21,7 @@ D(SerialReceiver serial_receiver);
 
 VehicleController vehicle_controller;
 VehicleListener vehicle_listener;
-RealDash dashboard;
+RealDash dashboard(REALDASH_REPEAT);
 
 void connect() {
 #ifndef CAN_LISTEN_ONLY

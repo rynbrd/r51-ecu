@@ -86,7 +86,7 @@ class RealDashReceiver {
 // and has the latest state.
 class RealDash : public DashController, public FrameListener  {
     public:
-        RealDash();
+        RealDash(uint8_t repeat);
 
         // Connect the controller to a dashboard and vehicle systems.
         void connect(RealDashReceiver* realdash, ClimateController* climate);
@@ -143,10 +143,16 @@ class RealDash : public DashController, public FrameListener  {
         // State frame. Dashboard state is tracked in order to avoid toggling
         // items on/off when not needed.
         byte frame5400_[8];
-        bool frame5400_changed_;
+
+        // How many times to repeat a frame sent to RealDash.
+        uint8_t repeat_;
+
+        // How many times the current control frame has been written.
+        uint8_t write_count_;
 
         // The last time a control frame was sent.
         uint32_t last_write_;
+
 };
 
 #endif  // __R51_REALDASH_H__
