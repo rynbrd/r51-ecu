@@ -1,17 +1,13 @@
 #include <Arduino.h>
 
 #include "climate.h"
+#include "config.h"
 #include "debug.h"
 #include "listener.h"
 #include "mcp_can.h"
 #include "realdash.h"
 #include "serial.h"
 #include "vehicle.h"
-
-#define REALDASH_SERIAL Serial1
-#define REALDASH_BAUDRATE 115200
-#define CAN_CS_PIN 17
-#define CAN_BAUDRATE CAN_500KBPS
 
 struct {
     uint32_t id;

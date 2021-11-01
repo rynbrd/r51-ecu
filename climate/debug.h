@@ -3,15 +3,19 @@
 
 #include <Stream.h>
 #include <stdint.h>
+#include "config.h"
 
-// Uncomment the following line to enable debug output.
-//#define DEBUG
+#ifdef DEBUG_ENABLE
 
-#ifdef DEBUG
+#ifndef DEBUG_SERIAL
+#error DEBUG_SERIAL must be defined with DEBUG_ENABLE is set
+#endif
+
+#ifndef DEBUG_BAUDRATE
+#error DEBUG_BAUDRATE must be defined with DEBUG_ENABLE is set
+#endif
 
 // Update these to change debug output settings.
-#define DEBUG_SERIAL Serial
-#define DEBUG_BAUDRATE 115200
 
 size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
 
@@ -75,6 +79,6 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
 #define ERROR_MSG_VAL_FMT(MSG, VAL, FMT)
 #define ERROR_MSG_FRAME(MSG, ID, LEN, DATA)
 
-#endif  // DEBUG
+#endif  // DEBUG_ENABLE
 
 #endif  // __R51_DEBUG_H__
