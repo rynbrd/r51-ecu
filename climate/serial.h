@@ -7,14 +7,14 @@
 // frames for debugging via ttl.
 //
 // Frames are in the form:
-//   HHHH#00:00:00:00:00:00:00:00
+//   HHHHHHHH#00:00:00:00:00:00:00:00
 //
 // Or:
-//   HHHH#0000000000000000
+//   HHHHHHHH#0000000000000000
 //
-// HHHH is the hex ID for standard frames and 00 is each byte in the data
-// payload. Fewer bytes may be provided for shorter payloads. Each frame is
-// terminated in a newline.
+// HHHHHHHH is the 32-bit hex ID of the frame. It may be from 0 to 8
+// characters. Each 00 is a byte in the data payload. Fewer bytes may be
+// provided for shorter payloads. Each frame is terminated in a newline.
 class SerialReceiver {
     public:
         SerialReceiver() : stream_(nullptr) {}
@@ -29,7 +29,7 @@ class SerialReceiver {
     private:
         Stream* stream_;
         byte conv_[5];
-        byte buffer_[28];
+        byte buffer_[32];
         uint8_t buffer_len_;
         uint8_t id_len_;
         uint8_t data_len_;

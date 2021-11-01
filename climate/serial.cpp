@@ -25,7 +25,7 @@ bool SerialReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
             complete = true;
             break;
         }
-        if (buffer_len_ >= 28) {
+        if (buffer_len_ >= 32) {
             ERROR_MSG("serial: buffer overflow");
             reset();
             return false;
@@ -43,7 +43,7 @@ bool SerialReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
             break;
         }
     }
-    if (id_len_ > 4) {
+    if (id_len_ > 8) {
         ERROR_MSG("serial: invalid frame format: id too long");
         reset();
         return false;
@@ -68,7 +68,7 @@ bool SerialReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
     data_len_ = 
     *len = data_len_ / 2;
     conv_[2] = 0;
-    for (int i = 0; i < data_len_ / 2; i++) {
+    for (int i = 0; i < *len; i++) {
         memcpy(conv_, buffer_ + (i * 2 + id_len_ + 1), 2);
         data[i] = (byte)strtoul((char*)conv_, nullptr, 16);
     }
