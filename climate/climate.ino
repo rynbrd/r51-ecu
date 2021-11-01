@@ -16,7 +16,7 @@
 struct {
     uint32_t id;
     uint8_t len;
-    byte data[8];
+    byte data[64];
 } frame;
 
 MCP_CAN can(CAN_CS_PIN);
