@@ -24,7 +24,9 @@ VehicleListener vehicle_listener;
 RealDash dashboard;
 
 void connect() {
+#ifndef CAN_LISTEN_ONLY
     vehicle_controller.connect(&can);
+#endif
     vehicle_listener.connect(&dashboard);
     dashboard.connect(&realdash, &vehicle_controller);
 }
