@@ -6,11 +6,11 @@
 
 class CanReceiver : public Receiver {
     public:
-        CanReceiver() : mcp_(nullptr) {}
+        CanReceiver() : mcp_(nullptr), retries_(5) {}
         ~CanReceiver();
 
         // Initialize the CAN controller. 
-        bool begin(uint8_t cs_pin = 17, uint8_t baudrate = CAN_500KBPS, uint8_t clockset = MCP_16MHz);
+        bool begin(uint8_t cs_pin = 17, uint8_t baudrate = CAN_500KBPS, uint8_t clockset = MCP_16MHZ);
 
         // Read a frame from the CAN bus. Return true if a frame was read.
         bool read(uint32_t* id, uint8_t* len, byte* data) override;
@@ -19,6 +19,7 @@ class CanReceiver : public Receiver {
         bool write(uint32_t id, uint8_t len, byte* data) override;
     private:
         MCP_CAN* mcp_;
+        uint8_t retries_;
 };
 
 #endif  // __R51_CAN__

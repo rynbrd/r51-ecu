@@ -59,7 +59,7 @@ void setup() {
     }
     realdash.begin(&REALDASH_SERIAL);
 
-    while (!can.begin(CAN_CS_PIN, CAN_BAUDRATE)) {
+    while (!can.begin(CAN_CS_PIN, CAN_BAUDRATE, CAN_CLOCK)) {
         delay(1000);
     }
 

@@ -18,6 +18,7 @@
 // Baudrate should match the connected CAN bus.
 #define CAN_CS_PIN 17
 #define CAN_BAUDRATE CAN_500KBPS
+#define CAN_CLOCK MCP_16MHZ
 //#define CAN_LISTEN_ONLY
 
 #endif  // __R51_CONFIG__
