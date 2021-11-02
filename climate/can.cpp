@@ -26,7 +26,9 @@ bool CanReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
     }
     uint8_t err = mcp_->readMsgBufID(id, len, data);
     if (err != CAN_OK) {
-        ERROR_MSG_VAL("can: read failed: error code ", err);
+        if (err != CAN_NOMSG) {
+            ERROR_MSG_VAL("can: read failed: error code ", err);
+        }
         return false;
     }
     return true;
