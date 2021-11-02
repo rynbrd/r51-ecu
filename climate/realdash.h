@@ -6,6 +6,7 @@
 #include "climate.h"
 #include "dash.h"
 #include "listener.h"
+#include "receiver.h"
 
 /* RealDash Control Frames
  *
@@ -38,7 +39,7 @@
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and
 // 0x66 type frames. All written frames are 0x66 for error checking (0x44
 // frames do not contain a checksum).
-class RealDashReceiver {
+class RealDashReceiver : public Receiver {
     public:
         // Construct an uninitialized RealDash instance.
         RealDashReceiver();
@@ -50,11 +51,11 @@ class RealDashReceiver {
         // Read a frame from RealDash. Returns true if a frame was read or
         // false if not. Should be called on every loop or the connected serial
         // device may block.
-        bool read(uint32_t* id, uint8_t* len, byte* data);
+        bool read(uint32_t* id, uint8_t* len, byte* data) override;
 
         // Write frame to RealDash. Return false on success or false on
         // failure.
-        bool write(uint32_t id, uint8_t len, byte* data);
+        bool write(uint32_t id, uint8_t len, byte* data) override;
 
     private:
         Stream* stream_;

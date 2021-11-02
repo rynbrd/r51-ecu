@@ -5,7 +5,7 @@
 #include "climate.h"
 #include "dash.h"
 #include "listener.h"
-#include "mcp_can.h"
+#include "receiver.h"
 
 // Controls the vehicle's climate control system over CAN. On initialization it
 // is in the "intiialization" state and will attempt to handshake with the A/C
@@ -17,7 +17,7 @@ class VehicleController : public ClimateController, public FrameListener {
         VehicleController();
 
         // Connect the controller to a CAN bus.
-        void connect(MCP_CAN* can);
+        void connect(Receiver* can);
 
         // Turn off the climate control.
         void deactivateClimate() override;
@@ -70,7 +70,7 @@ class VehicleController : public ClimateController, public FrameListener {
 
     private:
         // The CAN bus to push state change frames to.
-        MCP_CAN* can_;
+        Receiver* can_;
 
         // True if the A/C Auto Amp is operational.
         bool climate_online_;

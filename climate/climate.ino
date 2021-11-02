@@ -1,10 +1,10 @@
 #include <Arduino.h>
 
+#include "can.h"
 #include "climate.h"
 #include "config.h"
 #include "debug.h"
 #include "listener.h"
-#include "mcp_can.h"
 #include "realdash.h"
 #include "serial.h"
 #include "vehicle.h"
@@ -15,9 +15,15 @@ struct {
     byte data[64];
 } frame;
 
-MCP_CAN can(CAN_CS_PIN);
+CanReceiver can;
 RealDashReceiver realdash;
 D(SerialReceiver serial_receiver);
+
+Receiver* receivers[] = {
+    &can,
+    &realdash,
+    D(&serial_receiver)
+};
 
 VehicleController vehicle_controller;
 VehicleListener vehicle_listener;
@@ -53,8 +59,7 @@ void setup() {
     }
     realdash.begin(&REALDASH_SERIAL);
 
-    while (can.begin(CAN_BAUDRATE) != CAN_OK) {
-        ERROR_MSG("setup: can bus init failure");
+    while (!can.begin(CAN_CS_PIN, CAN_BAUDRATE)) {
         delay(1000);
     }
 
@@ -68,20 +73,10 @@ void setup() {
 // hardware. Otherwise state changes in the controller could get clobbered by a
 // new frame before those changes are pushed out.
 void loop() {
-    if (can.readMsgBufID(&frame.id, &frame.len, frame.data) == CAN_OK) {
-        receive();
-    }
-    push();
-
-    if (realdash.read(&frame.id, &frame.len, frame.data)) {
-        receive();
-    }
-    push();
-
-    D({
-        if (serial_receiver.read(&frame.id, &frame.len, frame.data)) {
+    for (int i = 0; i < sizeof(receivers)/sizeof(receivers[0]); i++) {
+        if (receivers[i]->read(&frame.id, &frame.len, frame.data)) {
             receive();
         }
         push();
-    })
+    }
 }

@@ -4,7 +4,7 @@
 #include "binary.h"
 #include "dash.h"
 #include "debug.h"
-#include "mcp_can.h"
+#include "receiver.h"
 
 
 VehicleController::VehicleController() {
@@ -23,7 +23,7 @@ VehicleController::VehicleController() {
     frame54x_changed_ = true;
 }
 
-void VehicleController::connect(MCP_CAN* can) {
+void VehicleController::connect(Receiver* can) {
     can_ = can;
 }
 
@@ -142,15 +142,18 @@ void VehicleController::push() {
         D(if (frame54x_changed_) {
           INFO_MSG_FRAME("vehicle: send ", 0x540, 8, frame540_);
         })
-        if (can_->sendMsgBuf(0x540, false, 8, frame540_) != CAN_OK) {
+        if (!can_->write(0x540, 8, frame540_)) {
             ERROR_MSG("vehicle: failed to send frame 0x540");
         }
         D(if (frame54x_changed_) {
           INFO_MSG_FRAME("vehicle: send ", 0x541, 8, frame541_);
         })
-        if (can_->sendMsgBuf(0x541, false, 8, frame541_) != CAN_OK) {
+        if (!can_->write(0x541, 8, frame541_)) {
             ERROR_MSG("vehicle: failed to send frame 0x541");
         }
+
+        frame54x_changed_ = false;
+        last_write_ = millis();
 
         if (climate_online_ && frame540_[0] == 0x00) {
             // Fill in control frames for regular operation after the ack is
@@ -160,9 +163,6 @@ void VehicleController::push() {
             frame540_[6] = 0x04;
             INFO_MSG("vehicle: climate system handshake complete");
         }
-
-        frame54x_changed_ = false;
-        last_write_ = millis();
     }
 }
 

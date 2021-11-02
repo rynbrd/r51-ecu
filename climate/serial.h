@@ -2,6 +2,7 @@
 #define __R51_SERIAL_H__
 
 #include <Arduino.h>
+#include "receiver.h"
 
 // A text based receiver which reads frames from serial. Useful for sending raw
 // frames for debugging via ttl.
@@ -15,7 +16,7 @@
 // HHHHHHHH is the 32-bit hex ID of the frame. It may be from 0 to 8
 // characters. Each 00 is a byte in the data payload. Fewer bytes may be
 // provided for shorter payloads. Each frame is terminated in a newline.
-class SerialReceiver {
+class SerialReceiver : public Receiver {
     public:
         SerialReceiver() : stream_(nullptr) {}
 
@@ -24,7 +25,10 @@ class SerialReceiver {
         void begin(Stream* stream);
 
         // Read a frame from serial. Returns false if no frame was read.
-        bool read(uint32_t* id, uint8_t* len, byte* data);
+        bool read(uint32_t* id, uint8_t* len, byte* data) override;
+
+        // Not yet supported.
+        bool write(uint32_t id, uint8_t len, byte* data) override {}
 
     private:
         Stream* stream_;
