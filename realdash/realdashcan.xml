@@ -1,55 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RealDashCAN version="2">
   <frames>
-    <!-- Climate Control -->
+    <!-- Climate state frame. Sent by the climate system to update the dashboard. -->
     <frame id="0x5400" signed="false">
-      <value name="Climate Active"
-        targetId="335" offset="0" startbit="0" bitcount="1"></value>
-      <!-- Dummy 06 -->
-      <value name="Climate Auto"
-        targetId="121" offset="0" startbit="1" bitcount="1"></value>
-      <!-- Dummy 07 -->
-      <value name="Climate A/C"
-        targetId="122" offset="0" startbit="2" bitcount="1"></value>
-      <!-- Dummy 08 -->
-      <value name="Climate Sync"
-        targetId="123" offset="0" startbit="3" bitcount="1" conversion="!V"></value>
-      <!-- Dummy 09 -->
-      <value name="Climate Cycle Mode"
-        targetId="286" offset="0" startbit="4" bitcount="1"></value>
-      <value name="Climate Face"
-        targetId="317" offset="0" startbit="5" bitcount="1"></value>
-      <value name="Climate Feet"
-        targetId="316" offset="0" startbit="6" bitcount="1"></value>
-      <value name="Climate Recirculate"
-        targetId="336" offset="0" startbit="7" bitcount="1"></value>
+      <value name="Climate System Active State" offset="0" startbit="0" bitcount="1"></value>
+      <value name="Climate Auto State" offset="0" startbit="1" bitcount="1"></value>
+      <value name="Climate A/C State" offset="0" startbit="2" bitcount="1"></value>
+      <value name="Climate Dual State" offset="0" startbit="3" bitcount="1"></value>
+      <value name="Climate Airflow Face State" offset="0" startbit="4" bitcount="1"></value>
+      <value name="Climate Airflow Feet State" offset="0" startbit="5" bitcount="1"></value>
+      <value name="Climate Windshield Defrost State" offset="0" startbit="6" bitcount="1"></value>
+      <value name="Climate Recirculate State" offset="0" startbit="7" bitcount="1"></value>
+      <value name="Climate Fan Speed State" offset="1" length="1"></value>
+      <value name="Climate Driver Temperature State" offset="2" length="1"></value>
+      <value name="Climate Passenger Temperature State" offset="3" length="1"></value>
+      <value name="Climate Rear Window Defrost State" offset="4" startbit="0" bitcount="1"></value>
+      <value name="Climate Side Mirror Defrost State" offset="4" startbit="1" bitcount="1"></value>
+    </frame>
 
-      <!-- Defrost Zone 1 -->
-      <value name="Climate Front Defrost"
-        targetId="315" offset="1" startbit="0" bitcount="1"></value>
-      <!-- Defrost Zone 2 -->
-      <value name="Climate Rear Defrost"
-        targetId="318" offset="1" startbit="1" bitcount="1"></value>
-      <!-- Defrost Zone 3 -->
-      <value name="Climate Mirror Defrost"
-        targetId="321" offset="1" startbit="2" bitcount="1"></value>
-
-      <!-- Dummy 10 -->
-      <value name="Climate Fan Speed"
-        targetId="125"  offset="2" startbit="0" bitcount="4"></value>
-      <!-- Dummy 11 -->
-      <value name="Climate Increase Fan Speed"
-        targetId="126" offset="2" startbit="4" bitcount="1"></value>
-      <!-- Dummy 12 -->
-      <value name="Climate Decrease Fan Speed"
-        targetId="127" offset="2" startbit="5" bitcount="1"></value>
-
-      <!-- Temperature Zone 1 -->
-      <value name="Climate Driver Temperature"
-        targetId="175" offset="3" length="1" units="C"></value>
-      <!-- Temperature Zone 2 -->
-      <value name="Climate Passenger Temperature"
-        targetId="312" offset="4" length="1" units="C"></value>
+    <!-- Climate control frame. Sent by the dashboard to modify climate system
+         state. Bits are flipped in order to trigger a state change on the Arduino. -->
+    <frame id="0x5401" signed="false" writeInterval="200">
+      <value name="Climate System Deactivate" offset="0" startbit="0" bitcount="1"></value>
+      <value name="Climate Auto Toggle" offset="0" startbit="1" bitcount="1"></value>
+      <value name="Climate A/C Toggle" offset="0" startbit="2" bitcount="1"></value>
+      <value name="Climate Dual Toggle" offset="0" startbit="3" bitcount="1"></value>
+      <value name="Climate Mode Cycle" offset="0" startbit="4" bitcount="1"></value>
+      <value name="Climate Windshield Defrost Toggle" offset="0" startbit="6" bitcount="1"></value>
+      <value name="Climate Recirculate Toggle" offset="0" startbit="7" bitcount="1"></value>
+      <value name="Climate Fan Speed Increase" offset="1" startbit="0" bitcount="1"></value>
+      <value name="Climate Fan Speed Decrease" offset="1" startbit="1" bitcount="1"></value>
+      <value name="Climate Driver Temperature Increase" offset="1" startbit="2" bitcount="1"></value>
+      <value name="Climate Driver Temperature Decrease" offset="1" startbit="3" bitcount="1"></value>
+      <!-- Flip this bit to set the driver temperature directly from the "Set Value" field. -->
+      <value name="Climate Driver Temperature Set Bit" offset="1" startbit="4" bitcount="1"></value>
+      <value name="Climate Driver Temperature Set Value" offset="2" length="1"></value>
+      <value name="Climate Passenger Temperature Increase" offset="1" startbit="5" bitcount="1"></value>
+      <value name="Climate Passenger Temperature Decrease" offset="1" startbit="6" bitcount="1"></value>
+      <!-- Flip this bit to set the passenger temperature directly from the "Set Value" field. -->
+      <value name="Climate Passenger Temperature Set Bit" offset="1" startbit="7" bitcount="1"></value>
+      <value name="Climate Passenger Temperature Set Value" offset="3" length="1"></value>
+      <value name="Climate Rear Window Defrost Toggle" offset="4" startbit="0" bitcount="1"></value>
+      <value name="Climate Side Mirror Defrost Toggle" offset="4" startbit="1" bitcount="1"></value>
+      <!-- If set to 1 the Arduino will reset its local state with the sent
+        frame without performing any state changes in the climate control
+        system. Used by RealDash to synchronize on connection reset. RealDash
+        should set this to 0 after connect. -->
+      <value name="Climate State Reset" offset="4" startbit="7" bitcount="1" initialValue="1"></value>
     </frame>
   </frames>
 </RealDashCAN>
