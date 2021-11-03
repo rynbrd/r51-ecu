@@ -248,7 +248,7 @@ This frame is sent by the A/C Auto Amp to indicate the zone temperatures.
     |  |  |  |  |
     |  |  |  |  |  +------- current passenger temperature
     |  |  |  |  |  |
-    |  |  |  |  |  |     +- unknown; either 0x45 or 0x47.
+    |  |  |  |  |  |     +- unknown
     |  |  |  |  |  |     |
 54A#3C:3E:7F:80:00:00:00:45
     0  1  2  3  4  5  6  7
@@ -289,8 +289,8 @@ Always 0x00.
 
 _Byte 7: Unknown_
 
-This has been observed to flip between the values 0x45 and 0x47. It is not
-known what causes the value to change.
+This has been observed to flip between the values 0x42, 0x45, and 0x47. It is
+not known what causes the value to change.
 
 
 #### CAN Frame ID 54B
@@ -423,44 +423,31 @@ operational.
 #### Handshake
 
 The climate control systems boot when the ignition is turned on. At boot time
-both ECU's are in an "initialization" state. A handshake between the A/C Auto
-Amp and AV Control Unit must occur before the climate control systems become
-active.
+the AV Control Unit sends a set of initialization frames to the A/C Auto Amp.
+After theses frames are sent the AV Control Unit enters its regular operating
+mode and sends input state changes to the A/C Auto Amp.
 
-![R51 Climate Handshake](images/r51_climate_handshake.png "R51 Climate Handshake")
+The AV Control Unit sends at least four pairs of `0x540` and `0x541`
+initialization frames. These are sent at an interval of about 100ms. These
+frames have the most significant bit set:
 
-During initialization the A/C Auto Amp repeatedly sends frames `0x54B` and
-`0x54A` (in that order) to indicate that the unit is not in an operational
-mode. The `0x54B` frame's first byte has a value of `0x72` to indicate this
-state:
 ```
-54B#7234062400000002
-```
-
-During initalization the AV Control Unit repeats frames `0x540` and `0x541` at
-an interval which varying between 100ms and 400ms. They each have the same
-payload:
-```
-540#8000000000000000
-541#8000000000000000
+540#80:00:00:00:00:00:00:00
+541#80:00:00:00:00:00:00:00
 ```
 
-When the A/C Auto Amp receives the above `0x540` and `0x541` frames it restores
-the climate control to the state at the previous shutdown. It sends frames
-`0x54B` and `0x54A` with the running state:
+These are meant to zero the input state of the A/C Auto Amp so that it can
+detect state changes in future frames.
+
+The AV Control Unit then sends a pair of control frames with the initial input
+state: 
+
 ```
-54B#F200002400000000
-54A#3C3E7F800000002C
+540#60:40:00:00:00:00:04:00
+541#00:00:00:00:00:00:00:00
 ```
 
-The AV Control Unit then reponds with zero'd `0x540` and `0x541` frames to
-acknowledge:
-```
-540#0000000000000000
-541#0000000000000000
-```
-
-From this point forward the system is initialized and begins normal operations.
+At this point the AV Control Unit is fully initialized for A/C control.
 
 
 #### Normal Operation
@@ -476,3 +463,9 @@ Unit.
 
 The `0x540` and `0x541` frames appear to repeat at an interval which varies
 between 100ms and 1200ms.
+
+The AV Control Unit flips bits in the control frames to indicate the A/C Auto
+Amp that an input was triggered (button press or rotary encoder movement). The
+AV Auto Amp also tracks the current temperature settings for driver and
+passenger zones and includes them in the control frame. A temperature change is
+accompanied by a bit flip.

@@ -6,10 +6,10 @@ work with other Nissan vehicles (Armada, QX56, etc) but have not been tested.
 
 ## Head Unit and Climate Control
 
-The [climate] directory contains an Arduino sketch that allows the stock
-LCD screen infotainment system to be replaced by an aftermarket head unit. It
-replaces the climate control systems with [RealDash]. The stock infotainment
-system must be removed for this to operate properly.
+The [climate](climate) directory contains an Arduino sketch that allows the
+stock LCD screen infotainment system to be replaced by an aftermarket head
+unit. It replaces the climate control systems with [RealDash]. The stock
+infotainment system must be removed for this to operate properly.
 
 The software targets the Arduino Lenoardo compatible [CAN Bed v1] but should
 work with any MCP2515 implementation with some small updates.
