@@ -121,6 +121,15 @@ class VehicleClimate : public ClimateController, public FrameListener {
         // Toggle a function controlled by a single bit.
         bool toggle(byte* frame, uint8_t offset, uint8_t bit);
 
+        // Toggle the set temperature bit.
+        void toggleSetTemperatureBit();
+
+        // Set the driver zone temperature in the control frame.
+        void setDriverTempByte(uint8_t temp);
+
+        // Set the passenger zone temperature in the control frame.
+        void setPassengerTempByte(uint8_t temp);
+
         // Update state from a 0x54A frame.
         void receive54A(uint8_t len, byte* data);
 

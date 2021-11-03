@@ -9,7 +9,6 @@
 static const uint8_t kDriverTempControlOffset = 0xB8;
 static const uint8_t kPassengerTempControlOffset = 0xCC;
 
-
 VehicleClimate::VehicleClimate() {
     can_ = nullptr;
     dash_ = nullptr;
@@ -108,12 +107,10 @@ void VehicleClimate::setClimateDriverTemp(uint8_t temp) {
         temp = 90;
     }
 
-    driver_temp_ = temp;
-    toggleBit(frame540_, 5, 5);
-    frame540_[3] = driver_temp_ + kDriverTempControlOffset;
+    toggleSetTemperatureBit();
+    setDriverTempByte(temp);
     if (!dual_) {
-        passenger_temp_ = temp;
-        frame540_[4] = passenger_temp_ + kPassengerTempControlOffset;
+        setPassengerTempByte(temp);
     }
     frame54x_changed_ = true;
 }
@@ -127,7 +124,7 @@ void VehicleClimate::decreaseClimatePassengerTemp(uint8_t value) {
 }
 
 void VehicleClimate::setClimatePassengerTemp(uint8_t temp) {
-    if (!climateOnline() || !active_ || !dual_) {
+    if (!climateOnline() || !active_) {
         return;
     }
 
@@ -138,10 +135,24 @@ void VehicleClimate::setClimatePassengerTemp(uint8_t temp) {
         temp = 90;
     }
 
-    passenger_temp_ = temp;
-    toggleBit(frame540_, 5, 5);
-    frame540_[4] = passenger_temp_ + kPassengerTempControlOffset;
+    if (!dual_) {
+        toggleClimateDual();
+        dual_ = true;
+    }
+
+    toggleSetTemperatureBit();
+    setPassengerTempByte(temp);
     frame54x_changed_ = true;
+}
+
+void VehicleClimate::setDriverTempByte(uint8_t temp) {
+    driver_temp_ = temp;
+    frame540_[3] = driver_temp_ + kDriverTempControlOffset;
+}
+
+void VehicleClimate::setPassengerTempByte(uint8_t temp) {
+    passenger_temp_ = temp;
+    frame540_[4] = passenger_temp_ + kPassengerTempControlOffset;
 }
 
 void VehicleClimate::push() {
@@ -188,6 +199,10 @@ bool VehicleClimate::toggle(byte* frame, uint8_t offset, uint8_t bit) {
     toggleBit(frame, offset, bit);
     frame54x_changed_ = true;
     return true;
+}
+
+void VehicleClimate::toggleSetTemperatureBit() {
+    toggleBit(frame540_, 5, 5);
 }
 
 void VehicleClimate::receive(uint32_t id, uint8_t len, byte* data) {
