@@ -294,6 +294,13 @@ void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
         return;
     }
 
+    // check if this is a state reset frame
+    if (getBit(frame5401_, 4, 7)) {
+        INFO_MSG("realdash: received state reset frame");
+        memcpy(frame5401_, data, 5);
+        return;
+    }
+
     // check if any bits have flipped
     D(bool changed = false;)
     if (xorBits(frame5401_, data, 0, 0)) {

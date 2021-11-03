@@ -53,7 +53,8 @@
  *   Byte 4: Heating Elements
  *     Bit 0: toggle rear window heating element
  *     Bit 1: toggle side mirrors heating elements
- *     Bit 2-7: unused
+ *     Bit 2-6: unused
+ *     Bit 7: state reset
  *   Bytes 5-7: unused
  */
 
