@@ -23,10 +23,6 @@ void RealDashReceiver::begin(Stream* stream) {
     stream_ = stream;
 }
 
-void frameChecksumError(uint32_t checksum) {
-    ERROR_MSG_VAL_FMT("realdash: frame checksum error, wanted ", checksum, HEX);
-}
-
 void RealDashReceiver::updateChecksum(byte b) {
     if (frame_type_66_) {
         frame66_checksum_.update(b);
@@ -135,7 +131,7 @@ bool RealDashReceiver::validateChecksum() {
             return false;
         }
         if (frame66_checksum_.finalize() != *((uint32_t*)checksum_buffer_)) {
-            frameChecksumError(frame66_checksum_.finalize());
+            ERROR_MSG_VAL_FMT("realdash: frame 0x66 checksum error, wanted ", frame66_checksum_.finalize(), HEX);
             reset();
             return false;
         }
@@ -148,7 +144,7 @@ bool RealDashReceiver::validateChecksum() {
             read_size_++;
         }
         if (frame44_checksum_ != checksum_buffer_[0]) {
-            frameChecksumError(frame44_checksum_);
+            ERROR_MSG_VAL_FMT("realdash: frame 0x44 checksum error, wanted ", frame44_checksum_, HEX);
             reset();
             return false;
         }

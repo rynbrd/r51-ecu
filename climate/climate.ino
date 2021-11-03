@@ -74,7 +74,7 @@ void setup() {
 // hardware. Otherwise state changes in the controller could get clobbered by a
 // new frame before those changes are pushed out.
 void loop() {
-    for (int i = 0; i < sizeof(receivers)/sizeof(receivers[0]); i++) {
+    for (uint8_t i = 0; i < sizeof(receivers)/sizeof(receivers[0]); i++) {
         if (receivers[i]->read(&frame.id, &frame.len, frame.data)) {
             receive();
         }

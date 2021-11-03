@@ -107,7 +107,8 @@ class RealDashReceiver : public Receiver {
 class RealDashController : public DashController {
     public:
         // Construct a new controller. Sent frames are repeated repeat times.
-        RealDashController(uint8_t repeat = 5) : realdash_(nullptr), last_write_(0), repeat_(repeat), write_count_(0) {}
+        RealDashController(uint8_t repeat = 5) :
+            realdash_(nullptr), repeat_(repeat), write_count_(0), last_write_(0) {}
 
         // Connect the controller to a dashboard and vehicle systems.
         void connect(RealDashReceiver* realdash);

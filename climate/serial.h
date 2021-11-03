@@ -27,8 +27,8 @@ class SerialReceiver : public Receiver {
         // Read a frame from serial. Returns false if no frame was read.
         bool read(uint32_t* id, uint8_t* len, byte* data) override;
 
-        // Not yet supported.
-        bool write(uint32_t id, uint8_t len, byte* data) override {}
+        // Print the frame to serial.
+        bool write(uint32_t id, uint8_t len, byte* data) override;
 
     private:
         Stream* stream_;

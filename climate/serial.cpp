@@ -77,6 +77,22 @@ bool SerialReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
     return true;
 }
 
+bool SerialReceiver::write(uint32_t id, uint8_t len, byte* data) {
+    stream_->print(id, HEX);
+    stream_->print("#");
+    for (int i = 0; i < len; i++) {
+        if (data[i] <= 0x0F) {
+            stream_->print("0");
+        }
+        stream_->print(data[i], HEX);
+        if (i < len-1) {
+            stream_->print(":");
+        }
+    }
+    stream_->print("\n");
+    return true;
+}
+
 void SerialReceiver::reset() {
     memset(buffer_, 0, 28);
     buffer_len_ = 0;
