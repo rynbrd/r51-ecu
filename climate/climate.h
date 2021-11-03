@@ -33,9 +33,6 @@ class ClimateController : public Controller {
         // Toggle rear defrost. This toggles the rear window heating element.
         virtual void toggleClimateRearDefrost() = 0;
 
-        // Toggle mirror defrost. This toggles the side mirror heating elements.
-        virtual void toggleClimateMirrorDefrost() = 0;
-
         // Increase the climate control fan speed by one notch.
         virtual void increaseClimateFanSpeed() = 0;
 

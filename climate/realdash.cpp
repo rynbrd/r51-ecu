@@ -251,11 +251,6 @@ void RealDashController::setClimateRearDefrost(bool value) {
     write_count_ = 0;
 }
 
-void RealDashController::setClimateMirrorDefrost(bool value) {
-    setBit(frame5400_, 4, 1, value);
-    write_count_ = 0;
-}
-
 void RealDashController::setClimateFanSpeed(uint8_t value) {
     frame5400_[1] = value;
     write_count_ = 0;
@@ -367,14 +362,10 @@ void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
         climate_->toggleClimateRearDefrost();
         D(changed = true;)
     }
-    if (xorBits(frame5401_, data, 4, 1)) {
-        climate_->toggleClimateMirrorDefrost();
-        D(changed = true;)
-    }
 
     D({
         if (changed) {
-            INFO_MSG_FRAME("realdash: receive ", 0x5400, 8, frame5400_);
+            INFO_MSG_FRAME("realdash: receive ", 0x5401, 8, frame5401_);
         }
     })
 

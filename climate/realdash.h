@@ -25,8 +25,7 @@
  *   Byte 3: Passenger Temperature
  *   Byte 4: Heating Elements
  *     Bit 0: rear window heating element
- *     Bit 1: side mirrors heating elements
- *     Bit 2-7: unused
+ *     Bit 1-7: unused
  *   Bytes 5-7: unused
  *
  * Frame 0x5401: Climate Control Frame
@@ -52,8 +51,7 @@
  *   Byte 3: Passenger Temperature Set
  *   Byte 4: Heating Elements
  *     Bit 0: toggle rear window heating element
- *     Bit 1: toggle side mirrors heating elements
- *     Bit 2-6: unused
+ *     Bit 1-6: unused
  *     Bit 7: state reset
  *   Bytes 5-7: unused
  */
@@ -141,9 +139,6 @@ class RealDashController : public DashController {
         // Update state of the rear defrost.
         void setClimateRearDefrost(bool value) override;
 
-        // Update state of the mirror defrost.
-        void setClimateMirrorDefrost(bool value) override;
-
         // Update ste of the fan speed.
         void setClimateFanSpeed(uint8_t value) override;
 
@@ -159,8 +154,7 @@ class RealDashController : public DashController {
     private:
         RealDashReceiver* realdash_;
 
-        // State frame. Dashboard state is tracked in order to avoid toggling
-        // items on/off when not needed.
+        // State frame sent to update RealDash.
         byte frame5400_[5];
 
         // How many times to repeat a frame sent to RealDash.

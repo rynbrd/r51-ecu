@@ -48,10 +48,6 @@ class VehicleClimate : public ClimateController, public FrameListener {
         // Currently a noop.
         void toggleClimateRearDefrost() override;
 
-        // Toggle side mirror defrost. This toggles the side mirror heating
-        // elements. Currently a noop.
-        void toggleClimateMirrorDefrost() override;
-
         // Increase the fan speed by one notch.
         void increaseClimateFanSpeed() override;
 

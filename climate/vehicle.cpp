@@ -68,14 +68,7 @@ void VehicleClimate::toggleClimateFrontDefrost() {
 void VehicleClimate::toggleClimateRearDefrost() {
     // TODO: determine rear defrost control signal
     if (climateOnline()) {
-        INFO_MSG("vehicle: climate: toggle rear defrost (noop)");
-    }
-}
-
-void VehicleClimate::toggleClimateMirrorDefrost() {
-    // TODO: determine mirror defrost control signal
-    if (climateOnline()) {
-        INFO_MSG("vehicle: climate: toggle rear defrost (noop)");
+        INFO_MSG("vehicle: climate: toggle rear defrost not implemented");
     }
 }
 

@@ -15,7 +15,6 @@
       <value name="Climate Driver Temperature State" offset="2" length="1"></value>
       <value name="Climate Passenger Temperature State" offset="3" length="1"></value>
       <value name="Climate Rear Window Defrost State" offset="4" startbit="0" bitcount="1"></value>
-      <value name="Climate Side Mirror Defrost State" offset="4" startbit="1" bitcount="1"></value>
     </frame>
 
     <!-- Climate control frame. Sent by the dashboard to modify climate system
@@ -41,7 +40,6 @@
       <value name="Climate Passenger Temperature Set Bit" offset="1" startbit="7" bitcount="1"></value>
       <value name="Climate Passenger Temperature Set Value" offset="3" length="1"></value>
       <value name="Climate Rear Window Defrost Toggle" offset="4" startbit="0" bitcount="1"></value>
-      <value name="Climate Side Mirror Defrost Toggle" offset="4" startbit="1" bitcount="1"></value>
       <!-- If set to 1 the Arduino will reset its local state with the sent
         frame without performing any state changes in the climate control
         system. Used by RealDash to synchronize on connection reset. RealDash
