@@ -11,7 +11,7 @@
 // be the Serial1 TTL as the USB connected Serial expects a DTR before
 // transmitting. 
 #define REALDASH_SERIAL Serial1
-#define REALDASH_BAUDRATE 115200
+#define REALDASH_BAUDRATE 57600
 #define REALDASH_REPEAT 3
 
 // CAN Bus configuration. Set the appropriate CS pin for the target board.
