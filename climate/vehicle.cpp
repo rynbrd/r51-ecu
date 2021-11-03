@@ -6,9 +6,13 @@
 #include "debug.h"
 #include "receiver.h"
 
+static const uint8_t kDriverTempControlOffset = 0xB8;
+static const uint8_t kPassengerTempControlOffset = 0xCC;
 
-VehicleController::VehicleController() {
+
+VehicleClimate::VehicleClimate() {
     can_ = nullptr;
+    dash_ = nullptr;
     init_complete_ = false;
 
     // Send keepalive every 100ms during handshake.
@@ -24,92 +28,123 @@ VehicleController::VehicleController() {
     frame54x_changed_ = true;
 }
 
-void VehicleController::connect(Receiver* can) {
+void VehicleClimate::connect(Receiver* can, DashController* dash) {
     can_ = can;
+    dash_ = dash;
 }
 
-bool VehicleController::climateOnline() const {
+bool VehicleClimate::climateOnline() const {
     return frame540_[0] == 0x60;
 }
 
-void VehicleController::deactivateClimate() {
+void VehicleClimate::deactivateClimate() {
     toggle(frame540_, 6, 7);
 }
 
-void VehicleController::toggleClimateAuto() {
+void VehicleClimate::toggleClimateAuto() {
     toggle(frame540_, 6, 5);
 }
 
-void VehicleController::toggleClimateAc() {
+void VehicleClimate::toggleClimateAc() {
     toggle(frame540_, 5, 3);
 }
 
-void VehicleController::toggleClimateDual() {
+void VehicleClimate::toggleClimateDual() {
     toggle(frame540_, 6, 3);
 }
 
-void VehicleController::toggleClimateRecirculate() {
+void VehicleClimate::toggleClimateRecirculate() {
     toggle(frame541_, 1, 6);
 }
 
 
-void VehicleController::cycleClimateMode() {
+void VehicleClimate::cycleClimateMode() {
     toggle(frame540_, 6, 0);
 }
 
-void VehicleController::toggleClimateFrontDefrost() {
+void VehicleClimate::toggleClimateFrontDefrost() {
     toggle(frame540_, 6, 1);
 }
 
-void VehicleController::toggleClimateRearDefrost() {
+void VehicleClimate::toggleClimateRearDefrost() {
     // TODO: determine rear defrost control signal
     if (climateOnline()) {
         INFO_MSG("vehicle: climate: toggle rear defrost (noop)");
     }
 }
 
-void VehicleController::toggleClimateMirrorDefrost() {
+void VehicleClimate::toggleClimateMirrorDefrost() {
     // TODO: determine mirror defrost control signal
     if (climateOnline()) {
         INFO_MSG("vehicle: climate: toggle rear defrost (noop)");
     }
 }
 
-void VehicleController::increaseClimateFanSpeed() {
+void VehicleClimate::increaseClimateFanSpeed() {
     toggle(frame541_, 0, 5);
 }
 
-void VehicleController::decreaseClimateFanSpeed() {
+void VehicleClimate::decreaseClimateFanSpeed() {
     toggle(frame541_, 0, 4);
 }
 
-void VehicleController::setClimateDriverTemp(uint8_t temp) {
-    if (!climateOnline()) {
+void VehicleClimate::increaseClimateDriverTemp(uint8_t value) {
+    setClimateDriverTemp(driver_temp_ + value);
+}
+
+void VehicleClimate::decreaseClimateDriverTemp(uint8_t value) {
+    setClimateDriverTemp(driver_temp_ - value);
+}
+
+void VehicleClimate::setClimateDriverTemp(uint8_t temp) {
+    if (!climateOnline() || !active_) {
         return;
     }
-    if (temp < 60 || temp > 90) {
-        ERROR_MSG_VAL("vehicle: climate: driver temperature out of range: ", temp);
-        return;
+
+    if (temp < 60 ) {
+        temp = 60;
     }
+    if (temp > 90) {
+        temp = 90;
+    }
+
+    driver_temp_ = temp;
     toggleBit(frame540_, 5, 5);
-    frame540_[3] = temp + 0xB8;
+    frame540_[3] = driver_temp_ + kDriverTempControlOffset;
+    if (!dual_) {
+        passenger_temp_ = temp;
+        frame540_[4] = passenger_temp_ + kPassengerTempControlOffset;
+    }
     frame54x_changed_ = true;
 }
 
-void VehicleController::setClimatePassengerTemp(uint8_t temp) {
-    if (!climateOnline()) {
+void VehicleClimate::increaseClimatePassengerTemp(uint8_t value) {
+    setClimatePassengerTemp(passenger_temp_ + value);
+}
+
+void VehicleClimate::decreaseClimatePassengerTemp(uint8_t value) {
+    setClimatePassengerTemp(passenger_temp_ - value);
+}
+
+void VehicleClimate::setClimatePassengerTemp(uint8_t temp) {
+    if (!climateOnline() || !active_ || !dual_) {
         return;
     }
-    if (temp < 60 || temp > 90) {
-        ERROR_MSG_VAL("vehicle: climate: passenger temperature out of range: ", temp);
-        return;
+
+    if (temp < 60 ) {
+        temp = 60;
     }
+    if (temp > 90) {
+        temp = 90;
+    }
+
+    passenger_temp_ = temp;
     toggleBit(frame540_, 5, 5);
-    frame540_[4] = temp - 0x33;
+    frame540_[4] = passenger_temp_ + kPassengerTempControlOffset;
     frame54x_changed_ = true;
 }
 
-void VehicleController::push() {
+void VehicleClimate::push() {
     if (can_ == nullptr) {
         return;
     }
@@ -146,7 +181,7 @@ void VehicleController::push() {
     }
 }
 
-bool VehicleController::toggle(byte* frame, uint8_t offset, uint8_t bit) {
+bool VehicleClimate::toggle(byte* frame, uint8_t offset, uint8_t bit) {
     if (!climateOnline()) {
         return false;
     }
@@ -155,15 +190,7 @@ bool VehicleController::toggle(byte* frame, uint8_t offset, uint8_t bit) {
     return true;
 }
 
-void VehicleListener::connect(DashController* dash) {
-    dash_ = dash;
-}
-
-void VehicleListener::receive(uint32_t id, uint8_t len, byte* data) {
-    if (dash_ == nullptr) {
-        ERROR_MSG("vehicle: dash not connected");
-        return;
-    }
+void VehicleClimate::receive(uint32_t id, uint8_t len, byte* data) {
     switch(id) {
         case 0x54A:
             receive54A(len, data);
@@ -177,79 +204,91 @@ void VehicleListener::receive(uint32_t id, uint8_t len, byte* data) {
     }
 }
 
-void VehicleListener::receive54A(uint8_t len, byte* data) {
+void VehicleClimate::receive54A(uint8_t len, byte* data) {
     if (len != 8) {
         ERROR_MSG_VAL("vehicle: frame 0x54A has invalid length: 8 != ", len);
         return;
     }
     INFO_MSG_FRAME("vehicle: receive ", 0x54A, 8, data);
-    dash_->setClimateDriverTemp(data[4]);
-    dash_->setClimatePassengerTemp(data[5]);
+
+    driver_temp_ = data[4];
+    passenger_temp_ = data[5];
+
+    if (dash_ != nullptr) {
+        dash_->setClimateDriverTemp(driver_temp_);
+        dash_->setClimatePassengerTemp(passenger_temp_);
+    }
 }
 
-void VehicleListener::receive54B(uint8_t len, byte* data) {
+void VehicleClimate::receive54B(uint8_t len, byte* data) {
     if (len != 8) {
         ERROR_MSG_VAL("vehicle: frame 0x54B has invalid length: 8 != ", len);
         return;
     }
     INFO_MSG_FRAME("vehicle: receive ", 0x54B, 8, data);
-    dash_->setClimateActive(!getBit(data, 0, 5));
-    dash_->setClimateAuto(getBit(data, 0, 0));
-    dash_->setClimateAc(getBit(data, 0, 3));
-    dash_->setClimateDual(getBit(data, 3, 7));
-    dash_->setClimateRecirculate(getBit(data, 3, 4));
-    dash_->setClimateFanSpeed((data[2] + 1) / 2);
 
-    switch(data[1]) {
-        case 0x04:
-            dash_->setClimateFace(true);
-            dash_->setClimateFeet(false);
-            dash_->setClimateFrontDefrost(false);
-            break;
-        case 0x08:
-            dash_->setClimateFace(true);
-            dash_->setClimateFeet(true);
-            dash_->setClimateFrontDefrost(false);
-            break;
-        case 0x0C:
-            dash_->setClimateFace(false);
-            dash_->setClimateFeet(true);
-            dash_->setClimateFrontDefrost(false);
-            break;
-        case 0x10:
-            dash_->setClimateFace(false);
-            dash_->setClimateFeet(true);
-            dash_->setClimateFrontDefrost(true);
-            break;
-        case 0x34:
-            dash_->setClimateFace(false);
-            dash_->setClimateFeet(false);
-            dash_->setClimateFrontDefrost(true);
-            break;
-        case 0x84:
-            dash_->setClimateFace(true);
-            dash_->setClimateFeet(false);
-            dash_->setClimateFrontDefrost(false);
-            break;
-        case 0x88:
-            dash_->setClimateFace(true);
-            dash_->setClimateFeet(true);
-            dash_->setClimateFrontDefrost(false);
-            break;
-        case 0x8C:
-            dash_->setClimateFace(false);
-            dash_->setClimateFeet(true);
-            dash_->setClimateFrontDefrost(false);
-            break;
-        default:
-            dash_->setClimateFace(false);
-            dash_->setClimateFeet(false);
-            dash_->setClimateFrontDefrost(false);
-            break;
+    active_ = !getBit(data, 0, 5);
+    dual_ = getBit(data, 3, 7);
+
+    if (dash_ != nullptr) {
+        dash_->setClimateActive(active_);
+        dash_->setClimateAuto(getBit(data, 0, 0));
+        dash_->setClimateAc(getBit(data, 0, 3));
+        dash_->setClimateDual(dual_);
+        dash_->setClimateRecirculate(getBit(data, 3, 4));
+        dash_->setClimateFanSpeed((data[2] + 1) / 2);
+
+        switch(data[1]) {
+            case 0x04:
+                dash_->setClimateFace(true);
+                dash_->setClimateFeet(false);
+                dash_->setClimateFrontDefrost(false);
+                break;
+            case 0x08:
+                dash_->setClimateFace(true);
+                dash_->setClimateFeet(true);
+                dash_->setClimateFrontDefrost(false);
+                break;
+            case 0x0C:
+                dash_->setClimateFace(false);
+                dash_->setClimateFeet(true);
+                dash_->setClimateFrontDefrost(false);
+                break;
+            case 0x10:
+                dash_->setClimateFace(false);
+                dash_->setClimateFeet(true);
+                dash_->setClimateFrontDefrost(true);
+                break;
+            case 0x34:
+                dash_->setClimateFace(false);
+                dash_->setClimateFeet(false);
+                dash_->setClimateFrontDefrost(true);
+                break;
+            case 0x84:
+                dash_->setClimateFace(true);
+                dash_->setClimateFeet(false);
+                dash_->setClimateFrontDefrost(false);
+                break;
+            case 0x88:
+                dash_->setClimateFace(true);
+                dash_->setClimateFeet(true);
+                dash_->setClimateFrontDefrost(false);
+                break;
+            case 0x8C:
+                dash_->setClimateFace(false);
+                dash_->setClimateFeet(true);
+                dash_->setClimateFrontDefrost(false);
+                break;
+            default:
+                dash_->setClimateFace(false);
+                dash_->setClimateFeet(false);
+                dash_->setClimateFrontDefrost(false);
+                break;
+        }
     }
 }
 
-void VehicleListener::receive625(uint8_t len, byte* data) {
+void VehicleClimate::receive625(uint8_t len, byte* data) {
     if (len != 6) {
         ERROR_MSG_VAL("vehicle: frame 0x625 has invalid length: 6 != ", len);
         return;

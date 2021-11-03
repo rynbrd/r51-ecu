@@ -25,27 +25,27 @@ Receiver* receivers[] = {
     D(&serial_receiver)
 };
 
-VehicleController vehicle_controller;
-VehicleListener vehicle_listener;
+VehicleClimate vehicle_climate;
 RealDashController dash_controller(REALDASH_REPEAT);
 RealDashListener dash_listener;
 
 void connect() {
 #ifndef CAN_LISTEN_ONLY
-    vehicle_controller.connect(&can);
+    vehicle_climate.connect(nullptr, &dash_controller);
+#else
+    vehicle_climate.connect(&can, &dash_controller);
 #endif
-    vehicle_listener.connect(&dash_controller);
     dash_controller.connect(&realdash);
-    dash_listener.connect(&vehicle_controller);
+    dash_listener.connect(&vehicle_climate);
 }
 
 void receive() {
-    vehicle_listener.receive(frame.id, frame.len, frame.data);
+    vehicle_climate.receive(frame.id, frame.len, frame.data);
     dash_listener.receive(frame.id, frame.len, frame.data);
 }
 
 void push() {
-    vehicle_controller.push();
+    vehicle_climate.push();
     dash_controller.push();
 }
 

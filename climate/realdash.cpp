@@ -337,11 +337,11 @@ void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 2)) {
-        //climate_->increaseClimateDriverTemp();
+        climate_->increaseClimateDriverTemp(1);
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 3)) {
-        //climate_->decreaseClimateDriverTemp();
+        climate_->decreaseClimateDriverTemp(1);
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 4)) {
@@ -349,11 +349,11 @@ void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 5)) {
-        //climate_->increaseClimatePassengerTemp();
+        climate_->increaseClimatePassengerTemp(1);
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 6)) {
-        //climate_->decreaseClimatePassengerTemp();
+        climate_->decreaseClimatePassengerTemp(1);
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 7)) {
