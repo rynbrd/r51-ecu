@@ -19,7 +19,7 @@ VehicleController::VehicleController() {
     memset(frame540_, 0, 8);
     memset(frame541_, 0, 8);
     frame540_[0] = 0x80;
-    frame541_[1] = 0x80;
+    frame541_[0] = 0x80;
     frame54x_changed_ = true;
 }
 
