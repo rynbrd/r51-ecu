@@ -200,161 +200,82 @@ bool RealDashReceiver::write(uint32_t id, uint8_t len, byte* data) {
     return true;
 }
 
-RealDash::RealDash(uint8_t repeat) {
-    realdash_ = nullptr;
-    climate_ = nullptr;
-    memset(frame5400_, 0, 8);
-    last_write_ = 0;
-    if (repeat < 1) {
+void RealDashController::connect(RealDashReceiver* realdash) {
+    if (repeat_ < 1) {
         repeat_ = 1;
-    } else {
-        repeat_ = repeat;
     }
-    write_count_ = repeat_;
-}
-
-void RealDash::connect(RealDashReceiver* realdash, ClimateController* climate) {
     realdash_ = realdash;
-    climate_ = climate;
+    last_write_ = 0;
+    write_count_ = repeat_;     // force a write on start
+    memset(frame5400_, 0, 8);
 }
 
-void RealDash::setClimateActive(bool value) {
+void RealDashController::setClimateActive(bool value) {
     setBit(frame5400_, 0, 0, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateAuto(bool value) {
+void RealDashController::setClimateAuto(bool value) {
     setBit(frame5400_, 0, 1, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateAc(bool value) {
+void RealDashController::setClimateAc(bool value) {
     setBit(frame5400_, 0, 2, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateDual(bool value) {
+void RealDashController::setClimateDual(bool value) {
     setBit(frame5400_, 0, 3, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateFace(bool value) {
+void RealDashController::setClimateFace(bool value) {
+    setBit(frame5400_, 0, 4, value);
+    write_count_ = 0;
+}
+
+void RealDashController::setClimateFeet(bool value) {
     setBit(frame5400_, 0, 5, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateFeet(bool value) {
-    setBit(frame5400_, 0, 6, value);
-    write_count_ = 0;
-}
-
-void RealDash::setClimateRecirculate(bool value) {
+void RealDashController::setClimateRecirculate(bool value) {
     setBit(frame5400_, 0, 7, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateFrontDefrost(bool value) {
-    setBit(frame5400_, 1, 0, value);
+void RealDashController::setClimateFrontDefrost(bool value) {
+    setBit(frame5400_, 1, 6, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateRearDefrost(bool value) {
-    setBit(frame5400_, 1, 1, value);
+void RealDashController::setClimateRearDefrost(bool value) {
+    setBit(frame5400_, 4, 0, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateMirrorDefrost(bool value) {
-    setBit(frame5400_, 1, 2, value);
+void RealDashController::setClimateMirrorDefrost(bool value) {
+    setBit(frame5400_, 4, 1, value);
     write_count_ = 0;
 }
 
-void RealDash::setClimateFanSpeed(uint8_t value) {
-    if (value <= 8) {
-        frame5400_[2] = (frame5400_[2] & 0xF0) | value;
-        write_count_ = 0;
-    }
+void RealDashController::setClimateFanSpeed(uint8_t value) {
+    frame5400_[1] = value;
+    write_count_ = 0;
 }
 
-void RealDash::setClimateDriverTemp(uint8_t value) {
+void RealDashController::setClimateDriverTemp(uint8_t value) {
+    frame5400_[2] = value;
+    write_count_ = 0;
+}
+
+void RealDashController::setClimatePassengerTemp(uint8_t value) {
     frame5400_[3] = value;
     write_count_ = 0;
 }
 
-void RealDash::setClimatePassengerTemp(uint8_t value) {
-    frame5400_[4] = value;
-    write_count_ = 0;
-}
-
-void RealDash::receive(uint32_t id, uint8_t len, byte* data) {
-    if (climate_ == nullptr || id != 0x5400) {
-        return;
-    }
-    if (len != 8) {
-        ERROR_MSG_VAL("realdash: frame 0x5400 has invalid length: 8 != ", len);
-    }
-    INFO_MSG_FRAME("realdash: receive ", id, len, data);
-
-    bool bit = getBit(data, 0, 0);
-    if (bit != getBit(frame5400_, 0, 0)) {
-        if (bit) {
-            climate_->deactivateClimate();
-        } else {
-            climate_->toggleClimateAuto();
-        }
-    }
-
-    if (xorBits(frame5400_, data, 0, 1)) {
-        climate_->toggleClimateAuto();
-    }
-
-    if (xorBits(frame5400_, data, 0, 2)) {
-        climate_->toggleClimateAc();
-    }
-
-    if (xorBits(frame5400_, data, 0, 3)) {
-        climate_->toggleClimateDual();
-    }
-
-    bit = getBit(data, 0, 4);
-    if (setBitXor(data, 0, 4, bit)) {
-        climate_->cycleClimateMode();
-    }
-
-    if (xorBits(frame5400_, data, 0, 7)) {
-        climate_->toggleClimateRecirculate();
-    }
-
-    if (xorBits(frame5400_, data, 1, 0)) {
-        climate_->toggleClimateFrontDefrost();
-    }
-
-    if (xorBits(frame5400_, data, 1, 1)) {
-        climate_->toggleClimateRearDefrost();
-    }
-
-    if (xorBits(frame5400_, data, 1, 2)) {
-        climate_->toggleClimateMirrorDefrost();
-    }
-
-    bit = getBit(data, 2, 4);
-    if (setBitXor(data, 2, 4, bit)) {
-        climate_->increaseClimateFanSpeed();
-    }
-
-    bit = getBit(data, 2, 5);
-    if (setBitXor(data, 2, 5, bit)) {
-        climate_->decreaseClimateFanSpeed();
-    }
-
-    if (data[3] != 0) {
-        climate_->setClimateDriverTemp(data[3]);
-    }
-    if (data[4] != 0) {
-        climate_->setClimatePassengerTemp(data[4]);
-    }
-}
-
-void RealDash::push() {
+void RealDashController::push() {
     if (realdash_ == nullptr) {
         return;
     }
@@ -367,3 +288,93 @@ void RealDash::push() {
     }
 }
 
+void RealDashListener::connect(ClimateController* climate) {
+    memset(frame5401_, 0, 5);
+    climate_ = climate;
+}
+
+void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
+    if (climate_ == nullptr || id != 0x5401 || len != 8) {
+        return;
+    }
+
+    // check if any bits have flipped
+    D(bool changed = false;)
+    if (xorBits(frame5401_, data, 0, 0)) {
+        climate_->deactivateClimate();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 0, 1)) {
+        climate_->toggleClimateAuto();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 0, 2)) {
+        climate_->toggleClimateAc();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 0, 3)) {
+        climate_->toggleClimateDual();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 0, 4)) {
+        climate_->cycleClimateMode();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 0, 6)) {
+        climate_->toggleClimateFrontDefrost();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 0, 7)) {
+        climate_->toggleClimateRecirculate();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 0)) {
+        climate_->increaseClimateFanSpeed();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 1)) {
+        climate_->decreaseClimateFanSpeed();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 2)) {
+        //climate_->increaseClimateDriverTemp();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 3)) {
+        //climate_->decreaseClimateDriverTemp();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 4)) {
+        climate_->setClimateDriverTemp(data[2]);
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 5)) {
+        //climate_->increaseClimatePassengerTemp();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 6)) {
+        //climate_->decreaseClimatePassengerTemp();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 1, 7)) {
+        climate_->setClimatePassengerTemp(data[3]);
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 4, 0)) {
+        climate_->toggleClimateRearDefrost();
+        D(changed = true;)
+    }
+    if (xorBits(frame5401_, data, 4, 1)) {
+        climate_->toggleClimateMirrorDefrost();
+        D(changed = true;)
+    }
+
+    D({
+        if (changed) {
+            INFO_MSG_FRAME("realdash: receive ", 0x5400, 8, frame5400_);
+        }
+    })
+
+    // update the stored frame
+    memcpy(frame5401_, data, 5);
+}

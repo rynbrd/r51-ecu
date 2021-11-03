@@ -27,24 +27,26 @@ Receiver* receivers[] = {
 
 VehicleController vehicle_controller;
 VehicleListener vehicle_listener;
-RealDash dashboard(REALDASH_REPEAT);
+RealDashController dash_controller(REALDASH_REPEAT);
+RealDashListener dash_listener;
 
 void connect() {
 #ifndef CAN_LISTEN_ONLY
     vehicle_controller.connect(&can);
 #endif
-    vehicle_listener.connect(&dashboard);
-    dashboard.connect(&realdash, &vehicle_controller);
+    vehicle_listener.connect(&dash_controller);
+    dash_controller.connect(&realdash);
+    dash_listener.connect(&vehicle_controller);
 }
 
 void receive() {
     vehicle_listener.receive(frame.id, frame.len, frame.data);
-    dashboard.receive(frame.id, frame.len, frame.data);
+    dash_listener.receive(frame.id, frame.len, frame.data);
 }
 
 void push() {
     vehicle_controller.push();
-    dashboard.push();
+    dash_controller.push();
 }
 
 void setup() {
