@@ -51,9 +51,14 @@
  *   Byte 3: Passenger Temperature Set
  *   Byte 4: Heating Elements
  *     Bit 0: toggle rear window heating element
- *     Bit 1-6: unused
- *     Bit 7: state reset
+ *     Bit 1-7: unused
  *   Bytes 5-7: unused
+ *
+ *   When RealDash connects it always sends an initial control frame with a
+ *   zero value. If this system does not receive a control frame after 1000ms
+ *   it will assume the RealDash device has disconnected and reset its internal
+ *   state to zero. This way when RealDash reconnects and sends a zero control
+ *   frame the two systems will be in sync.
  */
 
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and
@@ -172,7 +177,7 @@ class RealDashController : public DashController {
 class RealDashListener : public FrameListener {
     public:
         // Construct an unconnected RealDash listener.
-        RealDashListener() : climate_(nullptr) {}
+        RealDashListener() : climate_(nullptr), last_receive_(0) {}
 
         // Connect the RealDash listener to a climate control system.
         void connect(ClimateController* climate);
@@ -183,6 +188,9 @@ class RealDashListener : public FrameListener {
     private:
         // The climate control system to send commands to.
         ClimateController* climate_;
+
+        // The timestamp the last control frame was received.
+        uint32_t last_receive_;
 
         // Most recent RealDash 0x5401 climate control payload. Climate control
         // functions are triggered when new frames come in whose bits differ

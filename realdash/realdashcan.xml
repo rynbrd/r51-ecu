@@ -20,31 +20,26 @@
     <!-- Climate control frame. Sent by the dashboard to modify climate system
          state. Bits are flipped in order to trigger a state change on the Arduino. -->
     <frame id="0x5401" signed="false" writeInterval="200">
-      <value name="Climate System Deactivate" offset="0" startbit="0" bitcount="1"></value>
-      <value name="Climate Auto Toggle" offset="0" startbit="1" bitcount="1"></value>
-      <value name="Climate A/C Toggle" offset="0" startbit="2" bitcount="1"></value>
-      <value name="Climate Dual Toggle" offset="0" startbit="3" bitcount="1"></value>
-      <value name="Climate Mode Cycle" offset="0" startbit="4" bitcount="1"></value>
-      <value name="Climate Windshield Defrost Toggle" offset="0" startbit="6" bitcount="1"></value>
-      <value name="Climate Recirculate Toggle" offset="0" startbit="7" bitcount="1"></value>
-      <value name="Climate Fan Speed Increase" offset="1" startbit="0" bitcount="1"></value>
-      <value name="Climate Fan Speed Decrease" offset="1" startbit="1" bitcount="1"></value>
-      <value name="Climate Driver Temperature Increase" offset="1" startbit="2" bitcount="1"></value>
-      <value name="Climate Driver Temperature Decrease" offset="1" startbit="3" bitcount="1"></value>
+      <value name="Climate System Deactivate" offset="0" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Climate Auto Toggle" offset="0" startbit="1" bitcount="1" initialValue="0"></value>
+      <value name="Climate A/C Toggle" offset="0" startbit="2" bitcount="1" initialValue="0"></value>
+      <value name="Climate Dual Toggle" offset="0" startbit="3" bitcount="1" initialValue="0"></value>
+      <value name="Climate Mode Cycle" offset="0" startbit="4" bitcount="1" initialValue="0"></value>
+      <value name="Climate Windshield Defrost Toggle" offset="0" startbit="6" bitcount="1" initialValue="0"></value>
+      <value name="Climate Recirculate Toggle" offset="0" startbit="7" bitcount="1" initialValue="0"></value>
+      <value name="Climate Fan Speed Increase" offset="1" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Climate Fan Speed Decrease" offset="1" startbit="1" bitcount="1" initialValue="0"></value>
+      <value name="Climate Driver Temperature Increase" offset="1" startbit="2" bitcount="1" initialValue="0"></value>
+      <value name="Climate Driver Temperature Decrease" offset="1" startbit="3" bitcount="1" initialValue="0"></value>
       <!-- Flip this bit to set the driver temperature directly from the "Set Value" field. -->
-      <value name="Climate Driver Temperature Set Bit" offset="1" startbit="4" bitcount="1"></value>
-      <value name="Climate Driver Temperature Set Value" offset="2" length="1"></value>
-      <value name="Climate Passenger Temperature Increase" offset="1" startbit="5" bitcount="1"></value>
-      <value name="Climate Passenger Temperature Decrease" offset="1" startbit="6" bitcount="1"></value>
+      <value name="Climate Driver Temperature Set Bit" offset="1" startbit="4" bitcount="1" initialValue="0"></value>
+      <value name="Climate Driver Temperature Set Value" offset="2" length="1" initialValue="0"></value>
+      <value name="Climate Passenger Temperature Increase" offset="1" startbit="5" bitcount="1" initialValue="0"></value>
+      <value name="Climate Passenger Temperature Decrease" offset="1" startbit="6" bitcount="1" initialValue="0"></value>
       <!-- Flip this bit to set the passenger temperature directly from the "Set Value" field. -->
-      <value name="Climate Passenger Temperature Set Bit" offset="1" startbit="7" bitcount="1"></value>
-      <value name="Climate Passenger Temperature Set Value" offset="3" length="1"></value>
-      <value name="Climate Rear Window Defrost Toggle" offset="4" startbit="0" bitcount="1"></value>
-      <!-- If set to 1 the Arduino will reset its local state with the sent
-        frame without performing any state changes in the climate control
-        system. Used by RealDash to synchronize on connection reset. RealDash
-        should set this to 0 after connect. -->
-      <value name="Climate State Reset" offset="4" startbit="7" bitcount="1" initialValue="1"></value>
+      <value name="Climate Passenger Temperature Set Bit" offset="1" startbit="7" bitcount="1" initialValue="0"></value>
+      <value name="Climate Passenger Temperature Set Value" offset="3" length="1" initialValue="0"></value>
+      <value name="Climate Rear Window Defrost Toggle" offset="4" startbit="0" bitcount="1" initialValue="0"></value>
     </frame>
   </frames>
 </RealDashCAN>

@@ -5,6 +5,8 @@
 #include "debug.h"
 
 
+static const uint32_t kReceiveTimeout = 1000;
+
 RealDashReceiver::RealDashReceiver() {
     stream_ = nullptr;
     reset();
@@ -280,8 +282,9 @@ void RealDashController::push() {
 }
 
 void RealDashListener::connect(ClimateController* climate) {
-    memset(frame5401_, 0, 5);
     climate_ = climate;
+    last_receive_ = millis();
+    memset(frame5401_, 0, 5);
 }
 
 void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
@@ -289,12 +292,12 @@ void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
         return;
     }
 
-    // check if this is a state reset frame
-    if (getBit(frame5401_, 4, 7)) {
-        INFO_MSG("realdash: received state reset frame");
-        memcpy(frame5401_, data, 5);
-        return;
+    // reset internal state if we haven't received a frame recently
+    if (millis() - last_receive_ > kReceiveTimeout) {
+        INFO_MSG("realdash: state reset, control frame timeout exceeded");
+        memset(frame5401_, 0, 5);
     }
+    last_receive_ = millis();
 
     // check if any bits have flipped
     D(bool changed = false;)
