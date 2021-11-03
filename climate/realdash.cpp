@@ -347,10 +347,10 @@ void RealDash::receive(uint32_t id, uint8_t len, byte* data) {
     }
 
     if (data[3] != 0) {
-        climate_->setClimateDriverTemp(data[2]);
+        climate_->setClimateDriverTemp(data[3]);
     }
     if (data[4] != 0) {
-        climate_->setClimatePassengerTemp(data[3]);
+        climate_->setClimatePassengerTemp(data[4]);
     }
 }
 
