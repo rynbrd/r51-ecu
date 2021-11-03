@@ -8,10 +8,11 @@
 #include "receiver.h"
 
 // Controls the vehicle's climate control system over CAN. On initialization it
-// is in the "intiialization" state and will attempt to handshake with the A/C
-// Auto Amp to bring it online. The controller will send control frames at
-// least every 200ms to ensure the A/C Auto Amp remains active.
-class VehicleController : public ClimateController, public FrameListener {
+// is in the "initialization" state and will send some initialization control
+// frames to the A/C Auto Amp to bring it online. The controller will send
+// control frames at least every 200ms to ensure the A/C Auto Amp remains
+// active.
+class VehicleController : public ClimateController {
     public:
         // Create a ClimateControl object in its initialization state.
         VehicleController();
@@ -60,11 +61,6 @@ class VehicleController : public ClimateController, public FrameListener {
         // Set the passenger zone temperature in degrees from 60 to 90.
         void setClimatePassengerTemp(uint8_t temp) override;
 
-        // Update state from an incoming 0x54B frame. This frame contains the
-        // current A/C Auto Amp state and is needed to perform the
-        // initialization handshake.
-        void receive(uint32_t id, uint8_t len, byte* data);
-
         // Push state changes to the CAN bus.
         void push() override;
 
@@ -72,8 +68,8 @@ class VehicleController : public ClimateController, public FrameListener {
         // The CAN bus to push state change frames to.
         Receiver* can_;
 
-        // True if the A/C Auto Amp is operational.
-        bool climate_online_;
+        // True if the controller has sent its init packates.
+        bool init_complete_;
 
         // Set to true if the control state has been changed. Control frames
         // will be sent on next push call.
@@ -83,6 +79,7 @@ class VehicleController : public ClimateController, public FrameListener {
         // them.
         uint32_t last_write_;
         uint8_t keepalive_interval_;
+        uint8_t write_count_;
 
         // Control frames. These are standard (11-bit ID) frames.
         byte frame540_[8];

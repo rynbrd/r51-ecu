@@ -9,11 +9,12 @@
 
 VehicleController::VehicleController() {
     can_ = nullptr;
-    climate_online_ = false;
+    init_complete_ = false;
 
     // Send keepalive every 100ms during handshake.
     last_write_ = 0;
     keepalive_interval_ = 100;
+    write_count_ = 0;
 
     // Set control frames to send handshake.
     memset(frame540_, 0, 8);
@@ -108,30 +109,6 @@ void VehicleController::setClimatePassengerTemp(uint8_t temp) {
     frame54x_changed_ = true;
 }
 
-void VehicleController::receive(uint32_t id, uint8_t len, byte* data) {
-    // Ignore invalid frames.
-    if (id != 0x54B || len < 8) {
-        return;
-    }
-
-    // Already online, nothing more to do.
-    if (climate_online_) {
-        return;
-    }
-
-    climate_online_ = (data[0] & 0xA0) != 0x20;
-    if (climate_online_) {
-        // Unit transitions to online mode. Send empty control frames to ack.
-        // Increase keepalive interval to 200ms.
-        climate_online_ = true;
-        frame540_[0] = 0;
-        frame540_[0] = 0;
-        frame54x_changed_ = true;
-        keepalive_interval_ = 200;
-        INFO_MSG("vehicle: climate system reports online"); 
-    }
-}
-
 void VehicleController::push() {
     if (can_ == nullptr) {
         return;
@@ -144,24 +121,27 @@ void VehicleController::push() {
         })
         if (!can_->write(0x540, 8, frame540_)) {
             ERROR_MSG("vehicle: failed to send frame 0x540");
+            return;
         }
         D(if (frame54x_changed_) {
           INFO_MSG_FRAME("vehicle: send ", 0x541, 8, frame541_);
         })
         if (!can_->write(0x541, 8, frame541_)) {
             ERROR_MSG("vehicle: failed to send frame 0x541");
+            return;
         }
 
         frame54x_changed_ = false;
         last_write_ = millis();
+        write_count_++;
 
-        if (climate_online_ && frame540_[0] == 0x00) {
-            // Fill in control frames for regular operation after the ack is
-            // sent.
+        if (!init_complete_ && write_count_ >= 4) {
             frame540_[0] = 0x60;
             frame540_[1] = 0x40;
             frame540_[6] = 0x04;
-            INFO_MSG("vehicle: climate system handshake complete");
+            frame541_[0] = 0x00;
+            init_complete_ = true;
+            keepalive_interval_ = 200;
         }
     }
 }

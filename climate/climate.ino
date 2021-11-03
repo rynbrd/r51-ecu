@@ -38,7 +38,6 @@ void connect() {
 }
 
 void receive() {
-    vehicle_controller.receive(frame.id, frame.len, frame.data);
     vehicle_listener.receive(frame.id, frame.len, frame.data);
     dashboard.receive(frame.id, frame.len, frame.data);
 }
