@@ -5,7 +5,7 @@
 #include "debug.h"
 
 
-static const uint32_t kReceiveTimeout = 1000;
+static const uint32_t kReceiveTimeout = 5000;
 
 RealDashConnection::RealDashConnection() {
     stream_ = nullptr;
