@@ -141,6 +141,9 @@ class VehicleClimate : public ClimateController, public Listener {
         // climate state can't be modified.
         bool toggle(byte* frame, uint8_t offset, uint8_t bit);
 
+        // Set dual zone state.
+        void setDual(bool dual);
+
         // Toggle the set temperature bit.
         void toggleSetTemperatureBit();
 

@@ -49,6 +49,10 @@ void VehicleClimate::toggleClimateAuto() {
         return;
     }
     auto_ = !auto_;
+    active_ = true;
+    if (auto_) {
+        ac_ = true;
+    }
     updateDash();
 }
 
@@ -65,10 +69,7 @@ void VehicleClimate::toggleClimateDual() {
     if (!toggle(frame540_, 6, 3) || !active_) {
         return;
     }
-    dual_ = !dual_;
-    if (!dual_) {
-        setClimatePassengerTemp(driver_temp_);
-    }
+    setDual(!dual_);
     updateDash();
 }
 
@@ -130,8 +131,7 @@ void VehicleClimate::toggleClimateFrontDefrost() {
     } else {
         active_ = true;
         auto_ = false;
-        dual_ = true;
-        passenger_temp_ = driver_temp_;
+        setDual(false);
 
         switch (mode_) {
             case MODE_FEET:
@@ -228,8 +228,7 @@ void VehicleClimate::setClimatePassengerTemp(uint8_t temp) {
         temp = 90;
     }
 
-    dual_ = true;
-
+    setDual(true);
     toggleSetTemperatureBit();
     setPassengerTempByte(temp);
 
@@ -290,6 +289,18 @@ bool VehicleClimate::toggle(byte* frame, uint8_t offset, uint8_t bit) {
     toggleBit(frame, offset, bit);
     frame54x_changed_ = true;
     return true;
+}
+
+void VehicleClimate::setDual(bool dual) {
+    if (dual_ == dual) {
+        return;
+    }
+    dual_ = dual;
+    if (!dual_) {
+        passenger_temp_ = driver_temp_;
+        toggleSetTemperatureBit();
+        setPassengerTempByte(passenger_temp_);
+    }
 }
 
 void VehicleClimate::toggleSetTemperatureBit() {
