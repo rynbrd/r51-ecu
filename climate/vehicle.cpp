@@ -185,13 +185,12 @@ void VehicleClimate::push() {
     }
 }
 
-bool VehicleClimate::toggle(byte* frame, uint8_t offset, uint8_t bit) {
+void VehicleClimate::toggle(byte* frame, uint8_t offset, uint8_t bit) {
     if (!climateOnline()) {
-        return false;
+        return;
     }
     toggleBit(frame, offset, bit);
     frame54x_changed_ = true;
-    return true;
 }
 
 void VehicleClimate::toggleSetTemperatureBit() {

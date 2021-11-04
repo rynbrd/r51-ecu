@@ -115,7 +115,7 @@ class VehicleClimate : public ClimateController, public FrameListener {
         bool climateOnline() const;
 
         // Toggle a function controlled by a single bit.
-        bool toggle(byte* frame, uint8_t offset, uint8_t bit);
+        void toggle(byte* frame, uint8_t offset, uint8_t bit);
 
         // Toggle the set temperature bit.
         void toggleSetTemperatureBit();
