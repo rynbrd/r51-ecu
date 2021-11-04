@@ -80,6 +80,23 @@ class VehicleClimate : public ClimateController, public Listener {
         void push() override;
 
     private:
+        // mode cycle order:
+        //   face
+        //   face + feet
+        //   feet
+        //   feet + windshield
+        //   windshield
+        enum Mode : uint8_t {
+            MODE_FACE = 0x04,
+            MODE_FACE_FEET = 0x08,
+            MODE_FEET = 0x0C,
+            MODE_FEET_WINDSHIELD = 0x10,
+            MODE_WINDSHIELD = 0x34,
+            MODE_AUTO_FACE = 0x84,
+            MODE_AUTO_FACE_FEET = 0x88,
+            MODE_AUTO_FEET = 0x8C,
+        };
+
         // The CAN bus to push state change frames to.
         Connection* can_;
 
@@ -103,19 +120,26 @@ class VehicleClimate : public ClimateController, public Listener {
         byte frame540_[8];
         byte frame541_[8];
 
-        // Track some climate state to ensure we send commands that make sense.
+        // Track climate state to ensure we send commands that make sense.
         bool active_;
+        bool auto_;
+        bool ac_;
         bool dual_;
+        bool recirculate_;
+        uint8_t mode_;
+        uint8_t fan_speed_;
         uint8_t driver_temp_;
         uint8_t passenger_temp_;
+        bool rear_defrost_;
 
         // Return true if the climate control system has exited initialization
         // and is taking commands. Climate control commands are noops until
         // this is true.
         bool climateOnline() const;
 
-        // Toggle a function controlled by a single bit.
-        void toggle(byte* frame, uint8_t offset, uint8_t bit);
+        // Toggle a function controlled by a single bit. Return false if
+        // climate state can't be modified.
+        bool toggle(byte* frame, uint8_t offset, uint8_t bit);
 
         // Toggle the set temperature bit.
         void toggleSetTemperatureBit();
@@ -134,6 +158,9 @@ class VehicleClimate : public ClimateController, public Listener {
 
         // Update state from a 0x625 frame.
         void receive625(uint8_t len, byte* data);
+
+        // Update the dashboard with the current state.
+        void updateDash();
 };
 
 #endif  // __R51_VEHICLE_H__

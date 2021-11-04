@@ -319,7 +319,7 @@ Bit meanings (least to most significant):
 * Bit 0: Auto setting. Set to 1 when auto is on.
 * Bit 1: Unknown. Set to 1 when auto is off or power is off.
 * Bit 2: Always 0.
-* Bit 3: A/C power. Set to 1 when A/C is enabled.
+* Bit 3: A/C compressor. Set to 1 when A/C compressor is requested.
 * Bit 4: Unknown. Set to 1 when A/C is on or when unit is off.
 * Bit 5: Unit power. Set to 1 when power is off.
 * Bit 6: Always 1.
