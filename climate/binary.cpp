@@ -24,6 +24,6 @@ bool setBitXor(byte* b, uint8_t offset, uint8_t bit, bool value) {
   return false;
 }
 
-void toggleBit(byte* b, uint8_t offset, uint8_t bit) {
-    b[offset] ^= (1 << bit);
+bool toggleBit(byte* b, uint8_t offset, uint8_t bit) {
+    return b[offset] ^= (1 << bit);
 }
