@@ -50,7 +50,15 @@ void push() {
 void setup() {
     DEBUG_BEGIN();
     INFO_MSG("setup: initializing ecu");
-    D(serial.begin(&DEBUG_SERIAL));
+
+    D({
+        serial.begin(&DEBUG_SERIAL);
+#ifdef DEBUG_WAIT_FOR_SERIAL
+        while (!DEBUG_SERIAL) {
+            delay(100);
+        }
+#endif
+    })
 
     REALDASH_SERIAL.begin(REALDASH_BAUDRATE);
     while (!REALDASH_SERIAL) {

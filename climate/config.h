@@ -5,6 +5,7 @@
 #define DEBUG_ENABLE
 #define DEBUG_SERIAL Serial
 #define DEBUG_BAUDRATE 115200
+//#define DEBUG_WAIT_FOR_SERIAL
 
 // RealDash serial interface. This should not require a DTR to begin as
 // RealDash does not send a DTR. On CanBed (and other Leonardos) this needs to
