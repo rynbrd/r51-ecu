@@ -6,10 +6,10 @@
 // Translates received frames and performs controller actions. Implementations
 // should contain a "connect" method which connects the listener to the
 // appropriate controllers.
-class FrameListener {
+class Listener {
     public:
-        FrameListener() {}
-        virtual ~FrameListener() {}
+        Listener() {}
+        virtual ~Listener() {}
 
         // Receive and process a frame.
         virtual void receive(uint32_t id, uint8_t len, byte* data) = 0;

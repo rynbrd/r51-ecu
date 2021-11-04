@@ -2,9 +2,9 @@
 
 #include <Arduino.h>
 #include "binary.h"
+#include "connection.h"
 #include "dash.h"
 #include "debug.h"
-#include "receiver.h"
 
 static const uint8_t kDriverTempControlOffset = 0xB8;
 static const uint8_t kPassengerTempControlOffset = 0xCC;
@@ -27,7 +27,7 @@ VehicleClimate::VehicleClimate() {
     frame54x_changed_ = true;
 }
 
-void VehicleClimate::connect(Receiver* can, DashController* dash) {
+void VehicleClimate::connect(Connection* can, DashController* dash) {
     can_ = can;
     dash_ = dash;
 }

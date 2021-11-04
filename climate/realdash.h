@@ -4,9 +4,9 @@
 #include <Arduino.h>
 #include "CRC32.h"
 #include "climate.h"
+#include "connection.h"
 #include "dash.h"
 #include "listener.h"
-#include "receiver.h"
 
 /* RealDash Frames
  *
@@ -64,10 +64,10 @@
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and
 // 0x66 type frames. All written frames are 0x66 for error checking (0x44
 // frames do not contain a checksum).
-class RealDashReceiver : public Receiver {
+class RealDashConnection : public Connection {
     public:
         // Construct an uninitialized RealDash instance.
-        RealDashReceiver();
+        RealDashConnection();
 
         // Start the RealDash instance. Data is transmitted over the given
         // serial stream. This is typically Serial or SerialUSB.
@@ -115,7 +115,7 @@ class RealDashController : public DashController {
             realdash_(nullptr), repeat_(repeat), write_count_(0), last_write_(0) {}
 
         // Connect the controller to a dashboard and vehicle systems.
-        void connect(RealDashReceiver* realdash);
+        void connect(RealDashConnection* realdash);
 
         // Update the on/off state of the climate control.
         void setClimateActive(bool value) override;
@@ -157,7 +157,7 @@ class RealDashController : public DashController {
         void push() override;
 
     private:
-        RealDashReceiver* realdash_;
+        RealDashConnection* realdash_;
 
         // State frame sent to update RealDash.
         byte frame5400_[5];
@@ -174,7 +174,7 @@ class RealDashController : public DashController {
 };
 
 // Process control frames from RealDash.
-class RealDashListener : public FrameListener {
+class RealDashListener : public Listener {
     public:
         // Construct an unconnected RealDash listener.
         RealDashListener() : climate_(nullptr), last_receive_(0) {}

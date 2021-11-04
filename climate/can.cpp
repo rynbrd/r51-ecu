@@ -3,14 +3,14 @@
 #include "debug.h"
 #include "mcp_can.h"
 
-CanReceiver::~CanReceiver() {
+CanConnection::~CanConnection() {
     if (mcp_ != nullptr) {
         delete mcp_;
         mcp_ = nullptr;
     }
 }
 
-bool CanReceiver::begin(uint8_t cs_pin, uint8_t baudrate, uint8_t clockset) {
+bool CanConnection::begin(uint8_t cs_pin, uint8_t baudrate, uint8_t clockset) {
     mcp_ = new MCP_CAN(cs_pin);
     uint8_t err = mcp_->begin(MCP_ANY, baudrate, clockset);
     if (err != CAN_OK) {
@@ -25,7 +25,7 @@ bool CanReceiver::begin(uint8_t cs_pin, uint8_t baudrate, uint8_t clockset) {
     return true;
 }
 
-bool CanReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
+bool CanConnection::read(uint32_t* id, uint8_t* len, byte* data) {
     if (mcp_ == nullptr) {
         return false;
     }
@@ -39,7 +39,7 @@ bool CanReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
     return true;
 }
 
-bool CanReceiver::write(uint32_t id, uint8_t len, byte* data) {
+bool CanConnection::write(uint32_t id, uint8_t len, byte* data) {
     if (mcp_ == nullptr) {
         return false;
     }

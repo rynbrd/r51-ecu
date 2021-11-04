@@ -15,14 +15,14 @@ struct {
     byte data[64];
 } frame;
 
-CanReceiver can;
-RealDashReceiver realdash;
-D(SerialReceiver serial_receiver);
+CanConnection can;
+RealDashConnection realdash;
+D(SerialConnection serial);
 
-Receiver* receivers[] = {
+Connection* connections[] = {
     &can,
     &realdash,
-    D(&serial_receiver)
+    D(&serial)
 };
 
 VehicleClimate vehicle_climate;
@@ -52,7 +52,7 @@ void push() {
 void setup() {
     DEBUG_BEGIN();
     INFO_MSG("setup: initializing ecu");
-    D(serial_receiver.begin(&DEBUG_SERIAL));
+    D(serial.begin(&DEBUG_SERIAL));
 
     REALDASH_SERIAL.begin(REALDASH_BAUDRATE);
     while (!REALDASH_SERIAL) {
@@ -74,8 +74,8 @@ void setup() {
 // hardware. Otherwise state changes in the controller could get clobbered by a
 // new frame before those changes are pushed out.
 void loop() {
-    for (uint8_t i = 0; i < sizeof(receivers)/sizeof(receivers[0]); i++) {
-        if (receivers[i]->read(&frame.id, &frame.len, frame.data)) {
+    for (uint8_t i = 0; i < sizeof(connections)/sizeof(connections[0]); i++) {
+        if (connections[i]->read(&frame.id, &frame.len, frame.data)) {
             receive();
         }
         push();

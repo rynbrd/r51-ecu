@@ -7,12 +7,12 @@
 
 static const uint32_t kReceiveTimeout = 1000;
 
-RealDashReceiver::RealDashReceiver() {
+RealDashConnection::RealDashConnection() {
     stream_ = nullptr;
     reset();
 }
 
-void RealDashReceiver::reset() {
+void RealDashConnection::reset() {
     memset(checksum_buffer_, 0, 4);
     frame_type_66_ = false;
     frame44_checksum_ = 0;
@@ -21,11 +21,11 @@ void RealDashReceiver::reset() {
     read_size_ = 0;
 }
 
-void RealDashReceiver::begin(Stream* stream) {
+void RealDashConnection::begin(Stream* stream) {
     stream_ = stream;
 }
 
-void RealDashReceiver::updateChecksum(byte b) {
+void RealDashConnection::updateChecksum(byte b) {
     if (frame_type_66_) {
         frame66_checksum_.update(b);
     } else {
@@ -33,7 +33,7 @@ void RealDashReceiver::updateChecksum(byte b) {
     }
 }
 
-bool RealDashReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
+bool RealDashConnection::read(uint32_t* id, uint8_t* len, byte* data) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
         return false;
@@ -45,7 +45,7 @@ bool RealDashReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
     return false;
 }
 
-bool RealDashReceiver::readHeader() {
+bool RealDashConnection::readHeader() {
     byte b;
     while (stream_->available() && read_size_ < 4) {
         b = stream_->read();
@@ -89,7 +89,7 @@ bool RealDashReceiver::readHeader() {
     return read_size_ >= 4;
 }
 
-bool RealDashReceiver::readId(uint32_t* id) {
+bool RealDashConnection::readId(uint32_t* id) {
     uint32_t b;
     while (stream_->available() && read_size_ < 8) {
         b = stream_->read();
@@ -113,7 +113,7 @@ bool RealDashReceiver::readId(uint32_t* id) {
     return read_size_ >= 8;
 }
 
-bool RealDashReceiver::readData(uint8_t* len, byte* data) {
+bool RealDashConnection::readData(uint8_t* len, byte* data) {
     while (stream_->available() && read_size_ - 8 < frame_size_) {
         data[read_size_-8] = stream_->read();
         updateChecksum(data[read_size_-8]);
@@ -123,7 +123,7 @@ bool RealDashReceiver::readData(uint8_t* len, byte* data) {
     return read_size_ - 8 >= frame_size_;
 }
 
-bool RealDashReceiver::validateChecksum() {
+bool RealDashConnection::validateChecksum() {
     if (frame_type_66_) {
         while (stream_->available() && read_size_ - 8 - frame_size_ < 4) {
             checksum_buffer_[read_size_ - 8 - frame_size_] = stream_->read();
@@ -154,18 +154,18 @@ bool RealDashReceiver::validateChecksum() {
     return true;
 }
 
-void RealDashReceiver::writeByte(const byte b) {
+void RealDashConnection::writeByte(const byte b) {
     stream_->write(b);
     write_checksum_.update(b);
 }
 
-void RealDashReceiver::writeBytes(const byte* b, uint8_t len) {
+void RealDashConnection::writeBytes(const byte* b, uint8_t len) {
     for (int i = 0; i < len; i++) {
         writeByte(b[i]);
     }
 }
 
-bool RealDashReceiver::write(uint32_t id, uint8_t len, byte* data) {
+bool RealDashConnection::write(uint32_t id, uint8_t len, byte* data) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
         return false;
@@ -198,7 +198,7 @@ bool RealDashReceiver::write(uint32_t id, uint8_t len, byte* data) {
     return true;
 }
 
-void RealDashController::connect(RealDashReceiver* realdash) {
+void RealDashController::connect(RealDashConnection* realdash) {
     if (repeat_ < 1) {
         repeat_ = 1;
     }

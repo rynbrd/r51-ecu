@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 #include "climate.h"
+#include "connection.h"
 #include "dash.h"
 #include "listener.h"
-#include "receiver.h"
 
 // Controls the vehicle's climate control system over CAN. On initialization it
 // is in the "initialization" state and will send some initialization control
@@ -15,13 +15,13 @@
 //
 // The system also sends state changes to a dashboard if one is provided on
 // connect.
-class VehicleClimate : public ClimateController, public FrameListener {
+class VehicleClimate : public ClimateController, public Listener {
     public:
         // Create a ClimateControl object in its initialization state.
         VehicleClimate();
 
         // Connect the controller to a CAN bus.
-        void connect(Receiver* can, DashController* dash);
+        void connect(Connection* can, DashController* dash);
 
         // Turn off the climate control.
         void deactivateClimate() override;
@@ -81,7 +81,7 @@ class VehicleClimate : public ClimateController, public FrameListener {
 
     private:
         // The CAN bus to push state change frames to.
-        Receiver* can_;
+        Connection* can_;
 
         // A dashboard to update.
         DashController* dash_;

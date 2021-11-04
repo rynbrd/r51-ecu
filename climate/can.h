@@ -1,13 +1,13 @@
 #ifndef __R51_CAN__
 #define __R51_CAN__
 
+#include "connection.h"
 #include "mcp_can.h"
-#include "receiver.h"
 
-class CanReceiver : public Receiver {
+class CanConnection : public Connection {
     public:
-        CanReceiver() : mcp_(nullptr), retries_(5) {}
-        ~CanReceiver();
+        CanConnection() : mcp_(nullptr), retries_(5) {}
+        ~CanConnection();
 
         // Initialize the CAN controller. 
         bool begin(uint8_t cs_pin = 17, uint8_t baudrate = CAN_500KBPS, uint8_t clockset = MCP_16MHZ);

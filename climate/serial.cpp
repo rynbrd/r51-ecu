@@ -2,12 +2,12 @@
 
 #include "debug.h"
 
-void SerialReceiver::begin(Stream* stream) {
+void SerialConnection::begin(Stream* stream) {
     stream_ = stream;
     reset();
 }
 
-bool SerialReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
+bool SerialConnection::read(uint32_t* id, uint8_t* len, byte* data) {
     if (stream_ == nullptr) {
         return false;
     }
@@ -77,7 +77,7 @@ bool SerialReceiver::read(uint32_t* id, uint8_t* len, byte* data) {
     return true;
 }
 
-bool SerialReceiver::write(uint32_t id, uint8_t len, byte* data) {
+bool SerialConnection::write(uint32_t id, uint8_t len, byte* data) {
     stream_->print(id, HEX);
     stream_->print("#");
     for (int i = 0; i < len; i++) {
@@ -89,11 +89,11 @@ bool SerialReceiver::write(uint32_t id, uint8_t len, byte* data) {
             stream_->print(":");
         }
     }
-    stream_->print("\n");
+    stream_->println("");
     return true;
 }
 
-void SerialReceiver::reset() {
+void SerialConnection::reset() {
     memset(buffer_, 0, 28);
     buffer_len_ = 0;
     id_len_ = 0;

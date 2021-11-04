@@ -2,7 +2,7 @@
 #define __R51_CONFIG__
 
 // Uncomment the following line to enable debug output.
-//#define DEBUG_ENABLE
+#define DEBUG_ENABLE
 #define DEBUG_SERIAL Serial
 #define DEBUG_BAUDRATE 115200
 
