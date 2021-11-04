@@ -55,10 +55,10 @@
  *   Bytes 5-7: unused
  *
  *   When RealDash connects it always sends an initial control frame with a
- *   zero value. If this system does not receive a control frame after 1000ms
- *   it will assume the RealDash device has disconnected and reset its internal
- *   state to zero. This way when RealDash reconnects and sends a zero control
- *   frame the two systems will be in sync.
+ *   zero value. If this system does not receive a control frame after the
+ *   configured timeout it will assume the RealDash device has disconnected and
+ *   reset its internal state to zero. This way when RealDash reconnects and
+ *   sends a zero control frame the two systems will be in sync.
  */
 
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and
@@ -108,14 +108,14 @@ class RealDashConnection : public Connection {
 
 // Writes frames to RealDash to manage the dashboard state. Frames are repeated
 // in order to avoid errors on the line.
-class RealDashController : public DashController {
+class RealDashClimate : public DashController, Listener {
     public:
         // Construct a new controller. Sent frames are repeated repeat times.
-        RealDashController(uint8_t repeat = 5) :
-            realdash_(nullptr), repeat_(repeat), write_count_(0), last_write_(0) {}
+        RealDashClimate(uint8_t repeat = 5) :
+            realdash_(nullptr), climate_(nullptr), repeat_(repeat), write_count_(0), last_write_(0), last_read_(0) {}
 
         // Connect the controller to a dashboard and vehicle systems.
-        void connect(RealDashConnection* realdash);
+        void connect(RealDashConnection* realdash, ClimateController* climate);
 
         // Update the on/off state of the climate control.
         void setClimateActive(bool value) override;
@@ -153,14 +153,25 @@ class RealDashController : public DashController {
         // Update the passenger temperature state.
         void setClimatePassengerTemp(uint8_t value) override;
 
+        // Process frames from RealDash.
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+
         // Send state changes to RealDash.
         void push() override;
-
     private:
+        // The serial connection to the RealDash instance.
         RealDashConnection* realdash_;
+
+        // The climate control system to send commands to.
+        ClimateController* climate_;
 
         // State frame sent to update RealDash.
         byte frame5400_[5];
+
+        // Most recent RealDash 0x5401 climate control payload. Climate control
+        // functions are triggered when new frames come in whose bits differ
+        // from this value.
+        byte frame5401_[8];
 
         // How many times to repeat a frame sent to RealDash.
         uint8_t repeat_;
@@ -171,31 +182,8 @@ class RealDashController : public DashController {
         // The last time a control frame was sent.
         uint32_t last_write_;
 
-};
-
-// Process control frames from RealDash.
-class RealDashListener : public Listener {
-    public:
-        // Construct an unconnected RealDash listener.
-        RealDashListener() : climate_(nullptr), last_receive_(0) {}
-
-        // Connect the RealDash listener to a climate control system.
-        void connect(ClimateController* climate);
-
-        // Process frames from RealDash.
-        void receive(uint32_t id, uint8_t len, byte* data) override;
-
-    private:
-        // The climate control system to send commands to.
-        ClimateController* climate_;
-
-        // The timestamp the last control frame was received.
-        uint32_t last_receive_;
-
-        // Most recent RealDash 0x5401 climate control payload. Climate control
-        // functions are triggered when new frames come in whose bits differ
-        // from this value.
-        byte frame5401_[8];
+        // The last time a control frame was received.
+        uint32_t last_read_;
 };
 
 #endif  // __R51_REALDASH_H__

@@ -25,28 +25,26 @@ Connection* connections[] = {
     D(&serial)
 };
 
-VehicleClimate vehicle_climate;
-RealDashController dash_controller(REALDASH_REPEAT);
-RealDashListener dash_listener;
+VehicleClimate climate;
+RealDashClimate dashboard(REALDASH_REPEAT);
 
 void connect() {
 #ifdef CAN_LISTEN_ONLY
-    vehicle_climate.connect(nullptr, &dash_controller);
+    climate.connect(nullptr, &dashboard);
 #else
-    vehicle_climate.connect(&can, &dash_controller);
+    climate.connect(&can, &dashboard);
 #endif
-    dash_controller.connect(&realdash);
-    dash_listener.connect(&vehicle_climate);
+    dashboard.connect(&realdash, &climate);
 }
 
 void receive() {
-    vehicle_climate.receive(frame.id, frame.len, frame.data);
-    dash_listener.receive(frame.id, frame.len, frame.data);
+    climate.receive(frame.id, frame.len, frame.data);
+    dashboard.receive(frame.id, frame.len, frame.data);
 }
 
 void push() {
-    vehicle_climate.push();
-    dash_controller.push();
+    climate.push();
+    dashboard.push();
 }
 
 void setup() {

@@ -198,77 +198,81 @@ bool RealDashConnection::write(uint32_t id, uint8_t len, byte* data) {
     return true;
 }
 
-void RealDashController::connect(RealDashConnection* realdash) {
+void RealDashClimate::connect(RealDashConnection* realdash, ClimateController* climate) {
+
     if (repeat_ < 1) {
         repeat_ = 1;
     }
     realdash_ = realdash;
-    last_write_ = 0;
+    climate_ = climate;
+    last_write_ = 0;            // set to 0 to trigger immediately
+    last_read_ = millis();      // for control state timeouts
     write_count_ = repeat_;     // force a write on start
     memset(frame5400_, 0, 8);
+    memset(frame5401_, 0, 5);
 }
 
-void RealDashController::setClimateActive(bool value) {
+void RealDashClimate::setClimateActive(bool value) {
     setBit(frame5400_, 0, 0, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateAuto(bool value) {
+void RealDashClimate::setClimateAuto(bool value) {
     setBit(frame5400_, 0, 1, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateAc(bool value) {
+void RealDashClimate::setClimateAc(bool value) {
     setBit(frame5400_, 0, 2, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateDual(bool value) {
+void RealDashClimate::setClimateDual(bool value) {
     setBit(frame5400_, 0, 3, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateFace(bool value) {
+void RealDashClimate::setClimateFace(bool value) {
     setBit(frame5400_, 0, 4, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateFeet(bool value) {
+void RealDashClimate::setClimateFeet(bool value) {
     setBit(frame5400_, 0, 5, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateRecirculate(bool value) {
+void RealDashClimate::setClimateRecirculate(bool value) {
     setBit(frame5400_, 0, 7, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateFrontDefrost(bool value) {
+void RealDashClimate::setClimateFrontDefrost(bool value) {
     setBit(frame5400_, 1, 6, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateRearDefrost(bool value) {
+void RealDashClimate::setClimateRearDefrost(bool value) {
     setBit(frame5400_, 4, 0, value);
     write_count_ = 0;
 }
 
-void RealDashController::setClimateFanSpeed(uint8_t value) {
+void RealDashClimate::setClimateFanSpeed(uint8_t value) {
     frame5400_[1] = value;
     write_count_ = 0;
 }
 
-void RealDashController::setClimateDriverTemp(uint8_t value) {
+void RealDashClimate::setClimateDriverTemp(uint8_t value) {
     frame5400_[2] = value;
     write_count_ = 0;
 }
 
-void RealDashController::setClimatePassengerTemp(uint8_t value) {
+void RealDashClimate::setClimatePassengerTemp(uint8_t value) {
     frame5400_[3] = value;
     write_count_ = 0;
 }
 
-void RealDashController::push() {
+void RealDashClimate::push() {
     if (realdash_ == nullptr) {
         return;
     }
@@ -281,23 +285,17 @@ void RealDashController::push() {
     }
 }
 
-void RealDashListener::connect(ClimateController* climate) {
-    climate_ = climate;
-    last_receive_ = millis();
-    memset(frame5401_, 0, 5);
-}
-
-void RealDashListener::receive(uint32_t id, uint8_t len, byte* data) {
+void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
     if (climate_ == nullptr || id != 0x5401 || len != 8) {
         return;
     }
 
     // reset internal state if we haven't received a frame recently
-    if (millis() - last_receive_ > kReceiveTimeout) {
+    if (millis() - last_read_ > kReceiveTimeout) {
         INFO_MSG("realdash: state reset, control frame timeout exceeded");
         memset(frame5401_, 0, 5);
     }
-    last_receive_ = millis();
+    last_read_ = millis();
 
     // check if any bits have flipped
     D(bool changed = false;)
