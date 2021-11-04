@@ -209,7 +209,7 @@ void RealDashClimate::connect(RealDashConnection* realdash, ClimateController* c
     last_read_ = millis();      // for control state timeouts
     write_count_ = repeat_;     // force a write on start
     memset(frame5400_, 0, 8);
-    memset(frame5401_, 0, 5);
+    memset(frame5401_, 0, 8);
 }
 
 void RealDashClimate::setClimateActive(bool value) {
@@ -293,7 +293,7 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
     // reset internal state if we haven't received a frame recently
     if (millis() - last_read_ > kReceiveTimeout) {
         INFO_MSG("realdash: state reset, control frame timeout exceeded");
-        memset(frame5401_, 0, 5);
+        memset(frame5401_, 0, 8);
     }
     last_read_ = millis();
 
@@ -371,5 +371,5 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
     })
 
     // update the stored frame
-    memcpy(frame5401_, data, 5);
+    memcpy(frame5401_, data, 8);
 }

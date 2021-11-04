@@ -166,7 +166,7 @@ class RealDashClimate : public DashController, Listener {
         ClimateController* climate_;
 
         // State frame sent to update RealDash.
-        byte frame5400_[5];
+        byte frame5400_[8];
 
         // Most recent RealDash 0x5401 climate control payload. Climate control
         // functions are triggered when new frames come in whose bits differ
