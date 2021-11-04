@@ -248,7 +248,7 @@ void RealDashClimate::setClimateRecirculate(bool value) {
 }
 
 void RealDashClimate::setClimateFrontDefrost(bool value) {
-    setBit(frame5400_, 1, 6, value);
+    setBit(frame5400_, 0, 6, value);
     write_count_ = 0;
 }
 
@@ -277,8 +277,10 @@ void RealDashClimate::push() {
         return;
     }
     if (write_count_ < repeat_ || millis() - last_write_ >= 500) {
-        if (write_count_ < repeat_) {
+        if (write_count_ == 0) {
             INFO_MSG_FRAME("realdash: send ", 0x5400, 8, frame5400_);
+        }
+        if (write_count_ < repeat_) {
             write_count_++;
         }
         realdash_->write(0x5400, 8, frame5400_);
@@ -290,15 +292,17 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
         return;
     }
 
+    D(bool changed = false;)
+
     // reset internal state if we haven't received a frame recently
     if (millis() - last_read_ > kReceiveTimeout) {
         INFO_MSG("realdash: state reset, control frame timeout exceeded");
         memset(frame5401_, 0, 8);
+        D(changed = true;)
     }
     last_read_ = millis();
 
     // check if any bits have flipped
-    D(bool changed = false;)
     if (xorBits(frame5401_, data, 0, 0)) {
         climate_->deactivateClimate();
         D(changed = true;)
@@ -364,12 +368,12 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
         D(changed = true;)
     }
 
+    // update the stored frame
+    memcpy(frame5401_, data, 8);
+
     D({
         if (changed) {
             INFO_MSG_FRAME("realdash: receive ", 0x5401, 8, frame5401_);
         }
     })
-
-    // update the stored frame
-    memcpy(frame5401_, data, 8);
 }
