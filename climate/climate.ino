@@ -30,7 +30,7 @@ RealDashController dash_controller(REALDASH_REPEAT);
 RealDashListener dash_listener;
 
 void connect() {
-#ifndef CAN_LISTEN_ONLY
+#ifdef CAN_LISTEN_ONLY
     vehicle_climate.connect(nullptr, &dash_controller);
 #else
     vehicle_climate.connect(&can, &dash_controller);
