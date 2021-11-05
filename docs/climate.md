@@ -21,6 +21,125 @@ Assembly. The AV Control Unit sends signals over CAN to control the state of
 the climate control system.
 
 
+## Physical Controls Operation
+
+The physical controls are connected to the AV Control Unit via an independent
+CAN network. The AV Control Unit forwards button presses to the A/C Auto Amp
+over the main CAN bus.
+
+The rear window heating element is not controlled via the independent CAN bus.
+Rather, the switch assembly controls this directly over a single wire connected
+directly to the A/C Auto Amp.
+
+A good overview of the system is available in [this YouTube
+video](https://www.youtube.com/watch?v=P5e_osej-WY). This video is specifically
+for the Nissan Armada but applies equally to the same generation Nissan
+Pathfinder. This video does leave out some details for recreating state
+transitions.
+
+
+### Button Functions
+
+#### Auto
+
+This is the function of the left rotary knob's button press.
+
+Turns on the A/C unit if it is off or enables automatic climate control if
+disabled. Does not disable automatic climate control on toggle.
+
+The automatic function controls the air vents and fan speed in order to achieve
+the desired temperature in the driver and passenger zones. It will open the
+face and feet vents to achieve this. When enabled the A/C compressor is
+enabled; recirculate and front defrost are disabled;
+
+#### A/C
+
+The A/C button enables or disables the A/C compressor. Enabling A/C does not
+force the compressor to run but rather requests of the ECU that it be enabled.
+The ECU may disable the compressor under WOT or when enginer coolant
+temperature reaches a critical level.
+
+#### Off
+
+Turns the unit off. All indicators are turned off and the display no longer
+displays climate status.
+
+#### Increase/Decrease Fan Speed
+
+This adjusts the fan speed. Doing so disables auto mode.
+
+#### Front Defrost
+
+Toggles the windshield defrost mode. Enabling front defrost will enable A/C;
+disable auto, recirculate, and dual zone; open the windshield; and close the
+face and feet vents.
+
+Disabling front defrost will close the windshield vent and return the face and
+feet vents to their previous state.
+
+#### Rear Defrost
+
+_This section is inferred from the service manual. Functionality has not yet been tested._
+
+The rear defrost turns on/off the rear window and side mirror heating elements.
+This is, in effect, independent of regular HVAC operations and so is controlled
+via a separate wire to the A/C Auto Amp. This is the yellow wire on connector
+M98; pin 16 on the A/C and AV Switch Assembly.
+
+The A/C Auto Amp provides 5v on this line. When this line is grounded the A/C
+Auto Amp sends an updated CAN frame to the IPDM to enable the heating elements.
+
+The A/C and AV Switch Assembly grounds this wire when the rear defrost button
+is toggled on. The line is allowed to float when toggled off.
+
+#### Mode
+
+Cycles the airflow modes.
+
+The modes are cycled in the following order:
+* face
+* face + feet
+* feet
+* feet + windshield
+
+Cylcing through the windshield vent does not enable defrost mode; it only opens the vent.
+
+#### Recirculate
+
+Enables or disables cabin air recirculation. Can only be enabled when the face
+vents are opened. If the face vents close then recirculation is disabled. This
+is caused by cycling the mode or enabling front defrost.
+
+#### Dual
+
+This is the function of the right rotary knob's button press.
+
+Toggles dual zone climate control. When enabled the passenger temperature is
+controlled independently of the driver.
+
+When disabled the passenger temperature is set to synchronize with the driver
+side.
+
+Adjusting the passenger zone temperature will also enable dual mode.
+
+#### Driver Temperature Adjustment
+
+This is the function of the left rotary encoder. The encoder adjusts the
+temperature by 1 degree on each detent.
+
+Adjusting the knob clockwise increases the temperature; counter-clockwise
+decreases it.
+
+#### Passenger Temperature Adjustment
+
+This is the function of the right rotary encoder. The encoder adjusts the
+temperature by 1 degree on each detent.
+
+Adjusting the knob clockwise increases the temperature; counter-clockwise
+decreases it.
+
+Adjusting the passenger zone temperature will enable dual zone control.
+
 ## CAN Protocol
 
 The A/C Auto Amp maintains the current state of the climate control system. It
