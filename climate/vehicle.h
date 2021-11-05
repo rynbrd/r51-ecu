@@ -54,23 +54,17 @@ class VehicleClimate : public ClimateController, public Listener {
         // Decrease the fan speed by one notch.
         void decreaseClimateFanSpeed() override;
 
-        // Increase the driver zone temperature by the provided amount.
-        void increaseClimateDriverTemp(uint8_t value) override;
+        // Increase the driver zone temperature by 1 degree F.
+        void increaseClimateDriverTemp() override;
 
-        // Decrease the driver zone temperature by the provided amount.
-        void decreaseClimateDriverTemp(uint8_t value) override;
+        // Decrease the driver zone temperature by 1 degree F.
+        void decreaseClimateDriverTemp() override;
 
-        // Set the driver zone temperature in degrees from 60 to 90.
-        void setClimateDriverTemp(uint8_t temp) override;
+        // Increase the passenger zone temperature by 1 degree F.
+        void increaseClimatePassengerTemp() override;
 
-        // Increase the passenger zone temperature by the provided amount.
-        void increaseClimatePassengerTemp(uint8_t value) override;
-
-        // Decrease the passenger zone temperature by the provided amount.
-        void decreaseClimatePassengerTemp(uint8_t value) override;
-
-        // Set the passenger zone temperature in degrees from 60 to 90.
-        void setClimatePassengerTemp(uint8_t temp) override;
+        // Decrease the passenger zone temperature by 1 degree F.
+        void decreaseClimatePassengerTemp() override;
 
         // Update state from incoming climate state frames. Accepts frames
         // 0x54A, 0x54B, and 0x625.
@@ -145,13 +139,7 @@ class VehicleClimate : public ClimateController, public Listener {
         void setDual(bool dual);
 
         // Toggle the set temperature bit.
-        void toggleSetTemperatureBit();
-
-        // Set the driver zone temperature in the control frame.
-        void setDriverTempByte(uint8_t temp);
-
-        // Set the passenger zone temperature in the control frame.
-        void setPassengerTempByte(uint8_t temp);
+        void toggleTemperatureBit();
 
         // Update state from a 0x54A frame.
         void receive54A(uint8_t len, byte* data);

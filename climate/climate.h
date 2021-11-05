@@ -39,23 +39,17 @@ class ClimateController : public Controller {
         // Decrease the climate control fan speed by one notch.
         virtual void decreaseClimateFanSpeed() = 0;
 
-        // Increase the driver zone temperature by the provided amount.
-        virtual void increaseClimateDriverTemp(uint8_t value) = 0;
+        // Increase the driver zone temperature by 1 degree F.
+        virtual void increaseClimateDriverTemp() = 0;
 
-        // Decrease the driver zone temperature by the provided amount.
-        virtual void decreaseClimateDriverTemp(uint8_t value) = 0;
+        // Decrease the driver zone temperature by 1 degree F.
+        virtual void decreaseClimateDriverTemp() = 0;
 
-        // Set the driver climate zone temperature in degrees from 60 to 90.
-        virtual void setClimateDriverTemp(uint8_t temp) = 0;
+        // Increase the passenger zone temperature by 1 degree F.
+        virtual void increaseClimatePassengerTemp() = 0;
 
-        // Increase the passenger zone temperature by the provided amount.
-        virtual void increaseClimatePassengerTemp(uint8_t value) = 0;
-
-        // Decrease the passenger zone temperature by the provided amount.
-        virtual void decreaseClimatePassengerTemp(uint8_t value) = 0;
-
-        // Set the passenger climate zone temperature in degrees from 60 to 90.
-        virtual void setClimatePassengerTemp(uint8_t temp) = 0;
+        // Decrease the passenger zone temperature by 1 degree F.
+        virtual void decreaseClimatePassengerTemp() = 0;
 };
 
 #endif  // __R51_CLIMATE_H__

@@ -43,10 +43,9 @@
  *     Bit 1: fan speed -
  *     Bit 2: driver temp + 
  *     Bit 3: driver temp -
- *     Bit 4: driver temp set
- *     Bit 5: passenger temp +
- *     Bit 6: passenger temp -
- *     Bit 7: passenger temp set
+ *     Bit 4: passenger temp +
+ *     Bit 5: passenger temp -
+ *     Bit 6-7: unused
  *   Byte 2: Driver Temperature Set
  *   Byte 3: Passenger Temperature Set
  *   Byte 4: Heating Elements

@@ -340,27 +340,19 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 2)) {
-        climate_->increaseClimateDriverTemp(1);
+        climate_->increaseClimateDriverTemp();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 3)) {
-        climate_->decreaseClimateDriverTemp(1);
+        climate_->decreaseClimateDriverTemp();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 4)) {
-        climate_->setClimateDriverTemp(data[2]);
+        climate_->increaseClimatePassengerTemp();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 5)) {
-        climate_->increaseClimatePassengerTemp(1);
-        D(changed = true;)
-    }
-    if (xorBits(frame5401_, data, 1, 6)) {
-        climate_->decreaseClimatePassengerTemp(1);
-        D(changed = true;)
-    }
-    if (xorBits(frame5401_, data, 1, 7)) {
-        climate_->setClimatePassengerTemp(data[3]);
+        climate_->decreaseClimatePassengerTemp();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 4, 0)) {

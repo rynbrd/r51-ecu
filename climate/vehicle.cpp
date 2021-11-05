@@ -6,8 +6,15 @@
 #include "dash.h"
 #include "debug.h"
 
-static const uint8_t kDriverTempControlOffset = 0xB8;
-static const uint8_t kPassengerTempControlOffset = 0xCC;
+
+inline uint8_t clampTemp(uint8_t temp) {
+    if (temp < 60) {
+        temp = 60;
+    } else if (temp > 90) {
+        temp = 90;
+    }
+    return temp;
+}
 
 VehicleClimate::VehicleClimate() {
     can_ = nullptr;
@@ -33,7 +40,8 @@ void VehicleClimate::connect(Connection* can, DashController* dash) {
 }
 
 bool VehicleClimate::climateOnline() const {
-    return frame540_[0] == 0x60;
+    return true;
+    //return frame540_[0] == 0x60;
 }
 
 void VehicleClimate::deactivateClimate() {
@@ -164,6 +172,7 @@ void VehicleClimate::increaseClimateFanSpeed() {
     if (fan_speed_ < 7) {
         fan_speed_++;
     }
+    updateDash();
 }
 
 void VehicleClimate::decreaseClimateFanSpeed() {
@@ -177,72 +186,67 @@ void VehicleClimate::decreaseClimateFanSpeed() {
     if (fan_speed_ > 1) {
         fan_speed_--;
     }
+    updateDash();
 }
 
-void VehicleClimate::increaseClimateDriverTemp(uint8_t value) {
-    setClimateDriverTemp(driver_temp_ + value);
-}
-
-void VehicleClimate::decreaseClimateDriverTemp(uint8_t value) {
-    setClimateDriverTemp(driver_temp_ - value);
-}
-
-void VehicleClimate::setClimateDriverTemp(uint8_t temp) {
+void VehicleClimate::increaseClimateDriverTemp() {
     if (!climateOnline() || !active_) {
         return;
     }
 
-    if (temp < 60 ) {
-        temp = 60;
-    }
-    if (temp > 90) {
-        temp = 90;
-    }
+    toggleTemperatureBit();
+    frame540_[3]++;
+    driver_temp_ = clampTemp(driver_temp_ + 1);
 
-    toggleSetTemperatureBit();
-    setDriverTempByte(temp);
     if (!dual_) {
-        setPassengerTempByte(temp);
+        frame540_[4]++;
+        passenger_temp_ = driver_temp_;
     }
 
     updateDash();
 }
 
-void VehicleClimate::increaseClimatePassengerTemp(uint8_t value) {
-    setClimatePassengerTemp(passenger_temp_ + value);
-}
-
-void VehicleClimate::decreaseClimatePassengerTemp(uint8_t value) {
-    setClimatePassengerTemp(passenger_temp_ - value);
-}
-
-void VehicleClimate::setClimatePassengerTemp(uint8_t temp) {
+void VehicleClimate::decreaseClimateDriverTemp() {
     if (!climateOnline() || !active_) {
         return;
     }
 
-    if (temp < 60 ) {
-        temp = 60;
+    toggleTemperatureBit();
+    frame540_[3]--;
+    driver_temp_ = clampTemp(driver_temp_ - 1);
+
+    if (!dual_) {
+        frame540_[4]--;
+        passenger_temp_ = driver_temp_;
     }
-    if (temp > 90) {
-        temp = 90;
+
+    updateDash();
+}
+
+void VehicleClimate::increaseClimatePassengerTemp() {
+    if (!climateOnline() || !active_) {
+        return;
     }
 
     setDual(true);
-    toggleSetTemperatureBit();
-    setPassengerTempByte(temp);
+    toggleTemperatureBit();
+    frame540_[4]++;
+    passenger_temp_ = clampTemp(passenger_temp_ + 1);
 
     updateDash();
 }
 
-void VehicleClimate::setDriverTempByte(uint8_t temp) {
-    driver_temp_ = temp;
-    frame540_[3] = driver_temp_ + kDriverTempControlOffset;
-}
+void VehicleClimate::decreaseClimatePassengerTemp() {
+    if (!climateOnline() || !active_) {
+        return;
+    }
 
-void VehicleClimate::setPassengerTempByte(uint8_t temp) {
-    passenger_temp_ = temp;
-    frame540_[4] = passenger_temp_ + kPassengerTempControlOffset;
+    setDual(true);
+    toggleTemperatureBit();
+    frame540_[4]--;
+    passenger_temp_ = clampTemp(passenger_temp_ - 1);
+
+    updateDash();
 }
 
 void VehicleClimate::push() {
@@ -298,12 +302,11 @@ void VehicleClimate::setDual(bool dual) {
     dual_ = dual;
     if (!dual_) {
         passenger_temp_ = driver_temp_;
-        toggleSetTemperatureBit();
-        setPassengerTempByte(passenger_temp_);
+        toggleTemperatureBit();
     }
 }
 
-void VehicleClimate::toggleSetTemperatureBit() {
+void VehicleClimate::toggleTemperatureBit() {
     toggleBit(frame540_, 5, 5);
     frame54x_changed_ = true;
 }
@@ -329,8 +332,12 @@ void VehicleClimate::receive54A(uint8_t len, byte* data) {
     }
     INFO_MSG_FRAME("vehicle: receive ", 0x54A, 8, data);
 
-    driver_temp_ = data[4];
-    passenger_temp_ = data[5];
+    if (data[4] != 0) {
+        driver_temp_ = data[4];
+    }
+    if (data[5] != 0) {
+        passenger_temp_ = data[5];
+    }
 
     updateDash();
 }
@@ -368,6 +375,7 @@ void VehicleClimate::updateDash() {
         return;
     }
 
+    INFO_MSG("vehicle: update dash");
     dash_->setClimateActive(active_);
     dash_->setClimateRearDefrost(rear_defrost_);
 

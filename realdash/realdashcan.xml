@@ -31,14 +31,8 @@
       <value name="Climate Fan Speed Decrease" offset="1" startbit="1" bitcount="1" initialValue="0"></value>
       <value name="Climate Driver Temperature Increase" offset="1" startbit="2" bitcount="1" initialValue="0"></value>
       <value name="Climate Driver Temperature Decrease" offset="1" startbit="3" bitcount="1" initialValue="0"></value>
-      <!-- Flip this bit to set the driver temperature directly from the "Set Value" field. -->
-      <value name="Climate Driver Temperature Set Bit" offset="1" startbit="4" bitcount="1" initialValue="0"></value>
-      <value name="Climate Driver Temperature Set Value" offset="2" length="1" initialValue="0"></value>
-      <value name="Climate Passenger Temperature Increase" offset="1" startbit="5" bitcount="1" initialValue="0"></value>
-      <value name="Climate Passenger Temperature Decrease" offset="1" startbit="6" bitcount="1" initialValue="0"></value>
-      <!-- Flip this bit to set the passenger temperature directly from the "Set Value" field. -->
-      <value name="Climate Passenger Temperature Set Bit" offset="1" startbit="7" bitcount="1" initialValue="0"></value>
-      <value name="Climate Passenger Temperature Set Value" offset="3" length="1" initialValue="0"></value>
+      <value name="Climate Passenger Temperature Increase" offset="1" startbit="4" bitcount="1" initialValue="0"></value>
+      <value name="Climate Passenger Temperature Decrease" offset="1" startbit="5" bitcount="1" initialValue="0"></value>
       <value name="Climate Rear Window Defrost Toggle" offset="4" startbit="0" bitcount="1" initialValue="0"></value>
     </frame>
   </frames>
