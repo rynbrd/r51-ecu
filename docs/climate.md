@@ -135,21 +135,17 @@ operation. Handshake is covered in a later section.
 _Byte 3: Driver Temperature Control_
 
 This is an 8-bit unsigned integer indicating the temperature of the driver side
-climate zone. It has an allowed value range from 0xF4 to 0x13. The value
-increments or decrements by 1 when the driver side temperate knob is turned.
-The value wraps around: Incrementing when the value is 0xFF moves to 0x00 as
-one would expect of an unsigned integer.
-
-These correspond to the temperature of the zone in Fahrenheit where 0xF4 is 60
-degrees and 0x13 is 90.
-
-It is possible to send a specific temperature rather than incrementing.
+climate zone. It does not correspond to a specific temperature but rather
+increments or decrements the temperature by the relative amount. The initial
+value at boot is 0x00. Incrementing this by 1 will increase the temperature
+by 1. Once the A/C Auto Amp reaches max temperature it will not increment
+further though the stored relative value will change. Decrementing by 1 will
+decrease the temperature in the same manner.  
 
 _Byte 4: Passenger Temperate Control_
 
-This is a single byte indicating the temperate of the passenger side. It works
-the same as the driver side value except the range is different. The range is
-0x09 to 0x27.
+This is an 8-bit unsigned integer indicating the temperature of the passenger
+side climate zone. It works identically to the Byte 3.
 
 _Byte 5: Temperature Control and A/C Compressor_
 
@@ -169,7 +165,7 @@ Observed values:
 * `00001000` temperature change; compressor on
 * `00101000` temperature change; compressor on
 
-_Byte 7: Mode, Front Defrost, and Dual Zone Control_
+_Byte 6: Mode, Front Defrost, and Dual Zone Control_
 
 Bit meanings (least to most significant):
 * Bit 0: Flipped to toggle the "mode" - the direction of the airflow.
@@ -289,8 +285,10 @@ Always 0x00.
 
 _Byte 7: Unknown_
 
-This has been observed to flip between the values 0x42, 0x45, and 0x47. It is
-not known what causes the value to change.
+This value seems to change on each boot and stays the same until the next time
+the system boots. I suspect this value informs the AV Control Unit on how to
+set the temperature but I have not confirmed. Observed values include 0x42,
+0x45, 0x47, and 0x3F.
 
 
 #### CAN Frame ID 54B
