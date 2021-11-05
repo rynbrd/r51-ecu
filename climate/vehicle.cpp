@@ -40,66 +40,97 @@ void VehicleClimate::connect(Connection* can, DashController* dash) {
 }
 
 bool VehicleClimate::climateOnline() const {
-    return true;
-    //return frame540_[0] == 0x60;
+    return frame540_[0] == 0x60;
 }
 
 void VehicleClimate::deactivateClimate() {
-    if (!toggle(frame540_, 6, 7)) {
+    if (!toggleFunction(frame540_, 6, 7)) {
         return;
     }
+
     active_ = false;
+    auto_ = false;
+    ac_ = false;
+    recirculate_ = false;
+    front_defrost_ = false;
     updateDash();
 }
 
 void VehicleClimate::toggleClimateAuto() {
-    if (!toggle(frame540_, 6, 5)) {
+    if (!toggleFunction(frame540_, 6, 5)) {
         return;
     }
+
     auto_ = !auto_;
     active_ = true;
     if (auto_) {
         ac_ = true;
+        // TODO: check this transition
+        recirculate_ = false;
+        front_defrost_ = false;
+        // TODO: check this transition
+        if (fan_speed_ == 0) {
+            fan_speed_ = 3;
+        }
+        // TODO: check this transition
+        switch (mode_) {
+            case MODE_WINDSHIELD:
+            case MODE_FEET_WINDSHIELD:
+                mode_ = MODE_AUTO_FACE;
+                break;
+        }
     }
     updateDash();
 }
 
 void VehicleClimate::toggleClimateAc() {
-    if (!toggle(frame540_, 5, 3) || !active_) {
+    if (!toggleFunction(frame540_, 5, 3) || !active_) {
         return;
     }
     ac_ = !ac_;
-    auto_ = false;
     updateDash();
 }
 
 void VehicleClimate::toggleClimateDual() {
-    if (!toggle(frame540_, 6, 3) || !active_) {
+    if (!toggleFunction(frame540_, 6, 3) || !active_) {
         return;
     }
-    setDual(!dual_);
+    dual_ = !dual_;
+    if (!dual_) {
+        passenger_temp_ = driver_temp_;
+    }
     updateDash();
 }
 
 void VehicleClimate::toggleClimateRecirculate() {
-    if (!toggle(frame541_, 1, 6) || !active_) {
+    if (!toggleFunction(frame541_, 1, 6) || !active_) {
         return;
     }
     auto_ = false;
     if (recirculate_) {
         recirculate_ = false;
-    } else if (mode_ != MODE_WINDSHIELD && mode_ != MODE_FEET_WINDSHIELD) {
-        recirculate_ = !recirculate_;
+    } else if (!front_defrost_) {
+        switch (mode_) {
+            case MODE_FACE:
+            case MODE_FACE_FEET:
+            case MODE_AUTO_FACE:
+            case MODE_AUTO_FACE_FEET:
+                recirculate_ = true;
+                break;
+        }
     }
     updateDash();
 }
 
 void VehicleClimate::cycleClimateMode() {
-    if (!toggle(frame540_, 6, 0)) {
+    // TODO: check if mode enables hvac
+    // TODO: check how hitting mode transitions out of defrost
+    if (!toggleFunction(frame540_, 6, 0) || !active_) {
         return;
     }
-    active_ = true;
     auto_ = false;
+    front_defrost_ = false;
+
     switch (mode_) {
         case MODE_FACE:
         case MODE_AUTO_FACE:
@@ -108,16 +139,15 @@ void VehicleClimate::cycleClimateMode() {
         case MODE_FACE_FEET:
         case MODE_AUTO_FACE_FEET:
             mode_ = MODE_FEET;
+            recirculate_ = false;
             break;
         case MODE_FEET:
         case MODE_AUTO_FEET:
             mode_ = MODE_FEET_WINDSHIELD;
+            recirculate_ = false;
             break;
         case MODE_FEET_WINDSHIELD:
-            mode_ = MODE_WINDSHIELD;
-            break;
         default:
-        case MODE_WINDSHIELD:
             mode_ = MODE_FACE;
             break;
     }
@@ -125,50 +155,41 @@ void VehicleClimate::cycleClimateMode() {
 }
 
 void VehicleClimate::toggleClimateFrontDefrost() {
-    if (!toggle(frame540_, 6, 1)) {
+    if (!toggleFunction(frame540_, 6, 1)) {
         return;
     }
-    if (mode_ == MODE_WINDSHIELD|| mode_ == MODE_FEET_WINDSHIELD) {
-        auto_ = true; 
 
-        if (mode_ == MODE_FEET_WINDSHIELD) {
-            mode_ = MODE_FEET;
-        } else {
-            mode_ = MODE_FACE;
-        }
-    } else {
+    front_defrost_ = !front_defrost_;
+    if (front_defrost_) {
         active_ = true;
-        auto_ = false;
-        setDual(false);
-
-        switch (mode_) {
-            case MODE_FEET:
-            case MODE_AUTO_FEET:
-            case MODE_FACE_FEET:
-            case MODE_AUTO_FACE_FEET:
-                mode_ = MODE_FEET_WINDSHIELD;
-                break;
-            default:
-                mode_ = MODE_WINDSHIELD;
-                break;
-        }
+        ac_ = true;
+        dual_ = false;
+        recirculate_ = false;
+        passenger_temp_ = driver_temp_;
     }
     updateDash();
 }
 
 void VehicleClimate::toggleClimateRearDefrost() {
     // TODO: determine rear defrost control signal
-    if (climateOnline()) {
-        INFO_MSG("vehicle: climate: toggle rear defrost not implemented");
+    if (!climateOnline()) {
+        return;
     }
+    rear_defrost_ = !rear_defrost_;
+    updateDash();
 }
 
 void VehicleClimate::increaseClimateFanSpeed() {
-    if (!toggle(frame541_, 0, 5)) {
+    if (!toggleFunction(frame541_, 0, 5)) {
         return;
     }
-    active_ = true;
+
     auto_ = false;
+    if (!active_) {
+        active_ = true;
+        // TODO: check this transition
+        ac_ = true;
+    }
     if (fan_speed_ < 7) {
         fan_speed_++;
     }
@@ -176,13 +197,17 @@ void VehicleClimate::increaseClimateFanSpeed() {
 }
 
 void VehicleClimate::decreaseClimateFanSpeed() {
-    if (!toggle(frame541_, 0, 4)) {
+    if (!toggleFunction(frame541_, 0, 4)) {
         return;
     }
-    if (!active_) {
-        return;
-    }
+
     auto_ = false;
+    // TODO: check this transition
+    if (!active_) {
+        active_ = true;
+        // TODO: check this transition
+        ac_ = true;
+    }
     if (fan_speed_ > 1) {
         fan_speed_--;
     }
@@ -190,83 +215,59 @@ void VehicleClimate::decreaseClimateFanSpeed() {
 }
 
 void VehicleClimate::increaseClimateDriverTemp() {
-    if (!climateOnline() || !active_) {
-        return;
+    if (toggleTemperature()) {
+        frame540_[3]++;
     }
-
-    toggleTemperatureBit();
-    frame540_[3]++;
-    driver_temp_ = clampTemp(driver_temp_ + 1);
-
+    driver_temp_ = clampTemp(driver_temp_++);
     if (!dual_) {
-        frame540_[4]++;
         passenger_temp_ = driver_temp_;
     }
-
     updateDash();
 }
 
 void VehicleClimate::decreaseClimateDriverTemp() {
-    if (!climateOnline() || !active_) {
-        return;
+    if (toggleTemperature()) {
+        frame540_[3]--;
     }
-
-    toggleTemperatureBit();
-    frame540_[3]--;
-    driver_temp_ = clampTemp(driver_temp_ - 1);
-
+    driver_temp_ = clampTemp(driver_temp_--);
     if (!dual_) {
-        frame540_[4]--;
         passenger_temp_ = driver_temp_;
     }
-
     updateDash();
 }
 
 void VehicleClimate::increaseClimatePassengerTemp() {
-    if (!climateOnline() || !active_) {
-        return;
+    if (toggleTemperature()) {
+        frame540_[4]++;
     }
-
-    setDual(true);
-    toggleTemperatureBit();
-    frame540_[4]++;
-    passenger_temp_ = clampTemp(passenger_temp_ + 1);
-
+    dual_ = true;
+    passenger_temp_ = clampTemp(passenger_temp_++);
     updateDash();
 }
 
 void VehicleClimate::decreaseClimatePassengerTemp() {
-    if (!climateOnline() || !active_) {
-        return;
+    if (toggleTemperature()) {
+        frame540_[4]--;
     }
-
-    setDual(true);
-    toggleTemperatureBit();
-    frame540_[4]--;
-    passenger_temp_ = clampTemp(passenger_temp_ - 1);
-
+    dual_ = true;
+    passenger_temp_ = clampTemp(passenger_temp_--);
     updateDash();
 }
 
 void VehicleClimate::push() {
-    if (can_ == nullptr) {
-        return;
-    }
-
-    // Send control frames at least every 200ms to keep the A/C Auto Amp alive.
+    // Send control frames at least once every 200ms to keep the A/C Auto Amp alive.
     if (frame54x_changed_ || millis() - last_write_ >= keepalive_interval_) {
         D(if (frame54x_changed_) {
           INFO_MSG_FRAME("vehicle: send ", 0x540, 8, frame540_);
         })
-        if (!can_->write(0x540, 8, frame540_)) {
+        if (can_ && !can_->write(0x540, 8, frame540_)) {
             ERROR_MSG("vehicle: failed to send frame 0x540");
             return;
         }
         D(if (frame54x_changed_) {
           INFO_MSG_FRAME("vehicle: send ", 0x541, 8, frame541_);
         })
-        if (!can_->write(0x541, 8, frame541_)) {
+        if (can_ && !can_->write(0x541, 8, frame541_)) {
             ERROR_MSG("vehicle: failed to send frame 0x541");
             return;
         }
@@ -286,7 +287,7 @@ void VehicleClimate::push() {
     }
 }
 
-bool VehicleClimate::toggle(byte* frame, uint8_t offset, uint8_t bit) {
+bool VehicleClimate::toggleFunction(byte* frame, uint8_t offset, uint8_t bit) {
     if (!climateOnline()) {
         return false;
     }
@@ -295,20 +296,8 @@ bool VehicleClimate::toggle(byte* frame, uint8_t offset, uint8_t bit) {
     return true;
 }
 
-void VehicleClimate::setDual(bool dual) {
-    if (dual_ == dual) {
-        return;
-    }
-    dual_ = dual;
-    if (!dual_) {
-        passenger_temp_ = driver_temp_;
-        toggleTemperatureBit();
-    }
-}
-
-void VehicleClimate::toggleTemperatureBit() {
-    toggleBit(frame540_, 5, 5);
-    frame54x_changed_ = true;
+bool VehicleClimate::toggleTemperature() {
+    return toggleFunction(frame540_, 5, 5);
 }
 
 void VehicleClimate::receive(uint32_t id, uint8_t len, byte* data) {
@@ -318,9 +307,6 @@ void VehicleClimate::receive(uint32_t id, uint8_t len, byte* data) {
             break;
         case 0x54B:
             receive54B(len, data);
-            break;
-        case 0x625:
-            receive625(len, data);
             break;
     }
 }
@@ -332,11 +318,13 @@ void VehicleClimate::receive54A(uint8_t len, byte* data) {
     }
     INFO_MSG_FRAME("vehicle: receive ", 0x54A, 8, data);
 
-    if (data[4] != 0) {
-        driver_temp_ = data[4];
+    uint8_t temp = data[4];
+    if (temp != 0) {
+        driver_temp_ = clampTemp(temp);
     }
-    if (data[5] != 0) {
-        passenger_temp_ = data[5];
+    temp = data[5];
+    if (temp != 0) {
+        passenger_temp_ = clampTemp(temp);
     }
 
     updateDash();
@@ -353,86 +341,74 @@ void VehicleClimate::receive54B(uint8_t len, byte* data) {
     auto_ = getBit(data, 0, 0);
     ac_ = getBit(data, 0, 3);
     dual_ = getBit(data, 3, 7);
-    mode_ = data[1];
     recirculate_ = getBit(data, 3, 4);
-    fan_speed_ = (data[2] + 1) / 2;
+    uint8_t fan_speed = (data[2] + 1) / 2;
+    if (fan_speed != 0) {
+        fan_speed_ = fan_speed;
+    }
+
+    front_defrost_ = data[1] == MODE_WINDSHIELD;
+    if (!front_defrost_) {
+        mode_ = data[1];
+    }
 
     updateDash();
 }
 
-void VehicleClimate::receive625(uint8_t len, byte* data) {
-    if (len != 6) {
-        ERROR_MSG_VAL("vehicle: frame 0x625 has invalid length: 6 != ", len);
-        return;
-    }
-    INFO_MSG_FRAME("vehicle: receive ", 0x625, 8, data);
-
-    rear_defrost_ = getBit(data, 0, 0);
-}
-
 void VehicleClimate::updateDash() {
-    if (dash_ == nullptr) {
-        return;
-    }
-
-    INFO_MSG("vehicle: update dash");
     dash_->setClimateActive(active_);
+    dash_->setClimateAuto(auto_);
+    dash_->setClimateAc(ac_);
+    dash_->setClimateDual(dual_);
     dash_->setClimateRearDefrost(rear_defrost_);
 
     if (active_) {
-        dash_->setClimateAuto(auto_);
-        dash_->setClimateAc(ac_);
-        dash_->setClimateDual(dual_);
-        dash_->setClimateRecirculate(recirculate_);
         dash_->setClimateFanSpeed(fan_speed_);
         dash_->setClimateDriverTemp(driver_temp_);
         dash_->setClimatePassengerTemp(passenger_temp_);
-
-        switch(mode_) {
-            case MODE_FACE:
-            case MODE_AUTO_FACE:
-                dash_->setClimateFace(true);
-                dash_->setClimateFeet(false);
-                dash_->setClimateFrontDefrost(false);
-                break;
-            case MODE_FACE_FEET:
-            case MODE_AUTO_FACE_FEET:
-                dash_->setClimateFace(true);
-                dash_->setClimateFeet(true);
-                dash_->setClimateFrontDefrost(false);
-                break;
-            case MODE_FEET:
-            case MODE_AUTO_FEET:
-                dash_->setClimateFace(false);
-                dash_->setClimateFeet(true);
-                dash_->setClimateFrontDefrost(false);
-                break;
-            case MODE_FEET_WINDSHIELD:
-                dash_->setClimateFace(false);
-                dash_->setClimateFeet(true);
-                dash_->setClimateFrontDefrost(true);
-                break;
-            case MODE_WINDSHIELD:
-                dash_->setClimateFace(false);
-                dash_->setClimateFeet(false);
-                dash_->setClimateFrontDefrost(true);
-                break;
-            default:    // off
-                dash_->setClimateFace(false);
-                dash_->setClimateFeet(false);
-                dash_->setClimateFrontDefrost(false);
-                break;
-        }
     } else {
-        dash_->setClimateAuto(false);
-        dash_->setClimateAc(false);
-        dash_->setClimateDual(false);
-        dash_->setClimateRecirculate(false);
         dash_->setClimateFanSpeed(0);
         dash_->setClimateDriverTemp(0);
         dash_->setClimatePassengerTemp(0);
-        dash_->setClimateFace(false);
-        dash_->setClimateFeet(false);
-        dash_->setClimateFrontDefrost(false);
+    }
+
+    uint8_t mode = mode_;
+    if (front_defrost_) {
+        mode = MODE_WINDSHIELD;
+    }
+    switch (mode) {
+        case MODE_FACE:
+        case MODE_AUTO_FACE:
+            dash_->setClimateFace(true);
+            dash_->setClimateFeet(false);
+            dash_->setClimateFrontDefrost(false);
+            break;
+        case MODE_FACE_FEET:
+        case MODE_AUTO_FACE_FEET:
+            dash_->setClimateFace(true);
+            dash_->setClimateFeet(true);
+            dash_->setClimateFrontDefrost(false);
+            break;
+        case MODE_FEET:
+        case MODE_AUTO_FEET:
+            dash_->setClimateFace(false);
+            dash_->setClimateFeet(true);
+            dash_->setClimateFrontDefrost(false);
+            break;
+        case MODE_FEET_WINDSHIELD:
+            dash_->setClimateFace(false);
+            dash_->setClimateFeet(true);
+            dash_->setClimateFrontDefrost(true);
+            break;
+        case MODE_WINDSHIELD:
+            dash_->setClimateFace(false);
+            dash_->setClimateFeet(false);
+            dash_->setClimateFrontDefrost(true);
+            break;
+        default:
+            dash_->setClimateFace(false);
+            dash_->setClimateFeet(false);
+            dash_->setClimateFrontDefrost(false);
+            break;
     }
 }

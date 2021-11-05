@@ -114,17 +114,18 @@ class VehicleClimate : public ClimateController, public Listener {
         byte frame540_[8];
         byte frame541_[8];
 
-        // Track climate state to ensure we send commands that make sense.
+        // State storage. Tracks state so we can make the UI more responsive.
         bool active_;
         bool auto_;
         bool ac_;
         bool dual_;
         bool recirculate_;
+        bool front_defrost_;
+        bool rear_defrost_;
         uint8_t mode_;
         uint8_t fan_speed_;
         uint8_t driver_temp_;
         uint8_t passenger_temp_;
-        bool rear_defrost_;
 
         // Return true if the climate control system has exited initialization
         // and is taking commands. Climate control commands are noops until
@@ -133,13 +134,11 @@ class VehicleClimate : public ClimateController, public Listener {
 
         // Toggle a function controlled by a single bit. Return false if
         // climate state can't be modified.
-        bool toggle(byte* frame, uint8_t offset, uint8_t bit);
+        bool toggleFunction(byte* frame, uint8_t offset, uint8_t bit);
 
-        // Set dual zone state.
-        void setDual(bool dual);
-
-        // Toggle the set temperature bit.
-        void toggleTemperatureBit();
+        // Toggle the set temperature bit. Return false if climate state can't
+        // be modified.
+        bool toggleTemperature();
 
         // Update state from a 0x54A frame.
         void receive54A(uint8_t len, byte* data);
@@ -150,7 +149,7 @@ class VehicleClimate : public ClimateController, public Listener {
         // Update state from a 0x625 frame.
         void receive625(uint8_t len, byte* data);
 
-        // Update the dashboard with the current state.
+        // Update the dashboard from the stored state.
         void updateDash();
 };
 
