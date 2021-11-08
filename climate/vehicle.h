@@ -73,13 +73,16 @@ class VehicleClimate : public ClimateController, public Listener {
         void push() override;
 
     private:
-        // mode cycle order:
-        //   face
-        //   face + feet
-        //   feet
-        //   feet + windshield
-        //   windshield
+        enum State : uint8_t {
+            STATE_OFF,
+            STATE_AUTO,
+            STATE_MANUAL,
+            STATE_HALF_MANUAL,
+            STATE_DEFROST,
+        };
+
         enum Mode : uint8_t {
+            MODE_OFF = 0,
             MODE_FACE = 0x04,
             MODE_FACE_FEET = 0x08,
             MODE_FEET = 0x0C,
@@ -96,33 +99,41 @@ class VehicleClimate : public ClimateController, public Listener {
         // A dashboard to update.
         DashController* dash_;
 
-        // True if the controller has sent its init packates.
+        // True if the controller has sent its init frames.
         bool init_complete_;
-
-        // Set to true if the control state has been changed. Control frames
-        // will be sent on next push call.
-        bool frame54x_changed_;
+        // A count of init frames that have been sent.
+        uint8_t init_write_count_;
 
         // The time the last control frame was sent and how frequently to send
         // them.
         uint32_t last_write_;
         uint8_t keepalive_interval_;
-        uint8_t write_count_;
 
         // Control frames. These are standard (11-bit ID) frames.
         byte frame540_[8];
         byte frame541_[8];
 
-        // State storage. Tracks state so we can make the UI more responsive.
-        bool active_;
-        bool auto_;
+        // Set to true if the control state has been changed. Control frames
+        // will be sent on next push call.
+        bool frame54x_changed_;
+
+        // State tracking.
+        State state_;
+        State prev_state_;
+
+        // Settings flags.
         bool ac_;
         bool dual_;
         bool recirculate_;
-        bool front_defrost_;
         bool rear_defrost_;
+
+        // Current airflow settings.
         uint8_t mode_;
         uint8_t fan_speed_;
+
+        // Temperature for Auto, Manual, and Defrost states. Driver temp also applies to
+        // Defrost state. Passenger temp is only updated when Dual is enabled.
+        // It holds the previous Dual state while Dual is disabled.
         uint8_t driver_temp_;
         uint8_t passenger_temp_;
 
@@ -131,6 +142,15 @@ class VehicleClimate : public ClimateController, public Listener {
         // this is true.
         bool climateOnline() const;
 
+        // Return true if face vents are open.
+        bool isFaceAirflow() const;
+
+        // Set the climate state.
+        void setState(State state);
+
+        // Return the next mode.
+        uint8_t cycleMode(uint8_t mode);
+
         // Toggle a function controlled by a single bit. Return false if
         // climate state can't be modified.
         bool toggleFunction(byte* frame, uint8_t offset, uint8_t bit);
@@ -138,6 +158,17 @@ class VehicleClimate : public ClimateController, public Listener {
         // Toggle the set temperature bit. Return false if climate state can't
         // be modified.
         bool toggleTemperature();
+
+        // Adjust driver side temperature zone. Also adjusts passenger side
+        // zone if dual is false. Stores the new driver side temperature in
+        // internal state.
+        void adjustDriverTemperature(bool increment, bool dual);
+
+        // Adjust passenger side temperature zone. Enables dual zone control.
+        void adjustPassengerTemperature(bool increment, bool frame_only);
+
+        void climateClickDriverTemp(bool increment);
+        void climateClickPassengerTemp(bool increment);
 
         // Update state from a 0x54A frame.
         void receive54A(uint8_t len, byte* data);
@@ -150,6 +181,9 @@ class VehicleClimate : public ClimateController, public Listener {
 
         // Update the dashboard from the stored state.
         void updateDash();
+
+        // Update the dashboard airflow mode.
+        void updateDashMode(uint8_t mode);
 };
 
 #endif  // __R51_VEHICLE_H__
