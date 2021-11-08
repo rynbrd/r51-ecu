@@ -272,6 +272,11 @@ void RealDashClimate::setClimatePassengerTemp(uint8_t value) {
     write_count_ = 0;
 }
 
+void RealDashClimate::setClimateOutsideTemp(uint8_t value) {
+    frame5400_[7] = value;
+    write_count_ = 0;
+}
+
 void RealDashClimate::push() {
     if (realdash_ == nullptr) {
         return;

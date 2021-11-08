@@ -137,6 +137,9 @@ class VehicleClimate : public ClimateController, public Listener {
         uint8_t driver_temp_;
         uint8_t passenger_temp_;
 
+        // The outside temperature as reported by the A/C Auto Amp.
+        uint8_t outside_temp_;
+
         // Return true if the climate control system has exited initialization
         // and is taking commands. Climate control commands are noops until
         // this is true.

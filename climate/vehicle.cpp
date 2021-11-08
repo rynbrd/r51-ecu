@@ -486,6 +486,7 @@ void VehicleClimate::receive54A(uint8_t len, byte* data) {
     if (temp != 0 && dual_ && state_ != STATE_DEFROST) {
         passenger_temp_ = clampTemp(temp);
     }
+    outside_temp_ = data[7];
 
     updateDash();
 }

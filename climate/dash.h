@@ -44,6 +44,9 @@ class DashController : public Controller {
 
         // Update the passenger temperature state.
         virtual void setClimatePassengerTemp(uint8_t value) = 0;
+
+        // Update the outside temperature state.
+        virtual void setClimateOutsideTemp(uint8_t value) = 0;
 };
 
 #endif  // __R51_DASH_H__

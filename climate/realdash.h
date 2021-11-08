@@ -26,7 +26,8 @@
  *   Byte 4: Heating Elements
  *     Bit 0: rear window heating element
  *     Bit 1-7: unused
- *   Bytes 5-7: unused
+ *   Bytes 5-6: unused
+ *   Byte 7: Outside Temperature
  *
  * Frame 0x5401: Climate Control Frame
  *   Byte 0: Unit State and Mode
@@ -151,6 +152,9 @@ class RealDashClimate : public DashController, Listener {
 
         // Update the passenger temperature state.
         void setClimatePassengerTemp(uint8_t value) override;
+
+        // Update the outside temperature state.
+        void setClimateOutsideTemp(uint8_t value) override;
 
         // Process frames from RealDash.
         void receive(uint32_t id, uint8_t len, byte* data) override;

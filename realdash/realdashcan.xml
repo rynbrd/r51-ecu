@@ -15,6 +15,7 @@
       <value name="Climate Driver Temperature State" offset="2" length="1"></value>
       <value name="Climate Passenger Temperature State" offset="3" length="1"></value>
       <value name="Climate Rear Window Defrost State" offset="4" startbit="0" bitcount="1"></value>
+      <value name="Climate Outside Temperature State" offset="7" length="1"></value>
     </frame>
 
     <!-- Climate control frame. Sent by the dashboard to modify climate system
