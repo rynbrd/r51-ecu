@@ -548,7 +548,7 @@ This frame is sent by the A/C Auto Amp to indicate the zone temperatures.
     |  |  |  |  |
     |  |  |  |  |  +------- current passenger temperature
     |  |  |  |  |  |
-    |  |  |  |  |  |     +- unknown; possibly outside temp
+    |  |  |  |  |  |     +- outside temperature
     |  |  |  |  |  |     |
 54A#3C:3E:7F:80:00:00:00:45
     0  1  2  3  4  5  6  7
@@ -589,8 +589,9 @@ Always 0x00.
 
 _Byte 7: Unknown_
 
-This does not change frequently but has a wide range of values. This may be the
-outside temperature. Observed values include 0x39, 0x42, 0x45, 0x47, and 0x3F.
+This is the outside temperature as reported by the temperature sensor connected
+to the A/C Auto Amp. This is an 8-bit unsigned integer. The units are
+Fahrenheit.
 
 
 #### CAN Frame ID 54B
