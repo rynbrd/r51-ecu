@@ -23,48 +23,47 @@ class VehicleClimate : public ClimateController, public Listener {
         // Connect the controller to a CAN bus.
         void connect(Connection* can, DashController* dash);
 
-        // Turn off the climate control.
-        void deactivateClimate() override;
+        // Simulate an "Off" button click.
+        void climateClickOff() override;
 
-        // Toggle the auto setting.
-        void toggleClimateAuto() override;
+        // Simulate an "Auto" button click.
+        void climateClickAuto() override;
 
-        // Toggle the AC setting.
-        void toggleClimateAc() override;
+        // Simulate an "A/C" button click.
+        void climateClickAc() override;
 
-        // Toggle the dual zone setting.
-        void toggleClimateDual() override;
+        // Simulate a "Dual" button click.
+        void climateClickDual() override;
 
-        // Toggle air recirculation.
-        void toggleClimateRecirculate() override;
+        // Simulate a "Recirculate" button click.
+        void climateClickRecirculate() override;
 
-        // Cycle the airflow mode.
-        void cycleClimateMode() override;
+        // Simulate a "Mode" button click.
+        void climateClickMode() override;
 
-        // Toggle front defrost. This toggles windshield airflow.
-        void toggleClimateFrontDefrost() override;
+        // Simulate a "Front Defrost" button click.
+        void climateClickFrontDefrost() override;
 
-        // Toggle rear defrost. This toggles the rear window heating element.
-        // Currently a noop.
-        void toggleClimateRearDefrost() override;
+        // Simulate a "Rear Defrost" button click.
+        void climateClickRearDefrost() override;
 
-        // Increase the fan speed by one notch.
-        void increaseClimateFanSpeed() override;
+        // Simulate a "Fan Up" button click.
+        void climateClickFanSpeedUp() override;
 
-        // Decrease the fan speed by one notch.
-        void decreaseClimateFanSpeed() override;
+        // Simulate a "Fan Down" button click.
+        void climateClickFanSpeedDown() override;
 
-        // Increase the driver zone temperature by 1 degree F.
-        void increaseClimateDriverTemp() override;
+        // Simulate a "Driver Temperature Up" button click.
+        void climateClickDriverTempUp() override;
 
-        // Decrease the driver zone temperature by 1 degree F.
-        void decreaseClimateDriverTemp() override;
+        // Simulate a "Driver Temperature Down" button click.
+        void climateClickDriverTempDown() override;
 
-        // Increase the passenger zone temperature by 1 degree F.
-        void increaseClimatePassengerTemp() override;
+        // Simulate a "Passenger Temperature Up" button click.
+        void climateClickPassengerTempUp() override;
 
-        // Decrease the passenger zone temperature by 1 degree F.
-        void decreaseClimatePassengerTemp() override;
+        // Simulate a "Passenger Temperature Down" button click.
+        void climateClickPassengerTempDown() override;
 
         // Update state from incoming climate state frames. Accepts frames
         // 0x54A, 0x54B, and 0x625.

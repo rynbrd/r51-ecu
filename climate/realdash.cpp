@@ -304,59 +304,59 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
 
     // check if any bits have flipped
     if (xorBits(frame5401_, data, 0, 0)) {
-        climate_->deactivateClimate();
+        climate_->climateClickOff();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 0, 1)) {
-        climate_->toggleClimateAuto();
+        climate_->climateClickAuto();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 0, 2)) {
-        climate_->toggleClimateAc();
+        climate_->climateClickAc();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 0, 3)) {
-        climate_->toggleClimateDual();
+        climate_->climateClickDual();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 0, 4)) {
-        climate_->cycleClimateMode();
+        climate_->climateClickMode();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 0, 6)) {
-        climate_->toggleClimateFrontDefrost();
+        climate_->climateClickFrontDefrost();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 0, 7)) {
-        climate_->toggleClimateRecirculate();
+        climate_->climateClickRecirculate();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 0)) {
-        climate_->increaseClimateFanSpeed();
+        climate_->climateClickFanSpeedUp();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 1)) {
-        climate_->decreaseClimateFanSpeed();
+        climate_->climateClickFanSpeedDown();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 2)) {
-        climate_->increaseClimateDriverTemp();
+        climate_->climateClickDriverTempUp();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 3)) {
-        climate_->decreaseClimateDriverTemp();
+        climate_->climateClickDriverTempDown();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 4)) {
-        climate_->increaseClimatePassengerTemp();
+        climate_->climateClickPassengerTempUp();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 1, 5)) {
-        climate_->decreaseClimatePassengerTemp();
+        climate_->climateClickPassengerTempDown();
         D(changed = true;)
     }
     if (xorBits(frame5401_, data, 4, 0)) {
-        climate_->toggleClimateRearDefrost();
+        climate_->climateClickRearDefrost();
         D(changed = true;)
     }
 

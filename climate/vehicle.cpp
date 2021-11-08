@@ -43,7 +43,7 @@ bool VehicleClimate::climateOnline() const {
     return frame540_[0] == 0x60;
 }
 
-void VehicleClimate::deactivateClimate() {
+void VehicleClimate::climateClickOff() {
     if (!toggleFunction(frame540_, 6, 7)) {
         return;
     }
@@ -56,7 +56,7 @@ void VehicleClimate::deactivateClimate() {
     updateDash();
 }
 
-void VehicleClimate::toggleClimateAuto() {
+void VehicleClimate::climateClickAuto() {
     if (!toggleFunction(frame540_, 6, 5)) {
         return;
     }
@@ -83,7 +83,7 @@ void VehicleClimate::toggleClimateAuto() {
     updateDash();
 }
 
-void VehicleClimate::toggleClimateAc() {
+void VehicleClimate::climateClickAc() {
     if (!toggleFunction(frame540_, 5, 3) || !active_) {
         return;
     }
@@ -91,7 +91,7 @@ void VehicleClimate::toggleClimateAc() {
     updateDash();
 }
 
-void VehicleClimate::toggleClimateDual() {
+void VehicleClimate::climateClickDual() {
     if (!toggleFunction(frame540_, 6, 3) || !active_) {
         return;
     }
@@ -102,7 +102,7 @@ void VehicleClimate::toggleClimateDual() {
     updateDash();
 }
 
-void VehicleClimate::toggleClimateRecirculate() {
+void VehicleClimate::climateClickRecirculate() {
     if (!toggleFunction(frame541_, 1, 6) || !active_) {
         return;
     }
@@ -122,7 +122,7 @@ void VehicleClimate::toggleClimateRecirculate() {
     updateDash();
 }
 
-void VehicleClimate::cycleClimateMode() {
+void VehicleClimate::climateClickMode() {
     // TODO: check if mode enables hvac
     // TODO: check how hitting mode transitions out of defrost
     if (!toggleFunction(frame540_, 6, 0) || !active_) {
@@ -154,7 +154,7 @@ void VehicleClimate::cycleClimateMode() {
     updateDash();
 }
 
-void VehicleClimate::toggleClimateFrontDefrost() {
+void VehicleClimate::climateClickFrontDefrost() {
     if (!toggleFunction(frame540_, 6, 1)) {
         return;
     }
@@ -170,7 +170,7 @@ void VehicleClimate::toggleClimateFrontDefrost() {
     updateDash();
 }
 
-void VehicleClimate::toggleClimateRearDefrost() {
+void VehicleClimate::climateClickRearDefrost() {
     // TODO: determine rear defrost control signal
     if (!climateOnline()) {
         return;
@@ -179,7 +179,7 @@ void VehicleClimate::toggleClimateRearDefrost() {
     updateDash();
 }
 
-void VehicleClimate::increaseClimateFanSpeed() {
+void VehicleClimate::climateClickFanSpeedUp() {
     if (!toggleFunction(frame541_, 0, 5)) {
         return;
     }
@@ -196,7 +196,7 @@ void VehicleClimate::increaseClimateFanSpeed() {
     updateDash();
 }
 
-void VehicleClimate::decreaseClimateFanSpeed() {
+void VehicleClimate::climateClickFanSpeedDown() {
     if (!toggleFunction(frame541_, 0, 4)) {
         return;
     }
@@ -214,7 +214,7 @@ void VehicleClimate::decreaseClimateFanSpeed() {
     updateDash();
 }
 
-void VehicleClimate::increaseClimateDriverTemp() {
+void VehicleClimate::climateClickDriverTempUp() {
     if (toggleTemperature()) {
         frame540_[3]++;
     }
@@ -225,7 +225,7 @@ void VehicleClimate::increaseClimateDriverTemp() {
     updateDash();
 }
 
-void VehicleClimate::decreaseClimateDriverTemp() {
+void VehicleClimate::climateClickDriverTempDown() {
     if (toggleTemperature()) {
         frame540_[3]--;
     }
@@ -236,7 +236,7 @@ void VehicleClimate::decreaseClimateDriverTemp() {
     updateDash();
 }
 
-void VehicleClimate::increaseClimatePassengerTemp() {
+void VehicleClimate::climateClickPassengerTempUp() {
     if (toggleTemperature()) {
         frame540_[4]++;
     }
@@ -245,7 +245,7 @@ void VehicleClimate::increaseClimatePassengerTemp() {
     updateDash();
 }
 
-void VehicleClimate::decreaseClimatePassengerTemp() {
+void VehicleClimate::climateClickPassengerTempDown() {
     if (toggleTemperature()) {
         frame540_[4]--;
     }
