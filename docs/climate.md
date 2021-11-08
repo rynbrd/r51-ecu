@@ -21,7 +21,7 @@ Assembly. The AV Control Unit sends signals over CAN to control the state of
 the climate control system.
 
 
-## Physical Controls Operation
+## Physical Controls
 
 The physical controls are connected to the AV Control Unit via an independent
 CAN network. The AV Control Unit forwards button presses to the A/C Auto Amp
@@ -37,47 +37,280 @@ for the Nissan Armada but applies equally to the same generation Nissan
 Pathfinder. This video does leave out some details for recreating state
 transitions.
 
+The physical controls consist of the following inputs:
+* Driver Temperature Rotary Knob
+  * Press to toggle Auto.
+  * Turn Left to decrease temperature.
+  * Turn right to increase temperature.
+* Passenger Temperature Rotary Knob
+  * Press to toggle Dual.
+  * Turn Left to decrease temperature.
+  * Turn right to increase temperature.
+* A/C Button: Toggle the A/C compressor request.
+* Off: Turn off climate control.
+* Fan+: Increase fan speed.
+* Fan-: Decrease fan speed.
+* Front Defrost: Toggle on/off windshield defrost mode.
+* Rear Defrost: Toggle on/off the rear window and side mirror heating elements.
+* Mode: Cycle airflow modes.
+* Recirculate: Toggle on/off cabin air recirculation.
 
-### Button Functions
 
-#### Auto
+## Unit State Management
 
-This is the function of the left rotary knob's button press.
+Ths A/C Auto Amp maintains the current operating state of the climate control
+system. The AV Control Unit forwards inputs from the A/C And AV Switch Assembly
+to the A/c Auto Amp. The A/C Auto Amp updates its internal state and sends
+frames to indicate the new state to the AV Control Unit.
 
-Turns on the A/C unit if it is off or enables automatic climate control if
-disabled. Does not disable automatic climate control on toggle.
+This section documents the various states and state changes triggered by control inputs.
 
-The automatic function controls the air vents and fan speed in order to achieve
-the desired temperature in the driver and passenger zones. It will open the
-face and feet vents to achieve this. When enabled the A/C compressor is
-enabled; recirculate and front defrost are disabled;
 
-#### A/C
+### Possible Unit States
 
-The A/C button enables or disables the A/C compressor. Enabling A/C does not
-force the compressor to run but rather requests of the ECU that it be enabled.
-The ECU may disable the compressor under WOT or when enginer coolant
-temperature reaches a critical level.
+The climate control may exist in one of five states:
+* Off: The climate control system is off.
+* Auto: Automatic mode. Fan speed and air flow is adjusted to achieve the
+  desired temperature in the driver and passenger climate zones.
+* Manual: Temperature, fan speed, and air flow are controlled manually.
+* Manual with Fan Off: The unit allows manual control of airflow and
+  recirculation while the fans are off.
+* Defrost: The unit acts in windshield defrost mode. Fan speed and temperature
+  are controlled manually. Only airflow to the windshield is allowed.
+
+
+### State Transitions
+
+This section describes state changes caused by button presses when the unit is
+in each of the five states.
+
 
 #### Off
 
-Turns the unit off. All indicators are turned off and the display no longer
-displays climate status.
+Unit is off. Fan is turned off, vents are closed, and the AV Control Unit
+displays no settings. 
 
-#### Increase/Decrease Fan Speed
+* Auto
+  * Enter Auto state.
+  * Restore previously set temperatures and Dual setting.
+  * Turn A/C on.
+  * Turn recirculate off.
+  * Fan and Mode are automatically chosen.
+* Dual
+  * Makes no changes to unit state.
+* Off
+  * Makes no changes to unit state.
+* A/C
+  * Makes no changes to unit state.
+* Driver Temp
+  * AV Control Unit sends no control frames.
+* Passenger Temp
+  * AV Control Unit sends no control frames.
+* Fan+
+  * Enter Manual state.
+  * Restore previously set temperatures and Dual setting.
+  * Set fan to speed 1.
+  * Turn recirculate off.
+  * TODO: A/C state?
+* Fan-
+  * Enter Manual state.
+  * Restore previously set temperatures and Dual setting.
+  * Set fan to speed 1.
+  * Turn recirculate off.
+  * TODO: A/C state?
+* Front Defrost
+  * Enter Defrost state.
+  * Restore previously set temperatures.
+  * Enable only windshield vents.
+  * Disable A/C, Dual, Recirculate.
+* Mode
+  * Enter Manual with Fan Off state.
+  * Restore previously set temperatures, Dual setting, and Mode.
+  * Turn A/C and recirculate off.
+* Recirculate
+  * Always toggles recirculate regardless of Mode.
 
-This adjusts the fan speed. Doing so disables auto mode.
 
-#### Front Defrost
+#### Auto
 
-Toggles the windshield defrost mode. Enabling front defrost will enable A/C;
-disable auto, recirculate, and dual zone; open the windshield; and close the
-face and feet vents.
+The unit controls the fan speed and airflow in order to achieve the target
+driver and passenger temperatures.
 
-Disabling front defrost will close the windshield vent and return the face and
-feet vents to their previous state.
+* Auto
+  * No state changes.
+* Dual
+  * Toggle Dual.
+  * Sets passenger temp to driver when Dual toggled off.
+* Off
+  * Enter Off state.
+* A/C
+  * Toggle A/C.
+* Driver Temp
+  * Change driver temperature.
+  * Sets passenger temp to driver when Dual disabled.
+* Passenger Temp
+  * Change passenger temperature.
+  * Enables Dual if previously disabled.
+* Fan+
+  * Enter Manual state.
+  * Increase fan speed.
+  * Control frames sent even at max speed.
+* Fan-
+  * Enter Manual state.
+  * Decrease fan speed.
+  * Control frames sent even at min speed.
+* Front Defrost
+  * Enter Defrost state.
+  * Enable only windshield vents.
+  * Disable Dual, Recirculate
+  * Keep temperature, fan, and A/C state.
+* Mode
+  * Enter Manual state.
+  * Cycle airflow.
+  * Turn off recirculate if face vents close.
+* Recirculate
+  * Stays in Auto state.
+  * Toggle recirculate if face vents open.
 
-#### Rear Defrost
+#### Manual
+
+The user manually controls air temperature, fan speed, and airflow.
+
+* Auto
+  * Enter Auto state.
+  * Turn on A/C.
+  * Turn off Recirculate.
+  * Keep temperature and Dual setting.
+  * Fan and Mode are automatically chosen.
+* Dual
+  * Toggle Dual.
+  * Sets passenger temp to driver when Dual toggled off.
+* Off
+  * Enter Off state.
+* A/C
+  * Toggle A/C.
+* Driver Temp
+  * Change driver temperature.
+  * Sets passenger temp to driver when Dual disabled.
+* Passenger Temp
+  * Change passenger temperature.
+  * Enables Dual if previously disabled.
+* Fan+
+  * Increase fan speed.
+  * Control frames sent even at max speed.
+* Fan-
+  * Decrease fan speed.
+  * Control frames sent even at min speed.
+* Front Defrost
+  * Enter Defrost state.
+  * Enable only windshield vents.
+  * Disable Dual, Recirculate
+  * Keep temperature, fan, and A/C state.
+* Mode
+  * Cycle airflow.
+  * Turn off recirculate if face vents close.
+* Recirculate
+  * Toggle recirculate if face vents open.
+
+#### Manual with Fan Off
+
+The user manually controls temperature and airflow but the fan is off.
+
+* Auto
+  * Enter Auto state.
+  * Turn on A/C, Fan.
+  * Turn off Recirculate.
+  * Keep temperature and Dual setting.
+  * Fan and Mode are automatically chosen.
+* Dual
+  * Toggle Dual.
+  * Sets passenger temp to driver when Dual toggled off.
+* Off
+  * Enter Off state.
+* A/C
+  * Toggle A/C.
+* Driver Temp
+  * Change driver temperature.
+  * Sets passenger temp to driver when Dual disabled.
+* Passenger Temp
+  * Change passenger temperature.
+  * Enables Dual if previously disabled.
+* Fan+
+  * Enter Manual state.
+  * Set fan speed to 1.
+* Fan-
+  * Enter Manual state.
+  * Set fan speed to 1.
+* Front Defrost
+  * Enter Defrost state.
+  * Set fan speed to 3.
+  * Enable only windshield vents.
+  * Disable Dual, Recirculate
+  * Keep temperature, and A/C state.
+  * TODO: Double check A/C state.
+* Mode
+  * Cycle airflow.
+  * Does not turn off recirculate.
+* Recirculate
+  * Toggle recirculate.
+  * Does not require that face vents be open.
+
+
+#### Defrost
+
+The unit blows air only on the windshield. Temperature and fan speeds are
+controlled manually. Dual and recirculate is disabled.
+
+* Auto
+  * Enter Auto state.
+  * Turn on A/C.
+  * Turn off Recirculate.
+  * Keep temperature and Dual setting.
+  * Fan and Mode are automatically chosen.
+* Dual
+  * No state changes.
+  * Does send control frame.
+* Off
+  * Enter Off state.
+* A/C
+  * Toggle A/C
+* Driver Temp
+  * change driver and passenger temperatures.
+* Passenger Temp
+  * No state changes.
+  * Does send control frame.
+* Fan+
+  * Increase fan speed. 
+* Fan-
+  * Decrease fan speed.
+* Front Defrost
+  * If previously Off, Manual No Fan, or AUto:
+    * Enter Auto state.
+    * Keep Temperatures, A/C, Dual
+  * If previously Manual:
+    * Enter Manual state.
+    * Keep Temperatures, Fan Speed, A/C, Dual
+* Mode
+  * Enter Manual state.
+  * Cycle mode.
+  * Turn On A/C
+  * Keep Temperatures, Fan Speed, Dual
+* Recirculate
+  * No state changes.
+  * Does send control frame.
+
+### Airflow Transitions
+
+The following state transitions are allowed when cycling airflow via the Mode
+button:
+
+* face -> face+feet
+* face+feet -> feet
+* feet -> feet+windshield
+* feet+windshield -> face
+* windshield -> feet+windshield
+
+### Rear Defrost
 
 _This section is inferred from the service manual. Functionality has not yet been tested._
 
@@ -91,54 +324,6 @@ Auto Amp sends an updated CAN frame to the IPDM to enable the heating elements.
 
 The A/C and AV Switch Assembly grounds this wire when the rear defrost button
 is toggled on. The line is allowed to float when toggled off.
-
-#### Mode
-
-Cycles the airflow modes.
-
-The modes are cycled in the following order:
-* face
-* face + feet
-* feet
-* feet + windshield
-
-Cylcing through the windshield vent does not enable defrost mode; it only opens the vent.
-
-#### Recirculate
-
-Enables or disables cabin air recirculation. Can only be enabled when the face
-vents are opened. If the face vents close then recirculation is disabled. This
-is caused by cycling the mode or enabling front defrost.
-
-#### Dual
-
-This is the function of the right rotary knob's button press.
-
-Toggles dual zone climate control. When enabled the passenger temperature is
-controlled independently of the driver.
-
-When disabled the passenger temperature is set to synchronize with the driver
-side.
-
-Adjusting the passenger zone temperature will also enable dual mode.
-
-#### Driver Temperature Adjustment
-
-This is the function of the left rotary encoder. The encoder adjusts the
-temperature by 1 degree on each detent.
-
-Adjusting the knob clockwise increases the temperature; counter-clockwise
-decreases it.
-
-#### Passenger Temperature Adjustment
-
-This is the function of the right rotary encoder. The encoder adjusts the
-temperature by 1 degree on each detent.
-
-Adjusting the knob clockwise increases the temperature; counter-clockwise
-decreases it.
-
-Adjusting the passenger zone temperature will enable dual zone control.
 
 ## CAN Protocol
 
@@ -363,7 +548,7 @@ This frame is sent by the A/C Auto Amp to indicate the zone temperatures.
     |  |  |  |  |
     |  |  |  |  |  +------- current passenger temperature
     |  |  |  |  |  |
-    |  |  |  |  |  |     +- unknown
+    |  |  |  |  |  |     +- unknown; possibly outside temp
     |  |  |  |  |  |     |
 54A#3C:3E:7F:80:00:00:00:45
     0  1  2  3  4  5  6  7
@@ -404,10 +589,8 @@ Always 0x00.
 
 _Byte 7: Unknown_
 
-This value seems to change on each boot and stays the same until the next time
-the system boots. I suspect this value informs the AV Control Unit on how to
-set the temperature but I have not confirmed. Observed values include 0x42,
-0x45, 0x47, and 0x3F.
+This does not change frequently but has a wide range of values. This may be the
+outside temperature. Observed values include 0x39, 0x42, 0x45, 0x47, and 0x3F.
 
 
 #### CAN Frame ID 54B
@@ -434,21 +617,26 @@ _Byte 0: A/C Compressor, Auto Mode, Power Off_
 
 Bit meanings (least to most significant):
 * Bit 0: Auto setting. Set to 1 when auto is on.
-* Bit 1: Unknown. Set to 1 when auto is off or power is off.
+* Bit 1: Manual setting. Set to 1 when manual mode enabled or unit is off.
 * Bit 2: Always 0.
 * Bit 3: A/C compressor. Set to 1 when A/C compressor is requested.
 * Bit 4: Unknown. Set to 1 when A/C is on or when unit is off.
-* Bit 5: Unit power. Set to 1 when power is off.
+* Bit 5: Unknown.
 * Bit 6: Always 1.
-* Bit 7: Unit operational state. Unit is not operational when 0 and unit is off.
+* Bit 7: Unit power. Set to 1 when power is fully off.
 
 Observed values:
-* `0x41 (01000001)` A/C compressor Off, Auto Mode On
-* `0x42 (01000010)` A/C compressor Off, Auto Mode Off
-* `0x59 (01011001)` A/C compressor On, Auto Mode On
-* `0x5A (01011010)` A/C compressor On, Auto Mode Off
-* `0x72 (01110010)` system not operational
-* `0xF2 (11110010)` power Off
+* `0x41 (01000001)` A/C Off, Auto On
+* `0x42 (01000010)` A/C Off, Auto Off
+* `0x59 (01011001)` A/C On, Auto On
+* `0x5A (01011010)` A/C On, Auto Off
+* `0x72 (01110010)` Manual with Fan Off
+* `0xF2 (11110010)` Power Off
+
+This value does not seem to be consistent when defrost mode is one. To
+determine when the unit is in "manual with no fan" mode, bit 7 and fan speed
+must be checked. Otherwise the unit may be in defrost mode - in which case a
+value of 0x72 is valid for byte 0 even though the fan is on.
 
 _Byte 1: Mode, Front Defrost_
 
