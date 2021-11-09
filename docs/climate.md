@@ -418,7 +418,7 @@ enable/disable dual zone control.
     |  |     |  |
     |  |     |  |  +------- temperature control and A/C compressor
     |  |     |  |  |
-    |  |     |  |  |  +---- mode, front defrost, and dual zone
+    |  |     |  |  |  +---- mode, front defrost, dual zone, units
     |  |     |  |  |  |
 540#60:40:00:00:00:00:04:00
     0  1  2  3  4  5  6  7
@@ -469,12 +469,12 @@ Observed values:
 * `00001000` temperature change; compressor on
 * `00101000` temperature change; compressor on
 
-_Byte 6: Mode, Front Defrost, and Dual Zone Control_
+_Byte 6: Mode, Front Defrost, Dual Zone Control, and Units_
 
 Bit meanings (least to most significant):
 * Bit 0: Flipped to toggle the "mode" - the direction of the airflow.
 * Bit 1: Flipped to toggle front defrost.
-* Bit 2: Always 1.
+* Bit 2: Units. Set to 1 for US, 0 for Metric.
 * Bit 3: Flipped to toggle dual zone climate control.
 * Bit 4: Always 0.
 * Bit 5: Flipped to enable the "auto" mode of the climate control unit.
@@ -487,6 +487,8 @@ Example values:
 * `00000110` front defrost toggled
 * `00000101` air flow mode toggled
 
+Flipping bit 3 will change the display units. This will cause a 54A frame to be
+sent with the temperature values in the new units.
 
 #### CAN Frame ID 541
 
@@ -574,14 +576,18 @@ Always 0x80.
 _Byte 4: Driver Temperature_
 
 This is an 8-bit unsigned integer representing the temperate of the driver side
-climate zone in Fahrenheit. Values are 0 when A/C is off and from 60 to 90 when
+climate zone. Values are 0 when climate unit is off and from 60 to 90F when
 on.
+
+_TODO: Determine Celcsius temperature range._
 
 _Byte 5: Passenger Temperature_
 
 This is an 8-bit unsigned integer representing the temperate of the passenger
-side climate zone in Fahrenheit. Values are 0 when A/C is off and from 60 to 90
+side climate zone. Values are 0 when climate unit is off and from 60 to 90F
 when on.
+
+_TODO: Determine Celcsius temperature range._
 
 _Byte 6: Unknown_
 
@@ -590,8 +596,7 @@ Always 0x00.
 _Byte 7: Unknown_
 
 This is the outside temperature as reported by the temperature sensor connected
-to the A/C Auto Amp. This is an 8-bit unsigned integer. The units are
-Fahrenheit.
+to the A/C Auto Amp. This is an 8-bit unsigned integer.
 
 
 #### CAN Frame ID 54B
