@@ -7,6 +7,7 @@
 #include "connection.h"
 #include "dash.h"
 #include "listener.h"
+#include "settings.h"
 
 /* RealDash Frames
  *
@@ -63,9 +64,10 @@
  *   Byte 1: Headlights
  *     Bits 0-1: Auto Headlights Sensitivity; values 0 - 3
  *     Bits 2-3: unused
- *     Bits 4-7: Auto Headlights Off Delay; seconds; 0 off
+ *     Bits 4-7: Auto Headlights Off Delay; multiplier x15; seconds; 0 off
  *   Byte 2: Door Locks
  *     Bit 0: Selective Door Unlock; 0 off, 1 on
+ *     bits 1-3: unused
  *     Bits 4-7: Auto Re-Lock Time; minutes; 0 off
  *   Byte 3: Remote Key
  *     Bit 0: Remote Key Response Horn; 0 off, 1 on
@@ -161,7 +163,8 @@ class RealDashClimate : public DashClimateController, Listener {
     public:
         // Construct a new controller. Sent frames are repeated repeat times.
         RealDashClimate(uint8_t repeat = 5) :
-            realdash_(nullptr), climate_(nullptr), repeat_(repeat), write_count_(0), last_write_(0), last_read_(0) {}
+            realdash_(nullptr), climate_(nullptr), repeat_(repeat),
+            write_count_(0), last_write_(0), last_read_(0) {}
 
         // Connect the controller to a dashboard and vehicle systems.
         void connect(RealDashConnection* realdash, ClimateController* climate);
@@ -211,7 +214,7 @@ class RealDashClimate : public DashClimateController, Listener {
         // Send state changes to RealDash.
         void push() override;
     private:
-        // The serial connection to the RealDash instance.
+        // The connection to the RealDash instance.
         RealDashConnection* realdash_;
 
         // The climate control system to send commands to.
@@ -233,6 +236,73 @@ class RealDashClimate : public DashClimateController, Listener {
 
         // The last time a control frame was sent.
         uint32_t last_write_;
+
+        // The last time a control frame was received.
+        uint32_t last_read_;
+};
+
+class RealDashSettings : public DashSettingsController, Listener {
+    public:
+        // Construct a new controller. Sent frames are repeated repeat times.
+        RealDashSettings(uint8_t repeat = 5) :
+            realdash_(nullptr), settings_(nullptr), repeat_(repeat),
+            write_count_(0), last_read_(0){}
+
+        // Connect the controller to a dashboard and vehicle systems.
+        void connect(RealDashConnection* realdash, SettingsController* settings);
+
+        // Update Auto Interior Illumination setting. True is on, false is off.
+        void setAutoInteriorIllumination(bool value) override;
+
+        // Update the Auto Headlight Sensitivity setting.
+        void setAutoHeadlightSensitivity(uint8_t value) override;
+
+        // Update the Auto Headlight Off Delay setting. Value is in in seconds.
+        void setAutoHeadlightOffDelay(DashSettingsController::AutoHeadlightOffDelay value) override;
+
+        // Update the Speed Sensing Wiper Interval setting. True is on, false
+        // is off.
+        void setSpeedSensingWiperInterval(bool value) override;
+
+        // Update the Remote Key Response Horn setting. True is on, false is
+        // off.
+        void setRemoteKeyResponseHorn(bool value) override;
+
+        // Update the Remote Key Response Lights setting.
+        void setRemoteKeyResponseLights(DashSettingsController::RemoteKeyResponseLights value) override;
+
+        // Update the Auto Re-Lock Time setting. Value is in seconds.
+        void setAutoReLockTime(DashSettingsController::AutoReLockTime value) override;
+
+        // Update the Selective Door Unlock setting. True is on, false is off.
+        void setSelectiveDoorUnlock(bool value) override;
+
+        // Update the Slide Driver Seat Back On Exit setting. True is on, false is off.
+        void setSlideDriverSeatBackOnExit(bool value) override;
+
+        // Process frames from RealDash.
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+
+        // Send state changes to RealDash.
+        void push() override;
+    private:
+        // The connection to the RealDash instance.
+        RealDashConnection* realdash_;
+
+        // The climate control system to send commands to.
+        SettingsController* settings_;
+
+        // State frame sent to update RealDash.
+        byte frame5700_[8];
+
+        // Most recent settings control frame.
+        byte frame5701_[8];
+
+        // How many times to repeat a frame sent to RealDash.
+        uint8_t repeat_;
+
+        // How many times the current control frame has been written.
+        uint8_t write_count_;
 
         // The last time a control frame was received.
         uint32_t last_read_;

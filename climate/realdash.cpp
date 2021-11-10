@@ -301,7 +301,7 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
 
     // reset internal state if we haven't received a frame recently
     if (millis() - last_read_ > kReceiveTimeout) {
-        INFO_MSG("realdash: state reset, control frame timeout exceeded");
+        INFO_MSG("realdash: climate state reset, control frame timeout exceeded");
         memset(frame5401_, 0, 8);
         D(changed = true;)
     }
@@ -371,6 +371,172 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
     D({
         if (changed) {
             INFO_MSG_FRAME("realdash: receive ", 0x5401, 8, frame5401_);
+        }
+    })
+}
+
+void RealDashSettings::connect(RealDashConnection* realdash, SettingsController* settings) {
+    if (repeat_ < 1) {
+        repeat_ = 1;
+    }
+    realdash_ = realdash;
+    settings_ = settings;
+    last_read_ = millis();      // for control state timeouts
+    write_count_ = repeat_;     // force a write on start
+    memset(frame5700_, 0, 8);
+    memset(frame5701_, 0, 8);
+}
+
+void RealDashSettings::setAutoInteriorIllumination(bool value) {
+    setBit(frame5700_, 0, 0, value);
+    write_count_ = 0;
+}
+
+void RealDashSettings::setAutoHeadlightSensitivity(uint8_t value) {
+    if (value > 3) {
+        value = 3;
+    }
+    frame5700_[1] &= ~0x03;
+    frame5700_[1] |= value;
+    write_count_ = 0;
+}
+
+void RealDashSettings::setAutoHeadlightOffDelay(AutoHeadlightOffDelay value) {
+    frame5700_[1] &= ~0xF0;
+    frame5700_[1] |= value << 4;
+    write_count_ = 0;
+}
+
+void RealDashSettings::setSpeedSensingWiperInterval(bool value) {
+    setBit(frame5700_, 0, 2, value);
+    write_count_ = 0;
+}
+
+void RealDashSettings::setRemoteKeyResponseHorn(bool value) {
+    setBit(frame5700_, 3, 0, value);
+    write_count_ = 0;
+}
+
+void RealDashSettings::setRemoteKeyResponseLights(RemoteKeyResponseLights value) {
+    frame5700_[3] &= ~0x30;
+    frame5700_[3] |= value << 2;
+    write_count_ = 0;
+}
+
+void RealDashSettings::setAutoReLockTime(AutoReLockTime value) {
+    frame5700_[2] &= ~0xF0;
+    frame5700_[2] |= value << 4;
+    write_count_ = 0;
+}
+
+void RealDashSettings::setSelectiveDoorUnlock(bool value) {
+    setBit(frame5700_, 2, 0, value);
+    write_count_ = 0;
+}
+
+void RealDashSettings::setSlideDriverSeatBackOnExit(bool value) {
+    setBit(frame5700_, 0, 1, value);
+    write_count_ = 0;
+}
+
+void RealDashSettings::push() {
+    if (realdash_ == nullptr) {
+        return;
+    }
+    if (write_count_ < repeat_) {
+        if (write_count_ == 0) {
+            INFO_MSG_FRAME("realdash: send ", 0x5700, 8, frame5700_);
+        }
+        if (write_count_ < repeat_) {
+            write_count_++;
+        }
+        realdash_->write(0x5700, 8, frame5700_);
+    }
+}
+
+void RealDashSettings::receive(uint32_t id, uint8_t len, byte* data) {
+    if (settings_ == nullptr || id != 0x5701 || len != 8) {
+        return;
+    }
+
+    D(bool changed = false;)
+
+    // reset internal state if we haven't received a frame recently
+    if (millis() - last_read_ > kReceiveTimeout) {
+        INFO_MSG("realdash: settings state reset, control frame timeout exceeded");
+        memset(frame5701_, 0, 8);
+        D(changed = true;)
+    }
+    last_read_ = millis();
+
+    // check if any bits have flipped
+    if (xorBits(frame5701_, data, 0, 0)) {
+        settings_->toggleAutoInteriorIllumination();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 0, 1)) {
+        settings_->toggleSlideDriverSeatBackOnExit();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 0, 2)) {
+        settings_->toggleSpeedSensingWiperInterval();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 1, 0)) {
+        settings_->nextAutoHeadlightSensitivity();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 1, 1)) {
+        settings_->prevAutoHeadlightSensitivity();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 1, 4)) {
+        settings_->nextAutoHeadlightOffDelay();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 1, 5)) {
+        settings_->prevAutoHeadlightOffDelay();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 2, 0)) {
+        settings_->toggleSelectiveDoorUnlock();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 2, 4)) {
+        settings_->nextAutoReLockTime();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 2, 5)) {
+        settings_->prevAutoReLockTime();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 3, 0)) {
+        settings_->toggleRemoteKeyResponseHorn();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 3, 2)) {
+        settings_->nextRemoteKeyResponseLights();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 3, 3)) {
+        settings_->prevRemoteKeyResponseLights();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 7, 0)) {
+        settings_->retrieveSettings();
+        D(changed = true;)
+    }
+    if (xorBits(frame5701_, data, 7, 7)) {
+        settings_->resetSettingsToDefault();
+        D(changed = true;)
+    }
+
+    // update the stored frame
+    memcpy(frame5701_, data, 8);
+
+    D({
+        if (changed) {
+            INFO_MSG_FRAME("realdash: receive ", 0x5701, 8, frame5701_);
         }
     })
 }

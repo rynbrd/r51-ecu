@@ -43,7 +43,7 @@
       <value name="Slide Driver Seat Back on Exit State" offset="0" startbit="1" bitcount="1"></value>
       <value name="Speed Sensing Wiper Interval State" offset="0" startbit="2" bitcount="1"></value>
       <value name="Auto Headlights Sensitivity State" offset="1" startbit="0" bitcount="2"></value>
-      <value name="Auto Headlights Off Delay State" offset="1" startbit="4" bitcount="4"></value>
+      <value name="Auto Headlights Off Delay State" offset="1" startbit="4" bitcount="4" conversion="V*15"></value>
       <value name="Selective Door Unlock State" offset="2" startbit="0" bitcount="1"></value>
       <value name="Auto Re-Lock Time State" offset="2" startbit="4" bitcount="4"></value>
       <value name="Remote Key Response Horn State" offset="3" startbit="0" bitcount="1"></value>
