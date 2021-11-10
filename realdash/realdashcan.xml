@@ -36,5 +36,38 @@
       <value name="Climate Passenger Temperature Decrease" offset="1" startbit="5" bitcount="1" initialValue="0"></value>
       <value name="Climate Rear Window Defrost Toggle" offset="4" startbit="0" bitcount="1" initialValue="0"></value>
     </frame>
+
+    <!-- Settings state frame. SEnt by the settings control system to update the dashboard. -->
+    <frame id="0x5700" signed="false">
+      <value name="Auto Interior Illumination State" offset="0" startbit="0" bitcount="1"></value>
+      <value name="Slide Driver Seat Back on Exit State" offset="0" startbit="1" bitcount="1"></value>
+      <value name="Speed Sensing Wiper Interval State" offset="0" startbit="2" bitcount="1"></value>
+      <value name="Auto Headlights Sensitivity State" offset="1" startbit="0" bitcount="2"></value>
+      <value name="Auto Headlights Off Delay State" offset="1" startbit="4" bitcount="4"></value>
+      <value name="Selective Door Unlock State" offset="2" startbit="0" bitcount="1"></value>
+      <value name="Auto Re-Lock Time State" offset="2" startbit="4" bitcount="4"></value>
+      <value name="Remote Key Response Horn State" offset="3" startbit="0" bitcount="1"></value>
+      <value name="Remote Key Response Lights State" offset="3" startbit="2" bitcount="2"></value>
+    </frame>
+
+    <!-- Settings control frame. Sent by the dashboard to modify settings. Bits
+         are flipped in o rder to trigger a state change on the Arduino. -->
+    <frame id="0x5701" signed="false">
+      <value name="Auto Interior Illumination Toggle" offset="0" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Slide Driver Seat Back on Exit Toggle" offset="0" startbit="1" bitcount="1" initialValue="0"></value>
+      <value name="Speed Sensing Wiper Interval Toggle" offset="0" startbit="2" bitcount="1" initialValue="0"></value>
+      <value name="Auto Headlights Sensitivity Increase" offset="1" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Auto Headlights Sensitivity Decrease" offset="1" startbit="1" bitcount="1" initialValue="0"></value>
+      <value name="Auto Headlights Off Delay Increase" offset="1" startbit="4" bitcount="1" initialValue="0"></value>
+      <value name="Auto Headlights Off Delay Decrease" offset="1" startbit="5" bitcount="1" initialValue="0"></value>
+      <value name="Selective Door Unlock Toggle" offset="2" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Auto Re-Lock Time Increase" offset="2" startbit="4" bitcount="1" initialValue="0"></value>
+      <value name="Auto Re-Lock Time Decrease" offset="2" startbit="5" bitcount="1" initialValue="0"></value>
+      <value name="Toggle Remote Key Response Horn Toggle" offset="3" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Remote Key Response Lights Increase" offset="3" startbit="2" bitcount="1" initialValue="0"></value>
+      <value name="Remote Key Response Lights Decrease" offset="3" startbit="3" bitcount="1" initialValue="0"></value>
+      <value name="Request Latest Settings" offset="7" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Reset Settings to Default" offset="7" startbit="7" bitcount="1" initialValue="0"></value>
+    </frame>
   </frames>
 </RealDashCAN>

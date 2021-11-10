@@ -54,6 +54,55 @@
  *     Bit 1-7: unused
  *   Bytes 5-7: unused
  *
+ * Frame 5700: Settings State Frame
+ *   Byte 0: Interior & Wipers
+ *     Bit 0: Auto Interior Illumination; 0 off, 1 on
+ *     Bit 1: Slide Driver Seat Back on Exit; 0 off, 1 on
+ *     Bit 2: Speed Sensing Wiper Interval; 0 off, 1 on
+ *     Bit 4-7: unused
+ *   Byte 1: Headlights
+ *     Bits 0-1: Auto Headlights Sensitivity; values 0 - 3
+ *     Bits 2-3: unused
+ *     Bits 4-7: Auto Headlights Off Delay; seconds; 0 off
+ *   Byte 2: Door Locks
+ *     Bit 0: Selective Door Unlock; 0 off, 1 on
+ *     Bits 4-7: Auto Re-Lock Time; minutes; 0 off
+ *   Byte 3: Remote Key
+ *     Bit 0: Remote Key Response Horn; 0 off, 1 on
+ *     Bits 2-3: Remote Key Response Lights; 0 off, 1 unlock, 2 lock, 3 on
+ *   Bytes 4-7: unused
+ *
+ * Frame 5701: Settings Control Frame
+ *   Byte 0: Interior & Wipers
+ *     Bit 0: Toggle Auto Interior Illumination
+ *     Bit 1: Toggle Slide Driver Seat Back on Exit
+ *     Bit 2: Toggle Speed Sensing Wiper Interval
+ *     Bit 3-7: unused
+ *   Byte 1: Headlights
+ *     Bit 0: Auto Headlights Sensitivity+
+ *     Bit 1: Auto Headlights Sensitivity-
+ *     Bits 2-3: unused
+ *     Bit 4: Auto Headlights Off Delay+
+ *     Bit 5: Auto Headlights Off Delay-
+ *     Bits 6-7: unused
+ *   Byte 2: Door Locks
+ *     Bit 0: Toggle Selective Door Unlock
+ *     Bit 1-3: unused
+ *     Bit 4: Auto Re-Lock Time+
+ *     Bit 5: Auto Re-Lock Time-
+ *     Bit 6-7: unused
+ *   Byte 3: Remote Key
+ *     Bit 0: Toggle Remote Key Response Horn
+ *     Bit 1: unused
+ *     Bit 2: Remote Key Response Lights+
+ *     Bit 3: Remote Key Response Lights-
+ *     Bit 4-7: unused
+ *   Bytes 4-6: unused
+ *   Byte 7: State
+ *     Bit 0: Request Latest Settings
+ *     Bit 1-6: unused
+ *     Bit 7: Reset Settings to Default
+ *
  *   When RealDash connects it always sends an initial control frame with a
  *   zero value. If this system does not receive a control frame after the
  *   configured timeout it will assume the RealDash device has disconnected and
