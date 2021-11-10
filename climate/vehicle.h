@@ -203,6 +203,11 @@ class SettingsCommand {
         // Send the command.
         bool send();
 
+        // Must be called in main loop. Resets the command on time-out in the
+        // event that CAN frames are missed or the expected response isn't
+        // received.
+        void loop();
+
         // Process a received frame.
         virtual void receive(uint32_t id, uint8_t len, byte* data) = 0;
 
@@ -233,16 +238,12 @@ class SettingsCommand {
 
         Op op() const;
 
-        bool timeout() const;
-
         bool sendRequest(Op op, uint8_t value = 0xFF);
 
         bool matchResponse(uint32_t id, uint8_t len, byte* data);
 
         bool matchAndSend(uint32_t id, uint8_t len, byte* data,
                 Op match, Op send, uint8_t value = 0xFF);
-
-        void reset();
 
     private:
         Connection* conn_;
@@ -285,7 +286,7 @@ class SettingsUpdate : public SettingsCommand {
 
 // Control the vehicle settings. Currently this only sends the initialization
 // frames in order to init the BCM and avoid a SEL.
-class VehicleSettings : public Listener {
+class VehicleSettings : public Controller, public Listener {
     public:
         VehicleSettings() : can_(nullptr), init71E_(nullptr), init71F_(nullptr), init_(false) {};
         ~VehicleSettings();
@@ -295,6 +296,9 @@ class VehicleSettings : public Listener {
 
         // Process incoming frames.
         void receive(uint32_t id, uint8_t len, byte* data) override;
+
+        // Push state changes to the CAN bus.
+        void push() override;
     private:
         // The CAN bus to push state change frames to.
         Connection* can_;

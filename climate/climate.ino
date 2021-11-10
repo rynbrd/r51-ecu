@@ -47,6 +47,7 @@ void receive() {
 
 void push() {
     climate.push();
+    settings.push();
     dashboard.push();
 }
 
@@ -72,9 +73,9 @@ void setup() {
     while (!can.begin(CAN_CS_PIN, CAN_BAUDRATE, CAN_CLOCK)) {
         delay(1000);
     }
+    INFO_MSG("setup: ecu started");
 
     connect();
-    INFO_MSG("setup: ecu started");
 }
 
 // The loop must push out all state changes for each frame before processing

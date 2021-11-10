@@ -628,14 +628,24 @@ bool SettingsCommand::ready() {
     return op_ == OP_READY;
 }
 
+void SettingsCommand::loop() {
+    if (millis() - last_write_ > 5000) {
+        if (op_ == OP_READY) {
+            return;
+        }
+        ERROR_MSG("vehicle: settings command timed out");
+        if (op_ != OP_EXIT) {
+            sendRequest(OP_EXIT);
+        }
+        op_ = OP_READY;
+    }
+}
+
 bool SettingsCommand::send() {
-    if (id_ == 0) {
+    if (id_ == 0 || op_ != OP_READY) {
         return false;
     }
-    if (op_ == OP_READY) {
-        return sendRequest(OP_ENTER);
-    }
-    return false;
+    return sendRequest(OP_ENTER);
 }
 
 bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix2, byte value = 0xFF) {
@@ -648,10 +658,11 @@ bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix
     buffer_[3] = value;
     memset(buffer_+4, 0xFF, 5);
     if (!conn_->write(id_, 8, buffer_)) {
-        op_ = op;
         return false;
     }
+    op_ = op;
     last_write_ = millis();
+    INFO_MSG_FRAME("vehicle: write frame ", id_, 8, buffer_);
     return true;
 }
 
@@ -747,20 +758,6 @@ bool SettingsCommand::matchAndSend(uint32_t id, uint8_t len, byte* data, Op matc
     return sendRequest(send, value);
 }
 
-bool SettingsCommand::timeout() const {
-    return millis() - last_write_ > 5000;
-}
-
-void SettingsCommand::reset() {
-    if (op_ == OP_READY) {
-        return;
-    }
-    if (op_ != OP_EXIT) {
-        sendRequest(OP_EXIT);
-    }
-    op_ = OP_READY;
-}
-
 void SettingsInit71E::receive(uint32_t id, uint8_t len, byte* data) {
     matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
     matchAndSend(id, len, data, OP_INIT_00, OP_INIT_20) ||
@@ -768,18 +765,12 @@ void SettingsInit71E::receive(uint32_t id, uint8_t len, byte* data) {
     matchAndSend(id, len, data, OP_INIT_40, OP_INIT_60) ||
     matchAndSend(id, len, data, OP_INIT_60, OP_EXIT) ||
     matchAndSend(id, len, data, OP_EXIT, OP_READY);
-    if (timeout()) {
-        reset();
-    }
 }
 
 void SettingsInit71F::receive(uint32_t id, uint8_t len, byte* data) {
     matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
     matchAndSend(id, len, data, OP_INIT_00, OP_EXIT) ||
     matchAndSend(id, len, data, OP_EXIT, OP_READY);
-    if (timeout()) {
-        reset();
-    }
 }
 
 void SettingsUpdate::send(Op setting, uint8_t value) {
@@ -855,4 +846,9 @@ void VehicleSettings::receive(uint32_t id, uint8_t len, byte* data) {
     }
     init71E_->receive(id, len, data);
     init71F_->receive(id, len, data);
+}
+
+void VehicleSettings::push() {
+    init71E_->loop();
+    init71F_->loop();
 }
