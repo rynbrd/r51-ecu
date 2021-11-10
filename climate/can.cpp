@@ -52,6 +52,7 @@ bool CanConnection::write(uint32_t id, uint8_t len, byte* data) {
 
     if (err != CAN_OK) {
         ERROR_MSG_VAL("can: write failed: error code ", err);
+        ERROR_MSG_FRAME("can: dropped frame ", id, len, data);
         return false;
     }
     return true;
