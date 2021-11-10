@@ -361,7 +361,7 @@ The following CAN frames are exchanged by the climate control sytem.
 | 0x625 |   6 | Climate state. Sends current state of the rear defrost.                                  | Unknown         | Unknown         |
 
 
-#### CAN Frame ID 35D
+#### CAN Frame ID 0x35D
 
 I have not fully decoded this this CAN frame but it appears to be sent form the
 AV Control Unit or A/C Auto Amp to control the A/C compressor and defrost
@@ -400,7 +400,7 @@ recently received frame to be stored in order to manipulate compressor and rear
 defrost state.  
 
 
-#### CAN Frame ID 540
+#### CAN Frame ID 0x540
 
 This frame is sent by the AV Control Unit to initialize the A/C Auto Amp,
 enable auto mode (this also turns on the unit), turn off the unit,
@@ -490,7 +490,7 @@ Example values:
 Flipping bit 3 will change the display units. This will cause a 54A frame to be
 sent with the temperature values in the new units.
 
-#### CAN Frame ID 541
+#### CAN Frame ID 0x541
 
 This frame is sent by the AV Control Unit to change fan speed and toggle
 recirculation. 
@@ -533,7 +533,7 @@ _Bytes 2-7_
 These bytes are always set to 0x00.
 
 
-#### CAN Frame ID 54A
+#### CAN Frame ID 0x54A
 
 This frame is sent by the A/C Auto Amp to indicate the zone temperatures.
 
@@ -599,7 +599,7 @@ This is the outside temperature as reported by the temperature sensor connected
 to the A/C Auto Amp. This is an 8-bit unsigned integer.
 
 
-#### CAN Frame ID 54B
+#### CAN Frame ID 0x54B
 
 This frame is sent by the A/C Auto Amp to indicate unit status, mode, front
 defrost, fan speed, recirculation, and dual climate zone mode.
@@ -701,7 +701,7 @@ This has been observed to flip between the values 0x00 and 0x02. It is not
 known what causes the value to change.
 
 
-#### CAN Frame ID 625
+#### CAN Frame ID 0x625
 
 This frame is sent when the rear defrost is toggled. The frame originates from
 the IPDM and is acted on by the AV Control Unit to display the rear defrost
