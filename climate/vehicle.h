@@ -20,7 +20,7 @@ class VehicleClimate : public ClimateController, public Listener {
         // Create a ClimateControl object in its initialization state.
         VehicleClimate();
 
-        // Connect the controller to a CAN bus.
+        // Connect the controller to a CAN bus and dashboard.
         void connect(Connection* can, DashController* dash);
 
         // Simulate an "Off" button click.
@@ -187,6 +187,122 @@ class VehicleClimate : public ClimateController, public Listener {
 
         // Update the dashboard airflow mode.
         void updateDashMode(uint8_t mode);
+};
+
+// Base class for sending settings commands and managing their responses.
+class SettingsCommand {
+    public:
+        SettingsCommand(Connection* conn, uint32_t id = 0) : 
+            conn_(conn), id_(id), op_(OP_READY), last_write_(0) {}
+
+        virtual ~SettingsCommand() {}
+
+        // Return true if the command is ready to send.
+        bool ready();
+
+        // Send the command.
+        bool send();
+
+        // Process a received frame.
+        virtual void receive(uint32_t id, uint8_t len, byte* data) = 0;
+
+    protected:
+        // Available operations.
+        enum Op : uint8_t {
+            OP_READY,
+            OP_ENTER,
+            OP_EXIT,
+            OP_INIT_00,
+            OP_INIT_20,
+            OP_INIT_40,
+            OP_INIT_60,
+            OP_AUTO_HL_SENS,
+            OP_AUTO_HL_DELAY,
+            OP_SPEED_SENS_WIPER,
+            OP_REMOTE_KEY_HORN,
+            OP_REMOTE_KEY_LIGHT,
+            OP_AUTO_RELOCK_TIME,
+            OP_SELECT_DOOR_UNLOCK,
+            OP_SLIDE_DRIVER_SEAT,
+            OP_GET_STATE_71E_10,
+            OP_GET_STATE_71E_2X,
+            OP_GET_STATE_71F_05,
+        };
+
+        uint32_t id_;
+
+        Op op() const;
+
+        bool timeout() const;
+
+        bool sendRequest(Op op, uint8_t value = 0xFF);
+
+        bool matchResponse(uint32_t id, uint8_t len, byte* data);
+
+        bool matchAndSend(uint32_t id, uint8_t len, byte* data,
+                Op match, Op send, uint8_t value = 0xFF);
+
+        void reset();
+
+    private:
+        Connection* conn_;
+        Op op_;
+        uint32_t last_write_;
+
+        bool sendControl(Op op, byte prefix0, byte prefix1, byte prefix2, byte value = 0xFF);
+};
+
+// Sends an 0x71E init command sequence.
+class SettingsInit71E : public SettingsCommand {
+    public:
+        SettingsInit71E(Connection* conn) : SettingsCommand(conn, 0x71E) {}
+
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+};
+
+// Sends an 0x71F init command sequence.
+class SettingsInit71F : public SettingsCommand {
+    public:
+        SettingsInit71F(Connection* conn) : SettingsCommand(conn, 0x71F) {}
+
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+};
+
+// Sends a 0x71E or 0x71F setting update command sequence.
+class SettingsUpdate : public SettingsCommand {
+    public:
+        SettingsUpdate(Connection* conn) : SettingsCommand(conn) {}
+
+        void send(Op setting, uint8_t value);
+
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+
+    private:
+        Op setting_;
+        uint8_t value_;
+        bool state_count_;
+};
+
+// Control the vehicle settings. Currently this only sends the initialization
+// frames in order to init the BCM and avoid a SEL.
+class VehicleSettings : public Listener {
+    public:
+        VehicleSettings() : can_(nullptr), init71E_(nullptr), init71F_(nullptr), init_(false) {};
+        ~VehicleSettings();
+
+        // Connect the controller to a CAN bus.
+        void connect(Connection* can);
+
+        // Process incoming frames.
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+    private:
+        // The CAN bus to push state change frames to.
+        Connection* can_;
+
+        // Init commands.
+        SettingsInit71E* init71E_;
+        SettingsInit71F* init71F_;
+        bool init_;
 };
 
 #endif  // __R51_VEHICLE_H__

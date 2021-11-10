@@ -6,6 +6,8 @@
 #include "dash.h"
 #include "debug.h"
 
+// Send buffer for SettingsCommand.
+byte buffer_[8];
 
 inline uint8_t clampFan(uint8_t speed) {
     if (speed < 1) {
@@ -612,4 +614,245 @@ void VehicleClimate::updateDashMode(uint8_t mode) {
             dash_->setClimateFrontDefrost(false);
             break;
     }
+}
+
+inline bool matchFrame(byte* data, byte prefix0, byte prefix1, byte prefix2) {
+    return data[0] == prefix0 && data[1] == prefix1 && data[2] == prefix2;
+}
+
+SettingsCommand::Op SettingsCommand::op() const {
+    return op_;
+}
+
+bool SettingsCommand::ready() {
+    return op_ == OP_READY;
+}
+
+bool SettingsCommand::send() {
+    if (id_ == 0) {
+        return false;
+    }
+    if (op_ == OP_READY) {
+        return sendRequest(OP_ENTER);
+    }
+    return false;
+}
+
+bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix2, byte value = 0xFF) {
+    if (id_ == 0) {
+        return;
+    }
+    buffer_[0] = prefix0;
+    buffer_[1] = prefix1;
+    buffer_[2] = prefix2;
+    buffer_[3] = value;
+    memset(buffer_+4, 0xFF, 5);
+    if (!conn_->write(id_, 8, buffer_)) {
+        op_ = op;
+        return false;
+    }
+    last_write_ = millis();
+    return true;
+}
+
+bool SettingsCommand::sendRequest(Op op, uint8_t value = 0xFF) {
+    switch (op) {
+        default: 
+        case OP_READY:
+            op_ = OP_READY;
+            return true;
+        case OP_ENTER:
+            return sendControl(op, 0x02, 0x10, 0xC0);
+        case OP_EXIT:
+            return sendControl(op, 0x02, 0x10, 0x81);
+        case OP_INIT_00:
+            return sendControl(op, 0x02, 0x3B, 0x00);
+        case OP_INIT_20:
+            return sendControl(op, 0x02, 0x3B, 0x20);
+        case OP_INIT_40:
+            return sendControl(op, 0x02, 0x3B, 0x40);
+        case OP_INIT_60:
+            return sendControl(op, 0x02, 0x3B, 0x60);
+        case OP_AUTO_HL_SENS:
+            return sendControl(op, 0x03, 0x3B, 0x37, value);
+        case OP_AUTO_HL_DELAY:
+            return sendControl(op, 0x03, 0x3B, 0x39, value);
+        case OP_SPEED_SENS_WIPER:
+            return sendControl(op, 0x03, 0x3B, 0x47, value);
+        case OP_REMOTE_KEY_HORN:
+            return sendControl(op, 0x03, 0x3B, 0x2A, value);
+        case OP_REMOTE_KEY_LIGHT:
+            return sendControl(op, 0x03, 0x3B, 0x2E, value);
+        case OP_AUTO_RELOCK_TIME:
+            return sendControl(op, 0x03, 0x3B, 0x2F, value);
+        case OP_SELECT_DOOR_UNLOCK:
+            return sendControl(op, 0x03, 0x3B, 0x02, value);
+        case OP_SLIDE_DRIVER_SEAT:
+            return sendControl(op, 0x03, 0x3B, 0x01, value);
+        case OP_GET_STATE_71E_10:
+            return sendControl(op, 0x02, 0x21, 0x01);
+        case OP_GET_STATE_71E_2X:
+            return sendControl(op, 0x30, 0x00, 0x0A);
+    }
+}
+
+bool SettingsCommand::matchResponse(uint32_t id, uint8_t len, byte* data) {
+    if (id != (id_ & ~0x010 | 0x020) || len != 8) {
+        return false;
+    }
+    switch (op_) {
+        default:
+        case OP_READY:
+            return true;
+        case OP_ENTER:
+            return matchFrame(data, 0x02, 0x50, 0xC0);
+        case OP_EXIT:
+            return matchFrame(data, 0x02, 0x50, 0x81);
+        case OP_INIT_00:
+            return matchFrame(data, 0x06, 0x7B, 0x00);
+        case OP_INIT_20:
+            return matchFrame(data, 0x06, 0x7B, 0x20);
+        case OP_INIT_40:
+            return matchFrame(data, 0x06, 0x7B, 0x40);
+        case OP_INIT_60:
+            return matchFrame(data, 0x06, 0x7B, 0x60);
+        case OP_AUTO_HL_SENS:
+            return matchFrame(data, 0x02, 0x7B, 0x37);
+        case OP_AUTO_HL_DELAY:
+            return matchFrame(data, 0x02, 0x7B, 0x39);
+        case OP_SPEED_SENS_WIPER:
+            return matchFrame(data, 0x02, 0x7B, 0x47);
+        case OP_REMOTE_KEY_HORN:
+            return matchFrame(data, 0x02, 0x7B, 0x2A);
+        case OP_REMOTE_KEY_LIGHT:
+            return matchFrame(data, 0x02, 0x7B, 0x2E);
+        case OP_AUTO_RELOCK_TIME:
+            return matchFrame(data, 0x02, 0x7B, 0x2F);
+        case OP_SELECT_DOOR_UNLOCK:
+            return matchFrame(data, 0x02, 0x7B, 0x02);
+        case OP_SLIDE_DRIVER_SEAT:
+            return matchFrame(data, 0x02, 0x7B, 0x01);
+        case OP_GET_STATE_71E_10:
+            return matchFrame(data, 0x02, 0x7B, 0x01);
+        case OP_GET_STATE_71E_2X:
+            return matchFrame(data, 0x21, 0xE0, 0x00) ||
+                matchFrame(data, 0x22, 0x94, 0x00);
+    }
+}
+
+bool SettingsCommand::matchAndSend(uint32_t id, uint8_t len, byte* data, Op match, Op send, uint8_t value = 0xFF) {
+    if (op_ != match || !matchResponse(id, len, data)) {
+        return false;
+    }
+    return sendRequest(send, value);
+}
+
+bool SettingsCommand::timeout() const {
+    return millis() - last_write_ > 5000;
+}
+
+void SettingsCommand::reset() {
+    if (op_ == OP_READY) {
+        return;
+    }
+    if (op_ != OP_EXIT) {
+        sendRequest(OP_EXIT);
+    }
+    op_ = OP_READY;
+}
+
+void SettingsInit71E::receive(uint32_t id, uint8_t len, byte* data) {
+    matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
+    matchAndSend(id, len, data, OP_INIT_00, OP_INIT_20) ||
+    matchAndSend(id, len, data, OP_INIT_20, OP_INIT_40) ||
+    matchAndSend(id, len, data, OP_INIT_40, OP_INIT_60) ||
+    matchAndSend(id, len, data, OP_INIT_60, OP_EXIT) ||
+    matchAndSend(id, len, data, OP_EXIT, OP_READY);
+    if (timeout()) {
+        reset();
+    }
+}
+
+void SettingsInit71F::receive(uint32_t id, uint8_t len, byte* data) {
+    matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
+    matchAndSend(id, len, data, OP_INIT_00, OP_EXIT) ||
+    matchAndSend(id, len, data, OP_EXIT, OP_READY);
+    if (timeout()) {
+        reset();
+    }
+}
+
+void SettingsUpdate::send(Op setting, uint8_t value) {
+    switch (setting) {
+        default:
+            id_ = 0x71E;
+            break;
+        case OP_SLIDE_DRIVER_SEAT:
+            id_ = 0x71F;
+            break;
+    }
+    setting_ = setting;
+    value_ = value;
+    state_count_ = 0;
+    SettingsCommand::send();
+}
+
+void SettingsUpdate::receive(uint32_t id, uint8_t len, byte* data) {
+    if (op() == OP_READY || matchAndSend(id, len, data, OP_ENTER, setting_, value_)) {
+        return;
+    }
+
+    if (id_ == 0x71E) {
+        if (matchAndSend(id, len, data, setting_, OP_GET_STATE_71E_10) ||
+            matchAndSend(id, len, data, OP_GET_STATE_71E_10, OP_GET_STATE_71E_2X)) {
+            return;
+        }
+
+        if (op() == OP_GET_STATE_71E_2X && matchResponse(id, len, data)) {
+            state_count_++;
+            if (state_count_ >= 2) {
+                sendRequest(OP_EXIT);
+                return;
+            }
+        }
+    } else {
+        if (matchAndSend(id, len, data, setting_, OP_GET_STATE_71F_05) ||
+            matchAndSend(id, len, data, OP_GET_STATE_71F_05, OP_EXIT)) {
+            return;
+        }
+    }
+    matchAndSend(id, len, data, OP_EXIT, OP_READY);
+}
+
+VehicleSettings::~VehicleSettings() {
+    if (init71E_ != nullptr) {
+        delete init71E_;
+    }
+    if (init71F_ != nullptr) {
+        delete init71F_;
+    }
+}
+
+void VehicleSettings::connect(Connection* can) {
+    can_ = can;
+    if (init71E_ != nullptr) {
+        delete init71E_;
+    }
+    init71E_ = new SettingsInit71E(can);
+
+    if (init71F_ != nullptr) {
+        delete init71F_;
+    }
+    init71F_ = new SettingsInit71F(can);
+
+    init71E_->send();
+    init71F_->send();
+}
+
+void VehicleSettings::receive(uint32_t id, uint8_t len, byte* data) {
+    if ((id != 0x72E && id != 0x72F) || len != 8) {
+        return;
+    }
+    init71E_->receive(id, len, data);
+    init71F_->receive(id, len, data);
 }
