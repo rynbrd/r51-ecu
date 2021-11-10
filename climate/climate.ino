@@ -34,8 +34,8 @@ void connect() {
     climate.connect(nullptr, &dashboard);
 #else
     climate.connect(&can, &dashboard);
-#endif
     settings.connect(&can);
+#endif
     dashboard.connect(&realdash, &climate);
 }
 
