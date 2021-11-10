@@ -192,8 +192,40 @@ class VehicleClimate : public ClimateController, public Listener {
 // Base class for sending settings commands and managing their responses.
 class SettingsCommand {
     public:
-        SettingsCommand(Connection* conn, uint32_t id = 0) : 
-            conn_(conn), id_(id), op_(OP_READY), last_write_(0) {}
+        // Available frames.
+        enum Frame : uint32_t {
+            FRAME_E = 0x71E,
+            FRAME_F = 0x71F,
+        };
+
+        // Available operations.
+        enum Op : uint8_t {
+            // Indicates the command is ready to send.
+            OP_READY,
+
+            // Enter and exit settings requests.
+            OP_ENTER,
+            OP_EXIT,
+
+            // Init requests.
+            OP_INIT_00,
+            OP_INIT_20,
+            OP_INIT_40,
+            OP_INIT_60,
+
+            // Settings requests.
+            OP_AUTO_HL_SENS,
+            OP_AUTO_HL_DELAY,
+            OP_SPEED_SENS_WIPER,
+            OP_REMOTE_KEY_HORN,
+            OP_REMOTE_KEY_LIGHT,
+            OP_AUTO_RELOCK_TIME,
+            OP_SELECT_DOOR_UNLOCK,
+            OP_SLIDE_DRIVER_SEAT,
+            OP_GET_STATE_71E_10,
+            OP_GET_STATE_71E_2X,
+            OP_GET_STATE_71F_05,
+        };
 
         virtual ~SettingsCommand() {}
 
@@ -212,27 +244,8 @@ class SettingsCommand {
         virtual void receive(uint32_t id, uint8_t len, byte* data) = 0;
 
     protected:
-        // Available operations.
-        enum Op : uint8_t {
-            OP_READY,
-            OP_ENTER,
-            OP_EXIT,
-            OP_INIT_00,
-            OP_INIT_20,
-            OP_INIT_40,
-            OP_INIT_60,
-            OP_AUTO_HL_SENS,
-            OP_AUTO_HL_DELAY,
-            OP_SPEED_SENS_WIPER,
-            OP_REMOTE_KEY_HORN,
-            OP_REMOTE_KEY_LIGHT,
-            OP_AUTO_RELOCK_TIME,
-            OP_SELECT_DOOR_UNLOCK,
-            OP_SLIDE_DRIVER_SEAT,
-            OP_GET_STATE_71E_10,
-            OP_GET_STATE_71E_2X,
-            OP_GET_STATE_71F_05,
-        };
+        SettingsCommand(Connection* conn, Frame id = 0) : 
+            conn_(conn), id_(id), op_(OP_READY), last_write_(0) {}
 
         uint32_t id_;
 
@@ -253,18 +266,10 @@ class SettingsCommand {
         bool sendControl(Op op, byte prefix0, byte prefix1, byte prefix2, byte value = 0xFF);
 };
 
-// Sends an 0x71E init command sequence.
-class SettingsInit71E : public SettingsCommand {
+// Sends an init command sequence.
+class SettingsInit : public SettingsCommand {
     public:
-        SettingsInit71E(Connection* conn) : SettingsCommand(conn, 0x71E) {}
-
-        void receive(uint32_t id, uint8_t len, byte* data) override;
-};
-
-// Sends an 0x71F init command sequence.
-class SettingsInit71F : public SettingsCommand {
-    public:
-        SettingsInit71F(Connection* conn) : SettingsCommand(conn, 0x71F) {}
+        SettingsInit(Connection* conn, Frame id) : SettingsCommand(conn, id) {}
 
         void receive(uint32_t id, uint8_t len, byte* data) override;
 };
@@ -288,7 +293,7 @@ class SettingsUpdate : public SettingsCommand {
 // frames in order to init the BCM and avoid a SEL.
 class VehicleSettings : public Controller, public Listener {
     public:
-        VehicleSettings() : can_(nullptr), init71E_(nullptr), init71F_(nullptr), init_(false) {};
+        VehicleSettings() : can_(nullptr), initE_(nullptr), initF_(nullptr), init_(false) {};
         ~VehicleSettings();
 
         // Connect the controller to a CAN bus.
@@ -304,8 +309,8 @@ class VehicleSettings : public Controller, public Listener {
         Connection* can_;
 
         // Init commands.
-        SettingsInit71E* init71E_;
-        SettingsInit71F* init71F_;
+        SettingsInit* initE_;
+        SettingsInit* initF_;
         bool init_;
 };
 

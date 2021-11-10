@@ -758,28 +758,33 @@ bool SettingsCommand::matchAndSend(uint32_t id, uint8_t len, byte* data, Op matc
     return sendRequest(send, value);
 }
 
-void SettingsInit71E::receive(uint32_t id, uint8_t len, byte* data) {
-    matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
-    matchAndSend(id, len, data, OP_INIT_00, OP_INIT_20) ||
-    matchAndSend(id, len, data, OP_INIT_20, OP_INIT_40) ||
-    matchAndSend(id, len, data, OP_INIT_40, OP_INIT_60) ||
-    matchAndSend(id, len, data, OP_INIT_60, OP_EXIT) ||
-    matchAndSend(id, len, data, OP_EXIT, OP_READY);
-}
-
-void SettingsInit71F::receive(uint32_t id, uint8_t len, byte* data) {
-    matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
-    matchAndSend(id, len, data, OP_INIT_00, OP_EXIT) ||
-    matchAndSend(id, len, data, OP_EXIT, OP_READY);
+void SettingsInit::receive(uint32_t id, uint8_t len, byte* data) {
+    switch (id_) {
+        case FRAME_E:
+            matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
+            matchAndSend(id, len, data, OP_INIT_00, OP_INIT_20) ||
+            matchAndSend(id, len, data, OP_INIT_20, OP_INIT_40) ||
+            matchAndSend(id, len, data, OP_INIT_40, OP_INIT_60) ||
+            matchAndSend(id, len, data, OP_INIT_60, OP_EXIT) ||
+            matchAndSend(id, len, data, OP_EXIT, OP_READY);
+            break;
+        case FRAME_F:
+            matchAndSend(id, len, data, OP_ENTER, OP_INIT_00) ||
+            matchAndSend(id, len, data, OP_INIT_00, OP_EXIT) ||
+            matchAndSend(id, len, data, OP_EXIT, OP_READY);
+            break;
+        default:
+            matchAndSend(id, len, data, OP_ENTER, OP_EXIT);
+    }
 }
 
 void SettingsUpdate::send(Op setting, uint8_t value) {
     switch (setting) {
         default:
-            id_ = 0x71E;
+            id_ = FRAME_E;
             break;
         case OP_SLIDE_DRIVER_SEAT:
-            id_ = 0x71F;
+            id_ = FRAME_F;
             break;
     }
     setting_ = setting;
@@ -793,62 +798,70 @@ void SettingsUpdate::receive(uint32_t id, uint8_t len, byte* data) {
         return;
     }
 
-    if (id_ == 0x71E) {
-        if (matchAndSend(id, len, data, setting_, OP_GET_STATE_71E_10) ||
-            matchAndSend(id, len, data, OP_GET_STATE_71E_10, OP_GET_STATE_71E_2X)) {
-            return;
-        }
-
-        if (op() == OP_GET_STATE_71E_2X && matchResponse(id, len, data)) {
-            state_count_++;
-            if (state_count_ >= 2) {
-                sendRequest(OP_EXIT);
+    switch (id_) {
+        case FRAME_E:
+            if (matchAndSend(id, len, data, setting_, OP_GET_STATE_71E_10) ||
+                matchAndSend(id, len, data, OP_GET_STATE_71E_10, OP_GET_STATE_71E_2X)) {
                 return;
             }
-        }
-    } else {
-        if (matchAndSend(id, len, data, setting_, OP_GET_STATE_71F_05) ||
-            matchAndSend(id, len, data, OP_GET_STATE_71F_05, OP_EXIT)) {
-            return;
-        }
+
+            if (op() == OP_GET_STATE_71E_2X && matchResponse(id, len, data)) {
+                state_count_++;
+                if (state_count_ >= 2) {
+                    sendRequest(OP_EXIT);
+                    return;
+                }
+            }
+            break;
+        case FRAME_F:
+            if (matchAndSend(id, len, data, setting_, OP_GET_STATE_71F_05) ||
+                matchAndSend(id, len, data, OP_GET_STATE_71F_05, OP_EXIT)) {
+                return;
+            }
+            break;
+        default:
+            if (matchAndSend(id, len, data, setting_, OP_EXIT)) {
+                return;
+            }
+            break;
     }
     matchAndSend(id, len, data, OP_EXIT, OP_READY);
 }
 
 VehicleSettings::~VehicleSettings() {
-    if (init71E_ != nullptr) {
-        delete init71E_;
+    if (initE_ != nullptr) {
+        delete initE_;
     }
-    if (init71F_ != nullptr) {
-        delete init71F_;
+    if (initF_ != nullptr) {
+        delete initF_;
     }
 }
 
 void VehicleSettings::connect(Connection* can) {
     can_ = can;
-    if (init71E_ != nullptr) {
-        delete init71E_;
+    if (initE_ != nullptr) {
+        delete initE_;
     }
-    init71E_ = new SettingsInit71E(can);
+    initE_ = new SettingsInit(can, SettingsCommand::FRAME_E);
 
-    if (init71F_ != nullptr) {
-        delete init71F_;
+    if (initF_ != nullptr) {
+        delete initF_;
     }
-    init71F_ = new SettingsInit71F(can);
+    initF_ = new SettingsInit(can, SettingsCommand::FRAME_F);
 
-    init71E_->send();
-    init71F_->send();
+    initE_->send();
+    initF_->send();
 }
 
 void VehicleSettings::receive(uint32_t id, uint8_t len, byte* data) {
     if ((id != 0x72E && id != 0x72F) || len != 8) {
         return;
     }
-    init71E_->receive(id, len, data);
-    init71F_->receive(id, len, data);
+    initE_->receive(id, len, data);
+    initF_->receive(id, len, data);
 }
 
 void VehicleSettings::push() {
-    init71E_->loop();
-    init71F_->loop();
+    initE_->loop();
+    initF_->loop();
 }
