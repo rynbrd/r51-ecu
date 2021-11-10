@@ -6,6 +6,9 @@
 // Controls the BCM settings.
 class SettingsController : public Controller {
     public:
+        // Toggle the Auto Interior Illumination setting.
+        virtual bool toggleAutoInteriorIllumination() = 0;
+
         // Cycle the Auto Headlight Sensitivity setting to the next value.
         virtual bool nextAutoHeadlightSensitivity() = 0;
 
@@ -42,8 +45,11 @@ class SettingsController : public Controller {
         // Toggle the Slide Driver Seat Back On Exit setting.
         virtual bool toggleSlideDriverSeatBackOnExit() = 0;
 
-        // Return all settings back to their defaults.
-        virtual bool returnSettingsToDefault() = 0;
+        // Retrieve the current settings.
+        virtual bool retrieveSettings() = 0;
+
+        // Reset all settings back to their defaults.
+        virtual bool resetSettingsToDefault() = 0;
 };
 
 #endif  // __R51_SETTINGS_H__
