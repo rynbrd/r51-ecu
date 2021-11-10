@@ -26,6 +26,7 @@ Connection* connections[] = {
 };
 
 VehicleClimate climate;
+VehicleSettings settings;
 RealDashClimate dashboard(REALDASH_REPEAT);
 
 void connect() {
@@ -34,11 +35,13 @@ void connect() {
 #else
     climate.connect(&can, &dashboard);
 #endif
+    settings.connect(&can);
     dashboard.connect(&realdash, &climate);
 }
 
 void receive() {
     climate.receive(frame.id, frame.len, frame.data);
+    settings.receive(frame.id, frame.len, frame.data);
     dashboard.receive(frame.id, frame.len, frame.data);
 }
 
