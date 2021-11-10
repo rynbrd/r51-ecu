@@ -157,7 +157,7 @@ class RealDashConnection : public Connection {
 
 // Writes frames to RealDash to manage the dashboard state. Frames are repeated
 // in order to avoid errors on the line.
-class RealDashClimate : public DashController, Listener {
+class RealDashClimate : public DashClimateController, Listener {
     public:
         // Construct a new controller. Sent frames are repeated repeat times.
         RealDashClimate(uint8_t repeat = 5) :
