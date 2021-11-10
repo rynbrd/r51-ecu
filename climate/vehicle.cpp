@@ -778,7 +778,42 @@ void SettingsInit::receive(uint32_t id, uint8_t len, byte* data) {
     }
 }
 
-void SettingsUpdate::send(Op setting, uint8_t value) {
+bool SettingsState::send() {
+    state_count_ = 0;
+    return SettingsCommand::send();
+}
+
+void SettingsState::receive(uint32_t id, uint8_t len, byte* data) {
+    switch (id_) {
+        case FRAME_E:
+            if (matchAndSend(id, len, data, OP_ENTER, OP_GET_STATE_71E_10) ||
+                matchAndSend(id, len, data, OP_GET_STATE_71E_10, OP_GET_STATE_71E_2X)) {
+                return;
+            }
+
+            if (op() == OP_GET_STATE_71E_2X && matchResponse(id, len, data)) {
+                state_count_++;
+                if (state_count_ >= 2) {
+                    sendRequest(OP_EXIT);
+                    return;
+                }
+            }
+            break;
+        case FRAME_F:
+            if (matchAndSend(id, len, data, OP_ENTER, OP_GET_STATE_71F_05) ||
+                matchAndSend(id, len, data, OP_GET_STATE_71F_05, OP_EXIT)) {
+                return;
+            }
+            break;
+        default:
+            if (matchAndSend(id, len, data, OP_ENTER, OP_EXIT)) {
+                return;
+            }
+            break;
+    }
+}
+
+bool SettingsUpdate::send(Op setting, uint8_t value) {
     switch (setting) {
         default:
             id_ = FRAME_E;
@@ -790,7 +825,7 @@ void SettingsUpdate::send(Op setting, uint8_t value) {
     setting_ = setting;
     value_ = value;
     state_count_ = 0;
-    SettingsCommand::send();
+    return SettingsCommand::send();
 }
 
 void SettingsUpdate::receive(uint32_t id, uint8_t len, byte* data) {

@@ -233,7 +233,7 @@ class SettingsCommand {
         bool ready();
 
         // Send the command.
-        bool send();
+        virtual bool send();
 
         // Must be called in main loop. Resets the command on time-out in the
         // event that CAN frames are missed or the expected response isn't
@@ -274,19 +274,32 @@ class SettingsInit : public SettingsCommand {
         void receive(uint32_t id, uint8_t len, byte* data) override;
 };
 
+// Request current settings from the BCM.
+class SettingsState : public SettingsCommand {
+    public:
+        SettingsState(Connection* conn, Frame id) : SettingsCommand(conn, id) {}
+
+        bool send() override;
+
+        void receive(uint32_t id, uint8_t len, byte* data) override;
+
+    private:
+        uint8_t state_count_;
+};
+
 // Sends a 0x71E or 0x71F setting update command sequence.
 class SettingsUpdate : public SettingsCommand {
     public:
         SettingsUpdate(Connection* conn) : SettingsCommand(conn) {}
 
-        void send(Op setting, uint8_t value);
+        bool send(Op setting, uint8_t value);
 
         void receive(uint32_t id, uint8_t len, byte* data) override;
 
     private:
         Op setting_;
         uint8_t value_;
-        bool state_count_;
+        uint8_t state_count_;
 };
 
 // Control the vehicle settings. Currently this only sends the initialization
