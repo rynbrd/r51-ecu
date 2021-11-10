@@ -25,43 +25,51 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
 #define INFO_MSG(MSG) ({\
     DEBUG_SERIAL.print("[INFO]  ");\
     DEBUG_SERIAL.println(MSG);\
+    DEBUG_SERIAL.flush();\
 })
 #define INFO_MSG_VAL(MSG, VAL) ({\
     DEBUG_SERIAL.print("[INFO]  ");\
     DEBUG_SERIAL.print(MSG);\
     DEBUG_SERIAL.println(VAL);\
+    DEBUG_SERIAL.flush();\
 })
 #define INFO_MSG_VAL_FMT(MSG, VAL, FMT) ({\
     DEBUG_SERIAL.print("[INFO]  ");\
     DEBUG_SERIAL.print(MSG);\
     DEBUG_SERIAL.println(VAL, FMT);\
+    DEBUG_SERIAL.flush();\
 })
 #define INFO_MSG_FRAME(MSG, ID, LEN, DATA) ({\
     DEBUG_SERIAL.print("[INFO]  ");\
     DEBUG_SERIAL.print(MSG);\
     printDebugFrame(ID, LEN, DATA);\
     DEBUG_SERIAL.println("");\
+    DEBUG_SERIAL.flush();\
 })
 
 #define ERROR_MSG(MSG) ({\
     DEBUG_SERIAL.print("[ERROR] ");\
     DEBUG_SERIAL.println(MSG);\
+    DEBUG_SERIAL.flush();\
 })
 #define ERROR_MSG_VAL(MSG, VAL) ({\
     DEBUG_SERIAL.print("[ERROR] ");\
     DEBUG_SERIAL.print(MSG);\
     DEBUG_SERIAL.println(VAL);\
+    DEBUG_SERIAL.flush();\
 })
 #define ERROR_MSG_VAL_FMT(MSG, VAL, FMT) ({\
     DEBUG_SERIAL.print("[ERROR] ");\
     DEBUG_SERIAL.print(MSG);\
     DEBUG_SERIAL.println(VAL, FMT);\
+    DEBUG_SERIAL.flush();\
 })
 #define ERROR_MSG_FRAME(MSG, ID, LEN, DATA) ({\
     DEBUG_SERIAL.print("[ERROR] ");\
     DEBUG_SERIAL.print(MSG);\
     printDebugFrame(ID, LEN, DATA);\
     DEBUG_SERIAL.println("");\
+    DEBUG_SERIAL.flush();\
 })
 
 #else
