@@ -74,10 +74,9 @@ The following example sequence turns off the Auto Interior Illumination:
 >> 71E#02:10:C0:FF:FF:FF:FF:FF
 << 72E#02:50:C0:FF:FF:FF:FF:FF
 
-# Perform the settings update. Byte 2 identifies the setting. Byte 3 contains a
-rolled value to indicate the setting should bye cycled to the next value. The
-BCM acknowledges the command by responding with the same setting identifier
-(0x10).
+# Perform the settings update. Byte 2 identifies the setting. Byte 3 contains
+the value to set it to. The BCM acknowledges the command by responding with the
+same setting identifier (0x10).
 >> 71E#03:3B:10:01:FF:FF:FF:FF
 << 72E#02:7B:10:FF:FF:FF:FF:FF
 
@@ -151,15 +150,20 @@ Examples:
 Command Frame:      `0x71E`
 Command Identifier: `0x39`
 State Identifier:   `0x21`
-State Byte:         `3`
-State Bit Start:    `6`
+State Byte:         `2+3`
+State Bit Start:    `2[0]+3[6:7]`
 State Bit Length:   `2`
 
 | State Value | Description |
 | ----------- | ----------- |
-| 00          | 45s         |
-| 01          | 0s          |
-| 10          | 30s         |
+| 0x00 (0000) | 45s         |
+| 0x01 (0001) | 0s          |
+| 0x02 (0010) | 30s         |
+| 0x03 (0011) | 60s         |
+| 0x04 (0100) | 90s         |
+| 0x05 (0101) | 120s        |
+| 0x06 (0110) | 150s        |
+| 0x07 (0111) | 180s        |
 
 Examples:
 ```
@@ -359,86 +363,6 @@ Examples:
 << 72F#02:50:81:FF:FF:FF:FF:FF
 ```
 
-#### CAN Frame ID 0x71E
-
-This frame contains a command sent to the BCM. Bytes 0, 1, and 2 identify the
-command. The remaining bytes are the command payload.
-```
-    +---------------------- command identifier
-    |
-    |  +------------------- unknown
-    |  |
-    |  |  +---------------- identifies the setting to change
-    |  |  |
-    |  |  |  +------------- value rolls to change the setting
-    |  |  |  |
-    |  |  |  |  +---------- unknown
-    |  |  |  |  |
-    |  |  |  |  |  +------- unknown
-    |  |  |  |  |  |
-    |  |  |  |  |  |  +---- unknown
-    |  |  |  |  |  |  |
-    |  |  |  |  |  |  |  +- unknown
-    |  |  |  |  |  |  |  |
-71E#02:10:C0:FF:FF:FF:FF:FF
-    0  1  2  3  4  5  6  7
-```
-
-Observed command identifiers:
-* `02:10:C0` Enter configuration mode.
-* `02:10:81` Exit configuration mode.
-* `02:21:81` Request `10` state response.
-* `02:3B:00` Request `06:7B:00` response.
-* `02:3B:40` Request `06:7B:40` response.
-* `02:3B:60` Request `06:7B:60` response.
-* `30:00:0A` Request `21` and `22` state response.
-
-Common frames:
-* `71E#02:21:01:FF:FF:FF:FF:FF` Request current state A.
-* `71E#30:00:0A:FF:FF:FF:FF:FF` Request current state B & C.
-
-_Byte 0_
-Observed values:
-* `0x02` Sent before setting a setting. 
-* `0x03` Sent when setting a value.
-
-_Byte 1_
-Always 0x3B when setting a value.
-
-_Byte 2_
-Identifies the setting to changes.
-
-Observed values:
-* `0x37 (00010000)` Auto Headlights Sensitivity
-* `0x39 (00110111)` Auto Headlights Off Delay
-* `0x47 (00111001)` Speed Sensing Wiper Interval
-* `0x2A (01000111)` Remote Key Response Horn
-* `0x2E (00101010)` Remote Key Response Lights
-* `0x2F (00101110)` Auto Re-Lock Time
-* `0x02 (00101111)` Selective Door Unlock
-* `0x01 (00000010)` Slide Driver Seat Back on Exit
-
-_Byte 3_
-
-_Byte 4_
-This value is rolled up or down from the previous value to cycle the setting
-between its available values. This value is rolled from 0 to n where n is the
-nth-1 available value.
-
-For instance, if the last value was 2 and there are 3 available values, then
-setting the value to 0 would increment the value.
-
-_Byte 5_
-Always 0xFF when setting a value.
-
-_Byte 6_
-Always 0xFF when setting a value.
-
-_Byte 7_
-Always 0xFF when setting a value.
-
-#### CAN Frame ID 0x71F
-
 #### CAN Frame ID 0x72E
 
 This frames sends the current settings. Byte 0 identifies which state the frame contains.
@@ -475,34 +399,53 @@ _Byte 1_
 
 For `0x21` state:
 Bits 6-7: Remote Key Response Lights
-* `0x20 (00100000)` Off.
-* `0x60 (01100000)` Unlock.
-* `0xA0 (10100000)` Lock.
-* `0xE0 (11100000)` On.
+* `0x20 (00100000)` Off
+* `0x60 (01100000)` Unlock
+* `0xA0 (10100000)` Lock
+* `0xE0 (11100000)` On
 
 Bits 4-5: Auto Re-Lock Time
-* `0xC0 (11000000)` 1m.
-* `0xD0 (11010000)` off.
-* `0xE0 (11100000)` 5m.
+* `0xC0 (11000000)` 1m
+* `0xD0 (11010000)` off
+* `0xE0 (11100000)` 5m
 
 For `0x22` state:
-* `0x14 (00010100)` Speed Sensing Wiper Interval set to On.
-* `0x94 (10010100)` Speed Sensing Wiper Interval set to Off.
+Bit 7: Speed Sensing Wiper Interval 
+* `0x14 (00010100)` on
+* `0x94 (10010100)` off
 
 _Byte 2_
 
 For `0x21` state:
-* `0x0C` Auto Headlights Sensitivity set to 1.
-* `0x00` Auto Headlights Sensitivity set to 2.
-* `0x04` Auto Headlights Sensitivity set to 3.
-* `0x08` Auto Headlights Sensitivity set to 4.
+Bit 0: Auto Headlights Off Delay
+* 0: Select values 0s, 30s, 45s, 60s
+* 1: Select values 90s, 120s, 150s, 180s
+
+Bits 2-3: Auto Headlights Sensitivity
+* `0x0C (00001100)` 1
+* `0x00 (00000000)` 2
+* `0x04 (00000100)` 3
+* `0x08 (00001000)` 4
 
 _Byte 3_
 
 For `0x21` state:
-* `0x0A` Auto Headlights Off Delay set to 45s.
-* `0x4A` Auto Headlights Off Delay set to 0s.
-* `0x8A` Auto Headlights Off Delay set to 30s.
+Bits 6-7: Auto Headlights Off Delay
+* `0x0A (00001010)` 45s, 90s
+* `0x4A (01001010)` 0s, 120s
+* `0x8A (10001010)` 30s, 150s
+* `0xCA (11001010)` 60s, 180s
+
+Combining the bits from byte 2 and 3 for the Auto Deadlights Off Delay creates
+the following 4 bit numbers:
+* `0x00 (0000)` 45s
+* `0x01 (0001)` 0s
+* `0x02 (0010)` 30s
+* `0x03 (0011)` 60s
+* `0x04 (0100)` 90s
+* `0x05 (0101)` 120s
+* `0x06 (0110)` 150s
+* `0x07 (0111)` 180s
 
 _Byte 4_
 
