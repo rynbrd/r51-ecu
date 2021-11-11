@@ -366,6 +366,41 @@ class VehicleSettings : public SettingsController, public Listener {
         // Push state changes to the CAN bus.
         void push() override;
     private:
+        // Remote Key Response Lights values. 2 bits long.
+        enum KeyLights : uint8_t {
+            LIGHTS_OFF = 0x00,
+            LIGHTS_UNLOCK = 0x01,
+            LIGHTS_LOCK = 0x02,
+            LIGHTS_ON = 0x03,
+        };
+
+        // Auto Re-Lock Time values. 2 bits long.
+        enum ReLockTime : uint8_t {
+            RELOCK_1M = 0x00,
+            RELOCK_OFF = 0x01,
+            RELOCK_5M = 0x02,
+        };
+
+        // Auto Headlight Sensitivity values. 2 bits long.
+        enum HeadlightSensitivity : uint8_t {
+            HL_SENS_1 = 0x03,
+            HL_SENS_2 = 0x00,
+            HL_SENS_3 = 0x01,
+            HL_SENS_4 = 0x02,
+        };
+
+        // Auto Headlight Off Delay values. 3 bits long.
+        enum HeadlightDelay : uint8_t {
+            DELAY_0S = 0x01,
+            DELAY_30S = 0x02,
+            DELAY_45S = 0x00,
+            DELAY_60S = 0x03,
+            DELAY_90S = 0x04,
+            DELAY_120S = 0x05,
+            DELAY_150S = 0x06,
+            DELAY_180S = 0x07,
+        };
+
         // The CAN bus to push state change frames to.
         Connection* can_;
 

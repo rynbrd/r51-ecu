@@ -996,71 +996,71 @@ void VehicleSettings::receiveState10(byte* data) {
 
 void VehicleSettings::receiveState21(byte* data) {
     switch (data[1] >> 6 & 0x03) {
-        case 0x00:
+        case LIGHTS_OFF:
             dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_OFF);
             break;
-        case 0x01:
+        case LIGHTS_UNLOCK:
             dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_UNLOCK);
             break;
-        case 0x02:
+        case LIGHTS_LOCK:
             dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_LOCK);
             break;
-        case 0x03:
+        case LIGHTS_ON:
             dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_ON);
             break;
     }
 
     switch (data[1] >> 4 & 0x03) {
-        case 0x00:
+        case RELOCK_1M:
             dash_->setAutoReLockTime(DashSettingsController::RELOCK_1M);
             break;
-        case 0x01:
+        case RELOCK_OFF:
             dash_->setAutoReLockTime(DashSettingsController::RELOCK_OFF);
             break;
-        case 0x02:
+        case RELOCK_5M:
             dash_->setAutoReLockTime(DashSettingsController::RELOCK_5M);
             break;
     }
 
     switch (data[2] >> 2 & 0x03) {
-        case 0x00:
+        case HL_SENS_1:
+            dash_->setAutoHeadlightSensitivity(0);
+            break;
+        case HL_SENS_2:
             dash_->setAutoHeadlightSensitivity(1);
             break;
-        case 0x01:
+        case HL_SENS_3:
             dash_->setAutoHeadlightSensitivity(2);
             break;
-        case 0x02:
+        case HL_SENS_4:
             dash_->setAutoHeadlightSensitivity(3);
-            break;
-        case 0x03:
-            dash_->setAutoHeadlightSensitivity(0);
             break;
     }
 
     uint8_t delay = ((data[2] & 0x01) << 2) | ((data[3] >> 6) & 0x03);
     switch (delay) {
-        case 0x00:
-            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_45S);
-            break;
-        case 0x01:
+        case DELAY_0S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_0S);
             break;
-        case 0x02:
+        case DELAY_30S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_30S);
             break;
-        case 0x03:
+        case DELAY_45S:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_45S);
+            break;
+        case DELAY_60S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_60S);
             break;
-        case 0x04:
+        case DELAY_90S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_90S);
             break;
-        case 0x05:
+        case DELAY_120S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_120S);
             break;
-        case 0x06:
+        case DELAY_150S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_150S);
             break;
-        case 0x07:
+        case DELAY_180S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_180S);
             break;
     }
