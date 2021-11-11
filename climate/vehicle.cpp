@@ -660,7 +660,7 @@ bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix
     buffer_[1] = prefix1;
     buffer_[2] = prefix2;
     buffer_[3] = value;
-    memset(buffer_+4, 0xFF, 5);
+    memset(buffer_+4, 0xFF, 4);
     if (!conn_->write(id_, 8, buffer_)) {
         return false;
     }
