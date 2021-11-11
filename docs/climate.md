@@ -698,7 +698,7 @@ Always 0x00.
 _Byte 7: Unknown_
 
 This has been observed to flip between the values 0x00 and 0x02. It is not
-known what causes the value to change.
+known what causes the value to change. It may be to indicate a state change.
 
 
 #### CAN Frame ID 0x625
