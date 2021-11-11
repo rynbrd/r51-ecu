@@ -10,6 +10,7 @@ The following settings are available:
 
 | Setting                        | Available Values                         |
 | ------------------------------ | ---------------------------------------- |
+| Auto Interior Illumination     | on, off
 | Auto Headlights Sensitivity    | 1, 2, 3, 4                               |
 | Auto Headlights Off Delay      | 0s, 30s, 45s, 60s, 90s, 120s, 150s, 180s |
 | Speed Sensing Wiper Interval   | on, off                                  |
