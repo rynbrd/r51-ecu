@@ -992,6 +992,7 @@ void VehicleSettings::receiveState05(byte* data) {
 void VehicleSettings::receiveState10(byte* data) {
     dash_->setAutoInteriorIllumination(getBit(data, 4, 5));
     dash_->setSelectiveDoorUnlock(getBit(data, 4, 7));
+    dash_->setRemoteKeyResponseHorn(getBit(data, 7, 3));
 }
 
 void VehicleSettings::receiveState21(byte* data) {
