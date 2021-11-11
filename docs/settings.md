@@ -366,24 +366,9 @@ Examples:
 
 #### CAN Frame ID 0x72E
 
-This frames sends the current settings. Byte 0 identifies which state the frame contains.
+This is the response frame for 0x71E request frames. It ACK's specific request
+and is used to provide the caller with settings state.
 ```
-    +---------------------- state identifier
-    |
-    |  +------------------- unknown
-    |  |
-    |  |  +---------------- unknown
-    |  |  |
-    |  |  |  +------------- unknown
-    |  |  |  |
-    |  |  |  |  +---------- unknown
-    |  |  |  |  |
-    |  |  |  |  |  +------- unknown
-    |  |  |  |  |  |
-    |  |  |  |  |  |  +---- unknown
-    |  |  |  |  |  |  |
-    |  |  |  |  |  |  |  +- unknown
-    |  |  |  |  |  |  |  |
 72E#02:50:C0:FF:FF:FF:FF:FF
     0  1  2  3  4  5  6  7
 ```
@@ -466,24 +451,9 @@ For `0x10` state:
 
 #### CAN Frame ID 0x72F
 
-This frames sends the current settings. Byte 0 identifies which state the frame contains.
+This is the response frame for 0x71F request frames. It ACK's specific request
+and is used to provide the caller with settings state.
 ```
-    +---------------------- state identifier
-    |
-    |  +------------------- unknown
-    |  |
-    |  |  +---------------- unknown
-    |  |  |
-    |  |  |  +------------- unknown
-    |  |  |  |
-    |  |  |  |  +---------- unknown
-    |  |  |  |  |
-    |  |  |  |  |  +------- unknown
-    |  |  |  |  |  |
-    |  |  |  |  |  |  +---- unknown
-    |  |  |  |  |  |  |
-    |  |  |  |  |  |  |  +- unknown
-    |  |  |  |  |  |  |  |
 72E#02:50:C0:FF:FF:FF:FF:FF
     0  1  2  3  4  5  6  7
 ```
