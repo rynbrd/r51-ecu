@@ -21,6 +21,7 @@ protocol TBD.
 ## Vehicle Details 
 
 * [Climate Control](docs/climate.md) - Operational details including CAN frame definitions.
+* [Settings Management](docs/settings.md) - Operational details on managing vehicle settings.
 * [Pinouts](docs/pinouts.md) - Pin outs and connector part numbers for the infotainment unit.
 
 
