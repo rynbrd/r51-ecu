@@ -367,7 +367,7 @@ class VehicleSettings : public SettingsController, public Listener {
         void push() override;
     private:
         // Remote Key Response Lights values. 2 bits long.
-        enum KeyLights : uint8_t {
+        enum RemoteLights : uint8_t {
             LIGHTS_OFF = 0x00,
             LIGHTS_UNLOCK = 0x01,
             LIGHTS_LOCK = 0x02,
@@ -390,7 +390,7 @@ class VehicleSettings : public SettingsController, public Listener {
         };
 
         // Auto Headlight Off Delay values. 3 bits long.
-        enum HeadlightDelay : uint8_t {
+        enum HeadlightOffDelay : uint8_t {
             DELAY_0S = 0x01,
             DELAY_30S = 0x02,
             DELAY_45S = 0x00,
@@ -406,6 +406,17 @@ class VehicleSettings : public SettingsController, public Listener {
 
         // The dashboard to update.
         DashSettingsController* dash_;
+
+        // Cached settings state.
+        bool auto_interior_lights_;
+        HeadlightSensitivity hl_sens_;
+        HeadlightOffDelay hl_delay_;
+        bool speed_wiper_;
+        bool remote_horn_;
+        RemoteLights remote_lights_;
+        ReLockTime relock_time_;
+        bool selective_unlock_;
+        bool slide_seat_;
 
         // Init commands.
         SettingsInit* initE_;

@@ -986,17 +986,24 @@ void VehicleSettings::receive(uint32_t id, uint8_t len, byte* data) {
 }
 
 void VehicleSettings::receiveState05(byte* data) {
-    dash_->setSlideDriverSeatBackOnExit(getBit(data, 3, 0));
+    slide_seat_ = getBit(data, 3, 0);
+    dash_->setSlideDriverSeatBackOnExit(slide_seat_);
 }
 
 void VehicleSettings::receiveState10(byte* data) {
-    dash_->setAutoInteriorIllumination(getBit(data, 4, 5));
-    dash_->setSelectiveDoorUnlock(getBit(data, 4, 7));
-    dash_->setRemoteKeyResponseHorn(getBit(data, 7, 3));
+    auto_interior_lights_ = getBit(data, 4, 5);
+    dash_->setAutoInteriorIllumination(auto_interior_lights_);
+
+    selective_unlock_ = getBit(data, 4, 7);
+    dash_->setSelectiveDoorUnlock(selective_unlock_);
+
+    remote_horn_ = getBit(data, 7, 3);
+    dash_->setRemoteKeyResponseHorn(remote_horn_);
 }
 
 void VehicleSettings::receiveState21(byte* data) {
-    switch (data[1] >> 6 & 0x03) {
+    remote_lights_ = ((data[1] >> 6) & 0x03);
+    switch (remote_lights_) {
         case LIGHTS_OFF:
             dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_OFF);
             break;
@@ -1011,7 +1018,8 @@ void VehicleSettings::receiveState21(byte* data) {
             break;
     }
 
-    switch (data[1] >> 4 & 0x03) {
+    relock_time_ = ((data[1] >> 4) & 0x03);
+    switch (relock_time_) {
         case RELOCK_1M:
             dash_->setAutoReLockTime(DashSettingsController::RELOCK_1M);
             break;
@@ -1023,7 +1031,8 @@ void VehicleSettings::receiveState21(byte* data) {
             break;
     }
 
-    switch (data[2] >> 2 & 0x03) {
+    hl_sens_ = ((data[2] >> 2) & 0x03);
+    switch (hl_sens_) {
         case HL_SENS_1:
             dash_->setAutoHeadlightSensitivity(0);
             break;
@@ -1038,8 +1047,8 @@ void VehicleSettings::receiveState21(byte* data) {
             break;
     }
 
-    uint8_t delay = ((data[2] & 0x01) << 2) | ((data[3] >> 6) & 0x03);
-    switch (delay) {
+    hl_delay_ = ((data[2] & 0x01) << 2) | ((data[3] >> 6) & 0x03);
+    switch (hl_delay_) {
         case DELAY_0S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_0S);
             break;
@@ -1068,7 +1077,8 @@ void VehicleSettings::receiveState21(byte* data) {
 }
 
 void VehicleSettings::receiveState22(byte* data) {
-    dash_->setSpeedSensingWiperInterval(!getBit(data, 1, 7));
+    speed_wiper_ = !getBit(data, 1, 7);
+    dash_->setSpeedSensingWiperInterval(speed_wiper_);
 }
 
 void VehicleSettings::push() {
