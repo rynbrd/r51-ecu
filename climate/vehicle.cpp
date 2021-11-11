@@ -646,15 +646,15 @@ void SettingsCommand::loop() {
 }
 
 bool SettingsCommand::send() {
-    if (id_ == 0 || op_ != OP_READY) {
+    if (id_ == FRAME_UNSET || op_ != OP_READY) {
         return false;
     }
     return sendRequest(OP_ENTER);
 }
 
-bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix2, byte value = 0xFF) {
+bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix2, byte value) {
     if (id_ == 0) {
-        return;
+        return false;
     }
     buffer_[0] = prefix0;
     buffer_[1] = prefix1;
@@ -670,7 +670,7 @@ bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix
     return true;
 }
 
-bool SettingsCommand::sendRequest(Op op, uint8_t value = 0xFF) {
+bool SettingsCommand::sendRequest(Op op, uint8_t value) {
     switch (op) {
         default: 
         case OP_READY:
@@ -714,7 +714,7 @@ bool SettingsCommand::sendRequest(Op op, uint8_t value = 0xFF) {
 }
 
 bool SettingsCommand::matchResponse(uint32_t id, uint8_t len, byte* data) {
-    if (id != (id_ & ~0x010 | 0x020) || len != 8) {
+    if (id != ((id_ & ~0x010) | 0x020) || len != 8) {
         return false;
     }
     switch (op_) {
@@ -758,7 +758,7 @@ bool SettingsCommand::matchResponse(uint32_t id, uint8_t len, byte* data) {
     }
 }
 
-bool SettingsCommand::matchAndSend(uint32_t id, uint8_t len, byte* data, Op match, Op send, uint8_t value = 0xFF) {
+bool SettingsCommand::matchAndSend(uint32_t id, uint8_t len, byte* data, Op match, Op send, uint8_t value) {
     if (op_ != match || !matchResponse(id, len, data)) {
         return false;
     }
@@ -923,7 +923,6 @@ bool VehicleSettings::nextAutoHeadlightSensitivity() {
         return false;
     }
 
-    uint8_t value;
     switch (hl_sens_) {
         default:
         case HL_SENS_1:
@@ -940,7 +939,6 @@ bool VehicleSettings::prevAutoHeadlightSensitivity() {
         return false;
     }
 
-    uint8_t value;
     switch (hl_sens_) {
         case HL_SENS_1:
             return false;
@@ -1089,8 +1087,7 @@ bool VehicleSettings::toggleSlideDriverSeatBackOnExit() {
 }
 
 bool VehicleSettings::retrieveSettings() {
-    stateE_->send();
-    stateF_->send();
+    return stateE_->send() && stateF_->send();
 }
 
 bool VehicleSettings::resetSettingsToDefault() {
@@ -1134,7 +1131,7 @@ void VehicleSettings::receiveState10(byte* data) {
 }
 
 void VehicleSettings::receiveState21(byte* data) {
-    remote_lights_ = ((data[1] >> 6) & 0x03);
+    remote_lights_ = (RemoteLights)((data[1] >> 6) & 0x03);
     switch (remote_lights_) {
         case LIGHTS_OFF:
             dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_OFF);
@@ -1150,7 +1147,7 @@ void VehicleSettings::receiveState21(byte* data) {
             break;
     }
 
-    relock_time_ = ((data[1] >> 4) & 0x03);
+    relock_time_ = (ReLockTime)((data[1] >> 4) & 0x03);
     switch (relock_time_) {
         case RELOCK_1M:
             dash_->setAutoReLockTime(DashSettingsController::RELOCK_1M);
@@ -1163,7 +1160,7 @@ void VehicleSettings::receiveState21(byte* data) {
             break;
     }
 
-    hl_sens_ = ((data[2] >> 2) & 0x03);
+    hl_sens_ = (HeadlightSensitivity)((data[2] >> 2) & 0x03);
     switch (hl_sens_) {
         case HL_SENS_1:
             dash_->setAutoHeadlightSensitivity(0);
@@ -1179,7 +1176,7 @@ void VehicleSettings::receiveState21(byte* data) {
             break;
     }
 
-    hl_delay_ = ((data[2] & 0x01) << 2) | ((data[3] >> 6) & 0x03);
+    hl_delay_ = (HeadlightOffDelay)(((data[2] & 0x01) << 2) | ((data[3] >> 6) & 0x03));
     switch (hl_delay_) {
         case DELAY_0S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_0S);

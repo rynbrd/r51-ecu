@@ -195,6 +195,7 @@ class SettingsCommand {
     public:
         // Available frames.
         enum Frame : uint32_t {
+            FRAME_UNSET = 0,
             FRAME_E = 0x71E,
             FRAME_F = 0x71F,
         };
@@ -246,8 +247,8 @@ class SettingsCommand {
         virtual void receive(uint32_t id, uint8_t len, byte* data) = 0;
 
     protected:
-        SettingsCommand(Connection* conn, Frame id = 0) : 
-            conn_(conn), id_(id), op_(OP_READY), last_write_(0) {}
+        SettingsCommand(Connection* conn, Frame id = FRAME_UNSET) : 
+            id_(id), conn_(conn), op_(OP_READY), last_write_(0) {}
 
         uint32_t id_;
 
@@ -309,8 +310,8 @@ class SettingsUpdate : public SettingsCommand {
 class VehicleSettings : public SettingsController, public Listener {
     public:
         VehicleSettings() : can_(nullptr), dash_(nullptr), auto_interior_illum_(false),
-            hl_sens_(0x00), hl_delay_(0x00), speed_wiper_(true), remote_horn_(false),
-            remote_lights_(0x00), relock_time_(0x00), selective_unlock_(false),
+            hl_sens_(HL_SENS_2), hl_delay_(DELAY_45S), speed_wiper_(true), remote_horn_(false),
+            remote_lights_(LIGHTS_OFF), relock_time_(RELOCK_1M), selective_unlock_(false),
             slide_seat_(false), init_(false), initE_(nullptr), initF_(nullptr),
             stateE_(nullptr), stateF_(nullptr) {};
 
