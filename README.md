@@ -4,12 +4,17 @@ This repo contains documentation and code to allow integration of custom ECU's
 into the Nissan Pathfinder R51 (2005 - 2012). Some of these integrations may
 work with other Nissan vehicles (Armada, QX56, etc) but have not been tested.
 
-## Head Unit and Climate Control
+## Infotainment Center Replacement
 
-The [climate](climate) directory contains an Arduino sketch that allows the
-stock LCD screen infotainment system to be replaced by an aftermarket head
-unit. It replaces the climate control systems with [RealDash]. The stock
-infotainment system must be removed for this to operate properly.
+The [controller](controller) directory contains an Arduino sketch that
+implements the control functionality of the stock infotainment system. This
+includes climate control and vehicle settings management. It integrates with
+[RealDash] so that this functionality can be controlled from a tablet.
+Configuration is available under the [realdash](realdash) directory.
+
+Using this system allows the stock head unit and LCD panel to be replaced by an
+aftermarket audio system. The stock head unit must be removed from the car in
+order for this system to operate properly.
 
 The software targets the Arduino Lenoardo compatible [CAN Bed v1] but should
 work with any MCP2515 implementation with some small updates.
