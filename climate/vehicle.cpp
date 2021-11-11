@@ -61,7 +61,7 @@ VehicleClimate::VehicleClimate() {
     passenger_temp_ = 60;
 }
 
-void VehicleClimate::connect(Connection* can, DashController* dash) {
+void VehicleClimate::connect(Connection* can, DashClimateController* dash) {
     can_ = can;
     dash_ = dash;
 }
@@ -616,6 +616,10 @@ void VehicleClimate::updateDashMode(uint8_t mode) {
     }
 }
 
+inline bool matchFrame(byte* data, byte prefix0) {
+    return data[0] == prefix0;
+}
+
 inline bool matchFrame(byte* data, byte prefix0, byte prefix1, byte prefix2) {
     return data[0] == prefix0 && data[1] == prefix1 && data[2] == prefix2;
 }
@@ -744,10 +748,11 @@ bool SettingsCommand::matchResponse(uint32_t id, uint8_t len, byte* data) {
         case OP_SLIDE_DRIVER_SEAT:
             return matchFrame(data, 0x02, 0x7B, 0x01);
         case OP_GET_STATE_71E_10:
-            return matchFrame(data, 0x02, 0x7B, 0x01);
+            return matchFrame(data, 0x10);
         case OP_GET_STATE_71E_2X:
-            return matchFrame(data, 0x21, 0xE0, 0x00) ||
-                matchFrame(data, 0x22, 0x94, 0x00);
+            return matchFrame(data, 0x21) || matchFrame(data, 0x22);
+        case OP_GET_STATE_71F_05:
+            return matchFrame(data, 0x05);
     }
 }
 
@@ -872,8 +877,9 @@ VehicleSettings::~VehicleSettings() {
     }
 }
 
-void VehicleSettings::connect(Connection* can) {
+void VehicleSettings::connect(Connection* can, DashSettingsController* dash) {
     can_ = can;
+    dash_ = dash;
     if (initE_ != nullptr) {
         delete initE_;
     }
@@ -884,8 +890,79 @@ void VehicleSettings::connect(Connection* can) {
     }
     initF_ = new SettingsInit(can, SettingsCommand::FRAME_F);
 
+    if (stateE_ != nullptr) {
+        delete stateE_;
+    }
+    stateE_ = new SettingsState(can, SettingsCommand::FRAME_E);
+
+    if (stateF_ != nullptr) {
+        delete stateF_;
+    }
+    stateF_ = new SettingsState(can, SettingsCommand::FRAME_F);
+
     initE_->send();
     initF_->send();
+}
+
+bool VehicleSettings::toggleAutoInteriorIllumination() {
+    return false;
+}
+
+bool VehicleSettings::nextAutoHeadlightSensitivity() {
+    return false;
+}
+
+bool VehicleSettings::prevAutoHeadlightSensitivity() {
+    return false;
+}
+
+bool VehicleSettings::nextAutoHeadlightOffDelay() {
+    return false;
+}
+
+bool VehicleSettings::prevAutoHeadlightOffDelay() {
+    return false;
+}
+
+bool VehicleSettings::toggleSpeedSensingWiperInterval() {
+    return false;
+}
+
+bool VehicleSettings::toggleRemoteKeyResponseHorn() {
+    return false;
+}
+
+bool VehicleSettings::nextRemoteKeyResponseLights() {
+    return false;
+}
+
+bool VehicleSettings::prevRemoteKeyResponseLights() {
+    return false;
+}
+
+bool VehicleSettings::nextAutoReLockTime() {
+    return false;
+}
+
+bool VehicleSettings::prevAutoReLockTime() {
+    return false;
+}
+
+bool VehicleSettings::toggleSelectiveDoorUnlock() {
+    return false;
+}
+
+bool VehicleSettings::toggleSlideDriverSeatBackOnExit() {
+    return false;
+}
+
+bool VehicleSettings::retrieveSettings() {
+    stateE_->send();
+    stateF_->send();
+}
+
+bool VehicleSettings::resetSettingsToDefault() {
+    return false;
 }
 
 void VehicleSettings::receive(uint32_t id, uint8_t len, byte* data) {
@@ -894,9 +971,113 @@ void VehicleSettings::receive(uint32_t id, uint8_t len, byte* data) {
     }
     initE_->receive(id, len, data);
     initF_->receive(id, len, data);
+    stateE_->receive(id, len, data);
+    stateF_->receive(id, len, data);
+
+    if (id == 0x72F && matchFrame(data, 0x05)) {
+        receiveState05(data);
+    } else if (id == 0x72E && matchFrame(data, 0x10)) {
+        receiveState10(data);
+    } else if (id == 0x72E && matchFrame(data, 0x21)) {
+        receiveState21(data);
+    } else if (id == 0x72E && matchFrame(data, 0x22)) {
+        receiveState22(data);
+    }
+}
+
+void VehicleSettings::receiveState05(byte* data) {
+    dash_->setSlideDriverSeatBackOnExit(getBit(data, 3, 0));
+}
+
+void VehicleSettings::receiveState10(byte* data) {
+    dash_->setAutoInteriorIllumination(getBit(data, 4, 5));
+    dash_->setSelectiveDoorUnlock(getBit(data, 4, 7));
+}
+
+void VehicleSettings::receiveState21(byte* data) {
+    switch (data[1] >> 6 & 0x03) {
+        case 0x00:
+            dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_OFF);
+            break;
+        case 0x01:
+            dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_UNLOCK);
+            break;
+        case 0x02:
+            dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_LOCK);
+            break;
+        case 0x03:
+            dash_->setRemoteKeyResponseLights(DashSettingsController::LIGHTS_ON);
+            break;
+    }
+
+    switch (data[1] >> 4 & 0x03) {
+        case 0x00:
+            dash_->setAutoReLockTime(DashSettingsController::RELOCK_1M);
+            break;
+        case 0x01:
+            dash_->setAutoReLockTime(DashSettingsController::RELOCK_OFF);
+            break;
+        case 0x02:
+            dash_->setAutoReLockTime(DashSettingsController::RELOCK_5M);
+            break;
+    }
+
+    switch (data[2] >> 2 & 0x03) {
+        case 0x00:
+            dash_->setAutoHeadlightSensitivity(1);
+            break;
+        case 0x01:
+            dash_->setAutoHeadlightSensitivity(2);
+            break;
+        case 0x02:
+            dash_->setAutoHeadlightSensitivity(3);
+            break;
+        case 0x03:
+            dash_->setAutoHeadlightSensitivity(0);
+            break;
+    }
+
+    uint8_t delay = ((data[2] & 0x01) << 2) | ((data[3] >> 6) & 0x03);
+    switch (delay) {
+        case 0x00:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_45S);
+            break;
+        case 0x01:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_0S);
+            break;
+        case 0x02:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_30S);
+            break;
+        case 0x03:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_60S);
+            break;
+        case 0x04:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_90S);
+            break;
+        case 0x05:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_120S);
+            break;
+        case 0x06:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_150S);
+            break;
+        case 0x07:
+            dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_180S);
+            break;
+    }
+}
+
+void VehicleSettings::receiveState22(byte* data) {
+    dash_->setSpeedSensingWiperInterval(!getBit(data, 1, 7));
 }
 
 void VehicleSettings::push() {
     initE_->loop();
     initF_->loop();
+    stateE_->loop();
+    stateF_->loop();
+}
+
+bool VehicleSettings::initialized() const {
+    return initE_ != nullptr && initE_->ready() &&
+        initF_ != nullptr && initF_->ready();
 }

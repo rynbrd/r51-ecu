@@ -6,6 +6,7 @@
 #include "connection.h"
 #include "dash.h"
 #include "listener.h"
+#include "settings.h"
 
 // Controls the vehicle's climate control system over CAN. On initialization it
 // is in the "initialization" state and will send some initialization control
@@ -21,7 +22,7 @@ class VehicleClimate : public ClimateController, public Listener {
         VehicleClimate();
 
         // Connect the controller to a CAN bus and dashboard.
-        void connect(Connection* can, DashController* dash);
+        void connect(Connection* can, DashClimateController* dash);
 
         // Simulate an "Off" button click.
         void climateClickOff() override;
@@ -97,7 +98,7 @@ class VehicleClimate : public ClimateController, public Listener {
         Connection* can_;
 
         // A dashboard to update.
-        DashController* dash_;
+        DashClimateController* dash_;
 
         // True if the controller has sent its init frames.
         bool init_complete_;
@@ -304,13 +305,60 @@ class SettingsUpdate : public SettingsCommand {
 
 // Control the vehicle settings. Currently this only sends the initialization
 // frames in order to init the BCM and avoid a SEL.
-class VehicleSettings : public Controller, public Listener {
+class VehicleSettings : public SettingsController, public Listener {
     public:
-        VehicleSettings() : can_(nullptr), initE_(nullptr), initF_(nullptr), init_(false) {};
+        VehicleSettings() : can_(nullptr), dash_(nullptr),
+            initE_(nullptr), initF_(nullptr),
+            stateE_(nullptr), stateF_(nullptr) {};
         ~VehicleSettings();
 
         // Connect the controller to a CAN bus.
-        void connect(Connection* can);
+        void connect(Connection* can, DashSettingsController* dash);
+
+        // Toggle the Auto Interior Illumination setting.
+        bool toggleAutoInteriorIllumination() override;
+
+        // Cycle the Auto Headlight Sensitivity setting to the next value.
+        bool nextAutoHeadlightSensitivity() override;
+
+        // Cycle the Auto Headlight Sensitivity setting to the previous value.
+        bool prevAutoHeadlightSensitivity() override;
+
+        // Cycle the Auto Headlight Off Delay to the next setting.
+        bool nextAutoHeadlightOffDelay() override;
+
+        // Cycle the Auto Headlight Off Delay to the previous setting.
+        bool prevAutoHeadlightOffDelay() override;
+
+        // Toggle the Speed Sensing Wiper Interval setting.
+        bool toggleSpeedSensingWiperInterval() override;
+
+        // Toggle the Remote Key Response Horn setting.
+        bool toggleRemoteKeyResponseHorn() override;
+
+        // Cycle the Remote Key Response Lights setting to the next value.
+        bool nextRemoteKeyResponseLights() override;
+
+        // Cycle the Remote Key Response Lights setting to the previous value.
+        bool prevRemoteKeyResponseLights() override;
+
+        // Cycle the Auto Re-Lock Time setting to the next value.
+        bool nextAutoReLockTime() override;
+
+        // Cycle the Auto Re-Lock Time setting to the previous value.
+        bool prevAutoReLockTime() override;
+
+        // Toggle the Selective Door Unlock setting.
+        bool toggleSelectiveDoorUnlock() override;
+
+        // Toggle the Slide Driver Seat Back On Exit setting.
+        bool toggleSlideDriverSeatBackOnExit() override;
+
+        // Retrieve the current settings.
+        bool retrieveSettings() override;
+
+        // Reset all settings back to their defaults.
+        bool resetSettingsToDefault() override;
 
         // Process incoming frames.
         void receive(uint32_t id, uint8_t len, byte* data) override;
@@ -321,10 +369,20 @@ class VehicleSettings : public Controller, public Listener {
         // The CAN bus to push state change frames to.
         Connection* can_;
 
+        // The dashboard to update.
+        DashSettingsController* dash_;
+
         // Init commands.
         SettingsInit* initE_;
         SettingsInit* initF_;
-        bool init_;
+        SettingsState* stateE_;
+        SettingsState* stateF_;
+
+        bool initialized() const;
+        void receiveState05(byte* data);
+        void receiveState10(byte* data);
+        void receiveState21(byte* data);
+        void receiveState22(byte* data);
 };
 
 #endif  // __R51_VEHICLE_H__

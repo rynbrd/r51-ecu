@@ -25,30 +25,34 @@ Connection* connections[] = {
     D(&serial)
 };
 
-VehicleClimate climate;
-VehicleSettings settings;
-RealDashClimate dashboard(REALDASH_REPEAT);
+VehicleClimate climate_system;
+VehicleSettings settings_system;
+RealDashClimate climate_dash(REALDASH_REPEAT);
+RealDashSettings settings_dash(REALDASH_REPEAT);
 
 void connect() {
 #ifdef CAN_LISTEN_ONLY
-    climate.connect(nullptr, &dashboard);
+    climate_system.connect(nullptr, &climate_dash);
 #else
-    climate.connect(&can, &dashboard);
-    settings.connect(&can);
+    climate_system.connect(&can, &climate_dash);
+    settings_system.connect(&can, &settings_dash);
 #endif
-    dashboard.connect(&realdash, &climate);
+    climate_dash.connect(&realdash, &climate_system);
+    settings_dash.connect(&realdash, &settings_system);
 }
 
 void receive() {
-    climate.receive(frame.id, frame.len, frame.data);
-    settings.receive(frame.id, frame.len, frame.data);
-    dashboard.receive(frame.id, frame.len, frame.data);
+    climate_system.receive(frame.id, frame.len, frame.data);
+    settings_system.receive(frame.id, frame.len, frame.data);
+    climate_dash.receive(frame.id, frame.len, frame.data);
+    settings_dash.receive(frame.id, frame.len, frame.data);
 }
 
 void push() {
-    climate.push();
-    settings.push();
-    dashboard.push();
+    climate_system.push();
+    settings_system.push();
+    climate_dash.push();
+    settings_dash.push();
 }
 
 void setup() {

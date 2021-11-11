@@ -56,14 +56,14 @@ class DashSettingsController : public Controller {
         virtual ~DashSettingsController() {}
 
         enum RemoteKeyResponseLights : uint8_t {
-            OFF = 0,
-            UNLOCK = 1,
-            LOCK = 2,
-            ON = 3,
+            LIGHTS_OFF = 0,
+            LIGHTS_UNLOCK = 1,
+            LIGHTS_LOCK = 2,
+            LIGHTS_ON = 3,
         };
 
         enum AutoHeadlightOffDelay : uint8_t {
-            DELAY_0FF = 0,
+            DELAY_0S = 0,
             DELAY_30S = 2,
             DELAY_45S = 3,
             DELAY_60S = 4,
