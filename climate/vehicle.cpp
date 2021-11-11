@@ -688,6 +688,8 @@ bool SettingsCommand::sendRequest(Op op, uint8_t value = 0xFF) {
             return sendControl(op, 0x02, 0x3B, 0x40);
         case OP_INIT_60:
             return sendControl(op, 0x02, 0x3B, 0x60);
+        case OP_AUTO_INTERIOR_ILLUM:
+            return sendControl(op, 0x03, 0x3B, 0x10, value);
         case OP_AUTO_HL_SENS:
             return sendControl(op, 0x03, 0x3B, 0x37, value);
         case OP_AUTO_HL_DELAY:
@@ -900,60 +902,190 @@ void VehicleSettings::connect(Connection* can, DashSettingsController* dash) {
     }
     stateF_ = new SettingsState(can, SettingsCommand::FRAME_F);
 
+    if (setter_ != nullptr) {
+        delete setter_;
+    }
+    setter_ = new SettingsUpdate(can_);
+
     initE_->send();
     initF_->send();
 }
 
 bool VehicleSettings::toggleAutoInteriorIllumination() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    return setter_->send(SettingsCommand::OP_AUTO_INTERIOR_ILLUM, !auto_interior_illum_);
 }
 
 bool VehicleSettings::nextAutoHeadlightSensitivity() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+
+    uint8_t value;
+    switch (hl_sens_) {
+        default:
+        case HL_SENS_1:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_SENS, HL_SENS_2);
+        case HL_SENS_2:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_SENS, HL_SENS_3);
+        case HL_SENS_3:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_SENS, HL_SENS_4);
+    }
 }
 
 bool VehicleSettings::prevAutoHeadlightSensitivity() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+
+    uint8_t value;
+    switch (hl_sens_) {
+        case HL_SENS_1:
+            return false;
+        case HL_SENS_2:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_SENS, HL_SENS_1);
+        default:
+        case HL_SENS_3:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_SENS, HL_SENS_2);
+        case HL_SENS_4:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_SENS, HL_SENS_3);
+    }
 }
 
 bool VehicleSettings::nextAutoHeadlightOffDelay() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+
+    switch (hl_delay_) {
+        default:
+        case DELAY_30S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_45S);
+        case DELAY_45S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_60S);
+        case DELAY_0S:
+        case DELAY_60S:
+        case DELAY_90S:
+        case DELAY_120S:
+        case DELAY_150S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, hl_delay_ + 1);
+        case DELAY_180S:
+            return false;
+    }
 }
 
 bool VehicleSettings::prevAutoHeadlightOffDelay() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+
+    switch (hl_delay_) {
+        case DELAY_0S:
+            return false;
+        case DELAY_45S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_30S);
+        default:
+        case DELAY_60S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_45S);
+        case DELAY_30S:
+        case DELAY_90S:
+        case DELAY_120S:
+        case DELAY_150S:
+        case DELAY_180S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, hl_delay_ - 1);
+    }
 }
 
 bool VehicleSettings::toggleSpeedSensingWiperInterval() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    return setter_->send(SettingsCommand::OP_SPEED_SENS_WIPER, !speed_wiper_);
 }
 
 bool VehicleSettings::toggleRemoteKeyResponseHorn() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    return setter_->send(SettingsCommand::OP_REMOTE_KEY_HORN, !remote_horn_);
 }
 
 bool VehicleSettings::nextRemoteKeyResponseLights() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    switch (remote_lights_) {
+        default:
+            return setter_->send(SettingsCommand::OP_REMOTE_KEY_LIGHT, LIGHTS_OFF);
+        case LIGHTS_OFF:
+        case LIGHTS_UNLOCK:
+        case LIGHTS_LOCK:
+            return setter_->send(SettingsCommand::OP_REMOTE_KEY_LIGHT, remote_lights_ + 1);
+        case LIGHTS_ON:
+            return false;
+    }
 }
 
 bool VehicleSettings::prevRemoteKeyResponseLights() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    switch (remote_lights_) {
+        default:
+            return setter_->send(SettingsCommand::OP_REMOTE_KEY_LIGHT, LIGHTS_OFF);
+        case LIGHTS_OFF:
+            return false;
+        case LIGHTS_UNLOCK:
+        case LIGHTS_LOCK:
+        case LIGHTS_ON:
+            return setter_->send(SettingsCommand::OP_REMOTE_KEY_LIGHT, remote_lights_ - 1);
+    }
 }
 
 bool VehicleSettings::nextAutoReLockTime() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    switch (relock_time_) {
+        default:
+            return setter_->send(SettingsCommand::OP_AUTO_RELOCK_TIME, RELOCK_1M);
+        case RELOCK_1M:
+        case RELOCK_OFF:
+            return setter_->send(SettingsCommand::OP_AUTO_RELOCK_TIME, relock_time_ + 1);
+        case RELOCK_5M:
+            return false;
+    }
 }
 
 bool VehicleSettings::prevAutoReLockTime() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    switch (relock_time_) {
+        default:
+            return setter_->send(SettingsCommand::OP_AUTO_RELOCK_TIME, RELOCK_1M);
+        case RELOCK_1M:
+            return false;
+        case RELOCK_OFF:
+        case RELOCK_5M:
+            return setter_->send(SettingsCommand::OP_AUTO_RELOCK_TIME, relock_time_ - 1);
+    }
 }
 
 bool VehicleSettings::toggleSelectiveDoorUnlock() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    return setter_->send(SettingsCommand::OP_SELECT_DOOR_UNLOCK, !selective_unlock_);
 }
 
 bool VehicleSettings::toggleSlideDriverSeatBackOnExit() {
-    return false;
+    if (!init_) {
+        return false;
+    }
+    return setter_->send(SettingsCommand::OP_SLIDE_DRIVER_SEAT, !slide_seat_);
 }
 
 bool VehicleSettings::retrieveSettings() {
@@ -991,8 +1123,8 @@ void VehicleSettings::receiveState05(byte* data) {
 }
 
 void VehicleSettings::receiveState10(byte* data) {
-    auto_interior_lights_ = getBit(data, 4, 5);
-    dash_->setAutoInteriorIllumination(auto_interior_lights_);
+    auto_interior_illum_ = getBit(data, 4, 5);
+    dash_->setAutoInteriorIllumination(auto_interior_illum_);
 
     selective_unlock_ = getBit(data, 4, 7);
     dash_->setSelectiveDoorUnlock(selective_unlock_);
@@ -1086,9 +1218,11 @@ void VehicleSettings::push() {
     initF_->loop();
     stateE_->loop();
     stateF_->loop();
-}
 
-bool VehicleSettings::initialized() const {
-    return initE_ != nullptr && initE_->ready() &&
-        initF_ != nullptr && initF_->ready();
+    // Request initial state if init is complete.
+    if (!init_ && initE_->ready() && initF_->ready()) {
+        stateE_->send();
+        stateF_->send();
+        init_ = true;
+    }
 }

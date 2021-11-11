@@ -215,6 +215,7 @@ class SettingsCommand {
             OP_INIT_60,
 
             // Settings requests.
+            OP_AUTO_INTERIOR_ILLUM,
             OP_AUTO_HL_SENS,
             OP_AUTO_HL_DELAY,
             OP_SPEED_SENS_WIPER,
@@ -307,9 +308,12 @@ class SettingsUpdate : public SettingsCommand {
 // frames in order to init the BCM and avoid a SEL.
 class VehicleSettings : public SettingsController, public Listener {
     public:
-        VehicleSettings() : can_(nullptr), dash_(nullptr),
-            initE_(nullptr), initF_(nullptr),
+        VehicleSettings() : can_(nullptr), dash_(nullptr), auto_interior_illum_(false),
+            hl_sens_(0x00), hl_delay_(0x00), speed_wiper_(true), remote_horn_(false),
+            remote_lights_(0x00), relock_time_(0x00), selective_unlock_(false),
+            slide_seat_(false), init_(false), initE_(nullptr), initF_(nullptr),
             stateE_(nullptr), stateF_(nullptr) {};
+
         ~VehicleSettings();
 
         // Connect the controller to a CAN bus.
@@ -408,7 +412,7 @@ class VehicleSettings : public SettingsController, public Listener {
         DashSettingsController* dash_;
 
         // Cached settings state.
-        bool auto_interior_lights_;
+        bool auto_interior_illum_;
         HeadlightSensitivity hl_sens_;
         HeadlightOffDelay hl_delay_;
         bool speed_wiper_;
@@ -417,14 +421,15 @@ class VehicleSettings : public SettingsController, public Listener {
         ReLockTime relock_time_;
         bool selective_unlock_;
         bool slide_seat_;
+        bool init_;
 
         // Init commands.
         SettingsInit* initE_;
         SettingsInit* initF_;
         SettingsState* stateE_;
         SettingsState* stateF_;
+        SettingsUpdate* setter_;
 
-        bool initialized() const;
         void receiveState05(byte* data);
         void receiveState10(byte* data);
         void receiveState21(byte* data);
