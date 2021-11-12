@@ -67,7 +67,7 @@ class VehicleClimate : public ClimateController, public Listener {
         void climateClickPassengerTempDown() override;
 
         // Update state from incoming climate state frames. Accepts frames
-        // 0x54A, 0x54B, and 0x625.
+        // 0x54A and 0x54B.
         void receive(uint32_t id, uint8_t len, byte* data) override;
 
         // Push state changes to the CAN bus.
@@ -179,9 +179,6 @@ class VehicleClimate : public ClimateController, public Listener {
 
         // Update state from a 0x54B frame.
         void receive54B(uint8_t len, byte* data);
-
-        // Update state from a 0x625 frame.
-        void receive625(uint8_t len, byte* data);
 
         // Update the dashboard from the stored state.
         void updateDash();

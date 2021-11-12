@@ -19,6 +19,23 @@ CanConnection can(CAN_CS_PIN, CAN_INT_PIN, CAN_BAUDRATE, CAN_CLOCK);
 RealDashConnection realdash;
 D(SerialConnection serial);
 
+// Initialize CAN masks and filters. We're interested in receiving the
+// following standard frames:
+//   0x54A (0000010101001010) - climate temperature
+//   0x54B (0000010101001011) - climate settings
+//   0x72E (0000011100101110) - settings responses
+//   0x72F (0000011100101111) - settings responses
+// Since we're filtering four frames we can fit the entire set of frames in
+// the given filters with a fully set mask. 
+bool initFilters() {
+    return can.setMask(CanConnection::RXM0, 0xFFFF) &&
+        can.setFilter(CanConnection::RXF0, 0x054A) &&
+        can.setFilter(CanConnection::RXF1, 0x054B) &&
+        can.setMask(CanConnection::RXM1, 0xFFFF) &&
+        can.setFilter(CanConnection::RXF2, 0x072E) &&
+        can.setFilter(CanConnection::RXF2, 0x072F);
+}
+
 Connection* connections[] = {
     &can,
     &realdash,
@@ -74,6 +91,9 @@ void setup() {
     }
     realdash.begin(&REALDASH_SERIAL);
 
+    while (!initFilters()) {
+        delay(100);
+    }
     while (!can.begin()) {
         delay(1000);
     }
