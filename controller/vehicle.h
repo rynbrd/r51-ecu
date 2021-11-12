@@ -203,31 +203,31 @@ class SettingsCommand {
         // Available operations.
         enum Op : uint8_t {
             // Indicates the command is ready to send.
-            OP_READY,
+            OP_READY = 0,
 
             // Enter and exit settings requests.
-            OP_ENTER,
-            OP_EXIT,
+            OP_ENTER = 1,
+            OP_EXIT = 2,
 
             // Init requests.
-            OP_INIT_00,
-            OP_INIT_20,
-            OP_INIT_40,
-            OP_INIT_60,
+            OP_INIT_00 = 3,
+            OP_INIT_20 = 4,
+            OP_INIT_40 = 5,
+            OP_INIT_60 = 6,
 
             // Settings requests.
-            OP_AUTO_INTERIOR_ILLUM,
-            OP_AUTO_HL_SENS,
-            OP_AUTO_HL_DELAY,
-            OP_SPEED_SENS_WIPER,
-            OP_REMOTE_KEY_HORN,
-            OP_REMOTE_KEY_LIGHT,
-            OP_AUTO_RELOCK_TIME,
-            OP_SELECT_DOOR_UNLOCK,
-            OP_SLIDE_DRIVER_SEAT,
-            OP_GET_STATE_71E_10,
-            OP_GET_STATE_71E_2X,
-            OP_GET_STATE_71F_05,
+            OP_AUTO_INTERIOR_ILLUM = 7,
+            OP_AUTO_HL_SENS = 8,
+            OP_AUTO_HL_DELAY = 9,
+            OP_SPEED_SENS_WIPER = 10,
+            OP_REMOTE_KEY_HORN = 11,
+            OP_REMOTE_KEY_LIGHT = 12,
+            OP_AUTO_RELOCK_TIME = 13,
+            OP_SELECT_DOOR_UNLOCK = 14,
+            OP_SLIDE_DRIVER_SEAT = 15,
+            OP_GET_STATE_71E_10 = 16,
+            OP_GET_STATE_71E_2X = 17,
+            OP_GET_STATE_71F_05 = 18,
         };
 
         virtual ~SettingsCommand() {}
