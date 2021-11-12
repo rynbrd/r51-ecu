@@ -20,8 +20,10 @@ class CanConnection : public Connection {
             RXF5 = 5,   // RXB1
         };
 
-        CanConnection(uint8_t cs_pin, uint8_t baudrate = CAN_500KBPS, uint8_t clockset = MCP_16MHZ)
-            : mcp_(cs_pin), init_(false), baudrate_(baudrate), clockset_(clockset), retries_(5) {}
+        CanConnection(uint8_t cs_pin, uint8_t int_pin,
+                uint8_t baudrate = CAN_500KBPS, uint8_t clockset = MCP_16MHZ) :
+            mcp_(cs_pin), int_pin_(int_pin), init_(false),
+            baudrate_(baudrate), clockset_(clockset), retries_(5) {}
 
         // Set a mask on the MCU. Return false on failure.
         bool setMask(MaskId id, uint16_t data);
@@ -39,6 +41,7 @@ class CanConnection : public Connection {
         bool write(uint32_t id, uint8_t len, byte* data) override;
     private:
         MCP_CAN mcp_;
+        uint8_t int_pin_;
         bool init_;
         uint8_t baudrate_;
         uint8_t clockset_;

@@ -34,6 +34,8 @@ bool CanConnection::begin() {
         ERROR_MSG_VAL("can: set normal mode failed: error code ", err);
         return false;
     }
+    // Configure the interrupt pin as input.
+    pinMode(int_pin_, INPUT);
     init_ = true;
     return true;
 }
@@ -42,14 +44,18 @@ bool CanConnection::read(uint32_t* id, uint8_t* len, byte* data) {
     if (!init_) {
         return false;
     }
-    uint8_t err = mcp_.readMsgBuf(id, len, data);
-    if (err != CAN_OK) {
+    uint8_t err;
+    while (!digitalRead(int_pin_)) {
+        err = mcp_.readMsgBuf(id, len, data);
+        if (err == CAN_OK) {
+            return true;
+        }
         if (err != CAN_NOMSG) {
             ERROR_MSG_VAL("can: read failed: error code ", err);
+            return false;
         }
-        return false;
     }
-    return true;
+    return false;
 }
 
 bool CanConnection::write(uint32_t id, uint8_t len, byte* data) {
