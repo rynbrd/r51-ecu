@@ -15,7 +15,7 @@ struct {
     byte data[64];
 } frame;
 
-CanConnection can;
+CanConnection can(CAN_CS_PIN, CAN_BAUDRATE, CAN_CLOCK);
 RealDashConnection realdash;
 D(SerialConnection serial);
 
@@ -74,7 +74,7 @@ void setup() {
     }
     realdash.begin(&REALDASH_SERIAL);
 
-    while (!can.begin(CAN_CS_PIN, CAN_BAUDRATE, CAN_CLOCK)) {
+    while (!can.begin()) {
         delay(1000);
     }
     INFO_MSG("setup: ecu started");
