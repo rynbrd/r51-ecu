@@ -310,7 +310,7 @@ class SettingsUpdate : public SettingsCommand {
 class VehicleSettings : public SettingsController, public Listener {
     public:
         VehicleSettings() : can_(nullptr), dash_(nullptr), auto_interior_illum_(false),
-            hl_sens_(HL_SENS_2), hl_delay_(DELAY_45S), speed_wiper_(true), remote_horn_(false),
+            hl_sens_(HL_SENS_2), hl_delay_(HL_DELAY_45S), speed_wiper_(true), remote_horn_(false),
             remote_lights_(LIGHTS_OFF), relock_time_(RELOCK_1M), selective_unlock_(false),
             slide_seat_(false), init_(false), initE_(nullptr), initF_(nullptr),
             stateE_(nullptr), stateF_(nullptr) {};
@@ -396,14 +396,14 @@ class VehicleSettings : public SettingsController, public Listener {
 
         // Auto Headlight Off Delay values. 3 bits long.
         enum HeadlightOffDelay : uint8_t {
-            DELAY_0S = 0x01,
-            DELAY_30S = 0x02,
-            DELAY_45S = 0x00,
-            DELAY_60S = 0x03,
-            DELAY_90S = 0x04,
-            DELAY_120S = 0x05,
-            DELAY_150S = 0x06,
-            DELAY_180S = 0x07,
+            HL_DELAY_0S = 0x01,
+            HL_DELAY_30S = 0x02,
+            HL_DELAY_45S = 0x00,
+            HL_DELAY_60S = 0x03,
+            HL_DELAY_90S = 0x04,
+            HL_DELAY_120S = 0x05,
+            HL_DELAY_150S = 0x06,
+            HL_DELAY_180S = 0x07,
         };
 
         // The CAN bus to push state change frames to.

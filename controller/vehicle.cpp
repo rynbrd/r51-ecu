@@ -781,7 +781,8 @@ void SettingsInit::receive(uint32_t id, uint8_t len, byte* data) {
             matchAndSend(id, len, data, OP_EXIT, OP_READY);
             break;
         default:
-            matchAndSend(id, len, data, OP_ENTER, OP_EXIT);
+            matchAndSend(id, len, data, OP_ENTER, OP_EXIT) ||
+            matchAndSend(id, len, data, OP_EXIT, OP_READY);
     }
 }
 
@@ -818,6 +819,7 @@ void SettingsState::receive(uint32_t id, uint8_t len, byte* data) {
             }
             break;
     }
+    matchAndSend(id, len, data, OP_EXIT, OP_READY);
 }
 
 bool SettingsUpdate::send(Op setting, uint8_t value) {
@@ -959,17 +961,17 @@ bool VehicleSettings::nextAutoHeadlightOffDelay() {
 
     switch (hl_delay_) {
         default:
-        case DELAY_30S:
-            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_45S);
-        case DELAY_45S:
-            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_60S);
-        case DELAY_0S:
-        case DELAY_60S:
-        case DELAY_90S:
-        case DELAY_120S:
-        case DELAY_150S:
+        case HL_DELAY_30S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, HL_DELAY_45S);
+        case HL_DELAY_45S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, HL_DELAY_60S);
+        case HL_DELAY_0S:
+        case HL_DELAY_60S:
+        case HL_DELAY_90S:
+        case HL_DELAY_120S:
+        case HL_DELAY_150S:
             return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, hl_delay_ + 1);
-        case DELAY_180S:
+        case HL_DELAY_180S:
             return false;
     }
 }
@@ -980,18 +982,18 @@ bool VehicleSettings::prevAutoHeadlightOffDelay() {
     }
 
     switch (hl_delay_) {
-        case DELAY_0S:
+        case HL_DELAY_0S:
             return false;
-        case DELAY_45S:
-            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_30S);
+        case HL_DELAY_45S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, HL_DELAY_30S);
         default:
-        case DELAY_60S:
-            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, DELAY_45S);
-        case DELAY_30S:
-        case DELAY_90S:
-        case DELAY_120S:
-        case DELAY_150S:
-        case DELAY_180S:
+        case HL_DELAY_60S:
+            return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, HL_DELAY_45S);
+        case HL_DELAY_30S:
+        case HL_DELAY_90S:
+        case HL_DELAY_120S:
+        case HL_DELAY_150S:
+        case HL_DELAY_180S:
             return setter_->send(SettingsCommand::OP_AUTO_HL_DELAY, hl_delay_ - 1);
     }
 }
@@ -1120,13 +1122,13 @@ void VehicleSettings::receiveState05(byte* data) {
 }
 
 void VehicleSettings::receiveState10(byte* data) {
-    auto_interior_illum_ = getBit(data, 4, 5);
+    auto_interior_illum_ = !getBit(data, 4, 5);
     dash_->setAutoInteriorIllumination(auto_interior_illum_);
 
     selective_unlock_ = getBit(data, 4, 7);
     dash_->setSelectiveDoorUnlock(selective_unlock_);
 
-    remote_horn_ = getBit(data, 7, 3);
+    remote_horn_ = !getBit(data, 7, 3);
     dash_->setRemoteKeyResponseHorn(remote_horn_);
 }
 
@@ -1178,28 +1180,28 @@ void VehicleSettings::receiveState21(byte* data) {
 
     hl_delay_ = (HeadlightOffDelay)(((data[2] & 0x01) << 2) | ((data[3] >> 6) & 0x03));
     switch (hl_delay_) {
-        case DELAY_0S:
+        case HL_DELAY_0S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_0S);
             break;
-        case DELAY_30S:
+        case HL_DELAY_30S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_30S);
             break;
-        case DELAY_45S:
+        case HL_DELAY_45S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_45S);
             break;
-        case DELAY_60S:
+        case HL_DELAY_60S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_60S);
             break;
-        case DELAY_90S:
+        case HL_DELAY_90S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_90S);
             break;
-        case DELAY_120S:
+        case HL_DELAY_120S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_120S);
             break;
-        case DELAY_150S:
+        case HL_DELAY_150S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_150S);
             break;
-        case DELAY_180S:
+        case HL_DELAY_180S:
             dash_->setAutoHeadlightOffDelay(DashSettingsController::DELAY_180S);
             break;
     }
