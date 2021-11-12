@@ -4,7 +4,7 @@
 #include "mcp_can.h"
 
 bool CanConnection::setMask(MaskId id, uint16_t data) {
-    uint32_t data32 = data;
+    uint32_t data32 = data & 0x7FF;
     uint8_t err = mcp_.init_Mask(id, 0, data32 << 16);
     if (err != CAN_OK) {
         ERROR_MSG_VAL("can: set mask failed: error code: ", err);
@@ -24,7 +24,7 @@ bool CanConnection::setFilter(FilterId id, uint16_t data) {
 }
 
 bool CanConnection::begin() {
-    uint8_t err = mcp_.begin(MCP_ANY, baudrate_, clockset_);
+    uint8_t err = mcp_.begin(MCP_STDEXT, baudrate_, clockset_);
     if (err != CAN_OK) {
         ERROR_MSG_VAL("can: connect failed: error code ", err);
         return false;

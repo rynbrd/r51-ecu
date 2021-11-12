@@ -28,12 +28,12 @@ D(SerialConnection serial);
 // Since we're filtering four frames we can fit the entire set of frames in
 // the given filters with a fully set mask. 
 bool initFilters() {
-    return can.setMask(CanConnection::RXM0, 0xFFFF) &&
+    return can.setMask(CanConnection::RXM0, 0x07FF) &&
         can.setFilter(CanConnection::RXF0, 0x054A) &&
         can.setFilter(CanConnection::RXF1, 0x054B) &&
-        can.setMask(CanConnection::RXM1, 0xFFFF) &&
+        can.setMask(CanConnection::RXM1, 0x07FF) &&
         can.setFilter(CanConnection::RXF2, 0x072E) &&
-        can.setFilter(CanConnection::RXF2, 0x072F);
+        can.setFilter(CanConnection::RXF3, 0x072F);
 }
 
 Connection* connections[] = {
@@ -91,12 +91,10 @@ void setup() {
     }
     realdash.begin(&REALDASH_SERIAL);
 
-    while (!initFilters()) {
-        delay(100);
-    }
     while (!can.begin()) {
         delay(1000);
     }
+    initFilters();
     INFO_MSG("setup: ecu started");
 
     connect();
