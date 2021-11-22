@@ -16,8 +16,9 @@ Using this system allows the stock head unit and LCD panel to be replaced by an
 aftermarket audio system. The stock head unit must be removed from the car in
 order for this system to operate properly.
 
-The software targets the Arduino Lenoardo compatible [CAN Bed v1] but should
-work with any MCP2515 implementation with some small updates.
+The software targets the Arduino Lenoardo compatible [CAN Bed M4] but should
+work with any SAME51 implementation with some small updates. MCP based
+controllers do not work as they are too slow.
 
 The software exposes a serial protocal compatible with [RealDash]. Serial
 protocol TBD.
@@ -36,7 +37,7 @@ The contents of this repository are covered under the GPLv3. See the [LICENSE]
 file for full details.
 
 
-[CAN Bed v1]: https://www.seeedstudio.com/CANBed-Arduino-CAN-BUS-Development-Kit-Atmega32U4-with-MCP2515-and-MCP2551-p-4365.html
+[CAN Bed m4]: https://www.seeedstudio.com/Canbed-M4-p-4782.html
 [LICENSE]: LICENSE
 [RealDash]: http://realdash.net
 ["Upgraded" Metra 70-7552]: https://www.amazon.com/20-pin-Subaru-Headunit-Harness-Steering/dp/B01D9K3L44/uPWNsaWNrUmVkaXJlY3QmZG9Ob3RMb2dDbGljaz10cnVl

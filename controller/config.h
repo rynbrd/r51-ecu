@@ -18,8 +18,6 @@
 
 // CAN Bus configuration. Set the appropriate CS pin for the target board.
 // Baudrate should match the connected CAN bus.
-#define CAN_CS_PIN 17
-#define CAN_INT_PIN 7
 #define CAN_BAUDRATE CAN_500KBPS
 #define CAN_CLOCK MCP_16MHZ
 // Uncomment to disable writes to the CAN bus.

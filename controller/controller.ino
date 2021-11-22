@@ -15,7 +15,7 @@ struct {
     byte data[64];
 } frame;
 
-CanConnection can(CAN_CS_PIN, CAN_INT_PIN, CAN_BAUDRATE, CAN_CLOCK);
+CanConnection can(CAN_BAUDRATE);
 RealDashConnection realdash;
 D(SerialConnection serial);
 

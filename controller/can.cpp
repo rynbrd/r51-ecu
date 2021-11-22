@@ -1,11 +1,11 @@
 #include "can.h"
 
 #include "debug.h"
-#include "mcp_can.h"
+#include "same51_can.h"
 
 bool CanConnection::setMask(MaskId id, uint16_t data) {
     uint32_t data32 = data & 0x7FF;
-    uint8_t err = mcp_.init_Mask(id, 0, data32 << 16);
+    uint8_t err = client_.init_Mask(id, 0, data32 << 16);
     if (err != CAN_OK) {
         ERROR_MSG_VAL("can: set mask failed: error code: ", err);
         return false;
@@ -15,7 +15,7 @@ bool CanConnection::setMask(MaskId id, uint16_t data) {
 
 bool CanConnection::setFilter(FilterId id, uint16_t data) {
     uint32_t data32 = data;
-    uint8_t err = mcp_.init_Filt(id, 0, data32 << 16);
+    uint8_t err = client_.init_Filt(id, 0, data32 << 16);
     if (err != CAN_OK) {
         ERROR_MSG_VAL("can: set mask failed: error code: ", err);
         return false;
@@ -24,18 +24,16 @@ bool CanConnection::setFilter(FilterId id, uint16_t data) {
 }
 
 bool CanConnection::begin() {
-    uint8_t err = mcp_.begin(MCP_STDEXT, baudrate_, clockset_);
+    uint8_t err = client_.begin(MCP_STDEXT, baudrate_, MCAN_MODE_CAN);
     if (err != CAN_OK) {
         ERROR_MSG_VAL("can: connect failed: error code ", err);
         return false;
     }
-    err = mcp_.setMode(MCP_NORMAL);
+    err = client_.setMode(MCP_NORMAL);
     if (err != CAN_OK) {
         ERROR_MSG_VAL("can: set normal mode failed: error code ", err);
         return false;
     }
-    // Configure the interrupt pin as input.
-    pinMode(int_pin_, INPUT);
     init_ = true;
     return true;
 }
@@ -44,16 +42,12 @@ bool CanConnection::read(uint32_t* id, uint8_t* len, byte* data) {
     if (!init_) {
         return false;
     }
-    uint8_t err;
-    while (!digitalRead(int_pin_)) {
-        err = mcp_.readMsgBuf(id, len, data);
-        if (err == CAN_OK) {
-            return true;
-        }
-        if (err != CAN_NOMSG) {
-            ERROR_MSG_VAL("can: read failed: error code ", err);
-            return false;
-        }
+    uint8_t err = client_.readMsgBuf(id, len, data);
+    if (err == CAN_OK) {
+        return true;
+    }
+    if (err != CAN_NOMSG) {
+        ERROR_MSG_VAL("can: read failed: error code ", err);
     }
     return false;
 }
@@ -65,7 +59,7 @@ bool CanConnection::write(uint32_t id, uint8_t len, byte* data) {
     uint8_t err;
     uint8_t attempts = 0;
     do {
-        err = mcp_.sendMsgBuf(id, 0, len, data);
+        err = client_.sendMsgBuf(id, 0, len, data);
         attempts++;
     } while (err != CAN_OK && attempts <= retries_);
 
