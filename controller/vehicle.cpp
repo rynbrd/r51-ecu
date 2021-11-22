@@ -786,11 +786,6 @@ void SettingsInit::receive(uint32_t id, uint8_t len, byte* data) {
     }
 }
 
-bool SettingsState::send() {
-    state_count_ = 0;
-    return SettingsCommand::send();
-}
-
 void SettingsState::receive(uint32_t id, uint8_t len, byte* data) {
     switch (id_) {
         case FRAME_E:
@@ -1217,6 +1212,7 @@ void VehicleSettings::push() {
     initF_->loop();
     stateE_->loop();
     stateF_->loop();
+    setter_->loop();
 
     // Request initial state if init is complete.
     if (!init_ && initE_->ready() && initF_->ready()) {
