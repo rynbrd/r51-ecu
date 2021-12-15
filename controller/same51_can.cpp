@@ -5,6 +5,7 @@
 
 #include "same51_can.h"
 #include "Arduino.h"
+#include "debug.h"
 
 SAME51_CAN *same51_can_use_object[2];
 
@@ -99,16 +100,15 @@ regs :
             break;
     }
     if (mcan_configure_msg_ram(&mcan_cfg, &mcan_msg_ram_size)) {
-        Serial.println("RAM configuration succeeded");
+        INFO_MSG("same51: RAM configuration succeeded");
     } else {
         return CAN_FAIL;
     }
     ret = mcan_initialize(&mcan, &mcan_cfg);
     if (ret == 0) {
-        Serial.println("CAN initialized");
+        INFO_MSG("same51: CAN initialized");
     } else {
-        Serial.print("CAN init failed, code ");
-        Serial.println(ret);
+        ERROR_MSG_VAL("same51: CAN init failed, code ", ret);
         return CAN_FAIL;
     }
     mcan_set_tx_queue_mode(&mcan);
@@ -129,10 +129,10 @@ regs :
         init_Mask(FILTER_1, (CAN_STD_MSG_ID | MSG_ID_ALLOW_ALL_MASK));
     }
     if (mcan_is_enabled(&mcan)) {
-        Serial.println("MCAN is enabled!");
+        INFO_MSG("same51: MCAN is enabled");
         return CAN_OK;
     }
-    Serial.println("Something went wrong!!!!!!!!");
+    ERROR_MSG("same51: something went wrong");
     return CAN_FAIL;
 };
 
