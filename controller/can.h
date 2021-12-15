@@ -20,7 +20,7 @@ class CanConnection : public Connection {
             RXF5 = 5,   // RXB1
         };
 
-        CanConnection(uint8_t baudrate = CAN_500KBPS) :
+        CanConnection(uint32_t baudrate = CAN_500KBPS) :
             client_(), init_(false),
             baudrate_(baudrate), retries_(5) {}
 
@@ -41,7 +41,7 @@ class CanConnection : public Connection {
     private:
         SAME51_CAN client_;
         bool init_;
-        uint8_t baudrate_;
+        uint32_t baudrate_;
         uint8_t retries_;
 };
 

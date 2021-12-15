@@ -279,8 +279,6 @@ class SettingsState : public SettingsCommand {
     public:
         SettingsState(Connection* conn, Frame id) : SettingsCommand(conn, id) {}
 
-        bool send() override;
-
         void receive(uint32_t id, uint8_t len, byte* data) override;
 
     private:
