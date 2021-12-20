@@ -17,11 +17,11 @@ aftermarket audio system. The stock head unit must be removed from the car in
 order for this system to operate properly.
 
 The software targets the Arduino Lenoardo compatible [CAN Bed M4] but should
-work with any SAME51 implementation with some small updates. MCP based
-controllers do not work as they are too slow.
+work with any SAME51 implementation with some small updates. The MCP based
+CANBed controllers do not work as they are too slow.
 
-The software exposes a serial protocal compatible with [RealDash]. Serial
-protocol TBD.
+The software exposes a serial protocol compatible with [RealDash]. The
+[realdash directory](./realdash) contains the necessary configuration.
 
 
 ## Vehicle Details 
