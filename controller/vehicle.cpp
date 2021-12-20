@@ -426,7 +426,10 @@ bool VehicleClimate::toggleTemperature() {
 }
 
 void VehicleClimate::adjustDriverTemperature(bool increment, bool dual) {
-    toggleBit(frame540_, 5, 5);
+    if (!toggleTemperature()) {
+        return;
+    }
+
     if (increment) {
         frame540_[3]++;
         driver_temp_++;
@@ -445,7 +448,10 @@ void VehicleClimate::adjustDriverTemperature(bool increment, bool dual) {
 }
 
 void VehicleClimate::adjustPassengerTemperature(bool increment, bool frame_only) {
-    toggleBit(frame540_, 5, 5);
+    if (!toggleTemperature()) {
+        return;
+    }
+
     if (increment) {
         frame540_[4]++;
         if (!frame_only) {
