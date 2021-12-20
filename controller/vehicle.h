@@ -120,7 +120,6 @@ class VehicleClimate : public ClimateController, public Listener {
 
         // State tracking.
         State state_;
-        State prev_state_;
 
         // Settings flags.
         bool ac_;
@@ -146,14 +145,8 @@ class VehicleClimate : public ClimateController, public Listener {
         // this is true.
         bool climateOnline() const;
 
-        // Return true if face vents are open.
-        bool isFaceAirflow() const;
-
         // Set the climate state.
         void setState(State state);
-
-        // Return the next mode.
-        uint8_t cycleMode(uint8_t mode);
 
         // Toggle a function controlled by a single bit. Return false if
         // climate state can't be modified.
@@ -166,10 +159,10 @@ class VehicleClimate : public ClimateController, public Listener {
         // Adjust driver side temperature zone. Also adjusts passenger side
         // zone if dual is false. Stores the new driver side temperature in
         // internal state.
-        void adjustDriverTemperature(bool increment, bool dual);
+        void adjustDriverTemperature(bool increment);
 
         // Adjust passenger side temperature zone. Enables dual zone control.
-        void adjustPassengerTemperature(bool increment, bool frame_only);
+        void adjustPassengerTemperature(bool increment);
 
         void climateClickDriverTemp(bool increment);
         void climateClickPassengerTemp(bool increment);

@@ -50,7 +50,6 @@ VehicleClimate::VehicleClimate() {
     // Set initial state to "off". We will update state from A/C Auto Amp's
     // initial state frames.
     state_ = STATE_OFF;
-    prev_state_ = STATE_OFF;
     ac_ = false;
     dual_ = false;
     recirculate_ = false;
@@ -71,157 +70,31 @@ bool VehicleClimate::climateOnline() const {
 }
 
 void VehicleClimate::climateClickOff() {
-    if (!toggleFunction(frame540_, 6, 7)) {
-        return;
-    }
-
-    setState(STATE_OFF);
-    updateDash();
+    toggleFunction(frame540_, 6, 7);
 }
 
 void VehicleClimate::climateClickAuto() {
-    if (!toggleFunction(frame540_, 6, 5)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-        case STATE_MANUAL:
-        case STATE_HALF_MANUAL:
-        case STATE_DEFROST:
-            setState(STATE_AUTO);
-            ac_ = true;
-            recirculate_ = false;
-            updateDash();
-            break;
-        case STATE_AUTO:
-            break;
-    }
+    toggleFunction(frame540_, 6, 5);
 }
 
 void VehicleClimate::climateClickAc() {
-    if (!toggleFunction(frame540_, 5, 3)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-        case STATE_HALF_MANUAL:
-            break;
-        case STATE_DEFROST:
-        case STATE_AUTO:
-            ac_ = !ac_;
-            updateDash();
-            break;
-        case STATE_MANUAL:
-            ac_ = !ac_;
-            updateDash();
-            break;
-    }
+    toggleFunction(frame540_, 5, 3);
 }
 
 void VehicleClimate::climateClickDual() {
-    if (!toggleFunction(frame540_, 6, 3)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-        case STATE_DEFROST:
-            break;
-        case STATE_AUTO:
-        case STATE_MANUAL:
-        case STATE_HALF_MANUAL:
-            dual_ = !dual_;
-            updateDash();
-            break;
-    }
+    toggleFunction(frame540_, 6, 3);
 }
 
 void VehicleClimate::climateClickRecirculate() {
-    if (!toggleFunction(frame541_, 1, 6)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-        case STATE_HALF_MANUAL:
-            recirculate_ = !recirculate_;
-            updateDash();
-            break;
-        case STATE_AUTO:
-        case STATE_MANUAL:
-            if (isFaceAirflow()) {
-                recirculate_ = !recirculate_;
-                updateDash();
-            }
-            break;
-        case STATE_DEFROST:
-            break;
-    }
+    toggleFunction(frame541_, 1, 6);
 }
 
 void VehicleClimate::climateClickMode() {
-    if (!toggleFunction(frame540_, 6, 0)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-            setState(STATE_HALF_MANUAL);
-            fan_speed_ = 0;
-            break;
-        case STATE_AUTO:
-            setState(STATE_MANUAL);
-            mode_ = cycleMode(mode_);
-            if (!isFaceAirflow()) {
-                recirculate_ = false;
-            }
-            break;
-        case STATE_MANUAL:
-            mode_ = cycleMode(mode_);
-            if (!isFaceAirflow()) {
-                recirculate_ = false;
-            }
-            break;
-        case STATE_HALF_MANUAL:
-            mode_ = cycleMode(mode_);
-            break;
-        case STATE_DEFROST:
-            setState(STATE_MANUAL);
-            mode_ = cycleMode(MODE_WINDSHIELD);
-            break;
-    }
-    updateDash();
+    toggleFunction(frame540_, 6, 0);
 }
 
 void VehicleClimate::climateClickFrontDefrost() {
-    if (!toggleFunction(frame540_, 6, 1)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-            setState(STATE_DEFROST);
-            if (fan_speed_ == 0) {
-                fan_speed_ = 3;
-            }
-            break;
-        case STATE_AUTO:
-        case STATE_MANUAL:
-        case STATE_HALF_MANUAL:
-            setState(STATE_DEFROST);
-            recirculate_ = false;
-            break;
-        case STATE_DEFROST:
-            if (prev_state_ == STATE_MANUAL) {
-                setState(STATE_MANUAL);
-            } else {
-                setState(STATE_AUTO);
-            }
-            break;
-    }
-    updateDash();
+    toggleFunction(frame540_, 6, 1);
 }
 
 void VehicleClimate::climateClickRearDefrost() {
@@ -229,76 +102,22 @@ void VehicleClimate::climateClickRearDefrost() {
 }
 
 void VehicleClimate::climateClickFanSpeedUp() {
-    if (!toggleFunction(frame541_, 0, 5)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-            setState(STATE_MANUAL);
-            fan_speed_ = 1;
-            recirculate_ = false;
-            break;
-        case STATE_AUTO:
-            setState(STATE_MANUAL);
-            fan_speed_ = clampFan(fan_speed_ + 1);
-            break;
-        case STATE_HALF_MANUAL:
-            setState(STATE_MANUAL);
-            fan_speed_ = 1;
-            break;
-        case STATE_MANUAL:
-        case STATE_DEFROST:
-            fan_speed_ = clampFan(fan_speed_ + 1);
-            break;
-    }
-    updateDash();
+    toggleFunction(frame541_, 0, 5);
 }
 
 void VehicleClimate::climateClickFanSpeedDown() {
-    if (!toggleFunction(frame541_, 0, 4)) {
-        return;
-    }
-
-    switch (state_) {
-        case STATE_OFF:
-            setState(STATE_MANUAL);
-            fan_speed_ = 1;
-            recirculate_ = false;
-            break;
-        case STATE_AUTO:
-            setState(STATE_MANUAL);
-            fan_speed_ = clampFan(fan_speed_ - 1);
-            break;
-        case STATE_HALF_MANUAL:
-            setState(STATE_MANUAL);
-            fan_speed_ = 1;
-            break;
-        case STATE_MANUAL:
-        case STATE_DEFROST:
-            fan_speed_ = clampFan(fan_speed_ - 1);
-            break;
-    }
-    updateDash();
+    toggleFunction(frame541_, 0, 4);
 }
 
 void VehicleClimate::climateClickDriverTemp(bool increment) {
-    if (!climateOnline()) {
-        return;
-    }
-
     switch (state_) {
         case STATE_OFF:
             break;
         case STATE_AUTO:
         case STATE_MANUAL:
         case STATE_HALF_MANUAL:
-            adjustDriverTemperature(increment, dual_);
-            updateDash();
-            break;
         case STATE_DEFROST:
-            adjustDriverTemperature(increment, false);
-            updateDash();
+            adjustDriverTemperature(increment);
             break;
     }
 }
@@ -312,21 +131,14 @@ void VehicleClimate::climateClickDriverTempDown() {
 }
 
 void VehicleClimate::climateClickPassengerTemp(bool increment) {
-    if (!climateOnline()) {
-        return;
-    }
-
     switch (state_) {
         case STATE_OFF:
             break;
         case STATE_DEFROST:
-            adjustPassengerTemperature(increment, true);
-            break;
         case STATE_AUTO:
         case STATE_MANUAL:
         case STATE_HALF_MANUAL:
-            adjustPassengerTemperature(increment, false);
-            updateDash();
+            adjustPassengerTemperature(increment);
             break;
     }
 }
@@ -372,46 +184,6 @@ void VehicleClimate::push() {
     }
 }
 
-bool VehicleClimate::isFaceAirflow() const {
-    switch (mode_) {
-        case MODE_FACE:
-        case MODE_AUTO_FACE:
-        case MODE_FACE_FEET:
-        case MODE_AUTO_FACE_FEET:
-            return true;
-        default:
-            return false;
-    }
-}
-
-void VehicleClimate::setState(State state) {
-    if (state == state_) {
-        return;
-    }
-    prev_state_ = state_;
-    state_ = state;
-}
-
-uint8_t VehicleClimate::cycleMode(uint8_t mode) {
-    switch (mode) {
-        case MODE_FACE:
-        case MODE_AUTO_FACE:
-            return MODE_FACE_FEET;
-        case MODE_FACE_FEET:
-        case MODE_AUTO_FACE_FEET:
-            return MODE_FEET;
-        case MODE_FEET:
-        case MODE_AUTO_FEET:
-            return MODE_FEET_WINDSHIELD;
-        case MODE_FEET_WINDSHIELD:
-            return MODE_FACE;
-        case MODE_WINDSHIELD:
-            return MODE_FEET_WINDSHIELD;
-        default:
-            return MODE_FACE;
-    }
-}
-
 bool VehicleClimate::toggleFunction(byte* frame, uint8_t offset, uint8_t bit) {
     if (!climateOnline()) {
         return false;
@@ -425,20 +197,18 @@ bool VehicleClimate::toggleTemperature() {
     return toggleFunction(frame540_, 5, 5);
 }
 
-void VehicleClimate::adjustDriverTemperature(bool increment, bool dual) {
+void VehicleClimate::adjustDriverTemperature(bool increment) {
     if (!toggleTemperature()) {
         return;
     }
 
     if (increment) {
         frame540_[3]++;
-        driver_temp_++;
     } else {
         frame540_[3]--;
-        driver_temp_--;
     }
 
-    if (!dual) {
+    if (state_ == STATE_DEFROST || !dual_) {
         if (increment) {
             frame540_[4]++;
         } else {
@@ -447,21 +217,15 @@ void VehicleClimate::adjustDriverTemperature(bool increment, bool dual) {
     }
 }
 
-void VehicleClimate::adjustPassengerTemperature(bool increment, bool frame_only) {
+void VehicleClimate::adjustPassengerTemperature(bool increment) {
     if (!toggleTemperature()) {
         return;
     }
 
     if (increment) {
         frame540_[4]++;
-        if (!frame_only) {
-            passenger_temp_++;
-        }
     } else {
         frame540_[4]--;
-        if (!frame_only) {
-            passenger_temp_--;
-        }
     }
     dual_ = true;
 }
