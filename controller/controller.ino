@@ -25,7 +25,7 @@ Connection* connections[] = {
     D(&serial)
 };
 
-VehicleClimate climate_system;
+VehicleClimate climate_system(REAR_DEFROST_PIN, REAR_DEFROST_TRIGGER_MS);
 VehicleSettings settings_system;
 RealDashClimate climate_dash(REALDASH_REPEAT);
 RealDashSettings settings_dash(REALDASH_REPEAT);

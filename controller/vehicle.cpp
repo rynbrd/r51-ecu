@@ -27,7 +27,9 @@ inline uint8_t clampTemp(uint8_t temp) {
     return temp;
 }
 
-VehicleClimate::VehicleClimate() {
+VehicleClimate::VehicleClimate(int rear_defrost_pin, uint16_t rear_defrost_trigger_ms) {
+    rear_defrost_pin_ = new MomentaryPin(rear_defrost_pin, rear_defrost_trigger_ms);
+
     can_ = nullptr;
     dash_ = nullptr;
 
@@ -58,6 +60,10 @@ VehicleClimate::VehicleClimate() {
     fan_speed_ = 0;
     driver_temp_ = 60;
     passenger_temp_ = 60;
+}
+
+VehicleClimate::~VehicleClimate() {
+    delete rear_defrost_pin_;
 }
 
 void VehicleClimate::connect(Connection* can, DashClimateController* dash) {
@@ -98,7 +104,7 @@ void VehicleClimate::climateClickFrontDefrost() {
 }
 
 void VehicleClimate::climateClickRearDefrost() {
-    // TODO: implement rear defrost hardware control signal
+    rear_defrost_pin_->trigger();
 }
 
 void VehicleClimate::climateClickFanSpeedUp() {
@@ -240,6 +246,9 @@ void VehicleClimate::receive(uint32_t id, uint8_t len, byte* data) {
         case 0x54B:
             receive54B(len, data);
             break;
+        case 0x625:
+            receive625(len, data);
+            break;
     }
 }
 
@@ -294,7 +303,19 @@ void VehicleClimate::receive54B(uint8_t len, byte* data) {
     updateDash();
 }
 
+void VehicleClimate::receive625(uint8_t len, byte* data) {
+    if (len != 8) {
+        ERROR_MSG_VAL("vehicle: frame 0x625 has invalid length: 8 != ", len);
+    }
+    INFO_MSG_FRAME("vehicle: receive ", 0x625, 8, data);
+
+    rear_defrost_ = getBit(data, 0, 0);
+
+    updateDash();
+}
+
 void VehicleClimate::updateDash() {
+    dash_->setClimateRearDefrost(rear_defrost_);
     switch (state_) {
         case STATE_OFF: 
             dash_->setClimateActive(false);

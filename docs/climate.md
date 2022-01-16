@@ -716,14 +716,14 @@ status.
     0  1  2  3  4  5
 ```
 
-_Byte 1: A/C Compressor and Rear Defrost Heater_
+_Byte 0: A/C Compressor and Rear Defrost Heater_
 
 Bit meanings (least to most significant):
 * Bit 0: Indicates the rear window or side mirror heating element is on. 0 is off, 1 is on.
 
 Observed values:
-* `00110010` rear defrost heating element off
-* `00110011` rear defrost heating elemnt on
+* `00100000` rear defrost heating element off
+* `00100001` rear defrost heating elemnt on
 
 
 ### Unit Initialization

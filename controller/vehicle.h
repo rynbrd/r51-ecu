@@ -5,6 +5,7 @@
 #include "climate.h"
 #include "connection.h"
 #include "dash.h"
+#include "io.h"
 #include "listener.h"
 #include "settings.h"
 
@@ -18,8 +19,10 @@
 // connect.
 class VehicleClimate : public ClimateController, public Listener {
     public:
-        // Create a ClimateControl object in its initialization state.
-        VehicleClimate();
+        // Create a Vehicle climate control object in its initialization state.
+        VehicleClimate(int rear_defrost_pin, uint16_t rear_defrost_trigger_ms);
+
+        ~VehicleClimate();
 
         // Connect the controller to a CAN bus and dashboard.
         void connect(Connection* can, DashClimateController* dash);
@@ -93,6 +96,9 @@ class VehicleClimate : public ClimateController, public Listener {
             MODE_AUTO_FACE_FEET = 0x88,
             MODE_AUTO_FEET = 0x8C,
         };
+
+        // Momentary pin used to toggle the rear defrost.
+        MomentaryPin* rear_defrost_pin_;
 
         // The CAN bus to push state change frames to.
         Connection* can_;
@@ -172,6 +178,9 @@ class VehicleClimate : public ClimateController, public Listener {
 
         // Update state from a 0x54B frame.
         void receive54B(uint8_t len, byte* data);
+
+        // Update state from a 0x625 frame.
+        void receive625(uint8_t len, byte* data);
 
         // Update the dashboard from the stored state.
         void updateDash();

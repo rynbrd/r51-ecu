@@ -1,6 +1,13 @@
 #ifndef __R51_CONFIG__
 #define __R51_CONFIG__
 
+// Rear defrost is controlled via a mosfet connected to a digital pin. The
+// mosfet is enabled momentarily to act as if it were a momentary button press
+// by a human. The pin that controls the mosfet and how long the "button" is
+// pressed is configured here.
+#define REAR_DEFROST_PIN 6
+#define REAR_DEFROST_TRIGGER_MS 200
+
 // Uncomment the following line to enable debug output.
 //#define DEBUG_ENABLE
 #define DEBUG_SERIAL Serial
