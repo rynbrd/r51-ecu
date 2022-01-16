@@ -1,113 +1,34 @@
 #include <Arduino.h>
 #include <AnalogMultiButton.h>
 
-class SteeringSwitch {
-    public:
-        enum Button {
-            POWER,
-            MODE,
-            SEEK_UP,
-            SEEK_DOWN,
-            VOLUME_UP,
-            VOLUME_DOWN,
-        };
+#define SW_A_PIN A2
+#define SW_B_PIN A3
+#define RDEF_PIN 6
 
-        SteeringSwitch(int pin_a, int pin_b) :
-            sw_a_(pin_a, sizeof(sw_values_) / sizeof(sw_values_[0]), sw_values_),
-            sw_b_(pin_b, sizeof(sw_values_) / sizeof(sw_values_[0]), sw_values_) {}
+static constexpr const int sw_count = 3;
+static constexpr const int sw_values[sw_count] = {60, 240, 520};
+AnalogMultiButton swA(SW_A_PIN, sw_count, sw_values);
+AnalogMultiButton swB(SW_B_PIN, sw_count, sw_values);
 
-        void loop() {
-            sw_a_.update();
-            sw_b_.update();
-        }
+bool rdef = false;
 
-        bool onPress(Button button) {
-            switch (button) {
-                case POWER:
-                    return sw_a_.onPress(0);
-                case MODE:
-                    return sw_b_.onPress(0);
-                case SEEK_UP:
-                    return sw_a_.onPress(1);
-                case SEEK_DOWN:
-                    return sw_b_.onPress(1);
-                case VOLUME_UP:
-                    return sw_a_.onPress(2);
-                case VOLUME_DOWN:
-                    return sw_b_.onPress(2);
-                default:
-                    break;
-            }
-            return false;
-        }
-
-        bool onRelease(Button button) {
-            switch (button) {
-                case POWER:
-                    return sw_a_.onRelease(0);
-                case MODE:
-                    return sw_b_.onRelease(0);
-                case SEEK_UP:
-                    return sw_a_.onRelease(1);
-                case SEEK_DOWN:
-                    return sw_b_.onRelease(1);
-                case VOLUME_UP:
-                    return sw_a_.onRelease(2);
-                case VOLUME_DOWN:
-                    return sw_b_.onRelease(2);
-                default:
-                    break;
-            }
-            return false;
-        }
-
-    private:
-        AnalogMultiButton sw_a_;
-        AnalogMultiButton sw_b_;
-        static const int sw_values_[3] = {0, 210, 416};
-};
-
-void PrintButtonName(SteeringSwitch::Button button) {
-    switch (button) {
-        case SteeringSwitch::POWER:
-            Serial.print("POWER");
-            break;
-        case SteeringSwitch::MODE:
-            Serial.print("MODE");
-            break;
-        case SteeringSwitch::SEEK_UP:
-            Serial.print("SEEK_UP");
-            break;
-        case SteeringSwitch::SEEK_DOWN:
-            Serial.print("SEEK_DOWN");
-            break;
-        case SteeringSwitch::VOLUME_UP:
-            Serial.print("VOLUME_UP");
-            break;
-        case SteeringSwitch::VOLUME_DOWN:
-            Serial.print("VOLUME_DOWN");
-            break;
-        default:
-            break;
-    }
-}
-
-void PrintButtons(const SteeringSwitch& sw) {
-    for (int i = SteeringSwitch::POWER; i < SteeringSwitch::VOLUME_DOWN; i++) {
-        if (sw.onPress(i)) {
-            Serial.print("press ");
-            PrintButtonName(i);
-            Serial.println("");
-        }
-        if (sw.onRelease(i)) {
-            Serial.print("release ");
-            PrintButtonName(i);
-            Serial.println("");
-        }
+void toggleRdef() {
+    if (rdef) {
+        digitalWrite(RDEF_PIN, 0);
+        rdef = false;
+        Serial.println("rdef off");
+    } else {
+        digitalWrite(RDEF_PIN, 1);
+        rdef = true;
+        Serial.println("rdef on");
     }
 }
 
 void setup() {
+    pinMode(RDEF_PIN, OUTPUT);
+    digitalWrite(RDEF_PIN, 0);
+    rdef = false;
+
     Serial.begin(115200);
     while(!Serial) {
         delay(100);
@@ -115,6 +36,52 @@ void setup() {
 }
 
 void loop() {
-    Serial.println(analogRead(A0));
-    delay(500);
+    int val = analogRead(SW_A_PIN);
+    if (val < 1023) {
+        Serial.print("SW_A: ");
+        Serial.println(val);
+    }
+    val = analogRead(SW_B_PIN);
+    if (val < 1023) {
+        Serial.print("SW_B: ");
+        Serial.println(val);
+    }
+
+    swA.update();
+    if (swA.onPress(0))  {
+        Serial.println("press POWER");
+    } else if (swA.onPress(1)) {
+        Serial.println("press SEEK_UP");
+    } else if (swA.onPress(2)) {
+        Serial.println("press VOLUME_UP");
+    } else if (swA.onRelease(0))  {
+        Serial.println("release POWER");
+    } else if (swA.onRelease(1)) {
+        Serial.println("release SEEK_UP");
+    } else if (swA.onRelease(2)) {
+        Serial.println("release VOLUME_UP");
+    }
+
+    swB.update();
+    if (swB.onPress(0))  {
+        Serial.println("press MODE");
+    } else if (swB.onPress(1)) {
+        Serial.println("press SEEK_DOWN");
+    } else if (swB.onPress(2)) {
+        Serial.println("press VOLUME_DOWN");
+    } else if (swB.onRelease(0))  {
+        Serial.println("release MODE");
+    } else if (swB.onRelease(1)) {
+        Serial.println("release SEEK_DOWN");
+    } else if (swB.onRelease(2)) {
+        Serial.println("release VOLUME_DOWN");
+    }
+
+    while (Serial.available()) {
+        if (Serial.read() == '\n') {
+            toggleRdef();
+        }
+    }
+
+    delay(10);
 }
