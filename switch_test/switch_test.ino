@@ -13,14 +13,12 @@ AnalogMultiButton swB(SW_B_PIN, sw_count, sw_values);
 bool rdef = false;
 
 void toggleRdef() {
+    rdef = !rdef;
+    digitalWrite(RDEF_PIN, rdef);
     if (rdef) {
-        digitalWrite(RDEF_PIN, 0);
-        rdef = false;
-        Serial.println("rdef off");
+        Serial.println("turn rdef on");
     } else {
-        digitalWrite(RDEF_PIN, 1);
-        rdef = true;
-        Serial.println("rdef on");
+        Serial.println("turn rdef off");
     }
 }
 
