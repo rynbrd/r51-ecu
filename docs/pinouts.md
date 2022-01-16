@@ -73,11 +73,11 @@ Steering switch function approximate resistance:
 
 | Function      | Line      | Resistance |
 | ------------- | --------- | ---------- |
-| Volume (up)   | STRG_SW_A |        487 |
-| Seek (up)     | STRG_SW_A |        165 |
+| Volume (down) | STRG_SW_A |        487 |
+| Seek (down)   | STRG_SW_A |        165 |
 | Power         | STRG_SW_A |          0 |
-| Volume (down) | STRG_SW_B |        487 |
-| Seek (down)   | STRG_SW_B |        165 |
+| Volume (up)   | STRG_SW_B |        487 |
+| Seek (up)     | STRG_SW_B |        165 |
 | Mode          | STRG_SW_B |          0 |
 
 ### Connector M43
