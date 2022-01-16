@@ -315,9 +315,10 @@ button:
 _This section is inferred from the service manual. Functionality has not yet been tested._
 
 The rear defrost turns on/off the rear window and side mirror heating elements.
-This is, in effect, independent of regular HVAC operations and so is controlled
-via a separate wire to the A/C Auto Amp. This is the yellow wire on connector
-M98; pin 16 on the A/C and AV Switch Assembly.
+This is independent of regular HVAC operations and so is controlled via a
+separate wire to the BCM. This is the yellow wire on connector M98, pin 16, on
+the A/C and AV Switch Assembly. This terminates at the BCM with connector M18,
+pin 9.
 
 The A/C Auto Amp provides 5v on this line. When this line is grounded the A/C
 Auto Amp sends an updated CAN frame to the IPDM to enable the heating elements.
