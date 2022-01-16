@@ -320,8 +320,9 @@ separate wire to the BCM. This is the yellow wire on connector M98, pin 16, on
 the A/C and AV Switch Assembly. This terminates at the BCM with connector M18,
 pin 9.
 
-The A/C Auto Amp provides 5v on this line. When this line is grounded the A/C
-Auto Amp sends an updated CAN frame to the IPDM to enable the heating elements.
+The BCM provides 5v on this line. When this line is grounded momentarily the
+BCM toggles the rear defrost. The BCM sends a CAN frame to the IPDM to enable
+or disable to heating elements.
 
 The A/C and AV Switch Assembly grounds this wire when the rear defrost button
 is toggled on. The line is allowed to float when toggled off.
