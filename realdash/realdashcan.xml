@@ -69,5 +69,15 @@
       <value name="Request Latest Settings" offset="7" startbit="0" bitcount="1" initialValue="0"></value>
       <value name="Reset Settings to Default" offset="7" startbit="7" bitcount="1" initialValue="0"></value>
     </frame>
+
+    <!-- Physical keypad state. -->
+    <frame id="0x5800" signed="false">
+      <value name="Audio Power" offset="0" startbit="0" bitcount="1" initialValue="0"></value>
+      <value name="Audio Mode" offset="0" startbit="1" bitcount="1" initialValue="0"></value>
+      <value name="Audio Volume Up" offset="0" startbit="2" bitcount="1" initialValue="0"></value>
+      <value name="Audio Volume Down" offset="0" startbit="3" bitcount="1" initialValue="0"></value>
+      <value name="Audio Seek Up" offset="0" startbit="4" bitcount="1" initialValue="0"></value>
+      <value name="Audio Seek Down" offset="0" startbit="5" bitcount="1" initialValue="0"></value>
+    </frame>
   </frames>
 </RealDashCAN>

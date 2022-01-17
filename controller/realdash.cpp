@@ -541,3 +541,82 @@ void RealDashSettings::receive(uint32_t id, uint8_t len, byte* data) {
         }
     })
 }
+
+void RealDashKeypad::connect(RealDashConnection* realdash) {
+
+    if (repeat_ < 1) {
+        repeat_ = 1;
+    }
+    realdash_ = realdash;
+    last_write_ = 0;
+    write_count_ = repeat_;     // force a write on start
+    memset(frame5800_, 0, 8);
+}
+
+void RealDashKeypad::press(KeypadController::Button button) {
+    switch (button) {
+        case KeypadController::POWER:
+            setBit(frame5800_, 0, 0, 1);
+            break;
+        case KeypadController::MODE:
+            setBit(frame5800_, 0, 1, 1);
+            break;
+        case KeypadController::VOLUME_UP:
+            setBit(frame5800_, 0, 2, 1);
+            break;
+        case KeypadController::VOLUME_DOWN:
+            setBit(frame5800_, 0, 3, 1);
+            break;
+        case KeypadController::SEEK_UP:
+            setBit(frame5800_, 0, 4, 1);
+            break;
+        case KeypadController::SEEK_DOWN:
+            setBit(frame5800_, 0, 5, 1);
+            break;
+        default:
+            break;
+    }
+    last_write_ = 0;
+}
+
+void RealDashKeypad::release(KeypadController::Button button) {
+    switch (button) {
+        case KeypadController::POWER:
+            setBit(frame5800_, 0, 0, 0);
+            break;
+        case KeypadController::MODE:
+            setBit(frame5800_, 0, 1, 0);
+            break;
+        case KeypadController::VOLUME_UP:
+            setBit(frame5800_, 0, 2, 0);
+            break;
+        case KeypadController::VOLUME_DOWN:
+            setBit(frame5800_, 0, 3, 0);
+            break;
+        case KeypadController::SEEK_UP:
+            setBit(frame5800_, 0, 4, 0);
+            break;
+        case KeypadController::SEEK_DOWN:
+            setBit(frame5800_, 0, 5, 0);
+            break;
+        default:
+            break;
+    }
+    last_write_ = 0;
+}
+
+void RealDashKeypad::push() {
+    if (realdash_ == nullptr) {
+        return;
+    }
+    if (write_count_ < repeat_ || millis() - last_write_ >= 500) {
+        if (write_count_ == 0) {
+            INFO_MSG_FRAME("realdash: send ", 0x5800, 8, frame5800_);
+        }
+        if (write_count_ < repeat_) {
+            write_count_++;
+        }
+        realdash_->write(0x5800, 8, frame5800_);
+        last_write_ = millis();
+    }
+}
