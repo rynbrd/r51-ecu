@@ -7,6 +7,7 @@
 #include "listener.h"
 #include "realdash.h"
 #include "serial.h"
+#include "steering.h"
 #include "vehicle.h"
 
 struct {
@@ -29,6 +30,8 @@ VehicleClimate climate_system(REAR_DEFROST_PIN, REAR_DEFROST_TRIGGER_MS);
 VehicleSettings settings_system;
 RealDashClimate climate_dash(REALDASH_REPEAT);
 RealDashSettings settings_dash(REALDASH_REPEAT);
+RealDashKeypad dash_keypad(REALDASH_REPEAT);
+SteeringSwitch steering_switch(STEERING_SWITCH_A_PIN, STEERING_SWITCH_B_PIN);
 
 void connect() {
 #ifdef CAN_LISTEN_ONLY
@@ -39,6 +42,7 @@ void connect() {
 #endif
     climate_dash.connect(&realdash, &climate_system);
     settings_dash.connect(&realdash, &settings_system);
+    steering_switch.connect(&dash_keypad);
 }
 
 void receive() {
@@ -53,6 +57,7 @@ void push() {
     settings_system.push();
     climate_dash.push();
     settings_dash.push();
+    dash_keypad.push();
 }
 
 void setup() {
@@ -94,4 +99,6 @@ void loop() {
         }
         push();
     }
+    steering_switch.read();
+    push();
 }
