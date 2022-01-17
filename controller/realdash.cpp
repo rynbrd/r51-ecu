@@ -205,7 +205,7 @@ void RealDashClimate::connect(RealDashConnection* realdash, ClimateController* c
     }
     realdash_ = realdash;
     climate_ = climate;
-    last_write_ = 0;            // set to 0 to trigger immediately
+    last_write_ = 0;
     last_read_ = millis();      // for control state timeouts
     write_count_ = repeat_;     // force a write on start
     memset(frame5400_, 0, 8);
@@ -289,6 +289,7 @@ void RealDashClimate::push() {
             write_count_++;
         }
         realdash_->write(0x5400, 8, frame5400_);
+        last_write_ = millis();
     }
 }
 
