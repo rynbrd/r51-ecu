@@ -30,4 +30,13 @@
 // Uncomment to disable writes to the CAN bus.
 //#define CAN_LISTEN_ONLY
 
+// Steering wheel button config. Two sets of three buttons are connected to two
+// analog pins. Pressing a button results in a resistance on the line.
+#define STEERING_SWITCH_A_PIN A2
+#define STEERING_SWITCH_B_PIN A3
+// The number of steering wheel buttons. This is the same for each analog pin.
+#define STEERING_SWITCH_COUNT 3
+// The analog values to expect for each button press.
+#define STEERING_SWITCH_VALUES {50, 280, 640}
+
 #endif  // __R51_CONFIG__
