@@ -168,7 +168,7 @@ class RealDashClimate : public DashClimateController, Listener {
             write_count_(0), last_write_(0), last_read_(0) {}
 
         // Connect the controller to a dashboard and vehicle systems.
-        void connect(RealDashConnection* realdash, ClimateController* climate);
+        void connect(Connection* realdash, ClimateController* climate);
 
         // Update the on/off state of the climate control.
         void setClimateActive(bool value) override;
@@ -216,7 +216,7 @@ class RealDashClimate : public DashClimateController, Listener {
         void push() override;
     private:
         // The connection to the RealDash instance.
-        RealDashConnection* realdash_;
+        Connection* realdash_;
 
         // The climate control system to send commands to.
         ClimateController* climate_;
@@ -250,7 +250,7 @@ class RealDashSettings : public DashSettingsController, Listener {
             write_count_(0), last_read_(0){}
 
         // Connect the controller to a dashboard and vehicle systems.
-        void connect(RealDashConnection* realdash, SettingsController* settings);
+        void connect(Connection* realdash, SettingsController* settings);
 
         // Update Auto Interior Illumination setting. True is on, false is off.
         void setAutoInteriorIllumination(bool value) override;
@@ -288,7 +288,7 @@ class RealDashSettings : public DashSettingsController, Listener {
         void push() override;
     private:
         // The connection to the RealDash instance.
-        RealDashConnection* realdash_;
+        Connection* realdash_;
 
         // The climate control system to send commands to.
         SettingsController* settings_;
@@ -316,7 +316,7 @@ class RealDashKeypad : public KeypadController {
               write_count_(0), last_write_(0) {}
 
         // Connect the controller to a dashboard.
-        void connect(RealDashConnection* realdash);
+        void connect(Connection* realdash);
 
         // Keypad button pressed.
         void press(Button button) override;
@@ -329,7 +329,7 @@ class RealDashKeypad : public KeypadController {
 
     private:
         // The connection to the RealDash instance.
-        RealDashConnection* realdash_;
+        Connection* realdash_;
 
         // The keypad frame.
         byte frame5800_[8];

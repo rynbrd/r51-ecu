@@ -198,7 +198,7 @@ bool RealDashConnection::write(uint32_t id, uint8_t len, byte* data) {
     return true;
 }
 
-void RealDashClimate::connect(RealDashConnection* realdash, ClimateController* climate) {
+void RealDashClimate::connect(Connection* realdash, ClimateController* climate) {
 
     if (repeat_ < 1) {
         repeat_ = 1;
@@ -376,7 +376,7 @@ void RealDashClimate::receive(uint32_t id, uint8_t len, byte* data) {
     })
 }
 
-void RealDashSettings::connect(RealDashConnection* realdash, SettingsController* settings) {
+void RealDashSettings::connect(Connection* realdash, SettingsController* settings) {
     if (repeat_ < 1) {
         repeat_ = 1;
     }
@@ -542,7 +542,7 @@ void RealDashSettings::receive(uint32_t id, uint8_t len, byte* data) {
     })
 }
 
-void RealDashKeypad::connect(RealDashConnection* realdash) {
+void RealDashKeypad::connect(Connection* realdash) {
 
     if (repeat_ < 1) {
         repeat_ = 1;
