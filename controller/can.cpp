@@ -3,14 +3,16 @@
 #include "debug.h"
 #include "same51_can.h"
 
-bool CanConnection::begin() {
-    uint8_t err = client_.begin(MCP_ANY, baudrate_, MCAN_MODE_CAN);
-    if (err != CAN_OK) {
-        ERROR_MSG_VAL("can: connect failed: error code ", err);
-        return false;
+void CanConnection::begin() {
+    while (!init_) {
+        uint8_t err = client_.begin(MCP_ANY, baudrate_, MCAN_MODE_CAN);
+        if (err == CAN_OK) {
+            init_ = true;
+        } else {
+            ERROR_MSG_VAL("can: connect failed: error code ", err);
+            delay(1000);
+        }
     }
-    init_ = true;
-    return true;
 }
 
 bool CanConnection::read(uint32_t* id, uint8_t* len, byte* data) {

@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "binary.h"
+#include "config.h"
 #include "debug.h"
 
 
@@ -23,6 +24,14 @@ void RealDashConnection::reset() {
 
 void RealDashConnection::begin(Stream* stream) {
     stream_ = stream;
+#ifdef REALDASH_WAIT_FOR_SERIAL
+    if (stream_ != nullptr) {
+        while (!stream_) {
+            INFO_MSG("realdash: serial not ready");
+            delay(100);
+        }
+    }
+#endif
 }
 
 void RealDashConnection::updateChecksum(byte b) {
@@ -36,6 +45,10 @@ void RealDashConnection::updateChecksum(byte b) {
 bool RealDashConnection::read(uint32_t* id, uint8_t* len, byte* data) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
+        return false;
+    }
+    if (!stream_) {
+        ERROR_MSG("realdash: not connected");
         return false;
     }
     if (readHeader() && readId(id) && readData(len, data) && validateChecksum()) {
@@ -168,6 +181,10 @@ void RealDashConnection::writeBytes(const byte* b, uint8_t len) {
 bool RealDashConnection::write(uint32_t id, uint8_t len, byte* data) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
+        return false;
+    }
+    if (!stream_) {
+        ERROR_MSG("realdash: not connected");
         return false;
     }
     if (data == nullptr) {
@@ -543,7 +560,6 @@ void RealDashSettings::receive(uint32_t id, uint8_t len, byte* data) {
 }
 
 void RealDashKeypad::connect(Connection* realdash) {
-
     if (repeat_ < 1) {
         repeat_ = 1;
     }

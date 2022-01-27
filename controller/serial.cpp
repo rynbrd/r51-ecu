@@ -1,10 +1,21 @@
 #include "serial.h"
 
+#include "config.h"
 #include "debug.h"
+
 
 void SerialConnection::begin(Stream* stream) {
     stream_ = stream;
     reset();
+
+#ifdef DEBUG_WAIT_FOR_SERIAL
+    if (stream_ != nullptr) {
+        while (!stream_) {
+            INFO_MSG("serial: serial not ready");
+            delay(100);
+        }
+    }
+#endif
 }
 
 bool SerialConnection::read(uint32_t* id, uint8_t* len, byte* data) {

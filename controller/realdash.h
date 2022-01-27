@@ -139,7 +139,7 @@ class RealDashConnection : public Connection {
 
         // Read attributes.
         bool frame_type_66_;        // Type of frame. False if 0x44, true if 0x66.
-        uint8_t frame44_checksum_;  // Frame 0x44 checksum.  Calculated as bytes are read.
+        uint8_t frame44_checksum_;  // Frame 0x44 checksum. Calculated as bytes are read.
         CRC32 frame66_checksum_;    // Frame 0x66 checksum. Calculated as bytes are read.
         byte checksum_buffer_[4];   // Buffer to read in the checksum.
         uint8_t frame_size_;        // Expected size of the frame data if type is 0x66.

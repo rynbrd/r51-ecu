@@ -62,26 +62,18 @@ void push() {
 
 void setup() {
     DEBUG_BEGIN();
+
+    D(serial.begin(&DEBUG_SERIAL));
     INFO_MSG("setup: initializing ecu");
 
-    D({
-        serial.begin(&DEBUG_SERIAL);
-#ifdef DEBUG_WAIT_FOR_SERIAL
-        while (!DEBUG_SERIAL) {
-            delay(100);
-        }
-#endif
-    })
 
+    INFO_MSG("setup: connecting to dash");
     REALDASH_SERIAL.begin(REALDASH_BAUDRATE);
-    while (!REALDASH_SERIAL) {
-        delay(100);
-    }
     realdash.begin(&REALDASH_SERIAL);
 
-    while (!can.begin()) {
-        delay(1000);
-    }
+    INFO_MSG("setup: connecting to vehicle");
+    can.begin();
+
     INFO_MSG("setup: ecu started");
 
     connect();

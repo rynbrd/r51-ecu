@@ -11,7 +11,7 @@ class CanConnection : public Connection {
             baudrate_(baudrate), retries_(5) {}
 
         // Initialize the CAN controller. 
-        bool begin();
+        void begin();
 
         // Read a frame from the CAN bus. Return true if a frame was read.
         bool read(uint32_t* id, uint8_t* len, byte* data) override;
