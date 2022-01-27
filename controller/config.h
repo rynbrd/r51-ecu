@@ -10,7 +10,7 @@
 
 // Uncomment the following line to enable debug output.
 //#define DEBUG_ENABLE
-#define DEBUG_SERIAL Serial
+#define DEBUG_SERIAL Serial1
 #define DEBUG_BAUDRATE 115200
 // Uncomment to block boot until serial is connected.
 //#define DEBUG_WAIT_FOR_SERIAL
@@ -19,9 +19,9 @@
 // RealDash does not send a DTR. On CanBed (and other Leonardos) this needs to
 // be the Serial1 TTL as the USB connected Serial expects a DTR before
 // transmitting. 
-#define REALDASH_SERIAL Serial1
-#define REALDASH_BAUDRATE 57600
-#define REALDASH_REPEAT 3
+#define REALDASH_SERIAL Serial
+#define REALDASH_BAUDRATE 115200
+#define REALDASH_REPEAT 1
 #define REALDASH_WAIT_FOR_SERIAL
 
 // CAN Bus configuration. Set the appropriate CS pin for the target board.
