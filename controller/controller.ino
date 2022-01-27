@@ -42,6 +42,7 @@ void connect() {
 #endif
     climate_dash.connect(&realdash, &climate_system);
     settings_dash.connect(&realdash, &settings_system);
+    dash_keypad.connect(&realdash);
     steering_switch.connect(&dash_keypad);
 }
 
