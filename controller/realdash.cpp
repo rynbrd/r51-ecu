@@ -24,14 +24,6 @@ void RealDashConnection::reset() {
 
 void RealDashConnection::begin(Stream* stream) {
     stream_ = stream;
-#ifdef REALDASH_WAIT_FOR_SERIAL
-    if (stream_ != nullptr) {
-        while (!stream_) {
-            INFO_MSG("realdash: serial not ready");
-            delay(100);
-        }
-    }
-#endif
 }
 
 void RealDashConnection::updateChecksum(byte b) {

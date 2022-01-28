@@ -65,19 +65,23 @@ void setup() {
     DEBUG_BEGIN();
 
     D(serial.begin(&DEBUG_SERIAL));
-    INFO_MSG("setup: initializing ecu");
-
+    #ifdef DEBUG_WAIT_FOR_SERIAL
+    WAIT_FOR_SERIAL(REALDASH_SERIAL, 100, nullptr);
+    #endif
 
     INFO_MSG("setup: connecting to dash");
     REALDASH_SERIAL.begin(REALDASH_BAUDRATE);
+    #ifdef REALDASH_WAIT_FOR_SERIAL
+    WAIT_FOR_SERIAL(REALDASH_SERIAL, 1000, "setup: dash serial not ready");
+    #endif
     realdash.begin(&REALDASH_SERIAL);
 
     INFO_MSG("setup: connecting to vehicle");
     can.begin();
 
-    INFO_MSG("setup: ecu started");
-
     connect();
+
+    INFO_MSG("setup: ecu started");
 }
 
 // The loop must push out all state changes for each frame before processing

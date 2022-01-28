@@ -4,6 +4,17 @@
 #include <Arduino.h>
 #include "connection.h"
 
+
+#define WAIT_FOR_SERIAL(SERIAL, DELAY, LOG_MSG) ({\
+    while(!SERIAL) {\
+        if (LOG_MSG != nullptr) {\
+            INFO_MSG(LOG_MSG);\
+        }\
+        delay(DELAY);\
+    }\
+})
+
+
 // A text based connection which reads frames from a serial stream. Useful for
 // sending hand-built frames for debugging via TTL.
 //
