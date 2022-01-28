@@ -22,7 +22,7 @@
 #define REALDASH_SERIAL Serial
 #define REALDASH_BAUDRATE 115200
 #define REALDASH_REPEAT 1
-#define REALDASH_WAIT_FOR_SERIAL
+//#define REALDASH_WAIT_FOR_SERIAL
 
 // CAN Bus configuration. Set the appropriate CS pin for the target board.
 // Baudrate should match the connected CAN bus.
