@@ -304,10 +304,10 @@ void VehicleClimate::receive54B(uint8_t len, byte* data) {
 }
 
 void VehicleClimate::receive625(uint8_t len, byte* data) {
-    if (len != 8) {
+    if (len != 6) {
         ERROR_MSG_VAL("vehicle: frame 0x625 has invalid length: 8 != ", len);
     }
-    INFO_MSG_FRAME("vehicle: receive ", 0x625, 8, data);
+    INFO_MSG_FRAME("vehicle: receive ", 0x625, 6, data);
 
     rear_defrost_ = getBit(data, 0, 0);
 
