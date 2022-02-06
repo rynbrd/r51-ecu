@@ -8,15 +8,15 @@ bool framesEqual(Frame* left, Frame* right) {
 }
 
 void Bus::loop() {
-    for (int i = 0; i < count_; i++) {
-        if (nodes_[i]->recieve(&frame_)) {
+    for (uint8_t i = 0; i < count_; i++) {
+        if (nodes_[i]->receive(&frame_)) {
             broadcast();
         }
     }
 }
 
 void Bus::broadcast() {
-    for (int i = 0; i < count_; i++) {
+    for (uint8_t i = 0; i < count_; i++) {
         if (nodes_[i]->filter(frame_.id)) {
             nodes_[i]->send(&frame_);
         }

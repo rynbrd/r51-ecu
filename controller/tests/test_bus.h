@@ -4,6 +4,7 @@
 #include "src/bus.h"
 
 
+// A mock bus node for testing.
 class MockNode : public Node {
     public:
         MockNode(int buffer_size) :
@@ -15,7 +16,7 @@ class MockNode : public Node {
             }
         }
 
-        Frame* recieve_ = nullptr;
+        Frame* receive_ = nullptr;
         Frame** send_;
         int send_size_;
         int send_count_;
@@ -23,8 +24,8 @@ class MockNode : public Node {
         uint32_t filter2_ = 0;
 
         ~MockNode() {
-            if (recieve_ != nullptr) {
-                delete recieve_;
+            if (receive_ != nullptr) {
+                delete receive_;
             }
             for (int i = 0; i < send_size_; i++) {
                 if (send_[i] != nullptr) {
@@ -34,14 +35,14 @@ class MockNode : public Node {
             delete send_;
         }
 
-        bool recieve(Frame* frame) override {
-            if (recieve_ == nullptr) {
+        bool receive(Frame* frame) override {
+            if (receive_ == nullptr) {
                 return false;
             }
 
-            frame->id = recieve_->id;
-            frame->len = recieve_->len;
-            memcpy(frame->data, recieve_->data, recieve_->len);
+            frame->id = receive_->id;
+            frame->len = receive_->len;
+            memcpy(frame->data, receive_->data, receive_->len);
             return true;
         }
 
@@ -62,18 +63,18 @@ class MockNode : public Node {
 
 test(Bus, SingleBroadcast) {
     MockNode n1 = MockNode(1);
-    n1.recieve_ = new Frame();
-    n1.recieve_->id = 1;
-    n1.recieve_->len = 2;
-    n1.recieve_->data[0] = 0x11;
-    n1.recieve_->data[1] = 0x22;
+    n1.receive_ = new Frame();
+    n1.receive_->id = 1;
+    n1.receive_->len = 2;
+    n1.receive_->data[0] = 0x11;
+    n1.receive_->data[1] = 0x22;
 
     MockNode n2 = MockNode(1);
-    n2.recieve_ = nullptr;
+    n2.receive_ = nullptr;
     n2.filter1_ = 1;
 
     MockNode n3 = MockNode(1);
-    n3.recieve_ = nullptr;
+    n3.receive_ = nullptr;
     n3.filter1_ = 1;
 
     Node* nodes[] = {&n1, &n2, &n3};
@@ -83,30 +84,30 @@ test(Bus, SingleBroadcast) {
 
     assertEqual(n1.send_count_, 0);
     assertEqual(n2.send_count_, 1);
-    assertTrue(framesEqual(n1.recieve_, n2.send_[0]));
+    assertTrue(framesEqual(n1.receive_, n2.send_[0]));
     assertEqual(n3.send_count_, 1);
-    assertTrue(framesEqual(n1.recieve_, n3.send_[0]));
+    assertTrue(framesEqual(n1.receive_, n3.send_[0]));
 }
 
 test(Bus, MultiBroadcast) {
     MockNode n1 = MockNode(1);
-    n1.recieve_ = new Frame();
-    n1.recieve_->id = 1;
-    n1.recieve_->len = 2;
-    n1.recieve_->data[0] = 0x11;
-    n1.recieve_->data[1] = 0x22;
+    n1.receive_ = new Frame();
+    n1.receive_->id = 1;
+    n1.receive_->len = 2;
+    n1.receive_->data[0] = 0x11;
+    n1.receive_->data[1] = 0x22;
     n1.filter1_ = 2;
 
     MockNode n2 = MockNode(1);
-    n2.recieve_ = new Frame();
-    n2.recieve_->id = 2;
-    n2.recieve_->len = 2;
-    n2.recieve_->data[0] = 0x33;
-    n2.recieve_->data[1] = 0x44;
+    n2.receive_ = new Frame();
+    n2.receive_->id = 2;
+    n2.receive_->len = 2;
+    n2.receive_->data[0] = 0x33;
+    n2.receive_->data[1] = 0x44;
     n2.filter1_ = 1;
 
     MockNode n3 = MockNode(2);
-    n3.recieve_ = nullptr;
+    n3.receive_ = nullptr;
     n3.filter1_ = 1;
     n3.filter2_ = 2;
 
@@ -116,27 +117,27 @@ test(Bus, MultiBroadcast) {
     bus.loop();
 
     assertEqual(n1.send_count_, 1);
-    assertTrue(framesEqual(n2.recieve_, n1.send_[0]));
+    assertTrue(framesEqual(n2.receive_, n1.send_[0]));
     assertEqual(n2.send_count_, 1);
-    assertTrue(framesEqual(n1.recieve_, n2.send_[0]));
+    assertTrue(framesEqual(n1.receive_, n2.send_[0]));
     assertEqual(n3.send_count_, 2);
-    assertTrue(framesEqual(n1.recieve_, n3.send_[0]));
-    assertTrue(framesEqual(n2.recieve_, n3.send_[1]));
+    assertTrue(framesEqual(n1.receive_, n3.send_[0]));
+    assertTrue(framesEqual(n2.receive_, n3.send_[1]));
 }
 
 test(Bus, MultiLoop) {
     MockNode n1 = MockNode(1);
-    n1.recieve_ = new Frame();
-    n1.recieve_->id = 1;
-    n1.recieve_->len = 2;
-    n1.recieve_->data[0] = 0x11;
-    n1.recieve_->data[1] = 0x22;
+    n1.receive_ = new Frame();
+    n1.receive_->id = 1;
+    n1.receive_->len = 2;
+    n1.receive_->data[0] = 0x11;
+    n1.receive_->data[1] = 0x22;
 
     MockNode n2 = MockNode(1);
-    n2.recieve_ = nullptr;
+    n2.receive_ = nullptr;
 
     MockNode n3 = MockNode(3);
-    n3.recieve_ = nullptr;
+    n3.receive_ = nullptr;
     n3.filter1_ = 1;
     n3.filter2_ = 2;
 
@@ -148,22 +149,22 @@ test(Bus, MultiLoop) {
     assertEqual(n1.send_count_, 0);
     assertEqual(n2.send_count_, 0);
     assertEqual(n3.send_count_, 1);
-    assertTrue(framesEqual(n1.recieve_, n3.send_[0]));
+    assertTrue(framesEqual(n1.receive_, n3.send_[0]));
 
-    n2.recieve_ = new Frame();
-    n2.recieve_->id = 2;
-    n2.recieve_->len = 2;
-    n2.recieve_->data[0] = 0x33;
-    n2.recieve_->data[1] = 0x44;
+    n2.receive_ = new Frame();
+    n2.receive_->id = 2;
+    n2.receive_->len = 2;
+    n2.receive_->data[0] = 0x33;
+    n2.receive_->data[1] = 0x44;
 
     bus.loop();
 
     assertEqual(n1.send_count_, 0);
     assertEqual(n2.send_count_, 0);
     assertEqual(n3.send_count_, 3);
-    assertTrue(framesEqual(n1.recieve_, n3.send_[0]));
-    assertTrue(framesEqual(n1.recieve_, n3.send_[1]));
-    assertTrue(framesEqual(n2.recieve_, n3.send_[2]));
+    assertTrue(framesEqual(n1.receive_, n3.send_[0]));
+    assertTrue(framesEqual(n1.receive_, n3.send_[1]));
+    assertTrue(framesEqual(n2.receive_, n3.send_[2]));
 
 }
 
