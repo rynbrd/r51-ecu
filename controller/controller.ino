@@ -1,14 +1,14 @@
 #include <Arduino.h>
 
-#include "can.h"
-#include "climate.h"
-#include "config.h"
-#include "debug.h"
-#include "listener.h"
-#include "realdash.h"
-#include "serial.h"
-#include "steering.h"
-#include "vehicle.h"
+#include "src/can.h"
+#include "src/climate.h"
+#include "src/config.h"
+#include "src/debug.h"
+#include "src/listener.h"
+#include "src/realdash.h"
+#include "src/serial.h"
+#include "src/steering.h"
+#include "src/vehicle.h"
 
 struct {
     uint32_t id;
