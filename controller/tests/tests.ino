@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <AUnit.h>
 #include "test_bus.h"
+#include "test_realdash.h"
 
 using namespace aunit;
 

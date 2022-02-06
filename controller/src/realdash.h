@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "CRC32.h"
+#include "bus.h"
 #include "climate.h"
 #include "connection.h"
 #include "dash.h"
@@ -115,11 +116,12 @@
 
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and
 // 0x66 type frames. All written frames are 0x66 for error checking (0x44
-// frames do not contain a checksum).
-class RealDashConnection : public Connection {
+// frames do not contain a checksum). This class is abstract. A child class
+// needs to implement the filter() method to be complete.
+class RealDash : public Node {
     public:
         // Construct an uninitialized RealDash instance.
-        RealDashConnection();
+        RealDash();
 
         // Start the RealDash instance. Data is transmitted over the given
         // serial stream. This is typically Serial or SerialUSB.
@@ -128,11 +130,11 @@ class RealDashConnection : public Connection {
         // Read a frame from RealDash. Returns true if a frame was read or
         // false if not. Should be called on every loop or the connected serial
         // device may block.
-        bool read(uint32_t* id, uint8_t* len, byte* data) override;
+        bool receive(Frame* frame) override;
 
         // Write frame to RealDash. Return false on success or false on
         // failure.
-        bool write(uint32_t id, uint8_t len, byte* data) override;
+        void send(Frame* frame) override;
 
     private:
         Stream* stream_;
@@ -150,8 +152,8 @@ class RealDashConnection : public Connection {
 
         void updateChecksum(byte b);
         bool readHeader();
-        bool readId(uint32_t* id);
-        bool readData(uint8_t* len, byte* data);
+        bool readId(Frame* frame);
+        bool readData(Frame* frame);
         bool validateChecksum();
         void reset();
         void writeByte(const byte b);
