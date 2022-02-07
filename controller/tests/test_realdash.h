@@ -1,10 +1,10 @@
 #ifndef __R51_TESTS_REALDASH__
 #define __R51_TESTS_REALDASH__
 
-#include "broadcast.h"
+#include "mock_broadcast.h"
+#include "mock_stream.h"
 #include "src/bus.h"
 #include "src/realdash.h"
-#include "stream.h"
 
 class FakeRealDash : public RealDash {
     public:

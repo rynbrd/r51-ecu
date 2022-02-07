@@ -3,9 +3,9 @@
 
 #include <AUnit.h>
 
-#include "broadcast.h"
-#include "clock.h"
-#include "gpio.h"
+#include "mock_broadcast.h"
+#include "mock_clock.h"
+#include "mock_gpio.h"
 #include "src/bus.h"
 #include "src/config.h"
 #include "src/steering.h"

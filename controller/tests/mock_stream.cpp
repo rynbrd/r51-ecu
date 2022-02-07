@@ -1,4 +1,4 @@
-#include "stream.h"
+#include "mock_stream.h"
 
 int FakeReadStream::available() {
     return pos_ < size_;
