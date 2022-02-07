@@ -61,7 +61,7 @@ class MockNode : public Node {
         }
 };
 
-test(Bus, SingleBroadcast) {
+test(BusTest, SingleBroadcast) {
     MockNode n1 = MockNode(1);
     n1.receive_ = new Frame();
     n1.receive_->id = 1;
@@ -89,7 +89,7 @@ test(Bus, SingleBroadcast) {
     assertTrue(framesEqual(n1.receive_, n3.send_[0]));
 }
 
-test(Bus, MultiBroadcast) {
+test(BusTest, MultiBroadcast) {
     MockNode n1 = MockNode(1);
     n1.receive_ = new Frame();
     n1.receive_->id = 1;
@@ -125,7 +125,7 @@ test(Bus, MultiBroadcast) {
     assertTrue(framesEqual(n2.receive_, n3.send_[1]));
 }
 
-test(Bus, MultiLoop) {
+test(BusTest, MultiLoop) {
     MockNode n1 = MockNode(1);
     n1.receive_ = new Frame();
     n1.receive_->id = 1;
