@@ -1,6 +1,9 @@
 #ifndef __R51_CLOCK__
 #define __R51_CLOCK__
 
+#include <Arduino.h>
+
+
 // Base clock interface. Allows the clock to be mocked.
 class Clock {
     public:

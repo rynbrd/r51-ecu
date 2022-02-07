@@ -1,6 +1,9 @@
 #ifndef __R51_GPIO__
 #define __R51_GPIO__
 
+#include <Arduino.h>
+
+
 // Base GPIO interface. Allows GPIO interaction to be mocked.
 class GPIO {
     public:
