@@ -1,6 +1,7 @@
 #ifndef __R51_TESTS_REALDASH__
 #define __R51_TESTS_REALDASH__
 
+#include "broadcast.h"
 #include "src/bus.h"
 #include "src/realdash.h"
 #include "stream.h"
@@ -13,7 +14,7 @@ class FakeRealDash : public RealDash {
 };
 
 test(RealDashTest, Read44) {
-    Frame actual;
+    MockBroadcast broadcast(1);
     Frame expect = {
         .id = 0x5800,
         .len = 8,
@@ -33,13 +34,13 @@ test(RealDashTest, Read44) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    bool received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect));
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
 }
 
 test(RealDashTest, Read66Short) {
-    Frame actual;
+    MockBroadcast broadcast(1);
     Frame expect = {
         .id = 0x5800,
         .len = 8,
@@ -59,13 +60,13 @@ test(RealDashTest, Read66Short) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    bool received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect));
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
 }
 
 test(RealDashTest, Read66Long) {
-    Frame actual;
+    MockBroadcast broadcast(1);
     Frame expect = {
         .id = 0x5200,
         .len = 64,
@@ -99,13 +100,13 @@ test(RealDashTest, Read66Long) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    bool received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect));
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
 }
 
 test(RealDashTest, ReadMulti) {
-    Frame actual;
+    MockBroadcast broadcast(2);
     Frame expect1 = {
         .id = 0x5800,
         .len = 8,
@@ -138,17 +139,15 @@ test(RealDashTest, ReadMulti) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    bool received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect1));
-
-    received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect2));
+    realdash.receive(broadcast.impl);
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 2);
+    assertTrue(frameEquals(broadcast.frames()[0], expect1));
+    assertTrue(frameEquals(broadcast.frames()[1], expect2));
 }
 
 test(RealDashTest, ReadPartial) {
-    Frame actual;
+    MockBroadcast broadcast(1);
     Frame expect = {
         .id = 0x5800,
         .len = 8,
@@ -170,17 +169,17 @@ test(RealDashTest, ReadPartial) {
     realdash.begin(&stream);
 
     stream.set(buffer1, sizeof(buffer1)/sizeof(buffer1[0]));
-    bool received = realdash.receive(&actual);
-    assertFalse(received);
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 0);
 
     stream.set(buffer2, sizeof(buffer2)/sizeof(buffer2[0]));
-    received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect));
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
 }
 
 test(RealDashTest, ReadPreGarbage) {
-    Frame actual;
+    MockBroadcast broadcast(1);
     Frame expect = {
         .id = 0x5800,
         .len = 8,
@@ -201,13 +200,13 @@ test(RealDashTest, ReadPreGarbage) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    bool received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect));
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
 }
 
 test(RealDashTest, ReadPostGarbage) {
-    Frame actual;
+    MockBroadcast broadcast(1);
     Frame expect = {
         .id = 0x5800,
         .len = 8,
@@ -228,12 +227,12 @@ test(RealDashTest, ReadPostGarbage) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    bool received = realdash.receive(&actual);
-    assertTrue(received);
-    assertTrue(framesEqual(&actual, &expect));
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
 
-    received = realdash.receive(&actual);
-    assertFalse(received);
+    realdash.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
 }
 
 test(RealDashTest, Write) {
@@ -258,7 +257,7 @@ test(RealDashTest, Write) {
 
     FakeRealDash realdash;
     realdash.begin(&stream);
-    realdash.send(&frame);
+    realdash.send(frame);
 
     assertEqual(memcmp(actual, expect, size), 0);
 }

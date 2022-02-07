@@ -32,19 +32,19 @@ class SteeringKeypad : public Node {
         // Free resources associated with the keypad.
         ~SteeringKeypad() override;
 
-        // Update the given frame and return true if a key event has occurred.
-        bool receive(Frame* frame) override;
+        // Broadcast a frame on keypad state change.
+        void receive(const Broadcast& broadcast) override;
 
         // Noop. This node does not process frames.
-        void send(Frame*) override {}
+        void send(const Frame&) override {}
 
         // Always returns false. This node does not process frames.
         bool filter(uint32_t) override { return false; }
 
     private:
-        byte state_;
         uint32_t last_change_;
         Clock* clock_;
+        Frame frame_;
         AnalogMultiButton* sw_a_;
         AnalogMultiButton* sw_b_;
 };

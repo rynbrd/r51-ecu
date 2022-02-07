@@ -130,14 +130,15 @@ class RealDash : public Node {
         // Read a frame from RealDash. Returns true if a frame was read or
         // false if not. Should be called on every loop or the connected serial
         // device may block.
-        bool receive(Frame* frame) override;
+        void receive(const Broadcast& broadcast) override;
 
         // Write frame to RealDash. Return false on success or false on
         // failure.
-        void send(Frame* frame) override;
+        void send(const Frame& frame) override;
 
     private:
         Stream* stream_;
+        Frame frame_;
 
         // Read attributes.
         bool frame_type_66_;        // Type of frame. False if 0x44, true if 0x66.
@@ -152,8 +153,8 @@ class RealDash : public Node {
 
         void updateChecksum(byte b);
         bool readHeader();
-        bool readId(Frame* frame);
-        bool readData(Frame* frame);
+        bool readId();
+        bool readData();
         bool validateChecksum();
         void reset();
         void writeByte(const byte b);

@@ -1,24 +1,23 @@
 #include "bus.h"
 
-bool framesEqual(Frame* left, Frame* right) {
-    if (left != nullptr && right != nullptr) {
-        return memcmp(left, right, 5+left->len) == 0;
-    }
-    return left == right;
+bool frameEquals(const Frame& left, const Frame& right) {
+    return memcmp(&left, &right, 5+left.len) == 0;
+}
+
+void copyFrame(Frame* dest, const Frame& src) {
+    memcpy(dest, &src, sizeof(Frame));
 }
 
 void Bus::loop() {
     for (uint8_t i = 0; i < count_; i++) {
-        if (nodes_[i]->receive(&frame_)) {
-            broadcast();
-        }
+        nodes_[i]->receive(broadcast_);
     }
 }
 
-void Bus::broadcast() {
-    for (uint8_t i = 0; i < count_; i++) {
-        if (nodes_[i]->filter(frame_.id)) {
-            nodes_[i]->send(&frame_);
+void Bus::BroadcastImpl::operator()(const Frame& frame) const {
+    for (uint8_t i = 0; i < bus_->count_; i++) {
+        if (bus_->nodes_[i]->filter(frame.id)) {
+            bus_->nodes_[i]->send(frame);
         }
     }
 }

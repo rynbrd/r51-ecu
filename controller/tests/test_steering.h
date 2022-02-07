@@ -1,8 +1,9 @@
-#ifndef __R51_TESTS_STEERING__
-#define __R51_TESTS_STEERING__
+#ifndef __R51_TESTS_TEST_STEERING__
+#define __R51_TESTS_TEST_STEERING__
 
 #include <AUnit.h>
 
+#include "broadcast.h"
 #include "clock.h"
 #include "gpio.h"
 #include "src/bus.h"
@@ -19,6 +20,7 @@ class SteeringKeypadTest : public TestOnce {
         void assertButtonPress(uint32_t pin, uint32_t value, byte expect) {
             MockClock clock;
             MockGPIO gpio;
+            MockBroadcast broadcast(1);
 
             Frame released = {
                 .id = 0x5800,
@@ -36,7 +38,6 @@ class SteeringKeypadTest : public TestOnce {
                     0x00, 0x00, 0x00, 0x00,
                 },
             };
-            Frame actual;
 
             // initialize keypad
             SteeringKeypad keypad(&clock, &gpio);
@@ -45,22 +46,29 @@ class SteeringKeypadTest : public TestOnce {
 
             // receive heartbeat to ensure button not pressed
             clock.delay(501);
-            assertTrue(keypad.receive(&actual));
-            assertTrue(framesEqual(&actual, &released));
+            keypad.receive(broadcast.impl);
+            assertEqual(broadcast.count(), 1);
+            assertTrue(frameEquals(broadcast.frames()[0], released));
+            broadcast.reset();
 
             // set analog value, check button, wait for debounce, check button again
             gpio.analogWrite(pin, value);
-            assertFalse(keypad.receive(&actual));
+            keypad.receive(broadcast.impl);
+            assertEqual(broadcast.count(), 0);
             clock.delay(100);
-            assertTrue(keypad.receive(&actual));
-            assertTrue(framesEqual(&actual, &pressed));
+            keypad.receive(broadcast.impl);
+            assertEqual(broadcast.count(), 1);
+            assertTrue(frameEquals(broadcast.frames()[0], pressed));
+            broadcast.reset();
 
             // release the button and advance time past the debounce
             gpio.analogWrite(pin, 1023);
-            assertFalse(keypad.receive(&actual));
+            keypad.receive(broadcast.impl);
+            assertEqual(broadcast.count(), 0);
             clock.delay(100);
-            assertTrue(keypad.receive(&actual));
-            assertTrue(framesEqual(&actual, &released));
+            keypad.receive(broadcast.impl);
+            assertEqual(broadcast.count(), 1);
+            assertTrue(frameEquals(broadcast.frames()[0], released));
         }
 };
 
@@ -91,6 +99,7 @@ testF(SteeringKeypadTest, VolumeUp) {
 test(SteeringKeypad, Heartbeat) {
     MockClock clock;
     MockGPIO gpio;
+    MockBroadcast broadcast(1);
 
     Frame expect = {
         .id = 0x5800,
@@ -100,19 +109,21 @@ test(SteeringKeypad, Heartbeat) {
             0x00, 0x00, 0x00, 0x00,
         },
     };
-    Frame actual;
 
     SteeringKeypad keypad(&clock, &gpio);
     gpio.analogWrite(STEERING_SWITCH_A_PIN, 1023);
     gpio.analogWrite(STEERING_SWITCH_B_PIN, 1023);
 
     clock.delay(501);
-    assertTrue(keypad.receive(&actual));
-    assertTrue(framesEqual(&actual, &expect));
+    keypad.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
+    broadcast.reset();
     
     clock.delay(501);
-    assertTrue(keypad.receive(&actual));
-    assertTrue(framesEqual(&actual, &expect));
+    keypad.receive(broadcast.impl);
+    assertEqual(broadcast.count(), 1);
+    assertTrue(frameEquals(broadcast.frames()[0], expect));
 }
 
-#endif  // __R51_TESTS_STEERING__
+#endif  // __R51_TESTS_TEST_STEERING__
