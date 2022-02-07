@@ -3,8 +3,14 @@
 
 #include <Arduino.h>
 
+// Get a bit from a byte.
+bool getBit(byte b, uint8_t bit);
+
 // Get a bit from a byte array.
 bool getBit(byte* b, uint8_t offset, uint8_t bit);
+
+// Set a bit in a byte.
+void setBit(byte* b, uint8_t bit, bool value);
 
 // Set a bit in a byte array.
 void setBit(byte* b, uint8_t offset, uint8_t bit, bool value);
