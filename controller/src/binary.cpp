@@ -1,30 +1,22 @@
 #include "binary.h"
 
-bool getBit(byte b, uint8_t bit) {
-    return ((b >> bit) & 1) == 1;
-}
-
-bool getBit(byte* b, uint8_t offset, uint8_t bit) {
+bool getBit(const byte* b, uint8_t offset, uint8_t bit) {
     return ((b[offset] >> bit) & 1) == 1;
 }
 
-void setBit(byte* b, uint8_t bit, bool value)  {
-    if (value) {
-        *b |= (1 << bit);
-    } else {
-        *b &= ~(1 << bit);
+bool setBit(byte* b, uint8_t offset, uint8_t bit, bool value) {
+    if (getBit(b, offset, bit) == value) {
+        return false;
     }
-}
-
-void setBit(byte* b, uint8_t offset, uint8_t bit, bool value) {
     if (value) {
         b[offset] |= (1 << bit);
     } else {
         b[offset] &= ~(1 << bit);
     }
+    return true;
 }
 
-bool xorBits(byte* b1, byte* b2, uint8_t offset, uint8_t bit) {
+bool xorBits(const byte* b1, const byte* b2, uint8_t offset, uint8_t bit) {
     return (b1[offset] >> bit & 1) != (b2[offset] >> bit & 1);
 }
 

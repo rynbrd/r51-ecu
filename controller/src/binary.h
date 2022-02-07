@@ -3,20 +3,14 @@
 
 #include <Arduino.h>
 
-// Get a bit from a byte.
-bool getBit(byte b, uint8_t bit);
-
 // Get a bit from a byte array.
-bool getBit(byte* b, uint8_t offset, uint8_t bit);
+bool getBit(const byte* b, uint8_t offset, uint8_t bit);
 
-// Set a bit in a byte.
-void setBit(byte* b, uint8_t bit, bool value);
-
-// Set a bit in a byte array.
-void setBit(byte* b, uint8_t offset, uint8_t bit, bool value);
+// Set a bit in a byte array. Return true if the bit was changed.
+bool setBit(byte* b, uint8_t offset, uint8_t bit, bool value);
 
 // Check if the same bit in the two bytes differs.
-bool xorBits(byte* b1, byte* b2, uint8_t offset, uint8_t bit);
+bool xorBits(const byte* b1, const byte* b2, uint8_t offset, uint8_t bit);
 
 // Set a bit if it differs from the current value. Return true if the bit was
 // set or false if it was not.
