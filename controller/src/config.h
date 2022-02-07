@@ -34,11 +34,17 @@
 
 // Steering wheel button config. Two sets of three buttons are connected to two
 // analog pins. Pressing a button results in a resistance on the line.
+// Pin A receives signal for power, seek down, and volume down. Pin B receives
+// signal for mode, seek up, and volume up.
 #define STEERING_SWITCH_A_PIN A2
 #define STEERING_SWITCH_B_PIN A3
 // The number of steering wheel buttons. This is the same for each analog pin.
 #define STEERING_SWITCH_COUNT 3
 // The analog values to expect for each button press.
 #define STEERING_SWITCH_VALUES {50, 280, 640}
+// Frame configuration. HB is the heartbeat interval in ms.
+#define STEERING_SWITCH_FRAME_ID 0x5800
+#define STEERING_SWITCH_FRAME_LEN 8
+#define STEERING_SWITCH_FRAME_HB 500
 
 #endif  // __R51_CONFIG__

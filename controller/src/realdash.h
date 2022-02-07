@@ -311,39 +311,4 @@ class RealDashSettings : public DashSettingsController, Listener {
         uint32_t last_read_;
 };
 
-class RealDashKeypad : public KeypadController {
-    public:
-        RealDashKeypad(uint8_t repeat = 5)
-            : realdash_(nullptr), repeat_(repeat),
-              write_count_(0), last_write_(0) {}
-
-        // Connect the controller to a dashboard.
-        void connect(Connection* realdash);
-
-        // Keypad button pressed.
-        void press(Button button) override;
-
-        // Keypad button released.
-        void release(Button button) override;
-
-        // Send keypad state frame to RealDash.
-        void push() override;
-
-    private:
-        // The connection to the RealDash instance.
-        Connection* realdash_;
-
-        // The keypad frame.
-        byte frame5800_[8];
-
-        // How many times to repeat a frame sent to RealDash.
-        uint8_t repeat_;
-
-        // How many times the current control frame has been written.
-        uint8_t write_count_;
-
-        // The last time a keypad frame was sent.
-        uint32_t last_write_;
-};
-
 #endif  // __R51_REALDASH_H__

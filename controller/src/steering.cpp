@@ -1,55 +1,108 @@
 #include "steering.h"
 
+#include "binary.h"
+#include "config.h"
+#include "debug.h"
 
-// This needs to be put into memory.
-static constexpr const int kSteeringSwitchValues[] = STEERING_SWITCH_VALUES;
 
-SteeringSwitch::SteeringSwitch(int sw_a_pin, int sw_b_pin) {
-    sw_a_ = new AnalogMultiButton(sw_a_pin, STEERING_SWITCH_COUNT, kSteeringSwitchValues);
-    sw_b_ = new AnalogMultiButton(sw_b_pin, STEERING_SWITCH_COUNT, kSteeringSwitchValues);
+// This needs to be placed in memory.
+static constexpr const int kSteeringKeypadValues[] = STEERING_SWITCH_VALUES;
+static constexpr const uint32_t kSteeringKeypadHeartbeat = 500;
+
+SteeringKeypad::SteeringKeypad(Clock* clock, GPIO* gpio) :
+        state_(0), last_change_(0), clock_(clock) {
+    sw_a_ = new AnalogMultiButton(
+            STEERING_SWITCH_A_PIN, STEERING_SWITCH_COUNT, kSteeringKeypadValues,
+            AnalogMultiButton::DEFAULT_DEBOUNCE_DURATION,
+            AnalogMultiButton::DEFAULT_ANALOG_RESOLUTION,
+            clock, gpio);
+    sw_b_ = new AnalogMultiButton(
+            STEERING_SWITCH_B_PIN, STEERING_SWITCH_COUNT, kSteeringKeypadValues,
+            AnalogMultiButton::DEFAULT_DEBOUNCE_DURATION,
+            AnalogMultiButton::DEFAULT_ANALOG_RESOLUTION,
+            clock, gpio);
 }
 
-SteeringSwitch::~SteeringSwitch() {
+SteeringKeypad::~SteeringKeypad() {
     delete sw_a_;
     delete sw_b_;
 }
 
-void SteeringSwitch::connect(KeypadController* controller) {
-    controller_ = controller;
-}
-
-void SteeringSwitch::read() {
-    if (controller_ == nullptr) {
-        return;
-    }
-
+bool SteeringKeypad::receive(Frame* frame) {
     sw_a_->update();
+    bool changed = false;
     if (sw_a_->onPress(0))  {
-        controller_->press(KeypadController::POWER);
+        // power pressed
+        setBit(&state_, 0, 1);
+        changed = true;
+        INFO_MSG("steering: press power");
     } else if (sw_a_->onPress(1)) {
-        controller_->press(KeypadController::SEEK_DOWN);
+        // seek down pressed
+        setBit(&state_, 5, 1);
+        changed = true;
+        INFO_MSG("steering: press seek down");
     } else if (sw_a_->onPress(2)) {
-        controller_->press(KeypadController::VOLUME_DOWN);
+        // volume down pressed
+        setBit(&state_, 3, 1);
+        changed = true;
+        INFO_MSG("steering: press volume down");
     } else if (sw_a_->onRelease(0))  {
-        controller_->release(KeypadController::POWER);
+        // power released
+        setBit(&state_, 0, 0);
+        changed = true;
+        INFO_MSG("steering: release power");
     } else if (sw_a_->onRelease(1)) {
-        controller_->release(KeypadController::SEEK_DOWN);
+        // seek down released
+        setBit(&state_, 5, 0);
+        changed = true;
+        INFO_MSG("steering: release seek down");
     } else if (sw_a_->onRelease(2)) {
-        controller_->release(KeypadController::VOLUME_DOWN);
+        // volume down released
+        setBit(&state_, 3, 0);
+        changed = true;
+        INFO_MSG("steering: release volume down");
     }
 
     sw_b_->update();
     if (sw_b_->onPress(0))  {
-        controller_->press(KeypadController::MODE);
+        // mode pressed
+        setBit(&state_, 1, 1);
+        changed = true;
+        INFO_MSG("steering: press mode");
     } else if (sw_b_->onPress(1)) {
-        controller_->press(KeypadController::SEEK_UP);
+        // seek up pressed
+        setBit(&state_, 4, 1);
+        changed = true;
+        INFO_MSG("steering: press seek up");
     } else if (sw_b_->onPress(2)) {
-        controller_->press(KeypadController::VOLUME_UP);
+        // volume up pressed
+        setBit(&state_, 2, 1);
+        changed = true;
+        INFO_MSG("steering: press volume up");
     } else if (sw_b_->onRelease(0))  {
-        controller_->release(KeypadController::MODE);
+        // mode released
+        setBit(&state_, 1, 0);
+        changed = true;
+        INFO_MSG("steering: release mode");
     } else if (sw_b_->onRelease(1)) {
-        controller_->release(KeypadController::SEEK_UP);
+        // seek up released
+        setBit(&state_, 4, 0);
+        changed = true;
+        INFO_MSG("steering: release seek up");
     } else if (sw_b_->onRelease(2)) {
-        controller_->release(KeypadController::VOLUME_UP);
+        // volume up released
+        setBit(&state_, 2, 0);
+        changed = true;
+        INFO_MSG("steering: release volume up");
     }
+
+    if (changed || clock_->millis() - last_change_ >= STEERING_SWITCH_FRAME_HB) {
+        last_change_ = clock_->millis();
+        frame->id = STEERING_SWITCH_FRAME_ID;
+        frame->len = STEERING_SWITCH_FRAME_LEN;
+        memset(frame->data, 0, STEERING_SWITCH_FRAME_LEN);
+        frame->data[0] = state_;
+        return true;
+    }
+    return false;
 }

@@ -2,6 +2,7 @@
 #include <AUnit.h>
 #include "test_bus.h"
 #include "test_realdash.h"
+#include "test_steering.h"
 
 using namespace aunit;
 
