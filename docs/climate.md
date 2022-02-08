@@ -542,11 +542,11 @@ This frame is sent by the A/C Auto Amp to indicate the zone temperatures.
 ```
     +---------------------- unknown; either 0x3C or 0xDA
     |
-    |  +------------------- awlays 0x3E
+    |  +------------------- always 0x3E
     |  |
     |  |  +---------------- always 0x7F
     |  |  |
-    |  |  |  +------------- always 0x80
+    |  |  |  +------------- units
     |  |  |  |
     |  |  |  |  +---------- current driver temperature
     |  |  |  |  |
@@ -571,9 +571,11 @@ _Byte 2: Unknown_
 
 Always 0x7F.
 
-_Byte 3: Unknown_
+_Byte 3: Units_
 
-Always 0x80.
+The display units. Valid values are:
+* 0x40: Metric (Celsius)
+* 0x80: US (Fahrenheit)
 
 _Byte 4: Driver Temperature_
 
@@ -581,7 +583,7 @@ This is an 8-bit unsigned integer representing the temperate of the driver side
 climate zone. Values are 0 when climate unit is off and from 60 to 90F when
 on.
 
-_TODO: Determine Celcsius temperature range._
+_TODO: Determine Celsius temperature range._
 
 _Byte 5: Passenger Temperature_
 
@@ -589,7 +591,7 @@ This is an 8-bit unsigned integer representing the temperate of the passenger
 side climate zone. Values are 0 when climate unit is off and from 60 to 90F
 when on.
 
-_TODO: Determine Celcsius temperature range._
+_TODO: Determine Celsius temperature range._
 
 _Byte 6: Unknown_
 
