@@ -6,7 +6,7 @@
 #include "bus.h"
 #include "clock.h"
 #include "gpio.h"
-#include "io.h"
+#include "momentary_output.h"
 
 
 // Manages vehicle climate control system and sends state changes via a single
@@ -79,7 +79,7 @@ class Climate : public Node {
         Clock* clock_;
 
         // Hardware control.
-        MomentaryPin rear_defrost_;
+        MomentaryOutput rear_defrost_;
 
         // Operational state.
         enum State : uint8_t {
