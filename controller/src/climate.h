@@ -1,69 +1,161 @@
 #ifndef __R51_CLIMATE_H__
 #define __R51_CLIMATE_H__
 
-#include "controller.h"
+#include <Arduino.h>
 
-// Controls a climate control system.
-class ClimateController : public Controller {
+#include "bus.h"
+#include "clock.h"
+#include "gpio.h"
+#include "io.h"
+
+
+// Manages vehicle climate control system and sends state changes via a single
+// frame.
+//
+// On start it is in the "initialization" state and will send some
+// initialization control frames to the A/C Auto Amp to bring it online. The
+// controller will send control frames at least every 200ms to ensure the A/C
+// Auto Amp remains active.
+//
+// Frame 0x5400: Climate State Frame
+//   Byte 0: Unit and Vent State
+//     Bit 0: active
+//     Bit 1: auto
+//     Bit 2: ac
+//     Bit 3: dual
+//     Bit 4: face
+//     Bit 5: feet
+//     Bit 6: defrost (windshield)
+//     Bit 7: recirculate
+//   Byte 1: Fan Speed
+//   Byte 2: Driver Temperature
+//   Byte 3: Passenger Temperature
+//   Byte 4: Heating Elements
+//     Bit 0: rear window heating element
+//     Bit 1-7: unused
+//   Bytes 5-6: unused
+//   Byte 7: Outside Temperature
+//
+// Frame 0x5401: Climate Control Frame
+//   Byte 0: Unit State and Mode
+//     Bit 0: turn off
+//     Bit 1: toggle auto
+//     Bit 2: toggle ac
+//     Bit 3: toggle dual
+//     Bit 4: cycle mode
+//     Bit 5: unused
+//     Bit 6: toggle defrost (windshield)
+//     Bit 7: toggle recirculate
+//   Byte 1: Fan and Temperature Control
+//     Bit 0: fan speed +
+//     Bit 1: fan speed -
+//     Bit 2: driver temp + 
+//     Bit 3: driver temp -
+//     Bit 4: passenger temp +
+//     Bit 5: passenger temp -
+//     Bit 6-7: unused
+//   Byte 2: Driver Temperature Set
+//   Byte 3: Passenger Temperature Set
+//   Byte 4: Heating Elements
+//     Bit 0: toggle rear window heating element
+//     Bit 1-7: unused
+//   Bytes 5-7: unused
+class Climate : public Node {
     public:
-        ClimateController() {}
-        virtual ~ClimateController() {}
+        Climate(Clock* clock = Clock::real(), GPIO* gpio = GPIO::real());
 
-        // Send a climate "Off" button click. This typically turns off the
-        // climate control system.
-        virtual void climateClickOff() = 0;
+        // Receive translated state frames.
+        void receive(const Broadcast& broadcast) override;
 
-        // Send a climate "Auto" button click. This typically toggles automatic
-        // climate control.
-        virtual void climateClickAuto() = 0;
+        // Update the climate state from vehicle state frames.
+        void send(const Frame& frame) override;
 
-        // Send a climate "A/C" button click. This typically toggles the A/C
-        // compressor request.
-        virtual void climateClickAc() = 0;
+        // Matches vehicle state frames and dash control frames.
+        //   Vehicle: 0x54A, 0x54B, 0x625
+        //   Dash:    0x5401
+        bool filter(uint32_t id) override;
 
-        // Send a climate "Dual" button click. This typically toggles dual zone
-        // climate control. 
-        virtual void climateClickDual() = 0;
+    private:
+        Clock* clock_;
 
-        // Send a climate "Recirculate" button click. This typically toggles
-        // cabin air recirculation.
-        virtual void climateClickRecirculate() = 0;
+        // Hardware control.
+        MomentaryPin rear_defrost_;
 
-        // Send a climate "Mode" button click. This typically cycles the
-        // airflow mode.
-        virtual void climateClickMode() = 0;
+        // Operational state.
+        enum State : uint8_t {
+            STATE_OFF,
+            STATE_AUTO,
+            STATE_MANUAL,
+            STATE_HALF_MANUAL,
+            STATE_DEFROST,
+        };
+        enum Mode : uint8_t {
+            MODE_OFF = 0x00,
+            MODE_FACE = 0x04,
+            MODE_FACE_FEET = 0x08,
+            MODE_FEET = 0x0C,
+            MODE_FEET_WINDSHIELD = 0x10,
+            MODE_WINDSHIELD = 0x34,
+            MODE_AUTO_FACE = 0x84,
+            MODE_AUTO_FACE_FEET = 0x88,
+            MODE_AUTO_FEET = 0x8C,
+        };
+        State state_;
+        Mode mode_;
+        bool dual_;
 
-        // Send a climate "Front Defrost" button click. This typically toggles
-        // windshield defrost.
-        virtual void climateClickFrontDefrost() = 0;
+        // State frame storage.
+        bool state_init_;
+        bool state_changed_;
+        uint32_t state_last_broadcast_;
+        Frame state_frame_;
 
-        // Send a climate "Rear Defrost" button click. This typically toggles
-        // rear window defrost.
-        virtual void climateClickRearDefrost() = 0;
+        // Control frame storage.
+        bool control_init_;
+        bool control_changed_;
+        uint32_t control_last_broadcast_;
+        Frame control_frame_540_;
+        Frame control_frame_541_;
+        uint32_t control_last_read_;
+        byte control_state_[8];
 
-        // Send a climate "Fan Up" button click. This typically increases the
-        // fan speed by 1.
-        virtual void climateClickFanSpeedUp() = 0;
+        // Specific frame handlers.
+        void handle54A(const Frame& frame);
+        void handle54B(const Frame& frame);
+        void handle625(const Frame& frame);
+        void handleControl(const Frame& frame);
 
-        // Send a climate "Fan Down" button click. This typically decreases the
-        // fan speed by 1.
-        virtual void climateClickFanSpeedDown() = 0;
+        // Helpers for setting climate state.
+        void setActive(bool value);
+        void setAuto(bool value);
+        void setAc(bool value);
+        void setDual(bool value);
+        void setFace(bool value);
+        void setFeet(bool value);
+        void setRecirculate(bool value);
+        void setFrontDefrost(bool value);
+        void setRearDefrost(bool value);
+        void setFanSpeed(uint8_t value);
+        void setDriverTemp(uint8_t value);
+        void setPassengerTemp(uint8_t value);
+        void setOutsideTemp(uint8_t value);
+        void setMode(uint8_t mode);
 
-        // Send a "Driver Temperature Up" button click. This typically
-        // increases the driver temperature zone by 1.
-        virtual void climateClickDriverTempUp() = 0;
-
-        // Send a "Driver Temperature Down" button click. This typically
-        // decreases the driver temperature zone by 1.
-        virtual void climateClickDriverTempDown() = 0;
-
-        // Send a "Passenger Temperature Up" button click. This typically
-        // increases the passenger temperature zone by 1.
-        virtual void climateClickPassengerTempUp() = 0;
-
-        // Send a "Passenger Temperature Down" button click. This typically
-        // decreases the passenger temperature zone by 1.
-        virtual void climateClickPassengerTempDown() = 0;
+        // Helpers for triggering climate system events.
+        void triggerOff();
+        void triggerAuto();
+        void triggerAc();
+        void triggerDual();
+        void triggerRecirculate();
+        void triggerMode();
+        void triggerFrontDefrost();
+        void triggerRearDefrost();
+        void triggerFanSpeedUp();
+        void triggerFanSpeedDown();
+        void triggerDriverTempUp();
+        void triggerDriverTempDown();
+        void triggerPassengerTempUp();
+        void triggerPassengerTempDown();
 };
 
 #endif  // __R51_CLIMATE_H__

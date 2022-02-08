@@ -32,6 +32,15 @@
 // Uncomment to disable writes to the CAN bus.
 //#define CAN_LISTEN_ONLY
 
+// Climate control configuration.
+#define CLIMATE_STATE_FRAME_ID 0x5400
+#define CLIMATE_STATE_FRAME_HB 500
+#define CLIMATE_CONTROL_FRAME_ID 0x5401
+#define CLIMATE_CONTROL_FRAME_HB 200
+#define CLIMATE_CONTROL_INIT_EXPIRE 450
+#define CLIMATE_CONTROL_INIT_HB 100
+#define CLIMATE_CONTROL_TIMEOUT 5000
+
 // Steering wheel button config. Two sets of three buttons are connected to two
 // analog pins. Pressing a button results in a resistance on the line.
 // Pin A receives signal for power, seek down, and volume down. Pin B receives

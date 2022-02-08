@@ -4,10 +4,8 @@
 #include <Arduino.h>
 #include "CRC32.h"
 #include "bus.h"
-#include "climate.h"
 #include "connection.h"
 #include "dash.h"
-#include "keypad.h"
 #include "listener.h"
 #include "settings.h"
 
@@ -57,7 +55,7 @@
  *     Bit 1-7: unused
  *   Bytes 5-7: unused
  *
- * Frame 5700: Settings State Frame
+ * Frame 0x5700: Settings State Frame
  *   Byte 0: Interior & Wipers
  *     Bit 0: Auto Interior Illumination; 0 off, 1 on
  *     Bit 1: Slide Driver Seat Back on Exit; 0 off, 1 on
@@ -76,7 +74,7 @@
  *     Bits 2-3: Remote Key Response Lights; 0 off, 1 unlock, 2 lock, 3 on
  *   Bytes 4-7: unused
  *
- * Frame 5701: Settings Control Frame
+ * Frame 0x5701: Settings Control Frame
  *   Byte 0: Interior & Wipers
  *     Bit 0: Toggle Auto Interior Illumination
  *     Bit 1: Toggle Slide Driver Seat Back on Exit
@@ -159,90 +157,6 @@ class RealDash : public Node {
         void reset();
         void writeByte(const byte b);
         void writeBytes(const byte* b, uint8_t len);
-};
-
-// Writes frames to RealDash to manage the dashboard state. Frames are repeated
-// in order to avoid errors on the line.
-class RealDashClimate : public DashClimateController, Listener {
-    public:
-        // Construct a new controller. Sent frames are repeated repeat times.
-        RealDashClimate(uint8_t repeat = 5) :
-            realdash_(nullptr), climate_(nullptr), repeat_(repeat),
-            write_count_(0), last_write_(0), last_read_(0) {}
-
-        // Connect the controller to a dashboard and vehicle systems.
-        void connect(Connection* realdash, ClimateController* climate);
-
-        // Update the on/off state of the climate control.
-        void setClimateActive(bool value) override;
-
-        // Update the auto setting of the climate control.
-        void setClimateAuto(bool value) override;
-
-        // Update the state of the A/C compressor.
-        void setClimateAc(bool value) override;
-
-        // Update dual zone state.
-        void setClimateDual(bool value) override;
-
-        // Update state of the face vents.
-        void setClimateFace(bool value) override;
-
-        // Update state of the feet vents.
-        void setClimateFeet(bool value) override;
-
-        // Update state of air recirculation.
-        void setClimateRecirculate(bool value) override;
-
-        // Update state of the front defrost.
-        void setClimateFrontDefrost(bool value) override;
-
-        // Update state of the rear defrost.
-        void setClimateRearDefrost(bool value) override;
-
-        // Update ste of the fan speed.
-        void setClimateFanSpeed(uint8_t value) override;
-
-        // Update the driver temperature state.
-        void setClimateDriverTemp(uint8_t value) override;
-
-        // Update the passenger temperature state.
-        void setClimatePassengerTemp(uint8_t value) override;
-
-        // Update the outside temperature state.
-        void setClimateOutsideTemp(uint8_t value) override;
-
-        // Process frames from RealDash.
-        void receive(uint32_t id, uint8_t len, byte* data) override;
-
-        // Send state changes to RealDash.
-        void push() override;
-    private:
-        // The connection to the RealDash instance.
-        Connection* realdash_;
-
-        // The climate control system to send commands to.
-        ClimateController* climate_;
-
-        // State frame sent to update RealDash.
-        byte frame5400_[8];
-
-        // Most recent RealDash 0x5401 climate control payload. Climate control
-        // functions are triggered when new frames come in whose bits differ
-        // from this value.
-        byte frame5401_[8];
-
-        // How many times to repeat a frame sent to RealDash.
-        uint8_t repeat_;
-
-        // How many times the current control frame has been written.
-        uint8_t write_count_;
-
-        // The last time a control frame was sent.
-        uint32_t last_write_;
-
-        // The last time a control frame was received.
-        uint32_t last_read_;
 };
 
 class RealDashSettings : public DashSettingsController, Listener {
