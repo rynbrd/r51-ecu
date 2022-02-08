@@ -1,11 +1,11 @@
 #include "io.h"
 
-void MomentaryPin::loop() {
+void MomentaryPin::update() {
     if (triggered_) {
-        if (millis() - trigger_time_ >= trigger_ms_ + cooldown_ms_) {
+        if (clock_->millis() - trigger_time_ >= trigger_ms_ + cooldown_ms_) {
             triggered_ = false;
-        } else if (millis() - trigger_time_ >= trigger_ms_) {
-            digitalWrite(pin_, !high_);
+        } else if (clock_->millis() - trigger_time_ >= trigger_ms_) {
+            gpio_->digitalWrite(pin_, !high_);
         }
     }
 }
@@ -17,8 +17,8 @@ bool MomentaryPin::trigger() {
         return false;
     }
 
-    digitalWrite(pin_, high_);
+    gpio_->digitalWrite(pin_, high_);
     triggered_ = true;
-    trigger_time_ = millis();
+    trigger_time_ = clock_->millis();
     return true;
 }
