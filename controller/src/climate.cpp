@@ -13,7 +13,7 @@ Climate::Climate(Clock* clock, GPIO* gpio) : clock_(clock),
     dual_ = false;
 
     // Init state storage.
-    state_init_ = false;
+    state_init_ = 0;
     state_changed_ = false;
     state_last_broadcast_ = 0;
     initFrame(&state_frame_, CLIMATE_STATE_FRAME_ID, 8);
@@ -32,15 +32,8 @@ Climate::Climate(Clock* clock, GPIO* gpio) : clock_(clock),
 
 void Climate::receive(const Broadcast& broadcast) {
     uint32_t control_hb = control_init_ ? CLIMATE_CONTROL_FRAME_HB : CLIMATE_CONTROL_INIT_HB;
-    if (control_changed_ ||
-            clock_->millis() - control_last_broadcast_ > control_hb) {
-        control_changed_ = false;
-        control_last_broadcast_ = clock_->millis();
-        broadcast(control_frame_540_);
-        broadcast(control_frame_541_);
-    }
 
-    if (!control_init_ && clock_->millis() > CLIMATE_CONTROL_INIT_EXPIRE) {
+    if (!control_init_ && clock_->millis() >= CLIMATE_CONTROL_INIT_EXPIRE) {
         control_frame_540_.data[0] = 0x60;
         control_frame_540_.data[1] = 0x40;
         control_frame_540_.data[6] = 0x04;
@@ -48,8 +41,16 @@ void Climate::receive(const Broadcast& broadcast) {
         control_init_ = true;
     }
 
-    if (state_init_ && (state_changed_ ||
-            clock_->millis() - state_last_broadcast_ > CLIMATE_STATE_FRAME_HB)) {
+    if (control_changed_ ||
+            clock_->millis() - control_last_broadcast_ >= control_hb) {
+        control_changed_ = false;
+        control_last_broadcast_ = clock_->millis();
+        broadcast(control_frame_540_);
+        broadcast(control_frame_541_);
+    }
+
+    if (state_init_ == 0x03 && (state_changed_ ||
+            clock_->millis() - state_last_broadcast_ >= CLIMATE_STATE_FRAME_HB)) {
         state_changed_ = false;
         state_last_broadcast_ = clock_->millis();
         broadcast(state_frame_);
@@ -81,14 +82,14 @@ bool Climate::filter(uint32_t id) {
 }
 
 void Climate::handle54A(const Frame& frame) {
-    state_init_ = true;
+    state_init_ |= 0x01;
     setDriverTemp(frame.data[4]);
     setPassengerTemp(frame.data[5]);
     setOutsideTemp(frame.data[7]);
 }
 
 void Climate::handle54B(const Frame& frame) {
-    state_init_ = true;
+    state_init_ |= 0x02;
     bool ac = getBit(frame.data, 0, 3);
     bool recirculate = getBit(frame.data, 3, 4);
     uint8_t fan_speed = (frame.data[2] + 1) / 2;

@@ -105,7 +105,7 @@ class Climate : public Node {
         bool dual_;
 
         // State frame storage.
-        bool state_init_;
+        uint8_t state_init_;
         bool state_changed_;
         uint32_t state_last_broadcast_;
         Frame state_frame_;
