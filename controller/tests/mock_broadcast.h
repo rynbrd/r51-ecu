@@ -2,6 +2,7 @@
 #define __R51_TESTS_MOCK_BROADCAST__
 
 #include "src/bus.h"
+#include "src/debug.h"
 
 
 // Mock broadcast implementation for node tests.
@@ -9,7 +10,7 @@ class MockBroadcast {
     public:
         MockBroadcast(int capacity) : impl(this), capacity_(capacity), count_(0), frames_(new Frame[capacity_]()) {}
 
-        ~MockBroadcast() {
+        virtual ~MockBroadcast() {
             delete frames_;
         }
 
@@ -25,10 +26,15 @@ class MockBroadcast {
             return count_;
         }
 
+        virtual bool filter(const Frame&) { return true; }
+
         class BroadcastImpl : public Broadcast {
             public:
                 void operator()(const Frame& frame) const override {
-                    mock_->append(frame);
+                    if (mock_->filter(frame)) {
+                        INFO_MSG_FRAME("broadcast ", frame.id, frame.len, frame.data);
+                        mock_->append(frame);
+                    }
                 }
 
             private:
