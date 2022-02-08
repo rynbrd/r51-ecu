@@ -1,6 +1,7 @@
 #ifndef __R51_TESTS_TEST_STEERING__
 #define __R51_TESTS_TEST_STEERING__
 
+#include <Arduino.h>
 #include <AUnit.h>
 
 #include "mock_broadcast.h"

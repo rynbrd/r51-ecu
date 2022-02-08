@@ -3,6 +3,7 @@
 
 #include "controller.h"
 
+
 // Controls a connected climate control system.
 class DashClimateController : public Controller {
     public:

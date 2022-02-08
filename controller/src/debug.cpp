@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "config.h"
 
+
 #ifdef DEBUG_ENABLE
 
 size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data) {

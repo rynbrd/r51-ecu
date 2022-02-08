@@ -1,5 +1,6 @@
 #include "bus.h"
 
+
 bool frameEquals(const Frame& left, const Frame& right) {
     return memcmp(&left, &right, 5+left.len) == 0;
 }

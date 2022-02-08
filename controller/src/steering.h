@@ -7,22 +7,21 @@
 #include "gpio.h"
 
 
-/* Steering wheel keypad. Sends 0x5800 CAN frames on button press and release.
- *
- * Frame 0x5800: Steering Keypad State Frame
- *   Byte 0: Button State
- *     Bit 0: Power
- *     Bit 1: Mode
- *     Bit 2: Volume Up
- *     Bit 3: Volume Down
- *     Bit 4: Seek Up
- *     Bit 5: Seek Down
- *     Bit 6-7: unused
- *   Byte 1-7: unused
- *
- * Bits are set to 1 when a button on the keypad is held down and 0 when
- * released.
- */
+// Steering wheel keypad. Sends 0x5800 CAN frames on button press and release.
+//
+// Frame 0x5800: Steering Keypad State Frame
+//   Byte 0: Button State
+//     Bit 0: Power
+//     Bit 1: Mode
+//     Bit 2: Volume Up
+//     Bit 3: Volume Down
+//     Bit 4: Seek Up
+//     Bit 5: Seek Down
+//     Bit 6-7: unused
+//   Byte 1-7: unused
+//
+// Bits are set to 1 when a button on the keypad is held down and 0 when
+// released.
 class SteeringKeypad : public Node {
     public:
         // Construct a new steering switch keypad object.

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 
+
 // Get a bit from a byte array.
 bool getBit(const byte* b, uint8_t offset, uint8_t bit);
 

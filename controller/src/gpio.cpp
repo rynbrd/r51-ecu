@@ -1,5 +1,6 @@
 #include "gpio.h"
 
+
 // Unshadow Arduino functions.
 inline void arduino_pinMode(uint32_t dwPin, uint32_t dwMode) { pinMode(dwPin, dwMode); }
 inline int arduino_digitalRead(uint32_t ulPin) { return digitalRead(ulPin); }

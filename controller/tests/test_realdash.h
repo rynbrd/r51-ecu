@@ -1,10 +1,16 @@
-#ifndef __R51_TESTS_REALDASH__
-#define __R51_TESTS_REALDASH__
+#ifndef __R51_TESTS_TEST_REALDASH__
+#define __R51_TESTS_TEST_REALDASH__
+
+#include <Arduino.h>
+#include <AUnit.h>
 
 #include "mock_broadcast.h"
 #include "mock_stream.h"
 #include "src/bus.h"
 #include "src/realdash.h"
+
+using namespace aunit;
+
 
 class FakeRealDash : public RealDash {
     public:
@@ -262,4 +268,4 @@ test(RealDashTest, Write) {
     assertEqual(memcmp(actual, expect, size), 0);
 }
 
-#endif  // __R51_TESTS_REALDASH__
+#endif  // __R51_TESTS_TEST_REALDASH__

@@ -1,6 +1,7 @@
 #ifndef __R51_CONTROLLER_H__
 #define __R51_CONTROLLER_H__
 
+
 // Base class for hardware controllers.
 class Controller {
     public:

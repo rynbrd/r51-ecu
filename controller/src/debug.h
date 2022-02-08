@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "config.h"
 
+
 #ifdef DEBUG_ENABLE
 
 #ifndef DEBUG_SERIAL

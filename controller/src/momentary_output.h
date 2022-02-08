@@ -1,5 +1,5 @@
-#ifndef __R51_IO__
-#define __R51_IO__
+#ifndef __R51_MOMENTARY_OUTPUT__
+#define __R51_MOMENTARY_OUTPUT__
 
 #include <Arduino.h>
 
@@ -41,4 +41,4 @@ class MomentaryOutput {
         uint16_t cooldown_ms_;
 };
 
-#endif  // __R51_IO__
+#endif  // __R51_MOMENTARY_OUTPUT__

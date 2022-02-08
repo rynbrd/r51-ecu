@@ -1,5 +1,5 @@
-#ifndef __R51_TESTS_BROADCAST__
-#define __R51_TESTS_BROADCAST__
+#ifndef __R51_TESTS_MOCK_BROADCAST__
+#define __R51_TESTS_MOCK_BROADCAST__
 
 #include "src/bus.h"
 
@@ -52,4 +52,4 @@ class MockBroadcast {
         Frame* frames_;
 };
 
-#endif  // __R51_TESTS_BUS__
+#endif  // __R51_TESTS_MOCK_BROADCAST__

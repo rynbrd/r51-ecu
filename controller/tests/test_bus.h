@@ -1,7 +1,12 @@
 #ifndef __R51_TESTS_TEST_BUS__
 #define __R51_TESTS_TEST_BUS__
 
+#include <Arduino.h>
+#include <AUnit.h>
+
 #include "src/bus.h"
+
+using namespace aunit;
 
 
 // A mock bus node for testing.

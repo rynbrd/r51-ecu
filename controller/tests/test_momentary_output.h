@@ -1,5 +1,5 @@
-#ifndef __R51_TESTS_MOMENTARY_OUTPUT__
-#define __R51_TESTS_MOMENTARY_OUTPUT__
+#ifndef __R51_TESTS_TEST_MOMENTARY_OUTPUT__
+#define __R51_TESTS_TEST_MOMENTARY_OUTPUT__
 
 #include <Arduino.h>
 #include <AUnit.h>
@@ -98,4 +98,4 @@ test(MomentaryOutputTest, ShortCooldown) {
     assertEqual(gpio.digitalRead(16), HIGH);
 }
 
-#endif  // __R51_TESTS_MOMENTARY_OUTPUT__
+#endif  // __R51_TESTS_TEST_MOMENTARY_OUTPUT__

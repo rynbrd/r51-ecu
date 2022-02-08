@@ -1,5 +1,5 @@
-#ifndef __R51_TESTS_CLOCK__
-#define __R51_TESTS_CLOCK__
+#ifndef __R51_TESTS_MOCK_CLOCK__
+#define __R51_TESTS_MOCK_CLOCK__
 
 #include "src/clock.h"
 
@@ -27,4 +27,4 @@ class MockClock : public Clock {
         uint32_t millis_;
 };
 
-#endif  // __R51_TESTS_CLOCK__
+#endif  // __R51_TESTS_MOCK_CLOCK__

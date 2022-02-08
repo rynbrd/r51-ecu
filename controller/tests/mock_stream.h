@@ -1,5 +1,5 @@
-#ifndef __R51_TESTS_FAKE_SERIAL__
-#define __R51_TESTS_FAKE_SERIAL__
+#ifndef __R51_TESTS_MOCK_STREAM__
+#define __R51_TESTS_MOCK_STREAM__
 
 #include <Arduino.h>
 
@@ -67,4 +67,4 @@ class FakeWriteStream : public Stream {
         int pos_;
 };
 
-#endif  // __R51_TESTS_FAKE_SERIAL__
+#endif  // __R51_TESTS_MOCK_STREAM__

@@ -1,5 +1,6 @@
 #include "momentary_output.h"
 
+
 MomentaryOutput::MomentaryOutput(int pin, uint16_t trigger_ms, int32_t cooldown_ms, bool high,
         Clock* clock, GPIO* gpio)
     : clock_(clock), gpio_(gpio),

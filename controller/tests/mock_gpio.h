@@ -1,5 +1,5 @@
-#ifndef __R51_TESTS_GPIO__
-#define __R51_TESTS_GPIO__
+#ifndef __R51_TESTS_MOCK_GPIO__
+#define __R51_TESTS_MOCK_GPIO__
 
 #include "src/gpio.h"
 
@@ -51,4 +51,4 @@ class MockGPIO : public GPIO {
         uint32_t* pin_modes_;
 };
 
-#endif  // __R51_TESTS_GPIO__
+#endif  // __R51_TESTS_MOCK_GPIO__

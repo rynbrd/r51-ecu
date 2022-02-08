@@ -3,6 +3,7 @@
 
 #include "controller.h"
 
+
 // Controls the BCM settings.
 class SettingsController : public Controller {
     public:

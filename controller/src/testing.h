@@ -3,6 +3,7 @@
 
 #include "connection.h"
 
+
 // A connection that discards writes and never reads.
 class NullConnection : public Connection {
     public:

@@ -1,5 +1,6 @@
 #include "binary.h"
 
+
 bool getBit(const byte* b, uint8_t offset, uint8_t bit) {
     return ((b[offset] >> bit) & 1) == 1;
 }
