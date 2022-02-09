@@ -58,7 +58,7 @@ bool SettingsCommand::sendControl(Op op, byte prefix0, byte prefix1, byte prefix
     }
     op_ = op;
     last_write_ = millis();
-    INFO_MSG_FRAME("vehicle: write frame ", id_, 8, buffer_);
+    INFO_MSG_FRAME("vehicle: write frame ", (Frame{id_, 9, buffer_}));
     return true;
 }
 

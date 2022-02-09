@@ -1,8 +1,9 @@
 #ifndef __R51_DEBUG_H__
 #define __R51_DEBUG_H__
 
-#include <Stream.h>
-#include <stdint.h>
+#include <Arduino.h>
+
+#include "bus.h"
 #include "config.h"
 
 
@@ -18,7 +19,7 @@
 
 // Update these to change debug output settings.
 
-size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
+size_t printDebugFrame(const Frame& frame);
 
 #define D(x) x
 #define DEBUG_BEGIN() DEBUG_SERIAL.begin(DEBUG_BAUDRATE)
@@ -40,10 +41,10 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
     DEBUG_SERIAL.println(VAL, FMT);\
     DEBUG_SERIAL.flush();\
 })
-#define INFO_MSG_FRAME(MSG, ID, LEN, DATA) ({\
+#define INFO_MSG_FRAME(MSG, FRAME) ({\
     DEBUG_SERIAL.print("[INFO]  ");\
     DEBUG_SERIAL.print(MSG);\
-    printDebugFrame(ID, LEN, DATA);\
+    printDebugFrame(FRAME);\
     DEBUG_SERIAL.println("");\
     DEBUG_SERIAL.flush();\
 })
@@ -65,10 +66,10 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
     DEBUG_SERIAL.println(VAL, FMT);\
     DEBUG_SERIAL.flush();\
 })
-#define ERROR_MSG_FRAME(MSG, ID, LEN, DATA) ({\
+#define ERROR_MSG_FRAME(MSG, FRAME) ({\
     DEBUG_SERIAL.print("[ERROR] ");\
     DEBUG_SERIAL.print(MSG);\
-    printDebugFrame(ID, LEN, DATA);\
+    printDebugFrame(FRAME);\
     DEBUG_SERIAL.println("");\
     DEBUG_SERIAL.flush();\
 })
@@ -81,12 +82,12 @@ size_t printDebugFrame(uint32_t id, uint8_t len, uint8_t* data);
 #define INFO_MSG(MSG)
 #define INFO_MSG_VAL(MSG, VAL)
 #define INFO_MSG_VAL_FMT(MSG, VAL, FMT)
-#define INFO_MSG_FRAME(MSG, ID, LEN, DATA)
+#define INFO_MSG_FRAME(MSG, FRAME)
 
 #define ERROR_MSG(MSG)
 #define ERROR_MSG_VAL(MSG, VAL)
 #define ERROR_MSG_VAL_FMT(MSG, VAL, FMT)
-#define ERROR_MSG_FRAME(MSG, ID, LEN, DATA)
+#define ERROR_MSG_FRAME(MSG, FRAME)
 
 #endif  // DEBUG_ENABLE
 

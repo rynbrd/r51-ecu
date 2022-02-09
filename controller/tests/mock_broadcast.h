@@ -40,7 +40,7 @@ class MockBroadcast {
             public:
                 void operator()(const Frame& frame) const override {
                     if (mock_->filter_id_ == 0 || mock_->filter_id_ == (frame.id & mock_->filter_mask_)) {
-                        INFO_MSG_FRAME("broadcast ", frame.id, frame.len, frame.data);
+                        INFO_MSG_FRAME("broadcast ", frame);
                         mock_->append(frame);
                     }
                 }

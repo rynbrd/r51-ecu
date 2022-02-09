@@ -272,7 +272,7 @@ void RealDashSettings::push() {
     }
     if (write_count_ < repeat_) {
         if (write_count_ == 0) {
-            INFO_MSG_FRAME("realdash: send ", 0x5700, 8, frame5700_);
+            INFO_MSG_FRAME("realdash: send ", (Frame{0x5700, 8, frame5700_}));
         }
         if (write_count_ < repeat_) {
             write_count_++;
@@ -363,7 +363,7 @@ void RealDashSettings::receive(uint32_t id, uint8_t len, byte* data) {
 
     D({
         if (changed) {
-            INFO_MSG_FRAME("realdash: receive ", 0x5701, 8, frame5701_);
+            INFO_MSG_FRAME("realdash: receive ", (Frame{0x5701, 8, frame5701_}));
         }
     })
 }
