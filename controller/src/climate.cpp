@@ -32,6 +32,7 @@ Climate::Climate(Clock* clock, GPIO* gpio) : clock_(clock),
 
 void Climate::receive(const Broadcast& broadcast) {
     uint32_t control_hb = control_init_ ? CLIMATE_CONTROL_FRAME_HB : CLIMATE_CONTROL_INIT_HB;
+    rear_defrost_.update();
 
     if (!control_init_ && clock_->millis() >= CLIMATE_CONTROL_INIT_EXPIRE) {
         control_frame_540_.data[0] = 0x60;
@@ -369,21 +370,37 @@ void Climate::triggerFanSpeedDown() {
 }
 
 void Climate::triggerDriverTempUp() {
+    if (state_ == STATE_OFF) {
+        return;
+    }
+    toggleBit(control_frame_540_.data, 5, 5);
     control_frame_540_.data[3]++;
     control_changed_ = true;
 }
 
 void Climate::triggerDriverTempDown() {
+    if (state_ == STATE_OFF) {
+        return;
+    }
+    toggleBit(control_frame_540_.data, 5, 5);
     control_frame_540_.data[3]--;
     control_changed_ = true;
 }
 
 void Climate::triggerPassengerTempUp() {
+    if (state_ == STATE_OFF) {
+        return;
+    }
+    toggleBit(control_frame_540_.data, 5, 5);
     control_frame_540_.data[4]++;
     control_changed_ = true;
 }
 
 void Climate::triggerPassengerTempDown() {
+    if (state_ == STATE_OFF) {
+        return;
+    }
+    toggleBit(control_frame_540_.data, 5, 5);
     control_frame_540_.data[4]--;
     control_changed_ = true;
 }

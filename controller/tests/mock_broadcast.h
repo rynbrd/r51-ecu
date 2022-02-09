@@ -31,8 +31,6 @@ class MockBroadcast {
         }
 
         void reset() {
-            filter_id_ = 0;
-            filter_mask_ = 0xFFFFFFFF;
             count_ = 0;
         }
 
