@@ -13,19 +13,27 @@
 using namespace aunit;
 
 
-class MockStateBroadcast : public MockBroadcast {
+class ClimateTest : public TestOnce {
     public:
-        MockStateBroadcast(int capacity) : MockBroadcast(capacity) {}
+        MockClock clock;
+        MockGPIO gpio;
+        MockBroadcast cast;
+        Climate* climate;
 
-        bool filter(const Frame& frame) {
-            return frame.id == 0x5400;
+        ClimateTest() : cast(2) {}
+
+        void setup() override {
+            climate = new Climate(&clock, &gpio);
+            cast.reset();
+        }
+
+        void teardown() override {
+            delete climate;
         }
 };
 
-test(ClimateTest, ControlInit) {
-    MockClock clock;
-    MockGPIO gpio;
-    MockBroadcast cast(2);
+testF(ClimateTest, ControlInit) {
+    cast.filter(0x540, 0xFFFFFFF0);
 
     Frame init540 = {
         .id = 0x540,
@@ -48,25 +56,22 @@ test(ClimateTest, ControlInit) {
         .data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     };
 
-    Climate climate(&clock, &gpio);
     for (int i = 0; i < 4; i++) {
-        climate.receive(cast.impl);
+        climate->receive(cast.impl);
         assertEqual(cast.count(), 2);
         assertTrue(frameEquals(cast.frames()[0], init540));
         assertTrue(frameEquals(cast.frames()[1], init541));
         cast.reset();
         clock.delay(CLIMATE_CONTROL_INIT_HB);
     }
-    climate.receive(cast.impl);
+    climate->receive(cast.impl);
     assertEqual(cast.count(), 2);
     assertTrue(frameEquals(cast.frames()[0], ready540));
     assertTrue(frameEquals(cast.frames()[1], ready541));
 }
 
-test(CliamteTest, StateInit) {
-    MockClock clock;
-    MockGPIO gpio;
-    MockStateBroadcast cast(1);
+testF(ClimateTest, StateInit) {
+    cast.filter(0x5400);
 
     Frame state54A = {
         .id = 0x54A,
@@ -84,16 +89,14 @@ test(CliamteTest, StateInit) {
         .data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
     };
 
-    Climate climate(&clock, &gpio);
-
     clock.delay(10);
-    climate.receive(cast.impl);
+    climate->receive(cast.impl);
     assertEqual(cast.count(), 0);
-    climate.send(state54A);
-    climate.send(state54B);
+    climate->send(state54A);
+    climate->send(state54B);
 
     clock.delay(10);
-    climate.receive(cast.impl);
+    climate->receive(cast.impl);
     assertEqual(cast.count(), 1);
     assertTrue(frameEquals(cast.frames()[0], ready5400));
 }

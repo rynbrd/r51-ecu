@@ -8,14 +8,13 @@
 // Mock broadcast implementation for node tests.
 class MockBroadcast {
     public:
-        MockBroadcast(int capacity) : impl(this), capacity_(capacity), count_(0), frames_(new Frame[capacity_]()) {}
+        MockBroadcast(int capacity = 1, uint32_t filter_id = 0, uint32_t filter_mask = 0xFFFFFFFF) :
+            impl(this), capacity_(capacity), count_(0),
+            filter_id_(filter_id), filter_mask_(filter_mask),
+            frames_(new Frame[capacity_]) {}
 
-        virtual ~MockBroadcast() {
+        ~MockBroadcast() {
             delete frames_;
-        }
-
-        void reset() {
-            count_ = 0;
         }
 
         Frame* frames() const {
@@ -26,12 +25,21 @@ class MockBroadcast {
             return count_;
         }
 
-        virtual bool filter(const Frame&) { return true; }
+        void filter(uint32_t id, uint32_t mask = 0xFFFFFFFF) {
+            filter_id_ = id;
+            filter_mask_ = mask;
+        }
+
+        void reset() {
+            filter_id_ = 0;
+            filter_mask_ = 0xFFFFFFFF;
+            count_ = 0;
+        }
 
         class BroadcastImpl : public Broadcast {
             public:
                 void operator()(const Frame& frame) const override {
-                    if (mock_->filter(frame)) {
+                    if (mock_->filter_id_ == 0 || mock_->filter_id_ == (frame.id & mock_->filter_mask_)) {
                         INFO_MSG_FRAME("broadcast ", frame.id, frame.len, frame.data);
                         mock_->append(frame);
                     }
@@ -55,6 +63,8 @@ class MockBroadcast {
 
         int capacity_;
         int count_;
+        uint32_t filter_id_;
+        uint32_t filter_mask_;
         Frame* frames_;
 };
 
