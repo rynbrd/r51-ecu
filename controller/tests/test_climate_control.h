@@ -1,5 +1,5 @@
-#ifndef __R51_TESTS_TEST_CLIMATE__
-#define __R51_TESTS_TEST_CLIMATE__
+#ifndef __R51_TESTS_TEST_CLIMATE_CONTROL__
+#define __R51_TESTS_TEST_CLIMATE_CONTROL__
 
 #include <Arduino.h>
 #include <AUnit.h>
@@ -11,10 +11,17 @@
 #include "src/bus.h"
 #include "src/climate.h"
 #include "src/config.h"
+#include "testing.h"
 
 using namespace aunit;
 
 
+#define INIT_CONTROL(ACTIVE) \
+    MockClock clock;\
+    MockGPIO gpio;\
+    Climate climate(&clock, &gpio);\
+    initClimate(&climate, &clock, ACTIVE);
+    
 void initClimate(Climate* climate, MockClock* clock, bool active = false) {
     Frame state54A = {0x54A, 8, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}};
     Frame state54B = {0x54B, 8, {0xF2, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x02}};
@@ -28,43 +35,11 @@ void initClimate(Climate* climate, MockClock* clock, bool active = false) {
     climate->receive(cast.impl);
 }
 
-void printFrame(const Frame& frame) {
-    Serial.print(frame.id, HEX);
-    Serial.print("#");
-    for (int i = 0; i < frame.len; i++) {
-        if (frame.data[i] <= 0x0F) {
-            Serial.print("0");
-        }
-        Serial.print(frame.data[i], HEX);
-        if (i < frame.len-1) {
-            Serial.print(":");
-        }
-    }
-}
-
-#define initControl(ACTIVE) \
-    MockClock clock;\
-    MockGPIO gpio;\
-    Climate climate(&clock, &gpio);\
-    initClimate(&climate, &clock, ACTIVE);
-    
-bool checkFrameEquals(const Frame& left, const Frame& right) {
-    if (!frameEquals(left, right)) {
-        Serial.print("frames not equal:\n  actual: ");
-        printFrame(left);
-        Serial.print("\n  expect: ");
-        printFrame(right);
-        Serial.println();
-        return false;
-    }
-    return true;
-}
-
 bool checkControlFrames(Climate* climate, const Frame& control, const Frame& expect540, const Frame& expect541) {
     MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
     climate->send(control);
     climate->receive(cast.impl);
-    return cast.count() == 2 &&
+    return checkFrameCount(cast, 2) &&
         checkFrameEquals(cast.frames()[0], expect540) &&
         checkFrameEquals(cast.frames()[1], expect541);
 }
@@ -73,10 +48,10 @@ bool checkNoControlFrames(Climate* climate, const Frame& control) {
     MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
     climate->send(control);
     climate->receive(cast.impl);
-    return cast.count() == 0;
+    return checkFrameCount(cast, 0);
 }
 
-test(ClimateTest, ControlInit) {
+test(ClimateControlTest, Init) {
     MockClock clock;
     MockGPIO gpio;
     MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
@@ -89,51 +64,36 @@ test(ClimateTest, ControlInit) {
     Climate climate(&clock, &gpio);
     for (int i = 0; i < 4; i++) {
         climate.receive(cast.impl);
-        assertEqual(cast.count(), 2);
-        assertTrue(frameEquals(cast.frames()[0], init540));
-        assertTrue(frameEquals(cast.frames()[1], init541));
+        assertTrue(checkFrameCount(cast, 2) &&
+            checkFrameEquals(cast.frames()[0], init540) &&
+            checkFrameEquals(cast.frames()[1], init541));
         cast.reset();
         clock.delay(CLIMATE_CONTROL_INIT_HB);
     }
     climate.receive(cast.impl);
-    assertEqual(cast.count(), 2);
-    assertTrue(frameEquals(cast.frames()[0], ready540));
-    assertTrue(frameEquals(cast.frames()[1], ready541));
+    assertTrue(checkFrameCount(cast, 2) &&
+        checkFrameEquals(cast.frames()[0], ready540) &&
+        checkFrameEquals(cast.frames()[1], ready541));
 }
 
-test(ClimateTest, StateInit) {
-    MockClock clock;
-    MockGPIO gpio;
-    MockBroadcast cast(2, 0x5400);
+test(ClimateControlTest, Heartbeat) {
+    INIT_CONTROL(true);
+    Frame expect540, expect541;
+    MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
 
-    Frame state54A = {0x54A, 8, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}};
-    Frame state54B = {0x54B, 8, {0xF2, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x02}};
-    Frame ready5400 = {0x5400, 8, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}};
+    expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00}};
+    expect541 = {0x541, 8, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
 
-    Climate climate(&clock, &gpio);
-    clock.delay(10);
+    clock.delay(CLIMATE_CONTROL_FRAME_HB);
     climate.receive(cast.impl);
-    assertEqual(cast.count(), 0);
-    climate.send(state54A);
-    climate.send(state54B);
-
-    clock.delay(10);
-    climate.receive(cast.impl);
-    assertEqual(cast.count(), 1);
-    assertTrue(frameEquals(cast.frames()[0], ready5400));
+    assertTrue(checkFrameCount(cast, 2) &&
+        checkFrameEquals(cast.frames()[0], expect540) &&
+        checkFrameEquals(cast.frames()[1], expect541));
 }
 
-/*
-test(ClimateTest, ControlHeartbeat) {
-}
-
-test(ClimateTest, StateHeartbeat) {
-}
-*/
-
-test(ClimateTest, TriggerOff) {
+test(ClimateControlTest, TriggerOff) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x84, 0x00}};
@@ -145,9 +105,9 @@ test(ClimateTest, TriggerOff) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerAuto) {
+test(ClimateControlTest, TriggerAuto) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00}};
@@ -159,9 +119,9 @@ test(ClimateTest, TriggerAuto) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerAc) {
+test(ClimateControlTest, TriggerAc) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00}};
@@ -173,9 +133,9 @@ test(ClimateTest, TriggerAc) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerDual) {
+test(ClimateControlTest, TriggerDual) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00}};
@@ -187,9 +147,9 @@ test(ClimateTest, TriggerDual) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerMode) {
+test(ClimateControlTest, TriggerMode) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00}};
@@ -201,9 +161,9 @@ test(ClimateTest, TriggerMode) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerFrontDefrost) {
+test(ClimateControlTest, TriggerFrontDefrost) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00}};
@@ -215,9 +175,9 @@ test(ClimateTest, TriggerFrontDefrost) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerRecirculate) {
+test(ClimateControlTest, TriggerRecirculate) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00}};
@@ -229,9 +189,9 @@ test(ClimateTest, TriggerRecirculate) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerRearDefrost) {
+test(ClimateControlTest, TriggerRearDefrost) {
+    INIT_CONTROL(true);
     Frame control;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00}};
 
@@ -248,9 +208,9 @@ test(ClimateTest, TriggerRearDefrost) {
     assertEqual(gpio.digitalRead(REAR_DEFROST_PIN), LOW);
 }
 
-test(ClimateTest, TriggerFanSpeedUp) {
+test(ClimateControlTest, TriggerFanSpeedUp) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00}};
@@ -262,9 +222,9 @@ test(ClimateTest, TriggerFanSpeedUp) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerFanSpeedDown) {
+test(ClimateControlTest, TriggerFanSpeedDown) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     expect540 = {0x540, 8, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00}};
@@ -276,9 +236,9 @@ test(ClimateTest, TriggerFanSpeedDown) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerDriverTempWhenOn) {
+test(ClimateControlTest, TriggerDriverTempWhenOn) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     // decrease temp
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
@@ -302,9 +262,9 @@ test(ClimateTest, TriggerDriverTempWhenOn) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerDriverTempWhenOff) {
+test(ClimateControlTest, TriggerDriverTempWhenOff) {
+    INIT_CONTROL(false);
     Frame control;
-    initControl(false);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     assertTrue(checkNoControlFrames(&climate, control));
@@ -313,9 +273,9 @@ test(ClimateTest, TriggerDriverTempWhenOff) {
     assertTrue(checkNoControlFrames(&climate, control));
 }
 
-test(ClimateTest, TriggerPassengerTempWhenOn) {
+test(ClimateControlTest, TriggerPassengerTempWhenOn) {
+    INIT_CONTROL(true);
     Frame control, expect540, expect541;
-    initControl(true);
 
     // decrease temp
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
@@ -339,9 +299,9 @@ test(ClimateTest, TriggerPassengerTempWhenOn) {
     assertTrue(checkControlFrames(&climate, control, expect540, expect541));
 }
 
-test(ClimateTest, TriggerPassengerTempWhenOff) {
+test(ClimateControlTest, TriggerPassengerTempWhenOff) {
+    INIT_CONTROL(false);
     Frame control;
-    initControl(false);
 
     control = {CLIMATE_CONTROL_FRAME_ID, 8, {0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
     assertTrue(checkNoControlFrames(&climate, control));
@@ -350,4 +310,4 @@ test(ClimateTest, TriggerPassengerTempWhenOff) {
     assertTrue(checkNoControlFrames(&climate, control));
 }
 
-#endif  // __R51_TESTS_TEST_CLIMATE__
+#endif  // __R51_TESTS_TEST_CLIMATE_CONTROL__
