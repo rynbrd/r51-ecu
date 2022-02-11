@@ -116,7 +116,6 @@ class Climate : public Node {
         uint32_t control_last_broadcast_;
         Frame control_frame_540_;
         Frame control_frame_541_;
-        uint32_t control_last_read_;
         byte control_state_[8];
 
         // Specific frame handlers.

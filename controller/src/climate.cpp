@@ -26,7 +26,6 @@ Climate::Climate(Clock* clock, GPIO* gpio) : clock_(clock),
     control_frame_540_.data[0] = 0x80;
     initFrame(&control_frame_541_, 0x541, 8);
     control_frame_541_.data[0] = 0x80;
-    control_last_read_ = 0;
     memset(control_state_, 0, 8);
 }
 
@@ -168,13 +167,6 @@ void Climate::handle625(const Frame& frame) {
 }
 
 void Climate::handleControl(const Frame& frame) {
-    // reset internal state if we haven't received a control frame recently
-    if (clock_->millis() - control_last_read_ > CLIMATE_CONTROL_TIMEOUT) {
-        INFO_MSG("climate: reset control state, no control frame received");
-        memset(control_state_, 0, 8);
-    }
-    control_last_read_ = clock_->millis();
-
     // check if any bits have flipped
     if (xorBits(control_state_, frame.data, 0, 0)) {
         triggerOff();
