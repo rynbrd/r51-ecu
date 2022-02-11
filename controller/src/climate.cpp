@@ -59,9 +59,6 @@ void Climate::receive(const Broadcast& broadcast) {
 }
 
 void Climate::send(const Frame& frame) {
-    if (frame.len != 8) {
-        return;
-    }
     switch (frame.id) {
         case 0x54A:
             handle54A(frame);
@@ -83,6 +80,9 @@ bool Climate::filter(uint32_t id) {
 }
 
 void Climate::handle54A(const Frame& frame) {
+    if (frame.len != 8) {
+        return;
+    }
     state_init_ |= 0x01;
     setDriverTemp(frame.data[4]);
     setPassengerTemp(frame.data[5]);
@@ -90,6 +90,9 @@ void Climate::handle54A(const Frame& frame) {
 }
 
 void Climate::handle54B(const Frame& frame) {
+    if (frame.len != 8) {
+        return;
+    }
     state_init_ |= 0x02;
     bool ac = getBit(frame.data, 0, 3);
     bool recirculate = getBit(frame.data, 3, 4);
@@ -158,6 +161,9 @@ void Climate::handle54B(const Frame& frame) {
 }
 
 void Climate::handle625(const Frame& frame) {
+    if (frame.len == 0) {
+        return;
+    }
     setRearDefrost(getBit(frame.data, 0, 0));
 }
 
