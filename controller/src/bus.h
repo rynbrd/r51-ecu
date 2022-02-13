@@ -46,7 +46,7 @@ class Node {
 
         // Filter sent frames to this node. Return true for frame IDs that
         // should be sent to this node.
-        virtual bool filter(uint32_t id) = 0;
+        virtual bool filter(uint32_t id) const = 0;
 };
 
 // Bus connects a series of nodes which send and receive frames. Frames are

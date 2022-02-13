@@ -73,7 +73,7 @@ class Climate : public Node {
         // Matches vehicle state frames and dash control frames.
         //   Vehicle: 0x54A, 0x54B, 0x625
         //   Dash:    0x5401
-        bool filter(uint32_t id) override;
+        bool filter(uint32_t id) const override;
 
     private:
         Clock* clock_;

@@ -38,7 +38,7 @@ class SteeringKeypad : public Node {
         void send(const Frame&) override {}
 
         // Always returns false. This node does not process frames.
-        bool filter(uint32_t) override { return false; }
+        bool filter(uint32_t) const override { return false; }
 
     private:
         uint32_t last_change_;

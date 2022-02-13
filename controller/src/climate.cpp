@@ -74,7 +74,7 @@ void Climate::send(const Frame& frame) {
     }
 }
 
-bool Climate::filter(uint32_t id) {
+bool Climate::filter(uint32_t id) const {
     return id == 0x54A || id == 0x54B || id == 0x625 || id == CLIMATE_CONTROL_FRAME_ID;
 }
 
