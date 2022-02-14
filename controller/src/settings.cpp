@@ -2,6 +2,7 @@
 
 #include "binary.h"
 #include "config.h"
+#include "debug.h"
 
 
 // Available sequence states. States other than "ready" represent a frame which
@@ -57,6 +58,8 @@ bool fillRequest(Frame* frame, uint32_t id, byte prefix0, byte prefix1, byte pre
 // the given state. Some state transitions require value be attached.
 bool fillRequest(Frame* frame, uint32_t id, uint8_t state, uint8_t value = 0xFF) {
     switch (state) {
+        case STATE_READY:
+            return false;
         case STATE_ENTER:
             return fillRequest(frame, id, 0x02, 0x10, 0xC0);
         case STATE_EXIT:
@@ -91,59 +94,69 @@ bool fillRequest(Frame* frame, uint32_t id, uint8_t state, uint8_t value = 0xFF)
             return fillRequest(frame, id, 0x02, 0x21, 0x01);
         case STATE_RETRIEVE_71E_2X:
             return fillRequest(frame, id, 0x30, 0x00, 0x0A);
+        case STATE_RETRIEVE_71F_05:
+            return fillRequest(frame, id, 0x02, 0x21, 0x01);
         case STATE_RESET:
             return fillRequest(frame, id, 0x03, 0x3B, 0x1F);
         default:
+            ERROR_MSG_VAL("settings: fill unsupported state ", state);
             return false;
     }
 }
 
 // Match the frame against the given byte prefix.
-inline bool matchResponse(const byte* data, byte prefix0, byte prefix1, byte prefix2) {
+inline bool matchPrefix(const byte* data, byte prefix0) {
+    return data[0] == prefix0;
+}
+
+// Match the frame against the given byte prefix.
+inline bool matchPrefix(const byte* data, byte prefix0, byte prefix1, byte prefix2) {
     return data[0] == prefix0 && data[1] == prefix1 && data[2] == prefix2;
 }
 
 // Return true if the frame matches the given state.
-bool matchResponse(const byte* data, uint8_t state) {
+bool matchState(const byte* data, uint8_t state) {
     switch (state) {
+        case STATE_READY:
+            return false;
         case STATE_ENTER:
-            return matchResponse(data, 0x02, 0x50, 0xC0);
+            return matchPrefix(data, 0x02, 0x50, 0xC0);
         case STATE_EXIT:
-            return matchResponse(data, 0x02, 0x50, 0x81);
+            return matchPrefix(data, 0x02, 0x50, 0x81);
         case STATE_INIT_00:
-            return matchResponse(data, 0x06, 0x7B, 0x00);
+            return matchPrefix(data, 0x06, 0x7B, 0x00);
         case STATE_INIT_20:
-            return matchResponse(data, 0x06, 0x7B, 0x20);
+            return matchPrefix(data, 0x06, 0x7B, 0x20);
         case STATE_INIT_40:
-            return matchResponse(data, 0x06, 0x7B, 0x40);
+            return matchPrefix(data, 0x06, 0x7B, 0x40);
         case STATE_INIT_60:
-            return matchResponse(data, 0x06, 0x7B, 0x60);
+            return matchPrefix(data, 0x06, 0x7B, 0x60);
         case STATE_AUTO_HL_SENS:
-            return matchResponse(data, 0x02, 0x7B, 0x37);
+            return matchPrefix(data, 0x02, 0x7B, 0x37);
         case STATE_AUTO_HL_DELAY:
-            return matchResponse(data, 0x02, 0x7B, 0x39);
+            return matchPrefix(data, 0x02, 0x7B, 0x39);
         case STATE_SPEED_SENS_WIPER:
-            return matchResponse(data, 0x02, 0x7B, 0x47);
+            return matchPrefix(data, 0x02, 0x7B, 0x47);
         case STATE_REMOTE_KEY_HORN:
-            return matchResponse(data, 0x02, 0x7B, 0x2A);
+            return matchPrefix(data, 0x02, 0x7B, 0x2A);
         case STATE_REMOTE_KEY_LIGHT:
-            return matchResponse(data, 0x02, 0x7B, 0x2E);
+            return matchPrefix(data, 0x02, 0x7B, 0x2E);
         case STATE_AUTO_RELOCK_TIME:
-            return matchResponse(data, 0x02, 0x7B, 0x2F);
+            return matchPrefix(data, 0x02, 0x7B, 0x2F);
         case STATE_SELECT_DOOR_UNLOCK:
-            return matchResponse(data, 0x02, 0x7B, 0x02);
+            return matchPrefix(data, 0x02, 0x7B, 0x02);
         case STATE_SLIDE_DRIVER_SEAT:
-            return matchResponse(data, 0x02, 0x7B, 0x01);
+            return matchPrefix(data, 0x02, 0x7B, 0x01);
         case STATE_RETRIEVE_71E_10:
-            return matchResponse(data, 0x10, 0xFF, 0xFF);
+            return matchPrefix(data, 0x10);
         case STATE_RETRIEVE_71E_2X:
-            return matchResponse(data, 0x21, 0xFF, 0xFF) ||
-                matchResponse(data, 0x22, 0xFF, 0xFF);
+            return matchPrefix(data, 0x21) || matchPrefix(data, 0x22);
         case STATE_RETRIEVE_71F_05:
-            return matchResponse(data, 0x05, 0xFF, 0xFF);
+            return matchPrefix(data, 0x05);
         case STATE_RESET:
-            return matchResponse(data, 0x02, 0x7B, 0x1F);
+            return matchPrefix(data, 0x02, 0x7B, 0x1F);
         default:
+            ERROR_MSG_VAL("settings: match unsupported state ", state);
             return false;
     }
 }
@@ -181,7 +194,7 @@ void SettingsSequence::send(const Frame& frame) {
         // not destined for this sequence
         return;
     }
-    if (!matchResponse(frame.data, state_)) {
+    if (!matchState(frame.data, state_)) {
         // frame does not match the current state
         return;
     }
@@ -189,6 +202,17 @@ void SettingsSequence::send(const Frame& frame) {
     if (state_ != nextState) {
         state_ = nextState;
         sent_ = false;
+    }
+}
+
+uint8_t SettingsSequence::next() {
+    switch (request_id_) {
+        case SETTINGS_FRAME_E:
+            return nextE();
+        case SETTINGS_FRAME_F:
+            return nextF();
+        default:
+            return STATE_READY;
     }
 }
 
@@ -225,13 +249,13 @@ uint8_t SettingsRetrieve::nextE() {
         case STATE_ENTER:
             return STATE_RETRIEVE_71E_10;
         case STATE_RETRIEVE_71E_10:
-            state2x_ = 0;
+            state2x_ = false;
             return STATE_RETRIEVE_71E_2X;
         case STATE_RETRIEVE_71E_2X:
-            if (state2x_ >= 2) {
+            if (state2x_) {
                 return STATE_EXIT;
             } else {
-                state2x_++;
+                state2x_ = true;
                 return STATE_RETRIEVE_71E_2X;
             }
         default:
@@ -262,13 +286,13 @@ uint8_t SettingsUpdate::nextE() {
     } else if (state == update_) {
         return STATE_RETRIEVE_71E_10;
     } else if (state == STATE_RETRIEVE_71E_10) {
-        state2x_ = 0;
+        state2x_ = false;
         return STATE_RETRIEVE_71E_2X;
     } else if (state == STATE_RETRIEVE_71E_2X) {
-        if (state2x_ >= 2) {
+        if (state2x_) {
             return STATE_EXIT;
         } else {
-            state2x_++;
+            state2x_ = true;
             return STATE_RETRIEVE_71E_2X;
         }
     }
@@ -294,13 +318,13 @@ uint8_t SettingsReset::nextE() {
         case STATE_RESET:
             return STATE_RETRIEVE_71E_10;
         case STATE_RETRIEVE_71E_10:
-            state2x_ = 0;
+            state2x_ = false;
             return STATE_RETRIEVE_71E_2X;
         case STATE_RETRIEVE_71E_2X:
-            if (state2x_ >= 2) {
+            if (state2x_) {
                 return STATE_EXIT;
             } else {
-                state2x_++;
+                state2x_ = true;
                 return STATE_RETRIEVE_71E_2X;
             }
         default:
@@ -379,13 +403,13 @@ void Settings::send(const Frame& frame) {
 }
 
 void Settings::handleState(const Frame& frame) {
-    if (matchResponse(frame.data, 0x05)) {
+    if (matchPrefix(frame.data, 0x05)) {
         handleState05(frame.data);
-    } else if (matchResponse(frame.data, 0x10)) {
+    } else if (matchPrefix(frame.data, 0x10)) {
         handleState10(frame.data);
-    } else if (matchResponse(frame.data, 0x21)) {
+    } else if (matchPrefix(frame.data, 0x21)) {
         handleState21(frame.data);
-    } else if (matchResponse(frame.data, 0x22)) {
+    } else if (matchPrefix(frame.data, 0x22)) {
         handleState22(frame.data);
     }
 }
@@ -395,9 +419,9 @@ void Settings::handleState05(const byte* data) {
 }
 
 void Settings::handleState10(const byte* data) {
-    setAutoInteriorIllumination(!getBit(data, 4, 5));
+    setAutoInteriorIllumination(getBit(data, 4, 5));
     setSelectiveDoorUnlock(getBit(data, 4, 7));
-    setRemoteKeyResponseHorn(!getBit(data, 7, 3));
+    setRemoteKeyResponseHorn(getBit(data, 7, 3));
 }
 
 void Settings::handleState21(const byte* data) {
@@ -419,6 +443,7 @@ void Settings::handleState21(const byte* data) {
             break;
     }
 
+    uint8_t relock = (data[1] >> 4) & 0x03;
     switch ((data[1] >> 4) & 0x03) {
         case 0x00:
             setAutoReLockTime(Settings::RELOCK_1M);
@@ -520,6 +545,13 @@ bool Settings::filter(uint32_t id) const {
     return id == SETTINGS_CONTROL_FRAME_ID ||
         id == responseId(SETTINGS_FRAME_E) ||
         id == responseId(SETTINGS_FRAME_F);
+}
+
+bool Settings::init() {
+    if (!readyE() || !readyF()) {
+        return false;
+    }
+    return initE_.trigger() && initF_.trigger();
 }
 
 bool Settings::readyE() const {
@@ -624,7 +656,7 @@ bool Settings::toggleAutoInteriorIllumination() {
     if (!readyE()) {
         return false;
     }
-    updateE_.setPayload(STATE_AUTO_INTERIOR_ILLUM, getAutoInteriorIllumination());
+    updateE_.setPayload(STATE_AUTO_INTERIOR_ILLUM, !getAutoInteriorIllumination());
     return updateE_.trigger();
 }
 
@@ -737,7 +769,7 @@ bool Settings::toggleRemoteKeyResponseHorn() {
     if (!readyE()) {
         return false;
     }
-    updateE_.setPayload(STATE_REMOTE_KEY_HORN, getRemoteKeyResponseHorn());
+    updateE_.setPayload(STATE_REMOTE_KEY_HORN, !getRemoteKeyResponseHorn());
     return updateE_.trigger();
 }
 

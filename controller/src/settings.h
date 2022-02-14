@@ -48,7 +48,7 @@ class SettingsSequence {
         // Set the value to send with the state frames that require value.
         void setValue(uint8_t value) { value_ = value; }
 
-        // Return the next state. If the returnned state matches the incoming
+        // Return the next state. If the returned state matches the incoming
         // rame then the sequence transitions to the new state and a frame for
         // the state is sent. If this returns the no state transition occurs
         // and no frame is sent.
@@ -78,19 +78,19 @@ class SettingsInit : public SettingsSequence {
 class SettingsRetrieve : public SettingsSequence {
     public:
         SettingsRetrieve(SettingsFrameId id, Clock* clock = Clock::real()) :
-            SettingsSequence(id, clock), state2x_(0) {}
+            SettingsSequence(id, clock), state2x_(false) {}
     protected:
         uint8_t nextE() override;
         uint8_t nextF() override;
     private:
-        uint8_t state2x_;
+        bool state2x_;
 };
 
 // Sequence used to update a setting in the BCM.
 class SettingsUpdate : public SettingsSequence {
     public:
         SettingsUpdate(SettingsFrameId id, Clock* clock = Clock::real()) :
-            SettingsSequence(id, clock), update_(0), state2x_(0) {}
+            SettingsSequence(id, clock), update_(0), state2x_(false) {}
 
         // Set the item to update and its value. 
         void setPayload(uint8_t update, uint8_t value);
@@ -99,18 +99,18 @@ class SettingsUpdate : public SettingsSequence {
         uint8_t nextF() override;
     private:
         uint8_t update_;
-        uint8_t state2x_;
+        bool state2x_;
 };
 
 class SettingsReset : public SettingsSequence {
     public:
         SettingsReset(SettingsFrameId id, Clock* clock = Clock::real()) :
-            SettingsSequence(id, clock), state2x_(0) {}
+            SettingsSequence(id, clock), state2x_(false) {}
     protected:
         uint8_t nextE() override;
         uint8_t nextF() override;
     private:
-        uint8_t state2x_;
+        bool state2x_;
 };
 
 // Communicates with the BCM to retrieve and update body control settings.
@@ -178,6 +178,9 @@ class Settings : public Node {
 
         // Filter sent frames to this node. Matches 0x71E and 0x72E.
         bool filter(uint32_t id) const override;
+
+        // Exchange init frames with BCM. 
+        bool init();
 
     private:
         enum RemoteKeyResponseLights : uint8_t {

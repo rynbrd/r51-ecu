@@ -153,7 +153,7 @@ Command Identifier: `0x39`
 State Identifier:   `0x21`
 State Byte:         `2+3`
 State Bit Start:    `2[0]+3[6:7]`
-State Bit Length:   `2`
+State Bit Length:   `3`
 
 | State Value | Description |
 | ----------- | ----------- |
@@ -327,40 +327,40 @@ Examples:
 ### Return All Settings to Default
 ```
 # Enter settings mode for first command set.
-<< 71E#02:10:C0:FF:FF:FF:FF:FF
+>> 71E#02:10:C0:FF:FF:FF:FF:FF
 << 72E#02:50:C0:FF:FF:FF:FF:FF
 
 # Send reset all command.
-<< 71E#03:3B:1F:00:FF:FF:FF:FF
+>> 71E#03:3B:1F:00:FF:FF:FF:FF
 << 72E#02:7B:1F:FF:FF:FF:FF:FF
 
 # Request current state, part 1.
-<< 71E#02:21:01:FF:FF:FF:FF:FF
+>> 71E#02:21:01:FF:FF:FF:FF:FF
 << 72E#10:11:61:01:80:1E:24:00
 
 # Request current state, part 2.
-<< 71E#30:00:0A:FF:FF:FF:FF:FF
+>> 71E#30:00:0A:FF:FF:FF:FF:FF
 << 72E#21:C0:00:0A:40:01:64:00
 << 72E#22:94:00:00:47:FF:FF:FF
 
 # Exit settings mode.
-<< 71E#02:10:81:FF:FF:FF:FF:FF
+>> 71E#02:10:81:FF:FF:FF:FF:FF
 << 72E#02:50:81:FF:FF:FF:FF:FF
 
 # Enter settings mode for second command set.
-<< 71F#02:10:C0:FF:FF:FF:FF:FF
+>> 71F#02:10:C0:FF:FF:FF:FF:FF
 << 72F#02:50:C0:FF:FF:FF:FF:FF
 
 # Send reset all command.
-<< 71F#03:3B:1F:00:FF:FF:FF:FF
+>> 71F#03:3B:1F:00:FF:FF:FF:FF
 << 72F#02:7B:1F:FF:FF:FF:FF:FF
 
 # Request current state.
-<< 71F#02:21:01:FF:FF:FF:FF:FF
+>> 71F#02:21:01:FF:FF:FF:FF:FF
 << 72F#05:61:01:01:00:00:FF:FF
 
 # Exit settings mode.
-<< 71F#02:10:81:FF:FF:FF:FF:FF
+>> 71F#02:10:81:FF:FF:FF:FF:FF
 << 72F#02:50:81:FF:FF:FF:FF:FF
 ```
 
