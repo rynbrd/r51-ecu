@@ -97,7 +97,7 @@ bool fillRequest(Frame* frame, uint32_t id, uint8_t state, uint8_t value = 0xFF)
         case STATE_RETRIEVE_71F_05:
             return fillRequest(frame, id, 0x02, 0x21, 0x01);
         case STATE_RESET:
-            return fillRequest(frame, id, 0x03, 0x3B, 0x1F);
+            return fillRequest(frame, id, 0x03, 0x3B, 0x1F, 0x00);
         default:
             ERROR_MSG_VAL("settings: fill unsupported state ", state);
             return false;
@@ -131,6 +131,8 @@ bool matchState(const byte* data, uint8_t state) {
             return matchPrefix(data, 0x06, 0x7B, 0x40);
         case STATE_INIT_60:
             return matchPrefix(data, 0x06, 0x7B, 0x60);
+        case STATE_AUTO_INTERIOR_ILLUM:
+            return matchPrefix(data, 0x02, 0x7B, 0x10);
         case STATE_AUTO_HL_SENS:
             return matchPrefix(data, 0x02, 0x7B, 0x37);
         case STATE_AUTO_HL_DELAY:
@@ -185,13 +187,13 @@ bool SettingsSequence::receive(Frame* frame) {
     }
     sent_ = true;
     bool result = fillRequest(frame, request_id_, state_, value_);
-    value_ = 0xFF;
     return result;
 }
 
 void SettingsSequence::send(const Frame& frame) {
     if (frame.id != responseId(request_id_)) {
         // not destined for this sequence
+        ERROR_MSG_FRAME("settings: unrecognized frame: ", frame);
         return;
     }
     if (!matchState(frame.data, state_)) {
@@ -443,7 +445,6 @@ void Settings::handleState21(const byte* data) {
             break;
     }
 
-    uint8_t relock = (data[1] >> 4) & 0x03;
     switch ((data[1] >> 4) & 0x03) {
         case 0x00:
             setAutoReLockTime(Settings::RELOCK_1M);
