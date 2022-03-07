@@ -63,7 +63,7 @@ class MockNode : public Node {
             ++send_count_;
         }
 
-        bool filter(uint32_t id) override {
+        bool filter(uint32_t id) const override {
             return filter1_ == -1 || filter1_ == id || filter2_ == id;
         }
 };
