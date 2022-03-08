@@ -1,28 +1,34 @@
 #ifndef __R51_CAN__
 #define __R51_CAN__
 
-#include "connection.h"
+#include "bus.h"
 #include "same51_can.h"
 
-class CanConnection : public Connection {
+
+class Same51Can : public Node {
     public:
-        CanConnection(uint32_t baudrate = CAN_500KBPS) :
+        Same51Can(uint32_t baudrate = CAN_500KBPS) :
             client_(), init_(false),
             baudrate_(baudrate), retries_(5) {}
 
         // Initialize the CAN controller. 
         void begin();
 
-        // Read a frame from the CAN bus. Return true if a frame was read.
-        bool read(uint32_t* id, uint8_t* len, byte* data) override;
+        // Receive a frame from the CAN bus.
+        virtual void receive(const Broadcast& broadcast) override;
 
-        // Write frame to the CAN bus. Return true if the frame was written.
-        bool write(uint32_t id, uint8_t len, byte* data) override;
+        // Send a frame to the CAN bus.
+        virtual void send(const Frame& frame) override;
+
+        // Filter frames to receive from the CAN connection. Defaults to
+        // allowing all frames.
+        virtual bool filter(uint32_t id) const override;
     private:
         SAME51_CAN client_;
         bool init_;
         uint32_t baudrate_;
         uint8_t retries_;
+        Frame frame_;
 };
 
 #endif  // __R51_CAN__
