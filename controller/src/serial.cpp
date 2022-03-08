@@ -4,14 +4,14 @@
 #include "debug.h"
 
 
-void SerialConnection::begin(Stream* stream) {
+void SerialText::begin(Stream* stream) {
     stream_ = stream;
     reset();
 }
 
-bool SerialConnection::read(uint32_t* id, uint8_t* len, byte* data) {
+void SerialText::receive(const Broadcast& broadcast) {
     if (stream_ == nullptr) {
-        return false;
+        return;
     }
 
     byte b = 0;
@@ -30,13 +30,13 @@ bool SerialConnection::read(uint32_t* id, uint8_t* len, byte* data) {
         if (buffer_len_ >= 32) {
             ERROR_MSG("serial: buffer overflow");
             reset();
-            return false;
+            return;
         }
         buffer_[buffer_len_++] = b;
     }
 
     if (!complete) {
-        return false;
+        return;
     }
 
     for (int i = 0; i < buffer_len_; i++) {
@@ -48,54 +48,56 @@ bool SerialConnection::read(uint32_t* id, uint8_t* len, byte* data) {
     if (id_len_ > 8) {
         ERROR_MSG("serial: invalid frame format: id too long");
         reset();
-        return false;
+        return;
     }
 
     data_len_ = buffer_len_ - id_len_ - 1;
     if (data_len_ % 2 == 1) {
         ERROR_MSG("serial: invalid frame format: odd number of bytes");
         reset();
-        return false;
+        return;
     }
 
     memcpy(conv_, buffer_, id_len_);
     conv_[id_len_] = 0;
-    *id = strtoul((char*)conv_, nullptr, 16);
-    if (*id == 0) {
+    frame_.id = strtoul((char*)conv_, nullptr, 16);
+    if (frame_.id == 0) {
         ERROR_MSG("serial: invalid frame format: bad id");
         reset();
-        return false;
+        return;
     }
 
-    data_len_ = 
-    *len = data_len_ / 2;
+    frame_.len = data_len_ / 2;
     conv_[2] = 0;
-    for (int i = 0; i < *len; i++) {
+    for (int i = 0; i < frame_.len; i++) {
         memcpy(conv_, buffer_ + (i * 2 + id_len_ + 1), 2);
-        data[i] = (byte)strtoul((char*)conv_, nullptr, 16);
+        frame_.data[i] = (byte)strtoul((char*)conv_, nullptr, 16);
     }
 
     reset();
-    return true;
+    broadcast(frame_);
 }
 
-bool SerialConnection::write(uint32_t id, uint8_t len, byte* data) {
-    stream_->print(id, HEX);
+void SerialText::send(const Frame& frame) {
+    stream_->print(frame.id, HEX);
     stream_->print("#");
-    for (int i = 0; i < len; i++) {
-        if (data[i] <= 0x0F) {
+    for (int i = 0; i < frame.len; i++) {
+        if (frame.data[i] <= 0x0F) {
             stream_->print("0");
         }
-        stream_->print(data[i], HEX);
-        if (i < len-1) {
+        stream_->print(frame.data[i], HEX);
+        if (i < frame.len-1) {
             stream_->print(":");
         }
     }
     stream_->println("");
+}
+
+bool SerialText::filter(uint32_t id) const {
     return true;
 }
 
-void SerialConnection::reset() {
+void SerialText::reset() {
     memset(buffer_, 0, 28);
     buffer_len_ = 0;
     id_len_ = 0;

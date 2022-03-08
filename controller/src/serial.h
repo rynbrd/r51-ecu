@@ -2,7 +2,8 @@
 #define __R51_SERIAL_H__
 
 #include <Arduino.h>
-#include "connection.h"
+
+#include "bus.h"
 
 
 #define WAIT_FOR_SERIAL(SERIAL, DELAY, LOG_MSG) ({\
@@ -30,19 +31,23 @@
 //
 // Frames written to the stream will be printed in the above form and end in a
 // CR+LF.
-class SerialConnection : public Connection {
+class SerialText : public Node {
     public:
-        SerialConnection() : stream_(nullptr) {}
+        SerialText() : stream_(nullptr) {}
 
         // Start receiving frames from the given stream. Typically Serial,
         // SerialUSB, or Serial1.
         void begin(Stream* stream);
 
-        // Read a frame from serial. Returns false if no frame was read.
-        bool read(uint32_t* id, uint8_t* len, byte* data) override;
+        // Receive a text frame over serial.
+        void receive(const Broadcast& broadcast) override;
 
-        // Print the frame to serial.
-        bool write(uint32_t id, uint8_t len, byte* data) override;
+        // Send a text frame over serial.
+        void send(const Frame& frame) override;
+
+        // Filter frames to receive from the serial connection. Defaults to
+        // allowing all frames.
+        virtual bool filter(uint32_t id) const override;
 
     private:
         Stream* stream_;
@@ -51,6 +56,7 @@ class SerialConnection : public Connection {
         uint8_t buffer_len_;
         uint8_t id_len_;
         uint8_t data_len_;
+        Frame frame_;
 
         void reset();
 };
