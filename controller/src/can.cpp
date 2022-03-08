@@ -48,7 +48,3 @@ void Same51Can::send(const Frame& frame) {
         ERROR_MSG_FRAME("can: dropped frame ", frame);
     }
 }
-
-bool Same51Can::filter(uint32_t id) const {
-    return true;
-}

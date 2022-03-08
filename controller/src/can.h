@@ -19,10 +19,6 @@ class Same51Can : public Node {
 
         // Send a frame to the CAN bus.
         virtual void send(const Frame& frame) override;
-
-        // Filter frames to receive from the CAN connection. Defaults to
-        // allowing all frames.
-        virtual bool filter(uint32_t id) const override;
     private:
         SAME51_CAN client_;
         bool init_;

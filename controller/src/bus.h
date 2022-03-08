@@ -40,8 +40,8 @@ class Node {
         virtual void receive(const Broadcast& broadcast) = 0;
 
         // Send a frame to the node. Every received frame is sent to every node
-        // on the bus. A node is not required to process a frame. The bus
-        // maintains ownership of the pointer.
+        // on the bus whose filter method returns true. A node is not required
+        // to process a frame.
         virtual void send(const Frame& frame) = 0;
 
         // Filter sent frames to this node. Return true for frame IDs that
