@@ -1,11 +1,12 @@
 #include "climate.h"
 
+#include <AFake.h>
 #include "binary.h"
 #include "config.h"
 #include "debug.h"
 
 
-Climate::Climate(Clock* clock, GPIO* gpio) : clock_(clock),
+Climate::Climate(AFake::Clock* clock, AFake::GPIO* gpio) : clock_(clock),
         rear_defrost_(REAR_DEFROST_PIN, REAR_DEFROST_TRIGGER_MS, clock, gpio) {
     // Init operational state.
     state_ = STATE_OFF;

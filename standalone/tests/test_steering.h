@@ -2,11 +2,10 @@
 #define __R51_TESTS_TEST_STEERING__
 
 #include <Arduino.h>
+#include <AFake.h>
 #include <AUnit.h>
 
 #include "mock_broadcast.h"
-#include "mock_clock.h"
-#include "mock_gpio.h"
 #include "src/bus.h"
 #include "src/config.h"
 #include "src/steering.h"
@@ -19,8 +18,8 @@ class SteeringKeypadTest : public TestOnce {
         static constexpr const int values[] = STEERING_SWITCH_VALUES;
 
         void assertButtonPress(uint32_t pin, uint32_t value, byte expect) {
-            MockClock clock;
-            MockGPIO gpio;
+            AFake::FakeClock clock;
+            AFake::FakeGPIO gpio;
             MockBroadcast broadcast(1);
 
             Frame released = {
@@ -98,8 +97,8 @@ testF(SteeringKeypadTest, VolumeUp) {
 }
 
 test(SteeringKeypad, Heartbeat) {
-    MockClock clock;
-    MockGPIO gpio;
+    AFake::FakeClock clock;
+    AFake::FakeGPIO gpio;
     MockBroadcast broadcast(1);
 
     Frame expect = {

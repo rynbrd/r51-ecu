@@ -27,8 +27,7 @@
 #define ANALOG_MULTI_BUTTON_H
 
 #include <Arduino.h>
-#include "clock.h"
-#include "gpio.h"
+#include <AFake.h>
 
 class AnalogMultiButton
 {
@@ -48,7 +47,8 @@ class AnalogMultiButton
     AnalogMultiButton(int pin, int total, const int values[],
         unsigned int debounceDuration = DEFAULT_DEBOUNCE_DURATION,
         unsigned int analogResolution = DEFAULT_ANALOG_RESOLUTION,
-        Clock* clock = Clock::real(), GPIO* gpio = GPIO::real());
+        AFake::Clock* clock = AFake::Clock::real(),
+        AFake::GPIO* gpio = AFake::GPIO::real());
 
     boolean isPressed(int button) { return buttonPressed == button; } // evaluates to true continually while <button> is pressed
 	boolean isPressedBefore(int button, int duration); // called continually while <button> is pressed for less than <duration> (ms)
@@ -72,8 +72,8 @@ class AnalogMultiButton
     unsigned int analogResolution;
     unsigned int debounceDuration;
     int valueBoundaries[AnalogMultiButton::MAX_BUTTONS];
-    Clock* clock;
-    GPIO* gpio;
+    AFake::Clock* clock;
+    AFake::GPIO* gpio;
 
     int buttonPressed = -1;
     int buttonOnPress = -1;

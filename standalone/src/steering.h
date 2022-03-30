@@ -1,10 +1,9 @@
 #ifndef __R51_STEERING__
 #define __R51_STEERING__
 
+#include <AFake.h>
 #include "AnalogMultiButton.h"
 #include "bus.h"
-#include "clock.h"
-#include "gpio.h"
 
 
 // Steering wheel keypad. Sends 0x5800 CAN frames on button press and release.
@@ -26,7 +25,8 @@ class SteeringKeypad : public Node {
     public:
         // Construct a new steering switch keypad object.
         // analog pins to communicate. See config.h for configuration.
-        SteeringKeypad(Clock* clock = Clock::real(), GPIO* gpio = GPIO::real());
+        SteeringKeypad(AFake::Clock* clock = AFake::Clock::real(),
+                AFake::GPIO* gpio = AFake::GPIO::real());
 
         // Free resources associated with the keypad.
         ~SteeringKeypad() override;
@@ -42,7 +42,7 @@ class SteeringKeypad : public Node {
 
     private:
         uint32_t last_change_;
-        Clock* clock_;
+        AFake::Clock* clock_;
         Frame frame_;
         AnalogMultiButton* sw_a_;
         AnalogMultiButton* sw_b_;

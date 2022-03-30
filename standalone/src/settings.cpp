@@ -1,5 +1,6 @@
 #include "settings.h"
 
+#include <AFake.h>
 #include "binary.h"
 #include "config.h"
 #include "debug.h"
@@ -347,7 +348,7 @@ uint8_t SettingsReset::nextF() {
     }
 }
 
-Settings::Settings(Clock* clock) :
+Settings::Settings(AFake::Clock* clock) :
         initE_(SETTINGS_FRAME_E, clock), retrieveE_(SETTINGS_FRAME_E, clock),
         updateE_(SETTINGS_FRAME_E, clock), resetE_(SETTINGS_FRAME_E, clock),
         initF_(SETTINGS_FRAME_F, clock), retrieveF_(SETTINGS_FRAME_F, clock),

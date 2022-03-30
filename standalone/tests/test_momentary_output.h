@@ -2,18 +2,17 @@
 #define __R51_TESTS_TEST_MOMENTARY_OUTPUT__
 
 #include <Arduino.h>
+#include <AFake.h>
 #include <AUnit.h>
 
-#include "mock_clock.h"
-#include "mock_gpio.h"
 #include "src/momentary_output.h"
 
 using namespace aunit;
 
 
 test(MomentaryOutputTest, TriggerHigh) {
-    MockClock clock;
-    MockGPIO gpio;
+    AFake::FakeClock clock;
+    AFake::FakeGPIO gpio;
 
     MomentaryOutput output(16, 100, &clock, &gpio);
     assertEqual(gpio.pinMode(16), (uint32_t)OUTPUT);
@@ -41,8 +40,8 @@ test(MomentaryOutputTest, TriggerHigh) {
 }
 
 test(MomentaryOutputTest, TriggerLow) {
-    MockClock clock;
-    MockGPIO gpio;
+    AFake::FakeClock clock;
+    AFake::FakeGPIO gpio;
 
     MomentaryOutput output(16, 100, -1, false, &clock, &gpio);
     assertEqual(gpio.pinMode(16), (uint32_t)OUTPUT);
@@ -70,8 +69,8 @@ test(MomentaryOutputTest, TriggerLow) {
 }
 
 test(MomentaryOutputTest, ShortCooldown) {
-    MockClock clock;
-    MockGPIO gpio;
+    AFake::FakeClock clock;
+    AFake::FakeGPIO gpio;
 
     MomentaryOutput output(16, 200, 10, true, &clock, &gpio);
     assertEqual(gpio.pinMode(16), (uint32_t)OUTPUT);

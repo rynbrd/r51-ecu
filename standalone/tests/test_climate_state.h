@@ -2,11 +2,10 @@
 #define __R51_TESTS_TEST_CLIMATE_STATE__
 
 #include <Arduino.h>
+#include <AFake.h>
 #include <AUnit.h>
 
 #include "mock_broadcast.h"
-#include "mock_clock.h"
-#include "mock_gpio.h"
 #include "src/climate.h"
 #include "testing.h"
 
@@ -14,8 +13,8 @@ using namespace aunit;
 
 
 #define INIT_STATE() \
-    MockClock clock;\
-    MockGPIO gpio;\
+    AFake::FakeClock clock;\
+    AFake::FakeGPIO gpio;\
     Climate climate(&clock, &gpio);
 
 bool checkStateFrames(Climate* climate, const Frame& state54A, const Frame& state54B, const Frame& expect) {

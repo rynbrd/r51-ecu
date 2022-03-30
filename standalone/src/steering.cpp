@@ -1,5 +1,6 @@
 #include "steering.h"
 
+#include <AFake.h>
 #include "binary.h"
 #include "config.h"
 #include "debug.h"
@@ -9,7 +10,7 @@
 static constexpr const int kSteeringKeypadValues[] = STEERING_SWITCH_VALUES;
 static constexpr const uint32_t kSteeringKeypadHeartbeat = 500;
 
-SteeringKeypad::SteeringKeypad(Clock* clock, GPIO* gpio) : last_change_(0), clock_(clock) {
+SteeringKeypad::SteeringKeypad(AFake::Clock* clock, AFake::GPIO* gpio) : last_change_(0), clock_(clock) {
     initFrame(&frame_, STEERING_SWITCH_FRAME_ID, STEERING_SWITCH_FRAME_LEN);
     sw_a_ = new AnalogMultiButton(
             STEERING_SWITCH_A_PIN, STEERING_SWITCH_COUNT, kSteeringKeypadValues,
