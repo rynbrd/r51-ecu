@@ -33,7 +33,7 @@ Climate climate;
 ControllerRealDash realdash;
 Settings settings;
 SteeringKeypad steering_keypad;
-D(SerialText serial_text);
+D(SerialText serial_test);
 
 Bus* bus;
 Node* nodes[] = {
@@ -42,12 +42,14 @@ Node* nodes[] = {
     &realdash,
     &settings,
     &steering_keypad,
-    D(&serial_text),
+#ifdef DEBUG
+    &serial_test,
+#endif
 };
 
 void setup_debug() {
     DEBUG_BEGIN();
-    serial_text.begin(&DEBUG_SERIAL);
+    D(serial_test.begin(&DEBUG_SERIAL));
     #ifdef DEBUG_WAIT_FOR_SERIAL
     WAIT_FOR_SERIAL(DEBUG_SERIAL, 100, nullptr);
     #endif
