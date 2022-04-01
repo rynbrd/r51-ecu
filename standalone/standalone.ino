@@ -11,7 +11,7 @@
 #include "src/steering.h"
 
 
-class ControllerCan : public Same51Can {
+class ControllerCan : public CanNode {
     public:
         // Only send climate and settings frames over CAN.
         bool filter(uint32_t id) const override {

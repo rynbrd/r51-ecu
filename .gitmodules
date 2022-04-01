@@ -7,3 +7,12 @@
 [submodule "libraries/AFake"]
 	path = libraries/AFake
 	url = git@github.com:BlueDragonX/AFake.git
+[submodule "libraries/Aruino_CAN_BUS_MCP2515"]
+	path = libraries/Aruino_CAN_BUS_MCP2515
+	url = git@github.com:BlueDragonX/Aruino_CAN_BUS_MCP2515.git
+[submodule "libraries/Longan_CANFD"]
+	path = libraries/Longan_CANFD
+	url = git@github.com:BlueDragonX/Longan_CANFD.git
+[submodule "libraries/CANBed"]
+	path = libraries/CANBed
+	url = git@github.com:BlueDragonX/CANBed.git

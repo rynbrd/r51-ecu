@@ -2,14 +2,13 @@
 #define __R51_CAN__
 
 #include "bus.h"
-#include "same51_can.h"
+#include "CANBed.h"
 
 
-class Same51Can : public Node {
+class CanNode : public Node {
     public:
-        Same51Can(uint32_t baudrate = CAN_500KBPS) :
-            client_(), init_(false),
-            baudrate_(baudrate), retries_(5) {}
+        CanNode(CANBed::Bitrate bitrate = CANBed::CAN20_500K) :
+            init_(false), bitrate_(bitrate), retries_(5) {}
 
         // Initialize the CAN controller. 
         void begin();
@@ -20,9 +19,8 @@ class Same51Can : public Node {
         // Send a frame to the CAN bus.
         virtual void send(const Frame& frame) override;
     private:
-        SAME51_CAN client_;
         bool init_;
-        uint32_t baudrate_;
+        CANBed::Bitrate bitrate_;
         uint8_t retries_;
         Frame frame_;
 };
