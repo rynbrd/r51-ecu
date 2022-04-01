@@ -7,11 +7,8 @@
 
 class CanNode : public Node {
     public:
-        CanNode(CANBed::Bitrate bitrate = CANBed::CAN20_500K) :
-            init_(false), bitrate_(bitrate), retries_(5) {}
-
-        // Initialize the CAN controller. 
-        void begin();
+        CanNode(CANBed::Controller* can) :
+            can_(can), retries_(5) {}
 
         // Receive a frame from the CAN bus.
         virtual void receive(const Broadcast& broadcast) override;
@@ -19,8 +16,7 @@ class CanNode : public Node {
         // Send a frame to the CAN bus.
         virtual void send(const Frame& frame) override;
     private:
-        bool init_;
-        CANBed::Bitrate bitrate_;
+        CANBed::Controller* can_;
         uint8_t retries_;
         Frame frame_;
 };

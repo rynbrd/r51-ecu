@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <CANBed.h>
 
 #include "src/bus.h"
 #include "src/can.h"
@@ -13,6 +14,8 @@
 
 class ControllerCan : public CanNode {
     public:
+        ControllerCan() : CanNode(&CAN) {}
+
         // Only send climate and settings frames over CAN.
         bool filter(uint32_t id) const override {
             return (id & 0xFFFFFFFE) == 0x540 ||
@@ -66,7 +69,10 @@ void setup_realdash() {
 
 void setup_can() {
     INFO_MSG("setup: connecting to can bus");
-    can.begin();
+    while (CAN.begin(CANBed::CAN20_500K) != CANBed::ERR_OK) {
+        ERROR_MSG("setup: failed to init can bus");
+        delay(500);
+    }
 }
 
 void setup_bus() {
