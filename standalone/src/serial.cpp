@@ -95,7 +95,7 @@ void SerialText::send(const Frame& frame) {
     stream_->println("");
 }
 
-bool SerialText::filter(const Frame& frame) const {
+bool SerialText::filter(const Frame&) const {
     return true;
 }
 
