@@ -3,8 +3,8 @@
 
 #include <Arduino.h>
 
-#include "bus.h"
 #include "config.h"
+#include "frame.h"
 
 
 #ifdef DEBUG_ENABLE

@@ -3,6 +3,7 @@
 
 #include "src/bus.h"
 #include "src/debug.h"
+#include "src/frame.h"
 
 
 // Mock broadcast implementation for node tests.

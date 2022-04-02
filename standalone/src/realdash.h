@@ -5,6 +5,7 @@
 
 #include "CRC32.h"
 #include "bus.h"
+#include "frame.h"
 
 
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and

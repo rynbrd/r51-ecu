@@ -2,8 +2,10 @@
 
 #include <AFake.h>
 #include "binary.h"
+#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "frame.h"
 
 
 // Available sequence states. States other than "ready" represent a frame which
@@ -543,10 +545,10 @@ void Settings::handleControl(const Frame& frame) {
     memcpy(control_state_, frame.data, 8);
 }
 
-bool Settings::filter(uint32_t id) const {
-    return id == SETTINGS_CONTROL_FRAME_ID ||
-        id == responseId(SETTINGS_FRAME_E) ||
-        id == responseId(SETTINGS_FRAME_F);
+bool Settings::filter(const Frame& frame) const {
+    return frame.id == SETTINGS_CONTROL_FRAME_ID ||
+        frame.id == responseId(SETTINGS_FRAME_E) ||
+        frame.id == responseId(SETTINGS_FRAME_F);
 }
 
 bool Settings::init() {

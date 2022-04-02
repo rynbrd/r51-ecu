@@ -5,6 +5,7 @@
 #include <AFake.h>
 
 #include "bus.h"
+#include "frame.h"
 #include "momentary_output.h"
 
 
@@ -73,7 +74,7 @@ class Climate : public Node {
         // Matches vehicle state frames and dash control frames.
         //   Vehicle: 0x54A, 0x54B, 0x625
         //   Dash:    0x5401
-        bool filter(uint32_t id) const override;
+        bool filter(const Frame& frame) const override;
 
     private:
         AFake::Clock* clock_;

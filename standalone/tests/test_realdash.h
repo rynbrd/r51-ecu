@@ -6,7 +6,7 @@
 
 #include "mock_broadcast.h"
 #include "mock_stream.h"
-#include "src/bus.h"
+#include "src/frame.h"
 #include "src/realdash.h"
 
 using namespace aunit;

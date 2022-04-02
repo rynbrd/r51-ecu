@@ -1,7 +1,8 @@
 #ifndef __R51_TESTS_TESTING__
 #define __R51_TESTS_TESTING__
 
-#include "src/bus.h"
+#include "mock_broadcast.h"
+#include "src/frame.h"
 
 
 void printFrame(const Frame& frame) {

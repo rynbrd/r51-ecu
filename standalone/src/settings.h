@@ -5,6 +5,7 @@
 #include <AFake.h>
 
 #include "bus.h"
+#include "frame.h"
 
 
 // Valid frame IDs for settings.
@@ -177,7 +178,7 @@ class Settings : public Node {
         void send(const Frame& frame) override;
 
         // Filter sent frames to this node. Matches 0x71E and 0x72E.
-        bool filter(uint32_t id) const override;
+        bool filter(const Frame& frame) const override;
 
         // Exchange init frames with BCM. 
         bool init();

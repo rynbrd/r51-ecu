@@ -1,7 +1,9 @@
 #include "serial.h"
 
+#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "frame.h"
 
 
 void SerialText::begin(Stream* stream) {
@@ -93,7 +95,7 @@ void SerialText::send(const Frame& frame) {
     stream_->println("");
 }
 
-bool SerialText::filter(uint32_t id) const {
+bool SerialText::filter(const Frame& frame) const {
     return true;
 }
 

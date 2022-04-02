@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "bus.h"
+#include "frame.h"
 
 
 #define WAIT_FOR_SERIAL(SERIAL, DELAY, LOG_MSG) ({\
@@ -47,7 +48,7 @@ class SerialText : public Node {
 
         // Filter frames to receive from the serial connection. Defaults to
         // allowing all frames.
-        virtual bool filter(uint32_t id) const override;
+        virtual bool filter(const Frame& frame) const override;
 
     private:
         Stream* stream_;

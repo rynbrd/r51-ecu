@@ -1,8 +1,10 @@
 #ifndef __R51_CAN__
 #define __R51_CAN__
 
+#include <CANBed.h>
+
 #include "bus.h"
-#include "CANBed.h"
+#include "frame.h"
 
 
 class CanNode : public Node {

@@ -2,8 +2,10 @@
 
 #include <AFake.h>
 #include "binary.h"
+#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "frame.h"
 
 
 Climate::Climate(AFake::Clock* clock, AFake::GPIO* gpio) : clock_(clock),
@@ -75,8 +77,8 @@ void Climate::send(const Frame& frame) {
     }
 }
 
-bool Climate::filter(uint32_t id) const {
-    return id == 0x54A || id == 0x54B || id == 0x625 || id == CLIMATE_CONTROL_FRAME_ID;
+bool Climate::filter(const Frame& frame) const {
+    return frame.id == 0x54A || frame.id == 0x54B || frame.id == 0x625 || frame.id == CLIMATE_CONTROL_FRAME_ID;
 }
 
 void Climate::handle54A(const Frame& frame) {

@@ -2,8 +2,10 @@
 
 #include <Arduino.h>
 #include "binary.h"
+#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "frame.h"
 
 
 static const uint32_t kReceiveTimeout = 5000;

@@ -2,8 +2,10 @@
 #define __R51_STEERING__
 
 #include <AFake.h>
+
 #include "AnalogMultiButton.h"
 #include "bus.h"
+#include "frame.h"
 
 
 // Steering wheel keypad. Sends 0x5800 CAN frames on button press and release.
@@ -38,7 +40,7 @@ class SteeringKeypad : public Node {
         void send(const Frame&) override {}
 
         // Always returns false. This node does not process frames.
-        bool filter(uint32_t) const override { return false; }
+        bool filter(const Frame&) const override { return false; }
 
     private:
         uint32_t last_change_;

@@ -6,6 +6,7 @@
 #include "src/climate.h"
 #include "src/config.h"
 #include "src/debug.h"
+#include "src/frame.h"
 #include "src/realdash.h"
 #include "src/serial.h"
 #include "src/settings.h"
@@ -17,17 +18,17 @@ class ControllerCan : public CanNode {
         ControllerCan() : CanNode(&CAN) {}
 
         // Only send climate and settings frames over CAN.
-        bool filter(uint32_t id) const override {
-            return (id & 0xFFFFFFFE) == 0x540 ||
-                   (id & 0xFFFFFFFE) == 0x71E;
+        bool filter(const Frame& frame) const override {
+            return (frame.id & 0xFFFFFFFE) == 0x540 ||
+                   (frame.id & 0xFFFFFFFE) == 0x71E;
         }
 };
 
 class ControllerRealDash : public RealDash {
     public:
         // Only send dashboard state frames to RealDash.
-        bool filter(uint32_t id) const override {
-            return id == 0x5400 || id == 0x5700 || id == 0x5800;
+        bool filter(const Frame& frame) const override {
+            return frame.id == 0x5400 || frame.id == 0x5700 || frame.id == 0x5800;
         }
 };
 

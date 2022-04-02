@@ -2,8 +2,10 @@
 
 #include <AFake.h>
 #include "binary.h"
+#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "frame.h"
 
 
 // This needs to be placed in memory.

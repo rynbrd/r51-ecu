@@ -7,9 +7,9 @@
 
 #include "mock_broadcast.h"
 #include "src/binary.h"
-#include "src/bus.h"
 #include "src/climate.h"
 #include "src/config.h"
+#include "src/frame.h"
 #include "testing.h"
 
 using namespace aunit;
