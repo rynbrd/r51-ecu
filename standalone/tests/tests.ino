@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <AUnit.h>
 
-#include "test_bus.h"
 #include "test_climate_control.h"
 #include "test_climate_state.h"
 #include "test_momentary_output.h"

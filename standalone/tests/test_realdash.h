@@ -14,7 +14,7 @@ using namespace aunit;
 
 class FakeRealDash : public RealDash {
     public:
-        bool filter(uint32_t) const override {
+        bool filter(const Frame&) const override {
             return true;
         }
 };
