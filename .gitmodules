@@ -22,3 +22,6 @@
 [submodule "libraries/ArduinoFaker"]
 	path = libraries/ArduinoFaker
 	url = git@github.com:BlueDragonX/ArduinoFaker.git
+[submodule "libraries/AnalogMultiButton"]
+	path = libraries/AnalogMultiButton
+	url = git@github.com:BlueDragonX/AnalogMultiButton.git
