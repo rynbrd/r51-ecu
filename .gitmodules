@@ -16,3 +16,6 @@
 [submodule "libraries/CANBed"]
 	path = libraries/CANBed
 	url = git@github.com:BlueDragonX/CANBed.git
+[submodule "libraries/EpoxyDuino"]
+	path = libraries/EpoxyDuino
+	url = https://github.com/bxparks/EpoxyDuino.git
