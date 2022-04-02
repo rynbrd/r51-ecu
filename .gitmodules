@@ -4,9 +4,6 @@
 [submodule "libraries/Adafruit_BluefruitLE_nRF51"]
 	path = libraries/Adafruit_BluefruitLE_nRF51
 	url = git@github.com:BlueDragonX/Adafruit_BluefruitLE_nRF51.git
-[submodule "libraries/AFake"]
-	path = libraries/AFake
-	url = git@github.com:BlueDragonX/AFake.git
 [submodule "libraries/Aruino_CAN_BUS_MCP2515"]
 	path = libraries/Aruino_CAN_BUS_MCP2515
 	url = git@github.com:BlueDragonX/Aruino_CAN_BUS_MCP2515.git
@@ -22,3 +19,6 @@
 [submodule "libraries/ArduinoCaster"]
 	path = libraries/ArduinoCaster
 	url = git@github.com:BlueDragonX/ArduinoCaster.git
+[submodule "libraries/ArduinoFaker"]
+	path = libraries/ArduinoFaker
+	url = git@github.com:BlueDragonX/ArduinoFaker.git

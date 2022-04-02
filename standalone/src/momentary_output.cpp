@@ -1,10 +1,10 @@
 #include "momentary_output.h"
 
-#include <AFake.h>
+#include <Faker.h>
 
 
 MomentaryOutput::MomentaryOutput(int pin, uint16_t trigger_ms, int32_t cooldown_ms, bool high,
-        AFake::Clock* clock, AFake::GPIO* gpio)
+        Faker::Clock* clock, Faker::GPIO* gpio)
     : clock_(clock), gpio_(gpio),
       pin_(pin), high_(high), triggered_(false), 
       trigger_ms_(trigger_ms), trigger_time_(0),
@@ -13,7 +13,7 @@ MomentaryOutput::MomentaryOutput(int pin, uint16_t trigger_ms, int32_t cooldown_
     gpio_->digitalWrite(pin_, high_ ? LOW : HIGH);
 }
 
-MomentaryOutput::MomentaryOutput(int pin, uint16_t trigger_ms, AFake::Clock* clock, AFake::GPIO* gpio)
+MomentaryOutput::MomentaryOutput(int pin, uint16_t trigger_ms, Faker::Clock* clock, Faker::GPIO* gpio)
     : MomentaryOutput(pin, trigger_ms, -1, true, clock, gpio) {}
 
 void MomentaryOutput::update() {

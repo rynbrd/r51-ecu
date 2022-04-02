@@ -1,6 +1,6 @@
 #include "settings.h"
 
-#include <AFake.h>
+#include <Faker.h>
 #include "binary.h"
 #include "bus.h"
 #include "config.h"
@@ -350,7 +350,7 @@ uint8_t SettingsReset::nextF() {
     }
 }
 
-Settings::Settings(AFake::Clock* clock) :
+Settings::Settings(Faker::Clock* clock) :
         initE_(SETTINGS_FRAME_E, clock), retrieveE_(SETTINGS_FRAME_E, clock),
         updateE_(SETTINGS_FRAME_E, clock), resetE_(SETTINGS_FRAME_E, clock),
         initF_(SETTINGS_FRAME_F, clock), retrieveF_(SETTINGS_FRAME_F, clock),

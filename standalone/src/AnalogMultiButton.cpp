@@ -24,12 +24,12 @@
  */
 
 #include <Arduino.h>
-#include <AFake.h>
+#include <Faker.h>
 #include "AnalogMultiButton.h"
 
 AnalogMultiButton::AnalogMultiButton(int pin, int total, const int values[],
     unsigned int debounceDuration, unsigned int analogResolution,
-    AFake::Clock* clock, AFake::GPIO* gpio)
+    Faker::Clock* clock, Faker::GPIO* gpio)
 {
   this->clock = clock;
   this->gpio = gpio;

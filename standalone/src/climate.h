@@ -2,7 +2,7 @@
 #define __R51_CLIMATE_H__
 
 #include <Arduino.h>
-#include <AFake.h>
+#include <Faker.h>
 
 #include "bus.h"
 #include "frame.h"
@@ -62,8 +62,8 @@
 //   Bytes 5-7: unused
 class Climate : public Node {
     public:
-        Climate(AFake::Clock* clock = AFake::Clock::real(),
-                AFake::GPIO* gpio = AFake::GPIO::real());
+        Climate(Faker::Clock* clock = Faker::Clock::real(),
+                Faker::GPIO* gpio = Faker::GPIO::real());
 
         // Receive translated state frames.
         void receive(const Broadcast& broadcast) override;
@@ -77,7 +77,7 @@ class Climate : public Node {
         bool filter(const Frame& frame) const override;
 
     private:
-        AFake::Clock* clock_;
+        Faker::Clock* clock_;
 
         // Hardware control.
         MomentaryOutput rear_defrost_;

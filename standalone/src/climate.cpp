@@ -1,6 +1,6 @@
 #include "climate.h"
 
-#include <AFake.h>
+#include <Faker.h>
 #include "binary.h"
 #include "bus.h"
 #include "config.h"
@@ -8,7 +8,7 @@
 #include "frame.h"
 
 
-Climate::Climate(AFake::Clock* clock, AFake::GPIO* gpio) : clock_(clock),
+Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
         rear_defrost_(REAR_DEFROST_PIN, REAR_DEFROST_TRIGGER_MS, clock, gpio) {
     // Init operational state.
     state_ = STATE_OFF;

@@ -1,9 +1,9 @@
 #ifndef __R51_TESTS_TEST_SETTINGS__
 #define __R51_TESTS_TEST_SETTINGS__
 
-#include <Arduino.h>
-#include <AFake.h>
 #include <AUnit.h>
+#include <Arduino.h>
+#include <Faker.h>
 
 #include "mock_broadcast.h"
 #include "src/binary.h"
@@ -180,7 +180,7 @@ class SettingsTest : public TestOnce {
             return checkFrameCount(cast, 0);
         }
 
-        AFake::FakeClock clock;
+        Faker::FakeClock clock;
 };
 
 testF(SettingsTest, Init) {

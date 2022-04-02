@@ -1,9 +1,9 @@
 #ifndef __R51_TESTS_TEST_CLIMATE_CONTROL__
 #define __R51_TESTS_TEST_CLIMATE_CONTROL__
 
-#include <Arduino.h>
-#include <AFake.h>
 #include <AUnit.h>
+#include <Arduino.h>
+#include <Faker.h>
 
 #include "mock_broadcast.h"
 #include "src/binary.h"
@@ -16,12 +16,12 @@ using namespace aunit;
 
 
 #define INIT_CONTROL(ACTIVE) \
-    AFake::FakeClock clock;\
-    AFake::FakeGPIO gpio;\
+    Faker::FakeClock clock;\
+    Faker::FakeGPIO gpio;\
     Climate climate(&clock, &gpio);\
     initClimate(&climate, &clock, ACTIVE);
     
-void initClimate(Climate* climate, AFake::FakeClock* clock, bool active = false) {
+void initClimate(Climate* climate, Faker::FakeClock* clock, bool active = false) {
     Frame state54A = {0x54A, 8, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}};
     Frame state54B = {0x54B, 8, {0xF2, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x02}};
     if (active) {
@@ -51,8 +51,8 @@ bool checkNoControlFrames(Climate* climate, const Frame& control) {
 }
 
 test(ClimateControlTest, Init) {
-    AFake::FakeClock clock;
-    AFake::FakeGPIO gpio;
+    Faker::FakeClock clock;
+    Faker::FakeGPIO gpio;
     MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
 
     Frame init540 = {0x540, 8, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};

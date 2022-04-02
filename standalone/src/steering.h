@@ -1,7 +1,7 @@
 #ifndef __R51_STEERING__
 #define __R51_STEERING__
 
-#include <AFake.h>
+#include <Faker.h>
 
 #include "AnalogMultiButton.h"
 #include "bus.h"
@@ -27,8 +27,8 @@ class SteeringKeypad : public Node {
     public:
         // Construct a new steering switch keypad object.
         // analog pins to communicate. See config.h for configuration.
-        SteeringKeypad(AFake::Clock* clock = AFake::Clock::real(),
-                AFake::GPIO* gpio = AFake::GPIO::real());
+        SteeringKeypad(Faker::Clock* clock = Faker::Clock::real(),
+                Faker::GPIO* gpio = Faker::GPIO::real());
 
         // Free resources associated with the keypad.
         ~SteeringKeypad() override;
@@ -44,7 +44,7 @@ class SteeringKeypad : public Node {
 
     private:
         uint32_t last_change_;
-        AFake::Clock* clock_;
+        Faker::Clock* clock_;
         Frame frame_;
         AnalogMultiButton* sw_a_;
         AnalogMultiButton* sw_b_;

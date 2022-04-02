@@ -2,7 +2,7 @@
 #define __R51_MOMENTARY_OUTPUT__
 
 #include <Arduino.h>
-#include <AFake.h>
+#include <Faker.h>
 
 
 // Momentarily enable a digital output pin for a set amount of time. Most
@@ -17,11 +17,11 @@ class MomentaryOutput {
         // when triggered .The high param can be set to false to drive the pin
         // low instead.
         MomentaryOutput(int pin, uint16_t trigger_ms, 
-                AFake::Clock* clock = AFake::Clock::real(),
-                AFake::GPIO* gpio = AFake::GPIO::real());
+                Faker::Clock* clock = Faker::Clock::real(),
+                Faker::GPIO* gpio = Faker::GPIO::real());
         MomentaryOutput(int pin, uint16_t trigger_ms, int32_t cooldown_ms = -1, bool high = true,
-                AFake::Clock* clock = AFake::Clock::real(),
-                AFake::GPIO* gpio = AFake::GPIO::real());
+                Faker::Clock* clock = Faker::Clock::real(),
+                Faker::GPIO* gpio = Faker::GPIO::real());
 
         // Update the state of the pin. Must be called in the main loop.
         void update();
@@ -31,8 +31,8 @@ class MomentaryOutput {
         bool trigger();
 
     private:
-        AFake::Clock* clock_;
-        AFake::GPIO* gpio_;
+        Faker::Clock* clock_;
+        Faker::GPIO* gpio_;
         int pin_;
         bool high_;
         bool triggered_;

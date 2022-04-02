@@ -2,7 +2,7 @@
 #define __R51_SETTINGS_H__
 
 #include <Arduino.h>
-#include <AFake.h>
+#include <Faker.h>
 
 #include "bus.h"
 #include "frame.h"
@@ -18,7 +18,7 @@ enum SettingsFrameId : uint32_t {
 class SettingsSequence {
     public:
         // Create a sequence that communicates over the given frame ID.
-        SettingsSequence(SettingsFrameId id, AFake::Clock* clock = AFake::Clock::real()) :
+        SettingsSequence(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
             request_id_((uint32_t)id), clock_(clock), started_(0),
             value_(0xFF), state_(0), sent_(false) {}
 
@@ -57,7 +57,7 @@ class SettingsSequence {
         virtual uint8_t nextF() = 0;
     private:
         const uint32_t request_id_;
-        AFake::Clock* clock_;
+        Faker::Clock* clock_;
         uint32_t started_;
         uint8_t value_;
         uint8_t state_;
@@ -68,7 +68,7 @@ class SettingsSequence {
 // Sequence to initialize communication with the BCM.
 class SettingsInit : public SettingsSequence {
     public:
-        SettingsInit(SettingsFrameId id, AFake::Clock* clock = AFake::Clock::real()) :
+        SettingsInit(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
             SettingsSequence(id, clock) {}
     protected:
         uint8_t nextE() override;
@@ -78,7 +78,7 @@ class SettingsInit : public SettingsSequence {
 // Sequence used to retrieve settings from the BCM.
 class SettingsRetrieve : public SettingsSequence {
     public:
-        SettingsRetrieve(SettingsFrameId id, AFake::Clock* clock = AFake::Clock::real()) :
+        SettingsRetrieve(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
             SettingsSequence(id, clock), state2x_(false) {}
     protected:
         uint8_t nextE() override;
@@ -90,7 +90,7 @@ class SettingsRetrieve : public SettingsSequence {
 // Sequence used to update a setting in the BCM.
 class SettingsUpdate : public SettingsSequence {
     public:
-        SettingsUpdate(SettingsFrameId id, AFake::Clock* clock = AFake::Clock::real()) :
+        SettingsUpdate(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
             SettingsSequence(id, clock), update_(0), state2x_(false) {}
 
         // Set the item to update and its value. 
@@ -105,7 +105,7 @@ class SettingsUpdate : public SettingsSequence {
 
 class SettingsReset : public SettingsSequence {
     public:
-        SettingsReset(SettingsFrameId id, AFake::Clock* clock = AFake::Clock::real()) :
+        SettingsReset(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
             SettingsSequence(id, clock), state2x_(false) {}
     protected:
         uint8_t nextE() override;
@@ -169,7 +169,7 @@ class SettingsReset : public SettingsSequence {
 //     Bit 7: Reset Settings to Default
 class Settings : public Node {
     public:
-        Settings(AFake::Clock* clock = AFake::Clock::real());
+        Settings(Faker::Clock* clock = Faker::Clock::real());
 
         // Recieve frames from the node.
         void receive(const Broadcast& broadcast) override;
@@ -227,7 +227,7 @@ class Settings : public Node {
         SettingsReset resetF_;
         bool readyF() const;
 
-        AFake::Clock* clock_;
+        Faker::Clock* clock_;
         bool state_changed_;
         uint32_t state_last_broadcast_;
         Frame buffer_;
