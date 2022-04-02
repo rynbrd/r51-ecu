@@ -25,3 +25,6 @@
 [submodule "libraries/AnalogMultiButton"]
 	path = libraries/AnalogMultiButton
 	url = git@github.com:BlueDragonX/AnalogMultiButton.git
+[submodule "libraries/CRC32"]
+	path = libraries/CRC32
+	url = https://github.com/bakercp/CRC32.git
