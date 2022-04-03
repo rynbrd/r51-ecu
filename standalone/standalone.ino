@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include <CANBed.h>
+#include <Canny.h>
+#include <Canny/Detect.h>
 
 #include "src/bus.h"
 #include "src/can.h"
@@ -70,7 +71,7 @@ void setup_realdash() {
 
 void setup_can() {
     INFO_MSG("setup: connecting to can bus");
-    while (CAN.begin(CANBed::CAN20_500K) != CANBed::ERR_OK) {
+    while (CAN.begin(Canny::CAN20_500K) != Canny::ERR_OK) {
         ERROR_MSG("setup: failed to init can bus");
         delay(500);
     }

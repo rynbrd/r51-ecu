@@ -1,7 +1,7 @@
 #ifndef __R51_CAN__
 #define __R51_CAN__
 
-#include <CANBed.h>
+#include <Canny.h>
 
 #include "bus.h"
 #include "frame.h"
@@ -9,7 +9,7 @@
 
 class CanNode : public Node {
     public:
-        CanNode(CANBed::Controller* can) :
+        CanNode(Canny::Controller* can) :
             can_(can), retries_(5) {}
 
         // Receive a frame from the CAN bus.
@@ -18,7 +18,7 @@ class CanNode : public Node {
         // Send a frame to the CAN bus.
         virtual void send(const Frame& frame) override;
     private:
-        CANBed::Controller* can_;
+        Canny::Controller* can_;
         uint8_t retries_;
         Frame frame_;
 };

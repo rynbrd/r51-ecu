@@ -10,9 +10,6 @@
 [submodule "libraries/Longan_CANFD"]
 	path = libraries/Longan_CANFD
 	url = git@github.com:BlueDragonX/Longan_CANFD.git
-[submodule "libraries/CANBed"]
-	path = libraries/CANBed
-	url = git@github.com:BlueDragonX/CANBed.git
 [submodule "libraries/EpoxyDuino"]
 	path = libraries/EpoxyDuino
 	url = https://github.com/bxparks/EpoxyDuino.git
@@ -28,3 +25,6 @@
 [submodule "libraries/CRC32"]
 	path = libraries/CRC32
 	url = https://github.com/bakercp/CRC32.git
+[submodule "libraries/ArduinoCanny"]
+	path = libraries/ArduinoCanny
+	url = git@github.com:BlueDragonX/ArduinoCanny.git

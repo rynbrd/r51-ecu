@@ -1,19 +1,19 @@
 #include "can.h"
 
-#include <CANBed.h>
+#include <Canny.h>
 #include "bus.h"
 #include "debug.h"
 #include "frame.h"
 
-using CANBed::ERR_OK;
+using Canny::ERR_OK;
 
 void CanNode::receive(const Broadcast& broadcast) {
     uint8_t err = can_->read(&frame_.id, nullptr, frame_.data, &frame_.len);
-    if (err == CANBed::ERR_OK) {
+    if (err == Canny::ERR_OK) {
         broadcast(frame_);
         return;
     }
-    if (err != CANBed::ERR_FIFO) {
+    if (err != Canny::ERR_FIFO) {
         ERROR_MSG("can: read failed");
     }
 }
