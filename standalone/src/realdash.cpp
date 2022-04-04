@@ -1,17 +1,18 @@
 #include "realdash.h"
 
 #include <Arduino.h>
+#include <Canny.h>
+
 #include "binary.h"
 #include "bus.h"
 #include "config.h"
 #include "debug.h"
-#include "frame.h"
 
 
 static const uint32_t kReceiveTimeout = 5000;
 
-RealDash::RealDash() {
-    stream_ = nullptr;
+RealDash::RealDash() : stream_(nullptr) {
+    frame_.resize(64);
     reset();
 }
 
@@ -103,16 +104,16 @@ bool RealDash::readId() {
         updateChecksum(b);
         switch (read_size_-4) {
             case 1:
-                frame_.id = b;
+                *frame_.mutable_id() = b;
                 break;
             case 2:
-                frame_.id |= (b << 8);
+                *frame_.mutable_id() |= (b << 8);
                 break;
             case 3:
-                frame_.id |= (b << 16);
+                *frame_.mutable_id() |= (b << 16);
                 break;
             case 4:
-                frame_.id |= (b << 24);
+                *frame_.mutable_id() |= (b << 24);
                 break;
         }
     }
@@ -121,11 +122,11 @@ bool RealDash::readId() {
 
 bool RealDash::readData() {
     while (stream_->available() && read_size_ - 8 < frame_size_) {
-        frame_.data[read_size_-8] = stream_->read();
-        updateChecksum(frame_.data[read_size_-8]);
+        frame_.data()[read_size_-8] = stream_->read();
+        updateChecksum(frame_.data()[read_size_-8]);
         read_size_++;
     }
-    frame_.len = frame_size_;
+    *frame_.mutable_size() = frame_size_;
     return read_size_ - 8 >= frame_size_;
 }
 
@@ -171,7 +172,11 @@ void RealDash::writeBytes(const byte* b, uint8_t len) {
     }
 }
 
-void RealDash::send(const Frame& frame) {
+void RealDash::writeBytes(uint32_t data) {
+    writeBytes((const byte*)&data, 4);
+}
+
+void RealDash::send(const Canny::Frame& frame) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
         return;
@@ -180,23 +185,23 @@ void RealDash::send(const Frame& frame) {
         ERROR_MSG("realdash: not connected");
         return;
     }
-    if (frame.len > 64 || frame.len % 4 != 0) {
-        ERROR_MSG_VAL("realdash: frame write error, invalid length ", frame.len);
+    if (frame.size() > 64 || frame.size() % 4 != 0) {
+        ERROR_MSG_VAL("realdash: frame write error, invalid length ", frame.size());
         return;
     }
 
     write_checksum_.reset();
 
-    byte size = (frame.len < 8 ? 8 : frame.len) / 4 + 15;
+    byte size = (frame.size() < 8 ? 8 : frame.size()) / 4 + 15;
     writeByte(0x66);
     writeByte(0x33);
     writeByte(0x22);
     writeByte(size);
-    writeBytes((const byte*)&(frame.id), 4);
-    if (frame.data != nullptr) {
-        writeBytes(frame.data, frame.len);
+    writeBytes(frame.id());
+    if (frame.data() != nullptr) {
+        writeBytes(frame.data(), frame.size());
     }
-    for (int i = 0; i < 8-frame.len; i++) {
+    for (int i = 0; i < 8-frame.size(); i++) {
         writeByte(0);
     }
     uint32_t checksum = write_checksum_.finalize();

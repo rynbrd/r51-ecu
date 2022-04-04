@@ -2,9 +2,9 @@
 #define __R51_SERIAL_H__
 
 #include <Arduino.h>
+#include <Canny.h>
 
 #include "bus.h"
-#include "frame.h"
 
 
 #define WAIT_FOR_SERIAL(SERIAL, DELAY, LOG_MSG) ({\
@@ -34,7 +34,7 @@
 // CR+LF.
 class SerialText : public Node {
     public:
-        SerialText() : stream_(nullptr) {}
+        SerialText() : stream_(nullptr), frame_(8) {}
 
         // Start receiving frames from the given stream. Typically Serial,
         // SerialUSB, or Serial1.
@@ -44,11 +44,11 @@ class SerialText : public Node {
         void receive(const Broadcast& broadcast) override;
 
         // Send a text frame over serial.
-        void send(const Frame& frame) override;
+        void send(const Canny::Frame& frame) override;
 
         // Filter frames to receive from the serial connection. Defaults to
         // allowing all frames.
-        virtual bool filter(const Frame& frame) const override;
+        virtual bool filter(const Canny::Frame& frame) const override;
 
     private:
         Stream* stream_;
@@ -57,7 +57,7 @@ class SerialText : public Node {
         uint8_t buffer_len_;
         uint8_t id_len_;
         uint8_t data_len_;
-        Frame frame_;
+        Canny::Frame frame_;
 
         void reset();
 };

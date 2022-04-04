@@ -1,9 +1,10 @@
 #ifndef __R51_TESTS_MOCK_BROADCAST__
 #define __R51_TESTS_MOCK_BROADCAST__
 
+#include <Canny.h>
+
 #include "src/bus.h"
 #include "src/debug.h"
-#include "src/frame.h"
 
 
 // Mock broadcast implementation for node tests.
@@ -12,13 +13,13 @@ class MockBroadcast {
         MockBroadcast(int capacity = 1, uint32_t filter_id = 0, uint32_t filter_mask = 0xFFFFFFFF) :
             impl(this), capacity_(capacity), count_(0),
             filter_id_(filter_id), filter_mask_(filter_mask),
-            frames_(new Frame[capacity_]) {}
+            frames_(new Canny::Frame[capacity_]) {}
 
         ~MockBroadcast() {
-            delete frames_;
+            delete[] frames_;
         }
 
-        Frame* frames() const {
+        Canny::Frame* frames() const {
             return frames_;
         }
 
@@ -37,8 +38,8 @@ class MockBroadcast {
 
         class BroadcastImpl : public Broadcast {
             public:
-                void operator()(const Frame& frame) const override {
-                    if (mock_->filter_id_ == 0 || mock_->filter_id_ == (frame.id & mock_->filter_mask_)) {
+                void operator()(const Canny::Frame& frame) const override {
+                    if (mock_->filter_id_ == 0 || mock_->filter_id_ == (frame.id() & mock_->filter_mask_)) {
                         mock_->append(frame);
                     }
                 }
@@ -52,9 +53,9 @@ class MockBroadcast {
         BroadcastImpl impl;
 
     private:
-        void append(const Frame& frame) {
+        void append(const Canny::Frame& frame) {
             if (count_ < capacity_) {
-                copyFrame(&frames_[count_], frame);
+                frames_[count_] = Canny::Frame(frame);
             }
             ++count_;
         }
@@ -63,7 +64,7 @@ class MockBroadcast {
         int count_;
         uint32_t filter_id_;
         uint32_t filter_mask_;
-        Frame* frames_;
+        Canny::Frame* frames_;
 };
 
 #endif  // __R51_TESTS_MOCK_BROADCAST__

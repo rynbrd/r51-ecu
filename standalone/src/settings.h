@@ -2,10 +2,10 @@
 #define __R51_SETTINGS_H__
 
 #include <Arduino.h>
+#include <Canny.h>
 #include <Faker.h>
 
 #include "bus.h"
-#include "frame.h"
 
 
 // Valid frame IDs for settings.
@@ -32,12 +32,12 @@ class SettingsSequence {
 
         // Fill a frame with the next in the sequence if available. Return true
         // if the frame should be sent or false otherwise.
-        bool receive(Frame* frame);
+        bool receive(Canny::Frame* frame);
 
         // Send a response frame back to the sequence. The frame frame matches
         // the expected sequence then the sequence advances to the next state.
         // Otherwise the sequence resets.
-        void send(const Frame& frame);
+        void send(const Canny::Frame& frame);
 
     protected:
         // The sequence's request ID.
@@ -175,10 +175,10 @@ class Settings : public Node {
         void receive(const Broadcast& broadcast) override;
 
         // Send a frame to the node.
-        void send(const Frame& frame) override;
+        void send(const Canny::Frame& frame) override;
 
         // Filter sent frames to this node. Matches 0x71E and 0x72E.
-        bool filter(const Frame& frame) const override;
+        bool filter(const Canny::Frame& frame) const override;
 
         // Exchange init frames with BCM. 
         bool init();
@@ -208,12 +208,12 @@ class Settings : public Node {
             RELOCK_5M = 5,
         };
 
-        void handleState(const Frame& frame);
+        void handleState(const Canny::Frame& frame);
         void handleState05(const byte* data);
         void handleState10(const byte* data);
         void handleState21(const byte* data);
         void handleState22(const byte* data);
-        void handleControl(const Frame& frame);
+        void handleControl(const Canny::Frame& frame);
 
         SettingsInit initE_;
         SettingsRetrieve retrieveE_;
@@ -230,8 +230,8 @@ class Settings : public Node {
         Faker::Clock* clock_;
         bool state_changed_;
         uint32_t state_last_broadcast_;
-        Frame buffer_;
-        Frame state_;
+        Canny::Frame buffer_;
+        Canny::Frame state_;
         byte control_state_[8];
 
         // Manage Auto Interior Illumnation setting state. 

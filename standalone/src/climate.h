@@ -2,10 +2,10 @@
 #define __R51_CLIMATE_H__
 
 #include <Arduino.h>
+#include <Canny.h>
 #include <Faker.h>
 
 #include "bus.h"
-#include "frame.h"
 #include "momentary_output.h"
 
 
@@ -69,12 +69,12 @@ class Climate : public Node {
         void receive(const Broadcast& broadcast) override;
 
         // Update the climate state from vehicle state frames.
-        void send(const Frame& frame) override;
+        void send(const Canny::Frame& frame) override;
 
         // Matches vehicle state frames and dash control frames.
         //   Vehicle: 0x54A, 0x54B, 0x625
         //   Dash:    0x5401
-        bool filter(const Frame& frame) const override;
+        bool filter(const Canny::Frame& frame) const override;
 
     private:
         Faker::Clock* clock_;
@@ -109,21 +109,21 @@ class Climate : public Node {
         uint8_t state_init_;
         bool state_changed_;
         uint32_t state_last_broadcast_;
-        Frame state_frame_;
+        Canny::Frame state_frame_;
 
         // Control frame storage.
         bool control_init_;
         bool control_changed_;
         uint32_t control_last_broadcast_;
-        Frame control_frame_540_;
-        Frame control_frame_541_;
+        Canny::Frame control_frame_540_;
+        Canny::Frame control_frame_541_;
         byte control_state_[8];
 
         // Specific frame handlers.
-        void handle54A(const Frame& frame);
-        void handle54B(const Frame& frame);
-        void handle625(const Frame& frame);
-        void handleControl(const Frame& frame);
+        void handle54A(const Canny::Frame& frame);
+        void handle54B(const Canny::Frame& frame);
+        void handle625(const Canny::Frame& frame);
+        void handleControl(const Canny::Frame& frame);
 
         // Helpers for setting climate state.
         void setActive(bool value);

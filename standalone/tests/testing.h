@@ -1,23 +1,10 @@
 #ifndef __R51_TESTS_TESTING__
 #define __R51_TESTS_TESTING__
 
+#include <Canny.h>
+
 #include "mock_broadcast.h"
-#include "src/frame.h"
 
-
-void printFrame(const Frame& frame) {
-    Serial.print(frame.id, HEX);
-    Serial.print("#");
-    for (int i = 0; i < frame.len; i++) {
-        if (frame.data[i] <= 0x0F) {
-            Serial.print("0");
-        }
-        Serial.print(frame.data[i], HEX);
-        if (i < frame.len-1) {
-            Serial.print(":");
-        }
-    }
-}
 
 bool checkFrameCount(const MockBroadcast& cast, uint8_t expect) {
     if (cast.count() == expect) {
@@ -30,13 +17,13 @@ bool checkFrameCount(const MockBroadcast& cast, uint8_t expect) {
     return false;
 }
 
-bool checkFrameEquals(const Frame& left, const Frame& right) {
-    if (!frameEquals(left, right)) {
-        Serial.print("frames not equal:\n  actual: ");
-        printFrame(left);
-        Serial.print("\n  expect: ");
-        printFrame(right);
-        Serial.println();
+bool checkFrameEquals(const Canny::Frame& left, const Canny::Frame& right) {
+    if (left != right) {
+        Serial.println("frames not equal:");
+        Serial.print("  actual: ");
+        Serial.println(left);
+        Serial.print("  expect: ");
+        Serial.println(right);
         return false;
     }
     return true;

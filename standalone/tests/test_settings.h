@@ -3,6 +3,7 @@
 
 #include <AUnit.h>
 #include <Arduino.h>
+#include <Canny.h>
 #include <Faker.h>
 
 #include "mock_broadcast.h"
@@ -11,6 +12,7 @@
 #include "testing.h"
 
 using namespace aunit;
+using ::Canny::Frame;
 
 
 class SettingsTest : public TestOnce {
@@ -28,16 +30,16 @@ class SettingsTest : public TestOnce {
 
         void fillFrame(Frame* frame, uint32_t id, byte a, byte b = 0xFF, byte c = 0xFF,
                 byte d = 0xFF, byte e = 0xFF, byte f = 0xFF, byte g = 0xFF, byte h = 0xFF) {
-            frame->id = id;
-            frame->len = 8;
-            frame->data[0] = a;
-            frame->data[1] = b;
-            frame->data[2] = c;
-            frame->data[3] = d;
-            frame->data[4] = e;
-            frame->data[5] = f;
-            frame->data[6] = g;
-            frame->data[7] = h;
+            frame->id(id, 0);
+            frame->resize(8);
+            frame->data()[0] = a;
+            frame->data()[1] = b;
+            frame->data()[2] = c;
+            frame->data()[3] = d;
+            frame->data()[4] = e;
+            frame->data()[5] = f;
+            frame->data()[6] = g;
+            frame->data()[7] = h;
         }
 
         void fillEnterRequest(Frame* frame, uint32_t id) {
@@ -422,18 +424,18 @@ testF(SettingsTest, ToggleAutoInteriorIllumination) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(control.data, 0, 0);
-    setBit(state10.data, 4, 5, 1);
+    toggleBit(control.data(), 0, 0);
+    setBit(state10.data(), 4, 5, 1);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x10, 0x01, state10, state21, state22));
 
     // Toggle setting off.
-    toggleBit(control.data, 0, 0);
-    setBit(state10.data, 4, 5, 0);
+    toggleBit(control.data(), 0, 0);
+    setBit(state10.data(), 4, 5, 0);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x10, 0x00, state10, state21, state22));
 
     // Toggle setting on.
-    toggleBit(control.data, 0, 0);
-    setBit(state10.data, 4, 5, 1);
+    toggleBit(control.data(), 0, 0);
+    setBit(state10.data(), 4, 5, 1);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x10, 0x01, state10, state21, state22));
 }
 
@@ -445,18 +447,18 @@ testF(SettingsTest, ToggleSlideDriverSeat) {
     Frame state05 = {0x72F, 8, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(control.data, 0, 1);
-    setBit(state05.data, 3, 0, 1);
+    toggleBit(control.data(), 0, 1);
+    setBit(state05.data(), 3, 0, 1);
     assertTrue(checkUpdate(&settings, control, 0x71F, 0x01, 0x01, state05));
 
     // Toggle setting off.
-    toggleBit(control.data, 0, 1);
-    setBit(state05.data, 3, 0, 0);
+    toggleBit(control.data(), 0, 1);
+    setBit(state05.data(), 3, 0, 0);
     assertTrue(checkUpdate(&settings, control, 0x71F, 0x01, 0x00, state05));
 
     // Toggle setting on.
-    toggleBit(control.data, 0, 1);
-    setBit(state05.data, 3, 0, 1);
+    toggleBit(control.data(), 0, 1);
+    setBit(state05.data(), 3, 0, 1);
     assertTrue(checkUpdate(&settings, control, 0x71F, 0x01, 0x01, state05));
 }
 
@@ -470,18 +472,18 @@ testF(SettingsTest, ToggleSpeedSendingWipers) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(control.data, 0, 2);
-    setBit(state22.data, 1, 7, 0);
+    toggleBit(control.data(), 0, 2);
+    setBit(state22.data(), 1, 7, 0);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x47, 0x00, state10, state21, state22));
 
     // Toggle setting off.
-    toggleBit(control.data, 0, 2);
-    setBit(state22.data, 1, 7, 1);
+    toggleBit(control.data(), 0, 2);
+    setBit(state22.data(), 1, 7, 1);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x47, 0x01, state10, state21, state22));
 
     // Toggle setting on.
-    toggleBit(control.data, 0, 2);
-    setBit(state22.data, 1, 7, 0);
+    toggleBit(control.data(), 0, 2);
+    setBit(state22.data(), 1, 7, 0);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x47, 0x00, state10, state21, state22));
 }
 
@@ -495,47 +497,47 @@ testF(SettingsTest, AutoHeadlighSensitivity) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting.
-    toggleBit(control.data, 1, 0);
-    state21.data[2] = 0x00;
+    toggleBit(control.data(), 1, 0);
+    state21.data()[2] = 0x00;
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x37, 0x00, state10, state21, state22));
 
     // Increase setting.
-    toggleBit(control.data, 1, 0);
-    state21.data[2] = (0x01 << 2);
+    toggleBit(control.data(), 1, 0);
+    state21.data()[2] = (0x01 << 2);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x37, 0x01, state10, state21, state22));
 
     // Increase setting.
-    toggleBit(control.data, 1, 0);
-    state21.data[2] = (0x02 << 2);
+    toggleBit(control.data(), 1, 0);
+    state21.data()[2] = (0x02 << 2);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x37, 0x02, state10, state21, state22));
 
     // Increase setting when at max.
-    toggleBit(control.data, 1, 0);
+    toggleBit(control.data(), 1, 0);
     assertTrue(checkNoop(&settings, control));
 
     // Decrease setting.
-    toggleBit(control.data, 1, 1);
-    state21.data[2] = (0x01 << 2);
+    toggleBit(control.data(), 1, 1);
+    state21.data()[2] = (0x01 << 2);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x37, 0x01, state10, state21, state22));
 
     // Decrease setting.
-    toggleBit(control.data, 1, 1);
-    state21.data[2] = 0x00;
+    toggleBit(control.data(), 1, 1);
+    state21.data()[2] = 0x00;
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x37, 0x00, state10, state21, state22));
 
     // Decrease setting.
-    toggleBit(control.data, 1, 1);
-    state21.data[2] = (0x03 << 2);
+    toggleBit(control.data(), 1, 1);
+    state21.data()[2] = (0x03 << 2);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x37, 0x03, state10, state21, state22));
 
     // Decrease setting when at min.
-    toggleBit(control.data, 1, 1);
+    toggleBit(control.data(), 1, 1);
     assertTrue(checkNoop(&settings, control));
 }
 
 void setAutoHeadlightDelayState(Frame* state21, byte value) {
-    state21->data[2] = (value >> 2) & 0x01;
-    state21->data[3] = (value & 0x03) << 6;
+    state21->data()[2] = (value >> 2) & 0x01;
+    state21->data()[3] = (value & 0x03) << 6;
 }
 
 testF(SettingsTest, AutoHeadlightOffDelay) {
@@ -549,95 +551,95 @@ testF(SettingsTest, AutoHeadlightOffDelay) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to 30s.
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     value = 0x02;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Increase setting to 45s (default).
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     value = 0x00;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Increase setting to 60s.
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     value = 0x03;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Increase setting to 90s.
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     value = 0x04;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Increase setting to 120s.
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     value = 0x05;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Increase setting to 150s.
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     value = 0x06;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Increase setting to 180s.
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     value = 0x07;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Increase setting when at max.
-    toggleBit(control.data, 1, 4);
+    toggleBit(control.data(), 1, 4);
     assertTrue(checkNoop(&settings, control));
 
     // Decrease setting to 150s.
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     value = 0x06;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Decrease setting to 120s.
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     value = 0x05;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Decrease setting to 90s.
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     value = 0x04;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Decrease setting to 60s.
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     value = 0x03;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Decrease setting to 45s (default).
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     value = 0x00;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Decrease setting to 30s.
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     value = 0x02;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Decrease setting to 0s.
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     value = 0x01;
     setAutoHeadlightDelayState(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x39, value, state10, state21, state22));
 
     // Decrease setting when at min.
-    toggleBit(control.data, 1, 5);
+    toggleBit(control.data(), 1, 5);
     assertTrue(checkNoop(&settings, control));
 }
 
@@ -651,23 +653,23 @@ testF(SettingsTest, ToggleSelectiveDoorUnlock) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(control.data, 2, 0);
-    setBit(state10.data, 4, 7, 1);
+    toggleBit(control.data(), 2, 0);
+    setBit(state10.data(), 4, 7, 1);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x02, 0x01, state10, state21, state22));
 
     // Toggle setting off.
-    toggleBit(control.data, 2, 0);
-    setBit(state10.data, 4, 7, 0);
+    toggleBit(control.data(), 2, 0);
+    setBit(state10.data(), 4, 7, 0);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x02, 0x00, state10, state21, state22));
 
     // Toggle setting on.
-    toggleBit(control.data, 2, 0);
-    setBit(state10.data, 4, 7, 1);
+    toggleBit(control.data(), 2, 0);
+    setBit(state10.data(), 4, 7, 1);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x02, 0x01, state10, state21, state22));
 }
 
 void setAutoReLockTime(Frame* state21, byte value) {
-    state21->data[1] = (value & 0x03) << 4;
+    state21->data()[1] = (value & 0x03) << 4;
 }
 
 testF(SettingsTest, AutoReLockTime) {
@@ -681,35 +683,35 @@ testF(SettingsTest, AutoReLockTime) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to 1m (default).
-    toggleBit(control.data, 2, 4);
+    toggleBit(control.data(), 2, 4);
     value = 0x00;
     setAutoReLockTime(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2F, value, state10, state21, state22));
 
     // Increase setting to 5m.
-    toggleBit(control.data, 2, 4);
+    toggleBit(control.data(), 2, 4);
     value = 0x02;
     setAutoReLockTime(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2F, value, state10, state21, state22));
 
     // Increase setting when at max.
-    toggleBit(control.data, 2, 4);
+    toggleBit(control.data(), 2, 4);
     assertTrue(checkNoop(&settings, control));
 
     // Decrease setting to 1m (default).
-    toggleBit(control.data, 2, 5);
+    toggleBit(control.data(), 2, 5);
     value = 0x00;
     setAutoReLockTime(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2F, value, state10, state21, state22));
 
     // Decrease setting to off.
-    toggleBit(control.data, 2, 5);
+    toggleBit(control.data(), 2, 5);
     value = 0x01;
     setAutoReLockTime(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2F, value, state10, state21, state22));
 
     // Decrease setting when at min.
-    toggleBit(control.data, 2, 5);
+    toggleBit(control.data(), 2, 5);
     assertTrue(checkNoop(&settings, control));
 }
 
@@ -723,23 +725,23 @@ testF(SettingsTest, RemoteKeyResponseHorn) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(control.data, 3, 0);
-    setBit(state10.data, 7, 3, 1);
+    toggleBit(control.data(), 3, 0);
+    setBit(state10.data(), 7, 3, 1);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2A, 0x01, state10, state21, state22));
 
     // Toggle setting off.
-    toggleBit(control.data, 3, 0);
-    setBit(state10.data, 7, 3, 0);
+    toggleBit(control.data(), 3, 0);
+    setBit(state10.data(), 7, 3, 0);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2A, 0x00, state10, state21, state22));
 
     // Toggle setting on.
-    toggleBit(control.data, 3, 0);
-    setBit(state10.data, 7, 3, 1);
+    toggleBit(control.data(), 3, 0);
+    setBit(state10.data(), 7, 3, 1);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2A, 0x01, state10, state21, state22));
 }
 
 void setRemoteKeyResponseLights(Frame* state21, byte value) {
-    state21->data[1] = 0x10 | ((value & 0x03) << 6);
+    state21->data()[1] = 0x10 | ((value & 0x03) << 6);
 }
 
 testF(SettingsTest, RemoteKeyResponseLights) {
@@ -753,47 +755,47 @@ testF(SettingsTest, RemoteKeyResponseLights) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to "unlock".
-    toggleBit(control.data, 3, 2);
+    toggleBit(control.data(), 3, 2);
     value = 0x01;
     setRemoteKeyResponseLights(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2E, value, state10, state21, state22));
 
     // Increase setting to "lock".
-    toggleBit(control.data, 3, 2);
+    toggleBit(control.data(), 3, 2);
     value = 0x02;
     setRemoteKeyResponseLights(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2E, value, state10, state21, state22));
 
     // Increase setting to "on".
-    toggleBit(control.data, 3, 2);
+    toggleBit(control.data(), 3, 2);
     value = 0x03;
     setRemoteKeyResponseLights(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2E, value, state10, state21, state22));
 
     // Increase setting when at max.
-    toggleBit(control.data, 3, 2);
+    toggleBit(control.data(), 3, 2);
     assertTrue(checkNoop(&settings, control));
 
     // Decrease setting to "lock".
-    toggleBit(control.data, 3, 3);
+    toggleBit(control.data(), 3, 3);
     value = 0x02;
     setRemoteKeyResponseLights(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2E, value, state10, state21, state22));
 
     // Decrease setting to "unlock".
-    toggleBit(control.data, 3, 3);
+    toggleBit(control.data(), 3, 3);
     value = 0x01;
     setRemoteKeyResponseLights(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2E, value, state10, state21, state22));
 
     // Decrease setting to "off".
-    toggleBit(control.data, 3, 3);
+    toggleBit(control.data(), 3, 3);
     value = 0x00;
     setRemoteKeyResponseLights(&state21, value);
     assertTrue(checkUpdate(&settings, control, 0x71E, 0x2E, value, state10, state21, state22));
 
     // Decrease setting when at min.
-    toggleBit(control.data, 3, 3);
+    toggleBit(control.data(), 3, 3);
     assertTrue(checkNoop(&settings, control));
 }
 

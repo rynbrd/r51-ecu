@@ -3,14 +3,16 @@
 
 #include <AUnit.h>
 #include <Arduino.h>
+#include <Canny.h>
 #include <Faker.h>
 
 #include "mock_broadcast.h"
 #include "src/config.h"
-#include "src/frame.h"
 #include "src/steering.h"
+#include "testing.h"
 
 using namespace aunit;
+using ::Canny::Frame;
 
 
 class SteeringKeypadTest : public TestOnce {
@@ -22,22 +24,8 @@ class SteeringKeypadTest : public TestOnce {
             Faker::FakeGPIO gpio;
             MockBroadcast broadcast(1);
 
-            Frame released = {
-                .id = 0x5800,
-                .len = 8,
-                .data = {
-                    0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00,
-                },
-            };
-            Frame pressed = {
-                .id = 0x5800,
-                .len = 8,
-                .data = {
-                    expect, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00,
-                },
-            };
+            Frame released(0x5800, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+            Frame pressed(0x5800, 0, {expect, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
             // initialize keypad
             SteeringKeypad keypad(&clock, &gpio);
@@ -48,7 +36,7 @@ class SteeringKeypadTest : public TestOnce {
             clock.delay(501);
             keypad.receive(broadcast.impl);
             assertEqual(broadcast.count(), 1);
-            assertTrue(frameEquals(broadcast.frames()[0], released));
+            assertTrue(checkFrameEquals(broadcast.frames()[0], released));
             broadcast.reset();
 
             // set analog value, check button, wait for debounce, check button again
@@ -58,7 +46,7 @@ class SteeringKeypadTest : public TestOnce {
             clock.delay(100);
             keypad.receive(broadcast.impl);
             assertEqual(broadcast.count(), 1);
-            assertTrue(frameEquals(broadcast.frames()[0], pressed));
+            assertTrue(checkFrameEquals(broadcast.frames()[0], pressed));
             broadcast.reset();
 
             // release the button and advance time past the debounce
@@ -68,7 +56,7 @@ class SteeringKeypadTest : public TestOnce {
             clock.delay(100);
             keypad.receive(broadcast.impl);
             assertEqual(broadcast.count(), 1);
-            assertTrue(frameEquals(broadcast.frames()[0], released));
+            assertTrue(checkFrameEquals(broadcast.frames()[0], released));
         }
 };
 
@@ -101,14 +89,7 @@ test(SteeringKeypad, Heartbeat) {
     Faker::FakeGPIO gpio;
     MockBroadcast broadcast(1);
 
-    Frame expect = {
-        .id = 0x5800,
-        .len = 8,
-        .data = {
-            0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00,
-        },
-    };
+    Frame expect(0x5800, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     SteeringKeypad keypad(&clock, &gpio);
     gpio.analogWrite(STEERING_SWITCH_A_PIN, 1023);
@@ -117,13 +98,13 @@ test(SteeringKeypad, Heartbeat) {
     clock.delay(501);
     keypad.receive(broadcast.impl);
     assertEqual(broadcast.count(), 1);
-    assertTrue(frameEquals(broadcast.frames()[0], expect));
+    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
     broadcast.reset();
     
     clock.delay(501);
     keypad.receive(broadcast.impl);
     assertEqual(broadcast.count(), 1);
-    assertTrue(frameEquals(broadcast.frames()[0], expect));
+    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
 }
 
 #endif  // __R51_TESTS_TEST_STEERING__

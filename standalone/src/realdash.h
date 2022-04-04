@@ -2,10 +2,10 @@
 #define __R51_REALDASH_H__
 
 #include <Arduino.h>
+#include <Canny.h>
 
 #include "CRC32.h"
 #include "bus.h"
-#include "frame.h"
 
 
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and
@@ -28,11 +28,11 @@ class RealDash : public Node {
 
         // Write frame to RealDash. Return false on success or false on
         // failure.
-        void send(const Frame& frame) override;
+        void send(const Canny::Frame& frame) override;
 
     private:
         Stream* stream_;
-        Frame frame_;
+        Canny::Frame frame_;
 
         // Read attributes.
         bool frame_type_66_;        // Type of frame. False if 0x44, true if 0x66.
@@ -53,6 +53,7 @@ class RealDash : public Node {
         void reset();
         void writeByte(const byte b);
         void writeBytes(const byte* b, uint8_t len);
+        void writeBytes(uint32_t data);
 };
 
 #endif  // __R51_REALDASH_H__

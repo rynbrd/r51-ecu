@@ -1,9 +1,10 @@
 #include "serial.h"
 
+#include <Canny.h>
+
 #include "bus.h"
 #include "config.h"
 #include "debug.h"
-#include "frame.h"
 
 
 void SerialText::begin(Stream* stream) {
@@ -62,40 +63,40 @@ void SerialText::receive(const Broadcast& broadcast) {
 
     memcpy(conv_, buffer_, id_len_);
     conv_[id_len_] = 0;
-    frame_.id = strtoul((char*)conv_, nullptr, 16);
-    if (frame_.id == 0) {
+    frame_.id(strtoul((char*)conv_, nullptr, 16));
+    if (frame_.id() == 0) {
         ERROR_MSG("serial: invalid frame format: bad id");
         reset();
         return;
     }
 
-    frame_.len = data_len_ / 2;
+    frame_.resize(data_len_ / 2);
     conv_[2] = 0;
-    for (int i = 0; i < frame_.len; i++) {
+    for (int i = 0; i < frame_.size(); i++) {
         memcpy(conv_, buffer_ + (i * 2 + id_len_ + 1), 2);
-        frame_.data[i] = (byte)strtoul((char*)conv_, nullptr, 16);
+        frame_.data()[i] = (byte)strtoul((char*)conv_, nullptr, 16);
     }
 
     reset();
     broadcast(frame_);
 }
 
-void SerialText::send(const Frame& frame) {
-    stream_->print(frame.id, HEX);
+void SerialText::send(const Canny::Frame& frame) {
+    stream_->print(frame.id(), HEX);
     stream_->print("#");
-    for (int i = 0; i < frame.len; i++) {
-        if (frame.data[i] <= 0x0F) {
+    for (int i = 0; i < frame.size(); i++) {
+        if (frame.data()[i] <= 0x0F) {
             stream_->print("0");
         }
-        stream_->print(frame.data[i], HEX);
-        if (i < frame.len-1) {
+        stream_->print(frame.data()[i], HEX);
+        if (i < frame.size()-1) {
             stream_->print(":");
         }
     }
     stream_->println("");
 }
 
-bool SerialText::filter(const Frame&) const {
+bool SerialText::filter(const Canny::Frame&) const {
     return true;
 }
 

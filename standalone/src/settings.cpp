@@ -1,11 +1,12 @@
 #include "settings.h"
 
+#include <Canny.h>
 #include <Faker.h>
+
 #include "binary.h"
 #include "bus.h"
 #include "config.h"
 #include "debug.h"
-#include "frame.h"
 
 
 // Available sequence states. States other than "ready" represent a frame which
@@ -46,20 +47,20 @@ inline uint32_t responseId(uint32_t request_id) {
 
 
 // Fill a settings frame with a payload.
-bool fillRequest(Frame* frame, uint32_t id, byte prefix0, byte prefix1, byte prefix2, uint8_t value = 0xFF) {
-    frame->id = id;
-    frame->len = 8;
-    frame->data[0] = prefix0;
-    frame->data[1] = prefix1;
-    frame->data[2] = prefix2;
-    frame->data[3] = value;
-    memset(frame->data+4, 0xFF, 4);
+bool fillRequest(Canny::Frame* frame, uint32_t id, byte prefix0, byte prefix1, byte prefix2, uint8_t value = 0xFF) {
+    frame->id(id, 0);
+    frame->resize(8);
+    frame->data()[0] = prefix0;
+    frame->data()[1] = prefix1;
+    frame->data()[2] = prefix2;
+    frame->data()[3] = value;
+    memset(frame->data()+4, 0xFF, 4);
     return true;
 }
 
 // Fill a settings frame with data to be sent when the sequence transitions to
 // the given state. Some state transitions require value be attached.
-bool fillRequest(Frame* frame, uint32_t id, uint8_t state, uint8_t value = 0xFF) {
+bool fillRequest(Canny::Frame* frame, uint32_t id, uint8_t state, uint8_t value = 0xFF) {
     switch (state) {
         case STATE_READY:
             return false;
@@ -180,7 +181,7 @@ bool SettingsSequence::ready() const {
     return state_ == STATE_READY;
 }
 
-bool SettingsSequence::receive(Frame* frame) {
+bool SettingsSequence::receive(Canny::Frame* frame) {
     if (clock_->millis() - started_ >= SETTINGS_RESPONSE_TIMEOUT) {
         state_ = STATE_READY;
         return false;
@@ -193,13 +194,13 @@ bool SettingsSequence::receive(Frame* frame) {
     return result;
 }
 
-void SettingsSequence::send(const Frame& frame) {
-    if (frame.id != responseId(request_id_)) {
+void SettingsSequence::send(const Canny::Frame& frame) {
+    if (frame.id() != responseId(request_id_)) {
         // not destined for this sequence
-        ERROR_MSG_FRAME("settings: unrecognized frame: ", frame);
+        ERROR_MSG_VAL("settings: unrecognized frame: ", frame);
         return;
     }
-    if (!matchState(frame.data, state_)) {
+    if (!matchState(frame.data(), state_)) {
         // frame does not match the current state
         return;
     }
@@ -355,8 +356,8 @@ Settings::Settings(Faker::Clock* clock) :
         updateE_(SETTINGS_FRAME_E, clock), resetE_(SETTINGS_FRAME_E, clock),
         initF_(SETTINGS_FRAME_F, clock), retrieveF_(SETTINGS_FRAME_F, clock),
         updateF_(SETTINGS_FRAME_F, clock), resetF_(SETTINGS_FRAME_F, clock),
-        clock_(clock), state_changed_(false), state_last_broadcast_(0) {
-    initFrame(&state_, SETTINGS_STATE_FRAME_ID, 8);
+        clock_(clock), state_changed_(false), state_last_broadcast_(0),
+        buffer_(0, 0, 8), state_(SETTINGS_STATE_FRAME_ID, 0, 8) {
     memset(control_state_, 0, 8);
 }
 
@@ -386,36 +387,36 @@ void Settings::receive(const Broadcast& broadcast) {
     }
 }
 
-void Settings::send(const Frame& frame) {
-    if (frame.len < 8) {
+void Settings::send(const Canny::Frame& frame) {
+    if (frame.size() < 8) {
         return;
     }
-    if (frame.id == responseId(SETTINGS_FRAME_E)) {
+    if (frame.id() == responseId(SETTINGS_FRAME_E)) {
         initE_.send(frame);
         retrieveE_.send(frame);
         updateE_.send(frame);
         resetE_.send(frame);
         handleState(frame);
-    } else if (frame.id == responseId(SETTINGS_FRAME_F)) {
+    } else if (frame.id() == responseId(SETTINGS_FRAME_F)) {
         initF_.send(frame);
         retrieveF_.send(frame);
         updateF_.send(frame);
         resetF_.send(frame);
         handleState(frame);
-    } else if (frame.id == SETTINGS_CONTROL_FRAME_ID) {
+    } else if (frame.id() == SETTINGS_CONTROL_FRAME_ID) {
         handleControl(frame);
     }
 }
 
-void Settings::handleState(const Frame& frame) {
-    if (matchPrefix(frame.data, 0x05)) {
-        handleState05(frame.data);
-    } else if (matchPrefix(frame.data, 0x10)) {
-        handleState10(frame.data);
-    } else if (matchPrefix(frame.data, 0x21)) {
-        handleState21(frame.data);
-    } else if (matchPrefix(frame.data, 0x22)) {
-        handleState22(frame.data);
+void Settings::handleState(const Canny::Frame& frame) {
+    if (matchPrefix(frame.data(), 0x05)) {
+        handleState05(frame.data());
+    } else if (matchPrefix(frame.data(), 0x10)) {
+        handleState10(frame.data());
+    } else if (matchPrefix(frame.data(), 0x21)) {
+        handleState21(frame.data());
+    } else if (matchPrefix(frame.data(), 0x22)) {
+        handleState22(frame.data());
     }
 }
 
@@ -507,48 +508,48 @@ void Settings::handleState22(const byte* data) {
     setSpeedSensingWiperInterval(!getBit(data, 1, 7));
 }
 
-void Settings::handleControl(const Frame& frame) {
+void Settings::handleControl(const Canny::Frame& frame) {
     // check if any bits have flipped
-    if (xorBits(control_state_, frame.data, 0, 0)) {
+    if (xorBits(control_state_, frame.data(), 0, 0)) {
         toggleAutoInteriorIllumination();
-    } else if (xorBits(control_state_, frame.data, 0, 1)) {
+    } else if (xorBits(control_state_, frame.data(), 0, 1)) {
         toggleSlideDriverSeatBackOnExit();
-    } else if (xorBits(control_state_, frame.data, 0, 2)) {
+    } else if (xorBits(control_state_, frame.data(), 0, 2)) {
         toggleSpeedSensingWiperInterval();
-    } else if (xorBits(control_state_, frame.data, 1, 0)) {
+    } else if (xorBits(control_state_, frame.data(), 1, 0)) {
         nextAutoHeadlightSensitivity();
-    } else if (xorBits(control_state_, frame.data, 1, 1)) {
+    } else if (xorBits(control_state_, frame.data(), 1, 1)) {
         prevAutoHeadlightSensitivity();
-    } else if (xorBits(control_state_, frame.data, 1, 4)) {
+    } else if (xorBits(control_state_, frame.data(), 1, 4)) {
         nextAutoHeadlightOffDelay();
-    } else if (xorBits(control_state_, frame.data, 1, 5)) {
+    } else if (xorBits(control_state_, frame.data(), 1, 5)) {
         prevAutoHeadlightOffDelay();
-    } else if (xorBits(control_state_, frame.data, 2, 0)) {
+    } else if (xorBits(control_state_, frame.data(), 2, 0)) {
         toggleSelectiveDoorUnlock();
-    } else if (xorBits(control_state_, frame.data, 2, 4)) {
+    } else if (xorBits(control_state_, frame.data(), 2, 4)) {
         nextAutoReLockTime();
-    } else if (xorBits(control_state_, frame.data, 2, 5)) {
+    } else if (xorBits(control_state_, frame.data(), 2, 5)) {
         prevAutoReLockTime();
-    } else if (xorBits(control_state_, frame.data, 3, 0)) {
+    } else if (xorBits(control_state_, frame.data(), 3, 0)) {
         toggleRemoteKeyResponseHorn();
-    } else if (xorBits(control_state_, frame.data, 3, 2)) {
+    } else if (xorBits(control_state_, frame.data(), 3, 2)) {
         nextRemoteKeyResponseLights();
-    } else if (xorBits(control_state_, frame.data, 3, 3)) {
+    } else if (xorBits(control_state_, frame.data(), 3, 3)) {
         prevRemoteKeyResponseLights();
-    } else if (xorBits(control_state_, frame.data, 7, 0)) {
+    } else if (xorBits(control_state_, frame.data(), 7, 0)) {
         retrieveSettings();
-    } else if (xorBits(control_state_, frame.data, 7, 7)) {
+    } else if (xorBits(control_state_, frame.data(), 7, 7)) {
         resetSettingsToDefault();
     }
 
     // update the stored control state
-    memcpy(control_state_, frame.data, 8);
+    memcpy(control_state_, frame.data(), 8);
 }
 
-bool Settings::filter(const Frame& frame) const {
-    return frame.id == SETTINGS_CONTROL_FRAME_ID ||
-        frame.id == responseId(SETTINGS_FRAME_E) ||
-        frame.id == responseId(SETTINGS_FRAME_F);
+bool Settings::filter(const Canny::Frame& frame) const {
+    return frame.id() == SETTINGS_CONTROL_FRAME_ID ||
+        frame.id() == responseId(SETTINGS_FRAME_E) ||
+        frame.id() == responseId(SETTINGS_FRAME_F);
 }
 
 bool Settings::init() {
@@ -569,90 +570,90 @@ bool Settings::readyF() const {
 }
 
 bool Settings::getAutoInteriorIllumination() const {
-    return getBit(state_.data, 0, 0);
+    return getBit(state_.data(), 0, 0);
 }
 
 void Settings::setAutoInteriorIllumination(bool value) {
-    setBit(state_.data, 0, 0, value);
+    setBit(state_.data(), 0, 0, value);
     state_changed_ = true;
 }
 
 uint8_t Settings::getAutoHeadlightSensitivity() const {
-    return state_.data[1] & 0x03;
+    return state_.data()[1] & 0x03;
 }
 
 void Settings::setAutoHeadlightSensitivity(uint8_t value) {
     if (value > 3) {
         value = 3;
     }
-    state_.data[1] &= 0xFC;
-    state_.data[1] |= value;
+    state_.data()[1] &= 0xFC;
+    state_.data()[1] |= value;
     state_changed_ = true;
 }
 
 Settings::AutoHeadlightOffDelay Settings::getAutoHeadlightOffDelay() const {
-    return (AutoHeadlightOffDelay)((state_.data[1] >> 4) & 0x0F);
+    return (AutoHeadlightOffDelay)((state_.data()[1] >> 4) & 0x0F);
 }
 
 void Settings::setAutoHeadlightOffDelay(Settings::AutoHeadlightOffDelay value) {
-    state_.data[1] &= 0x0F;
-    state_.data[1] |= value << 4;
+    state_.data()[1] &= 0x0F;
+    state_.data()[1] |= value << 4;
     state_changed_ = true;
 }
 
 bool Settings::getSpeedSensingWiperInterval() const {
-    return getBit(state_.data, 0, 2);
+    return getBit(state_.data(), 0, 2);
 }
 
 void Settings::setSpeedSensingWiperInterval(bool value) {
-    setBit(state_.data, 0, 2, value);
+    setBit(state_.data(), 0, 2, value);
     state_changed_ = true;
 }
 
 bool Settings::getRemoteKeyResponseHorn() const {
-    return getBit(state_.data, 3, 0);
+    return getBit(state_.data(), 3, 0);
 }
 
 void Settings::setRemoteKeyResponseHorn(bool value) {
-    setBit(state_.data, 3, 0, value);
+    setBit(state_.data(), 3, 0, value);
     state_changed_ = true;
 }
 
 Settings::RemoteKeyResponseLights Settings::getRemoteKeyResponseLights() const {
-    return (RemoteKeyResponseLights)((state_.data[3] >> 2) & 0x03);
+    return (RemoteKeyResponseLights)((state_.data()[3] >> 2) & 0x03);
 }
 
 void Settings::setRemoteKeyResponseLights(Settings::RemoteKeyResponseLights value) {
-    state_.data[3] &= 0xF3;
-    state_.data[3] |= value << 2;
+    state_.data()[3] &= 0xF3;
+    state_.data()[3] |= value << 2;
     state_changed_ = true;
 }
 
 Settings::AutoReLockTime Settings::getAutoReLockTime() const {
-    return (AutoReLockTime)((state_.data[2] >> 4) & 0x0F);
+    return (AutoReLockTime)((state_.data()[2] >> 4) & 0x0F);
 }
 
 void Settings::setAutoReLockTime(AutoReLockTime value) {
-    state_.data[2] &= 0x0F;
-    state_.data[2] |= value << 4;
+    state_.data()[2] &= 0x0F;
+    state_.data()[2] |= value << 4;
     state_changed_ = true;
 }
 
 bool Settings::getSelectiveDoorUnlock() const {
-    return getBit(state_.data, 2, 0);
+    return getBit(state_.data(), 2, 0);
 }
 
 void Settings::setSelectiveDoorUnlock(bool value) {
-    setBit(state_.data, 2, 0, value);
+    setBit(state_.data(), 2, 0, value);
     state_changed_ = true;
 }
 
 bool Settings::getSlideDriverSeatBackOnExit() const {
-    return getBit(state_.data, 0, 1);
+    return getBit(state_.data(), 0, 1);
 }
 
 void Settings::setSlideDriverSeatBackOnExit(bool value) {
-    setBit(state_.data, 0, 1, value);
+    setBit(state_.data(), 0, 1, value);
     state_changed_ = true;
 }
 

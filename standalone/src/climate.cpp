@@ -1,15 +1,19 @@
 #include "climate.h"
 
+#include <Canny.h>
 #include <Faker.h>
+
 #include "binary.h"
 #include "bus.h"
 #include "config.h"
 #include "debug.h"
-#include "frame.h"
 
 
 Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
-        rear_defrost_(REAR_DEFROST_PIN, REAR_DEFROST_TRIGGER_MS, clock, gpio) {
+        rear_defrost_(REAR_DEFROST_PIN, REAR_DEFROST_TRIGGER_MS, clock, gpio),
+        state_frame_(CLIMATE_STATE_FRAME_ID, 0, 8),
+        control_frame_540_(0x540, 0, 8),
+        control_frame_541_(0x541, 0, 8) {
     // Init operational state.
     state_ = STATE_OFF;
     mode_ = MODE_OFF;
@@ -19,16 +23,15 @@ Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
     state_init_ = 0;
     state_changed_ = false;
     state_last_broadcast_ = 0;
-    initFrame(&state_frame_, CLIMATE_STATE_FRAME_ID, 8);
 
     // Init control storage.
     control_init_ = false;
     control_changed_ = true;
     control_last_broadcast_ = 0;
-    initFrame(&control_frame_540_, 0x540, 8);
-    control_frame_540_.data[0] = 0x80;
-    initFrame(&control_frame_541_, 0x541, 8);
-    control_frame_541_.data[0] = 0x80;
+    control_frame_540_.clear(0x00);
+    control_frame_540_.data()[0] = 0x80;
+    control_frame_541_.clear(0x00);
+    control_frame_541_.data()[0] = 0x80;
     memset(control_state_, 0, 8);
 }
 
@@ -37,10 +40,10 @@ void Climate::receive(const Broadcast& broadcast) {
     rear_defrost_.update();
 
     if (!control_init_ && clock_->millis() >= CLIMATE_CONTROL_INIT_EXPIRE) {
-        control_frame_540_.data[0] = 0x60;
-        control_frame_540_.data[1] = 0x40;
-        control_frame_540_.data[6] = 0x04;
-        control_frame_541_.data[0] = 0x00;
+        control_frame_540_.data()[0] = 0x60;
+        control_frame_540_.data()[1] = 0x40;
+        control_frame_540_.data()[6] = 0x04;
+        control_frame_541_.data()[0] = 0x00;
         control_init_ = true;
     }
 
@@ -60,8 +63,8 @@ void Climate::receive(const Broadcast& broadcast) {
     }
 }
 
-void Climate::send(const Frame& frame) {
-    switch (frame.id) {
+void Climate::send(const Canny::Frame& frame) {
+    switch (frame.id()) {
         case 0x54A:
             handle54A(frame);
             break;
@@ -77,37 +80,40 @@ void Climate::send(const Frame& frame) {
     }
 }
 
-bool Climate::filter(const Frame& frame) const {
-    return frame.id == 0x54A || frame.id == 0x54B || frame.id == 0x625 || frame.id == CLIMATE_CONTROL_FRAME_ID;
+bool Climate::filter(const Canny::Frame& frame) const {
+    return frame.id() == 0x54A ||
+        frame.id() == 0x54B ||
+        frame.id() == 0x625 ||
+        frame.id() == CLIMATE_CONTROL_FRAME_ID;
 }
 
-void Climate::handle54A(const Frame& frame) {
-    if (frame.len != 8) {
+void Climate::handle54A(const Canny::Frame& frame) {
+    if (frame.size() != 8) {
         return;
     }
     state_init_ |= 0x01;
-    setDriverTemp(frame.data[4]);
-    setPassengerTemp(frame.data[5]);
-    setOutsideTemp(frame.data[7]);
+    setDriverTemp(frame.data()[4]);
+    setPassengerTemp(frame.data()[5]);
+    setOutsideTemp(frame.data()[7]);
 }
 
-void Climate::handle54B(const Frame& frame) {
-    if (frame.len != 8) {
+void Climate::handle54B(const Canny::Frame& frame) {
+    if (frame.size() != 8) {
         return;
     }
     state_init_ |= 0x02;
-    bool ac = getBit(frame.data, 0, 3);
-    bool recirculate = getBit(frame.data, 3, 4);
-    uint8_t fan_speed = (frame.data[2] + 1) / 2;
+    bool ac = getBit(frame.data(), 0, 3);
+    bool recirculate = getBit(frame.data(), 3, 4);
+    uint8_t fan_speed = (frame.data()[2] + 1) / 2;
 
-    dual_ = getBit(frame.data, 3, 7);
-    mode_ = (Mode)frame.data[1];
+    dual_ = getBit(frame.data(), 3, 7);
+    mode_ = (Mode)frame.data()[1];
 
     if (mode_ == MODE_WINDSHIELD) {
         state_ = STATE_DEFROST;
-    } else if (getBit(frame.data, 0, 7)) {
+    } else if (getBit(frame.data(), 0, 7)) {
         state_ = STATE_OFF;
-    } else if (getBit(frame.data, 0, 0)) {
+    } else if (getBit(frame.data(), 0, 0)) {
         state_ = STATE_AUTO;
     } else if (fan_speed == 0) {
         state_ = STATE_HALF_MANUAL;
@@ -162,122 +168,122 @@ void Climate::handle54B(const Frame& frame) {
     }
 }
 
-void Climate::handle625(const Frame& frame) {
-    if (frame.len == 0) {
+void Climate::handle625(const Canny::Frame& frame) {
+    if (frame.size() == 0) {
         return;
     }
-    setRearDefrost(getBit(frame.data, 0, 0));
+    setRearDefrost(getBit(frame.data(), 0, 0));
 }
 
-void Climate::handleControl(const Frame& frame) {
+void Climate::handleControl(const Canny::Frame& frame) {
     // check if any bits have flipped
-    if (xorBits(control_state_, frame.data, 0, 0)) {
+    if (xorBits(control_state_, frame.data(), 0, 0)) {
         triggerOff();
     }
-    if (xorBits(control_state_, frame.data, 0, 1)) {
+    if (xorBits(control_state_, frame.data(), 0, 1)) {
         triggerAuto();
     }
-    if (xorBits(control_state_, frame.data, 0, 2)) {
+    if (xorBits(control_state_, frame.data(), 0, 2)) {
         triggerAc();
     }
-    if (xorBits(control_state_, frame.data, 0, 3)) {
+    if (xorBits(control_state_, frame.data(), 0, 3)) {
         triggerDual();
     }
-    if (xorBits(control_state_, frame.data, 0, 4)) {
+    if (xorBits(control_state_, frame.data(), 0, 4)) {
         triggerMode();
     }
-    if (xorBits(control_state_, frame.data, 0, 6)) {
+    if (xorBits(control_state_, frame.data(), 0, 6)) {
         triggerFrontDefrost();
     }
-    if (xorBits(control_state_, frame.data, 0, 7)) {
+    if (xorBits(control_state_, frame.data(), 0, 7)) {
         triggerRecirculate();
     }
-    if (xorBits(control_state_, frame.data, 1, 0)) {
+    if (xorBits(control_state_, frame.data(), 1, 0)) {
         triggerFanSpeedUp();
     }
-    if (xorBits(control_state_, frame.data, 1, 1)) {
+    if (xorBits(control_state_, frame.data(), 1, 1)) {
         triggerFanSpeedDown();
     }
-    if (xorBits(control_state_, frame.data, 1, 2)) {
+    if (xorBits(control_state_, frame.data(), 1, 2)) {
         triggerDriverTempUp();
     }
-    if (xorBits(control_state_, frame.data, 1, 3)) {
+    if (xorBits(control_state_, frame.data(), 1, 3)) {
         triggerDriverTempDown();
     }
-    if (xorBits(control_state_, frame.data, 1, 4)) {
+    if (xorBits(control_state_, frame.data(), 1, 4)) {
         triggerPassengerTempUp();
     }
-    if (xorBits(control_state_, frame.data, 1, 5)) {
+    if (xorBits(control_state_, frame.data(), 1, 5)) {
         triggerPassengerTempDown();
     }
-    if (xorBits(control_state_, frame.data, 4, 0)) {
+    if (xorBits(control_state_, frame.data(), 4, 0)) {
         triggerRearDefrost();
     }
 
     // update the stored control state
-    memcpy(control_state_, frame.data, 8);
+    memcpy(control_state_, frame.data(), 8);
 }
 
 void Climate::setActive(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 0, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 0, value);
 }
 
 void Climate::setAuto(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 1, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 1, value);
 }
 
 void Climate::setAc(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 2, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 2, value);
 }
 
 void Climate::setDual(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 3, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 3, value);
 }
 
 void Climate::setFace(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 4, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 4, value);
 }
 
 void Climate::setFeet(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 5, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 5, value);
 }
 
 void Climate::setRecirculate(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 7, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 7, value);
 }
 
 void Climate::setFrontDefrost(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 0, 6, value);
+    state_changed_ |= setBit(state_frame_.data(), 0, 6, value);
 }
 
 void Climate::setRearDefrost(bool value) {
-    state_changed_ |= setBit(state_frame_.data, 4, 0, value);
+    state_changed_ |= setBit(state_frame_.data(), 4, 0, value);
 }
 
 void Climate::setFanSpeed(uint8_t value) {
-    if (state_frame_.data[1] != value) {
-        state_frame_.data[1] = value;
+    if (state_frame_.data()[1] != value) {
+        state_frame_.data()[1] = value;
         state_changed_ = true;
     }
 }
 
 void Climate::setDriverTemp(uint8_t value) {
-    if (state_frame_.data[2] != value) {
-        state_frame_.data[2] = value;
+    if (state_frame_.data()[2] != value) {
+        state_frame_.data()[2] = value;
         state_changed_ = true;
     }
 }
 
 void Climate::setPassengerTemp(uint8_t value) {
-    if (state_frame_.data[3] != value) {
-        state_frame_.data[3] = value;
+    if (state_frame_.data()[3] != value) {
+        state_frame_.data()[3] = value;
         state_changed_ = true;
     }
 }
 
 void Climate::setOutsideTemp(uint8_t value) {
-    if (state_frame_.data[7] != value) {
-        state_frame_.data[7] = value;
+    if (state_frame_.data()[7] != value) {
+        state_frame_.data()[7] = value;
         state_changed_ = true;
     }
 }
@@ -321,37 +327,37 @@ void Climate::setMode(uint8_t mode) {
 }
 
 void Climate::triggerOff() {
-    toggleBit(control_frame_540_.data, 6, 7);
+    toggleBit(control_frame_540_.data(), 6, 7);
     control_changed_ = true;
 }
 
 void Climate::triggerAuto() {
-    toggleBit(control_frame_540_.data, 6, 5);
+    toggleBit(control_frame_540_.data(), 6, 5);
     control_changed_ = true;
 }
 
 void Climate::triggerAc() {
-    toggleBit(control_frame_540_.data, 5, 3);
+    toggleBit(control_frame_540_.data(), 5, 3);
     control_changed_ = true;
 }
 
 void Climate::triggerDual() {
-    toggleBit(control_frame_540_.data, 6, 3);
+    toggleBit(control_frame_540_.data(), 6, 3);
     control_changed_ = true;
 }
 
 void Climate::triggerRecirculate() {
-    toggleBit(control_frame_541_.data, 1, 6);
+    toggleBit(control_frame_541_.data(), 1, 6);
     control_changed_ = true;
 }
 
 void Climate::triggerMode() {
-    toggleBit(control_frame_540_.data, 6, 0);
+    toggleBit(control_frame_540_.data(), 6, 0);
     control_changed_ = true;
 }
 
 void Climate::triggerFrontDefrost() {
-    toggleBit(control_frame_540_.data, 6, 1);
+    toggleBit(control_frame_540_.data(), 6, 1);
     control_changed_ = true;
 }
 
@@ -361,12 +367,12 @@ void Climate::triggerRearDefrost() {
 }
 
 void Climate::triggerFanSpeedUp() {
-    toggleBit(control_frame_541_.data, 0, 5);
+    toggleBit(control_frame_541_.data(), 0, 5);
     control_changed_ = true;
 }
 
 void Climate::triggerFanSpeedDown() {
-    toggleBit(control_frame_541_.data, 0, 4);
+    toggleBit(control_frame_541_.data(), 0, 4);
     control_changed_ = true;
 }
 
@@ -374,8 +380,8 @@ void Climate::triggerDriverTempUp() {
     if (state_ == STATE_OFF) {
         return;
     }
-    toggleBit(control_frame_540_.data, 5, 5);
-    control_frame_540_.data[3]++;
+    toggleBit(control_frame_540_.data(), 5, 5);
+    control_frame_540_.data()[3]++;
     control_changed_ = true;
 }
 
@@ -383,8 +389,8 @@ void Climate::triggerDriverTempDown() {
     if (state_ == STATE_OFF) {
         return;
     }
-    toggleBit(control_frame_540_.data, 5, 5);
-    control_frame_540_.data[3]--;
+    toggleBit(control_frame_540_.data(), 5, 5);
+    control_frame_540_.data()[3]--;
     control_changed_ = true;
 }
 
@@ -392,8 +398,8 @@ void Climate::triggerPassengerTempUp() {
     if (state_ == STATE_OFF) {
         return;
     }
-    toggleBit(control_frame_540_.data, 5, 5);
-    control_frame_540_.data[4]++;
+    toggleBit(control_frame_540_.data(), 5, 5);
+    control_frame_540_.data()[4]++;
     control_changed_ = true;
 }
 
@@ -401,7 +407,7 @@ void Climate::triggerPassengerTempDown() {
     if (state_ == STATE_OFF) {
         return;
     }
-    toggleBit(control_frame_540_.data, 5, 5);
-    control_frame_540_.data[4]--;
+    toggleBit(control_frame_540_.data(), 5, 5);
+    control_frame_540_.data()[4]--;
     control_changed_ = true;
 }

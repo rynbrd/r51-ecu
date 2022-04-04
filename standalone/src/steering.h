@@ -1,11 +1,11 @@
 #ifndef __R51_STEERING__
 #define __R51_STEERING__
 
+#include <Canny.h>
 #include <Faker.h>
 
 #include "AnalogMultiButton.h"
 #include "bus.h"
-#include "frame.h"
 
 
 // Steering wheel keypad. Sends 0x5800 CAN frames on button press and release.
@@ -37,15 +37,15 @@ class SteeringKeypad : public Node {
         void receive(const Broadcast& broadcast) override;
 
         // Noop. This node does not process frames.
-        void send(const Frame&) override {}
+        void send(const Canny::Frame&) override {}
 
         // Always returns false. This node does not process frames.
-        bool filter(const Frame&) const override { return false; }
+        bool filter(const Canny::Frame&) const override { return false; }
 
     private:
         uint32_t last_change_;
         Faker::Clock* clock_;
-        Frame frame_;
+        Canny::Frame frame_;
         AnalogMultiButton* sw_a_;
         AnalogMultiButton* sw_b_;
 };
