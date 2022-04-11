@@ -30,9 +30,6 @@ class SteeringKeypad : public Node {
         SteeringKeypad(Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
 
-        // Free resources associated with the keypad.
-        ~SteeringKeypad() override;
-
         // Broadcast a frame on keypad state change.
         void receive(const Broadcast& broadcast) override;
 
@@ -46,8 +43,8 @@ class SteeringKeypad : public Node {
         uint32_t last_change_;
         Faker::Clock* clock_;
         Canny::Frame frame_;
-        AnalogMultiButton* sw_a_;
-        AnalogMultiButton* sw_b_;
+        AnalogMultiButton sw_a_;
+        AnalogMultiButton sw_b_;
 };
 
 #endif  // __R51_STEERING__
