@@ -28,3 +28,6 @@
 [submodule "libraries/ArduinoCanny"]
 	path = libraries/ArduinoCanny
 	url = git@github.com:BlueDragonX/ArduinoCanny.git
+[submodule "libraries/ArduinoNissanR51"]
+	path = libraries/ArduinoNissanR51
+	url = git@github.com:BlueDragonX/ArduinoNissanR51.git
