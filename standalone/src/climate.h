@@ -84,8 +84,8 @@ class Climate : public Node {
         MomentaryOutput rear_defrost_;
 
         // CAN frame state parsing.
-        NissanR51::ClimateSystemState system_;
-        NissanR51::ClimateTemperatureState temp_;
+        NissanR51::ClimateSystemState system_state_;
+        NissanR51::ClimateTemperatureState temp_state_;
 
         // State frame storage.
         uint8_t state_init_;
@@ -95,8 +95,9 @@ class Climate : public Node {
 
         // Control frame storage.
         bool control_init_;
-        bool control_changed_;
         uint32_t control_last_broadcast_;
+        NissanR51::ClimateSystemControl system_control_;
+        NissanR51::ClimateFanControl fan_control_;
         Canny::Frame control_frame_540_;
         Canny::Frame control_frame_541_;
         byte control_state_[8];
@@ -122,22 +123,6 @@ class Climate : public Node {
         void setPassengerTemp(uint8_t value);
         void setOutsideTemp(uint8_t value);
         void setMode(NissanR51::ClimateVents vents);
-
-        // Helpers for triggering climate system events.
-        void triggerOff();
-        void triggerAuto();
-        void triggerAc();
-        void triggerDual();
-        void triggerRecirculate();
-        void triggerMode();
-        void triggerFrontDefrost();
-        void triggerRearDefrost();
-        void triggerFanSpeedUp();
-        void triggerFanSpeedDown();
-        void triggerDriverTempUp();
-        void triggerDriverTempDown();
-        void triggerPassengerTempUp();
-        void triggerPassengerTempDown();
 };
 
 #endif  // __R51_CLIMATE_H__
