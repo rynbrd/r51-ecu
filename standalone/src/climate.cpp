@@ -2,7 +2,7 @@
 
 #include <Canny.h>
 #include <Faker.h>
-
+#include <NissanR51.h>
 #include "binary.h"
 #include "bus.h"
 #include "config.h"
@@ -14,11 +14,6 @@ Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
         state_frame_(CLIMATE_STATE_FRAME_ID, 0, 8),
         control_frame_540_(0x540, 0, 8),
         control_frame_541_(0x541, 0, 8) {
-    // Init operational state.
-    state_ = STATE_OFF;
-    mode_ = MODE_OFF;
-    dual_ = false;
-
     // Init state storage.
     state_init_ = 0;
     state_changed_ = false;
@@ -64,20 +59,10 @@ void Climate::receive(const Broadcast& broadcast) {
 }
 
 void Climate::send(const Canny::Frame& frame) {
-    switch (frame.id()) {
-        case 0x54A:
-            handle54A(frame);
-            break;
-        case 0x54B:
-            handle54B(frame);
-            break;
-        case 0x625:
-            handle625(frame);
-            break;
-        case CLIMATE_CONTROL_FRAME_ID:
-            handleControl(frame);
-            break;
-    }
+    handleTemps(frame);
+    handleSystem(frame);
+    handle625(frame);
+    handleControl(frame);
 }
 
 bool Climate::filter(const Canny::Frame& frame) const {
@@ -87,42 +72,28 @@ bool Climate::filter(const Canny::Frame& frame) const {
         frame.id() == CLIMATE_CONTROL_FRAME_ID;
 }
 
-void Climate::handle54A(const Canny::Frame& frame) {
-    if (frame.size() != 8) {
+void Climate::handleTemps(const Canny::Frame& frame) {
+    if (frame.id() == 0x54A) {
+        state_init_ |= 0x01;
+    }
+    if (!temp_.handle(frame)) {
         return;
     }
-    state_init_ |= 0x01;
-    setDriverTemp(frame.data()[4]);
-    setPassengerTemp(frame.data()[5]);
-    setOutsideTemp(frame.data()[7]);
+    setDriverTemp(temp_.driver_temp());
+    setPassengerTemp(temp_.passenger_temp());
+    setOutsideTemp(temp_.outside_temp());
 }
 
-void Climate::handle54B(const Canny::Frame& frame) {
-    if (frame.size() != 8) {
+void Climate::handleSystem(const Canny::Frame& frame) {
+    if (frame.id() == 0x54B) {
+        state_init_ |= 0x02;
+    }
+    if (!system_.handle(frame)) {
         return;
     }
-    state_init_ |= 0x02;
-    bool ac = getBit(frame.data(), 0, 3);
-    bool recirculate = getBit(frame.data(), 3, 4);
-    uint8_t fan_speed = (frame.data()[2] + 1) / 2;
 
-    dual_ = getBit(frame.data(), 3, 7);
-    mode_ = (Mode)frame.data()[1];
-
-    if (mode_ == MODE_WINDSHIELD) {
-        state_ = STATE_DEFROST;
-    } else if (getBit(frame.data(), 0, 7)) {
-        state_ = STATE_OFF;
-    } else if (getBit(frame.data(), 0, 0)) {
-        state_ = STATE_AUTO;
-    } else if (fan_speed == 0) {
-        state_ = STATE_HALF_MANUAL;
-    } else {
-        state_ = STATE_MANUAL;
-    }
-
-    switch (state_) {
-        case STATE_OFF: 
+    switch (system_.system()) {
+        case NissanR51::CLIMATE_SYSTEM_OFF: 
             setActive(false);
             setAuto(false);
             setAc(false);
@@ -132,50 +103,52 @@ void Climate::handle54B(const Canny::Frame& frame) {
             setFanSpeed(0);
             setDriverTemp(0);
             setPassengerTemp(0);
-            setMode(MODE_OFF);
+            setMode(NissanR51::CLIMATE_VENTS_CLOSED);
             break;
-        case STATE_AUTO:
+        case NissanR51::CLIMATE_SYSTEM_AUTO:
             setActive(true);
             setAuto(true);
-            setAc(ac);
-            setDual(dual_);
-            setRecirculate(recirculate);
+            setAc(system_.ac());
+            setDual(system_.dual());
+            setRecirculate(system_.recirculate());
             setFrontDefrost(false);
-            setFanSpeed(fan_speed);
-            setMode(mode_);
+            setFanSpeed(system_.fan_speed());
+            setMode(system_.vents());
             break;
-        case STATE_MANUAL:
-        case STATE_HALF_MANUAL:
+        case NissanR51::CLIMATE_SYSTEM_MANUAL:
             setActive(true);
             setAuto(false);
-            setAc(ac);
-            setDual(dual_);
-            setRecirculate(recirculate);
+            setAc(system_.ac());
+            setDual(system_.dual());
+            setRecirculate(system_.recirculate());
             setFrontDefrost(false);
-            setFanSpeed(fan_speed);
-            setMode(mode_);
+            setFanSpeed(system_.fan_speed());
+            setMode(system_.vents());
             break;
-        case STATE_DEFROST:
+        case NissanR51::CLIMATE_SYSTEM_DEFROST:
             setActive(true);
             setAuto(false);
-            setAc(ac);
+            setAc(system_.ac());
             setDual(false);
             setRecirculate(false);
             setFrontDefrost(true);
-            setFanSpeed(fan_speed);
-            setMode(MODE_WINDSHIELD);
+            setFanSpeed(system_.fan_speed());
+            setMode(NissanR51::CLIMATE_VENTS_WINDSHIELD);
             break;
     }
 }
 
 void Climate::handle625(const Canny::Frame& frame) {
-    if (frame.size() == 0) {
+    if (frame.id() != 0x625 || frame.size() < 6) {
         return;
     }
     setRearDefrost(getBit(frame.data(), 0, 0));
 }
 
 void Climate::handleControl(const Canny::Frame& frame) {
+    if (frame.id() != CLIMATE_CONTROL_FRAME_ID || frame.size() < 8) {
+        return;
+    }
     // check if any bits have flipped
     if (xorBits(control_state_, frame.data(), 0, 0)) {
         triggerOff();
@@ -288,32 +261,29 @@ void Climate::setOutsideTemp(uint8_t value) {
     }
 }
 
-void Climate::setMode(uint8_t mode) {
-    switch (mode) {
-        case MODE_FACE:
-        case MODE_AUTO_FACE:
+void Climate::setMode(NissanR51::ClimateVents vents) {
+    switch (vents) {
+        case NissanR51::CLIMATE_VENTS_FACE:
             setFace(true);
             setFeet(false);
             setFrontDefrost(false);
             break;
-        case MODE_FACE_FEET:
-        case MODE_AUTO_FACE_FEET:
+        case NissanR51::CLIMATE_VENTS_FACE_FEET:
             setFace(true);
             setFeet(true);
             setFrontDefrost(false);
             break;
-        case MODE_FEET:
-        case MODE_AUTO_FEET:
+        case NissanR51::CLIMATE_VENTS_FEET:
             setFace(false);
             setFeet(true);
             setFrontDefrost(false);
             break;
-        case MODE_FEET_WINDSHIELD:
+        case NissanR51::CLIMATE_VENTS_FEET_WINDSHIELD:
             setFace(false);
             setFeet(true);
             setFrontDefrost(true);
             break;
-        case MODE_WINDSHIELD:
+        case NissanR51::CLIMATE_VENTS_WINDSHIELD:
             setFace(false);
             setFeet(false);
             setFrontDefrost(true);
@@ -377,7 +347,7 @@ void Climate::triggerFanSpeedDown() {
 }
 
 void Climate::triggerDriverTempUp() {
-    if (state_ == STATE_OFF) {
+    if (system_.system() == NissanR51::CLIMATE_SYSTEM_OFF) {
         return;
     }
     toggleBit(control_frame_540_.data(), 5, 5);
@@ -386,7 +356,7 @@ void Climate::triggerDriverTempUp() {
 }
 
 void Climate::triggerDriverTempDown() {
-    if (state_ == STATE_OFF) {
+    if (system_.system() == NissanR51::CLIMATE_SYSTEM_OFF) {
         return;
     }
     toggleBit(control_frame_540_.data(), 5, 5);
@@ -395,7 +365,7 @@ void Climate::triggerDriverTempDown() {
 }
 
 void Climate::triggerPassengerTempUp() {
-    if (state_ == STATE_OFF) {
+    if (system_.system() == NissanR51::CLIMATE_SYSTEM_OFF) {
         return;
     }
     toggleBit(control_frame_540_.data(), 5, 5);
@@ -404,7 +374,7 @@ void Climate::triggerPassengerTempUp() {
 }
 
 void Climate::triggerPassengerTempDown() {
-    if (state_ == STATE_OFF) {
+    if (system_.system() == NissanR51::CLIMATE_SYSTEM_OFF) {
         return;
     }
     toggleBit(control_frame_540_.data(), 5, 5);

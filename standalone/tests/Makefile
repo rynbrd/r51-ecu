@@ -2,7 +2,7 @@
 # Makefile to compile and run Arduino programs natively on Linux or MacOS.
 
 APP_NAME := tests
-ARDUINO_LIBS := AnalogMultiButton ArduinoCanny ArduinoCaster ArduinoFaker AUnit CRC32
+ARDUINO_LIBS := AnalogMultiButton ArduinoCanny ArduinoCaster ArduinoFaker ArduinoNissanR51 AUnit CRC32
 EXTRA_CPPFLAGS += -Isrc
 EXTRA_CXXFLAGS += -g
 include ../../libraries/EpoxyDuino/EpoxyDuino.mk

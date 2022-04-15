@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Faker.h>
+#include <NissanR51.h>
 
 #include "bus.h"
 #include "momentary_output.h"
@@ -82,28 +83,9 @@ class Climate : public Node {
         // Hardware control.
         MomentaryOutput rear_defrost_;
 
-        // Operational state.
-        enum State : uint8_t {
-            STATE_OFF,
-            STATE_AUTO,
-            STATE_MANUAL,
-            STATE_HALF_MANUAL,
-            STATE_DEFROST,
-        };
-        enum Mode : uint8_t {
-            MODE_OFF = 0x00,
-            MODE_FACE = 0x04,
-            MODE_FACE_FEET = 0x08,
-            MODE_FEET = 0x0C,
-            MODE_FEET_WINDSHIELD = 0x10,
-            MODE_WINDSHIELD = 0x34,
-            MODE_AUTO_FACE = 0x84,
-            MODE_AUTO_FACE_FEET = 0x88,
-            MODE_AUTO_FEET = 0x8C,
-        };
-        State state_;
-        Mode mode_;
-        bool dual_;
+        // CAN frame state parsing.
+        NissanR51::ClimateSystemState system_;
+        NissanR51::ClimateTemperatureState temp_;
 
         // State frame storage.
         uint8_t state_init_;
@@ -120,8 +102,8 @@ class Climate : public Node {
         byte control_state_[8];
 
         // Specific frame handlers.
-        void handle54A(const Canny::Frame& frame);
-        void handle54B(const Canny::Frame& frame);
+        void handleTemps(const Canny::Frame& frame);
+        void handleSystem(const Canny::Frame& frame);
         void handle625(const Canny::Frame& frame);
         void handleControl(const Canny::Frame& frame);
 
@@ -139,7 +121,7 @@ class Climate : public Node {
         void setDriverTemp(uint8_t value);
         void setPassengerTemp(uint8_t value);
         void setOutsideTemp(uint8_t value);
-        void setMode(uint8_t mode);
+        void setMode(NissanR51::ClimateVents vents);
 
         // Helpers for triggering climate system events.
         void triggerOff();
