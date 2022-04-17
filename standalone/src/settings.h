@@ -4,115 +4,10 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Faker.h>
+#include <NissanR51.h>
 
 #include "bus.h"
 
-
-// Valid frame IDs for settings.
-enum SettingsFrameId : uint32_t {
-    SETTINGS_FRAME_E = 0x71E,
-    SETTINGS_FRAME_F = 0x71F,
-};
-
-// Send a sequence of frames for managing settings.
-class SettingsSequence {
-    public:
-        // Create a sequence that communicates over the given frame ID.
-        SettingsSequence(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
-            request_id_((uint32_t)id), clock_(clock), started_(0),
-            value_(0xFF), state_(0), sent_(false) {}
-
-        // Trigger the sequence. The next call to receive will broadcast the
-        // first frame of the sequence. The sequence expects the next frame to
-        // match otherwise it resets.
-        bool trigger();
-
-        // Return true if the sequence is ready to send.
-        bool ready() const;
-
-        // Fill a frame with the next in the sequence if available. Return true
-        // if the frame should be sent or false otherwise.
-        bool receive(Canny::Frame* frame);
-
-        // Send a response frame back to the sequence. The frame frame matches
-        // the expected sequence then the sequence advances to the next state.
-        // Otherwise the sequence resets.
-        void send(const Canny::Frame& frame);
-
-    protected:
-        // The sequence's request ID.
-        uint32_t requestId() const { return request_id_; }
-
-        // The sequence's current state.
-        uint8_t state() const { return state_; }
-
-        // Set the value to send with the state frames that require value.
-        void setValue(uint8_t value) { value_ = value; }
-
-        // Return the next state. If the returned state matches the incoming
-        // rame then the sequence transitions to the new state and a frame for
-        // the state is sent. If this returns the no state transition occurs
-        // and no frame is sent.
-        virtual uint8_t nextE() = 0;
-        virtual uint8_t nextF() = 0;
-    private:
-        const uint32_t request_id_;
-        Faker::Clock* clock_;
-        uint32_t started_;
-        uint8_t value_;
-        uint8_t state_;
-        bool sent_;
-        uint8_t next();
-};
-
-// Sequence to initialize communication with the BCM.
-class SettingsInit : public SettingsSequence {
-    public:
-        SettingsInit(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
-            SettingsSequence(id, clock) {}
-    protected:
-        uint8_t nextE() override;
-        uint8_t nextF() override;
-};
-
-// Sequence used to retrieve settings from the BCM.
-class SettingsRetrieve : public SettingsSequence {
-    public:
-        SettingsRetrieve(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
-            SettingsSequence(id, clock), state2x_(false) {}
-    protected:
-        uint8_t nextE() override;
-        uint8_t nextF() override;
-    private:
-        bool state2x_;
-};
-
-// Sequence used to update a setting in the BCM.
-class SettingsUpdate : public SettingsSequence {
-    public:
-        SettingsUpdate(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
-            SettingsSequence(id, clock), update_(0), state2x_(false) {}
-
-        // Set the item to update and its value. 
-        void setPayload(uint8_t update, uint8_t value);
-    protected:
-        uint8_t nextE() override;
-        uint8_t nextF() override;
-    private:
-        uint8_t update_;
-        bool state2x_;
-};
-
-class SettingsReset : public SettingsSequence {
-    public:
-        SettingsReset(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
-            SettingsSequence(id, clock), state2x_(false) {}
-    protected:
-        uint8_t nextE() override;
-        uint8_t nextF() override;
-    private:
-        bool state2x_;
-};
 
 // Communicates with the BCM to retrieve and update body control settings.
 // Periodically sends state frames with the current settings. Responds to
@@ -184,110 +79,14 @@ class Settings : public Node {
         bool init();
 
     private:
-        enum RemoteKeyResponseLights : uint8_t {
-            LIGHTS_OFF = 0,
-            LIGHTS_UNLOCK = 1,
-            LIGHTS_LOCK = 2,
-            LIGHTS_ON = 3,
-        };
-
-        enum AutoHeadlightOffDelay : uint8_t {
-            DELAY_0S = 0,
-            DELAY_30S = 2,
-            DELAY_45S = 3,
-            DELAY_60S = 4,
-            DELAY_90S = 6,
-            DELAY_120S = 8,
-            DELAY_150S = 10,
-            DELAY_180S = 12,
-        };
-
-        enum AutoReLockTime : uint8_t {
-            RELOCK_OFF = 0,
-            RELOCK_1M = 1,
-            RELOCK_5M = 5,
-        };
-
-        void handleState(const Canny::Frame& frame);
-        void handleState05(const byte* data);
-        void handleState10(const byte* data);
-        void handleState21(const byte* data);
-        void handleState22(const byte* data);
-        void handleControl(const Canny::Frame& frame);
-
-        SettingsInit initE_;
-        SettingsRetrieve retrieveE_;
-        SettingsUpdate updateE_;
-        SettingsReset resetE_;
-        bool readyE() const;
-
-        SettingsInit initF_;
-        SettingsRetrieve retrieveF_;
-        SettingsUpdate updateF_;
-        SettingsReset resetF_;
-        bool readyF() const;
-
         Faker::Clock* clock_;
         bool state_changed_;
         uint32_t state_last_broadcast_;
-        Canny::Frame buffer_;
         Canny::Frame state_;
         byte control_state_[8];
+        NissanR51::Settings settings_;
 
-        // Manage Auto Interior Illumnation setting state. 
-        bool getAutoInteriorIllumination() const;
-        void setAutoInteriorIllumination(bool value);
-
-        // Manage Auto Headlight Sensitivity setting state. Valid values from 1 to 4.
-        uint8_t getAutoHeadlightSensitivity() const;
-        void setAutoHeadlightSensitivity(uint8_t value);
-
-        // Manage Auto Headlight Off Delay setting state.
-        AutoHeadlightOffDelay getAutoHeadlightOffDelay() const;
-        void setAutoHeadlightOffDelay(AutoHeadlightOffDelay value);
-
-        // Manage Speed Sensing Wiper Interval setting state.
-        bool getSpeedSensingWiperInterval() const;
-        void setSpeedSensingWiperInterval(bool value);
-
-        // Manage Remote Key Response Horn setting state.
-        bool getRemoteKeyResponseHorn() const;
-        void setRemoteKeyResponseHorn(bool value);
-
-        // Manage Remote Key Response Lights setting state.
-        RemoteKeyResponseLights getRemoteKeyResponseLights() const;
-        void setRemoteKeyResponseLights(RemoteKeyResponseLights value);
-
-        // Manage Auto Re-Lock Time setting state.
-        AutoReLockTime getAutoReLockTime() const;
-        void setAutoReLockTime(AutoReLockTime value);
-
-        // Manage Selective Door Unlock setting state.
-        bool getSelectiveDoorUnlock() const;
-        void setSelectiveDoorUnlock(bool value);
-
-        // Manage Slide Driver SEat Back on Exit setting state.
-        bool getSlideDriverSeatBackOnExit() const;
-        void setSlideDriverSeatBackOnExit(bool value);
-
-        // Helpers for triggering sequences from control frames.
-        bool toggleAutoInteriorIllumination();
-        bool nextAutoHeadlightSensitivity();
-        bool prevAutoHeadlightSensitivity();
-        bool triggerAutoHeadlightSensitivity(uint8_t value);
-        bool nextAutoHeadlightOffDelay();
-        bool prevAutoHeadlightOffDelay();
-        bool toggleSpeedSensingWiperInterval();
-        bool toggleRemoteKeyResponseHorn();
-        bool nextRemoteKeyResponseLights();
-        bool prevRemoteKeyResponseLights();
-        bool triggerRemoteKeyResponseLights(uint8_t value);
-        bool nextAutoReLockTime();
-        bool prevAutoReLockTime();
-        bool toggleSelectiveDoorUnlock();
-        bool toggleSlideDriverSeatBackOnExit();
-        bool retrieveSettings();
-        bool resetSettingsToDefault();
+        void handleControl(const Canny::Frame& frame);
 };
 
 #endif  // __R51_SETTINGS_H__

@@ -303,10 +303,9 @@ testF(SettingsTest, Retrieve) {
     fillState3000Request(&frameE, 0x71E);
     fillExitRequest(&frameF, 0x71F);
     fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-    assertTrue(checkFrameCount(cast, 3) &&
+    assertTrue(checkFrameCount(cast, 2) &&
         checkFrameEquals(cast.frames()[0], frameE) &&
-        checkFrameEquals(cast.frames()[1], frameF) &&
-        checkFrameEquals(cast.frames()[2], state));
+        checkFrameEquals(cast.frames()[1], frameF));
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00);
@@ -319,14 +318,19 @@ testF(SettingsTest, Retrieve) {
     // Receive E exit frame.
     settings.receive(cast.impl);
     fillExitRequest(&frameE, 0x71E);
-    fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-    assertTrue(checkFrameCount(cast, 2) &&
-        checkFrameEquals(cast.frames()[0], frameE) &&
-        checkFrameEquals(cast.frames()[1], state));
+    assertTrue(checkFrameCount(cast, 1) &&
+        checkFrameEquals(cast.frames()[0], frameE));
     cast.reset();
     // Simulate response.
     fillExitResponse(&frameE, 0x72E);
     settings.send(frameE);
+
+    // Ensure settings are at default.
+    fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+    clock.delay(1000);
+    settings.receive(cast.impl);
+    assertTrue(checkFrameCount(cast, 1) &&
+        checkFrameEquals(cast.frames()[0], state));
 }
 
 testF(SettingsTest, ResetToDefault) {
@@ -387,11 +391,9 @@ testF(SettingsTest, ResetToDefault) {
     settings.receive(cast.impl);
     fillState3000Request(&frameE, 0x71E);
     fillExitRequest(&frameF, 0x71F);
-    fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-    assertTrue(checkFrameCount(cast, 3) &&
+    assertTrue(checkFrameCount(cast, 2) &&
         checkFrameEquals(cast.frames()[0], frameE) &&
-        checkFrameEquals(cast.frames()[1], frameF) &&
-        checkFrameEquals(cast.frames()[2], state));
+        checkFrameEquals(cast.frames()[1], frameF));
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00);
@@ -404,14 +406,19 @@ testF(SettingsTest, ResetToDefault) {
     // Receive E exit frame.
     settings.receive(cast.impl);
     fillExitRequest(&frameE, 0x71E);
-    fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
-    assertTrue(checkFrameCount(cast, 2) &&
-        checkFrameEquals(cast.frames()[0], frameE) &&
-        checkFrameEquals(cast.frames()[1], state));
+    assertTrue(checkFrameCount(cast, 1) &&
+        checkFrameEquals(cast.frames()[0], frameE));
     cast.reset();
     // Simulate response.
     fillExitResponse(&frameE, 0x72E);
     settings.send(frameE);
+
+    // Ensure settings are at default.
+    fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+    clock.delay(1000);
+    settings.receive(cast.impl);
+    assertTrue(checkFrameCount(cast, 1) &&
+        checkFrameEquals(cast.frames()[0], state));
 }
 
 testF(SettingsTest, ToggleAutoInteriorIllumination) {
