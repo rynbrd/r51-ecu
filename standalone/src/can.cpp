@@ -8,7 +8,7 @@
 using Canny::ERR_OK;
 
 void CanNode::handle(const Canny::Frame& frame) {
-    if (!filter(frame)) {
+    if (!writeFilter(frame)) {
         return;
     }
 
@@ -27,7 +27,9 @@ void CanNode::handle(const Canny::Frame& frame) {
 void CanNode::emit(const Yield& yield) {
     uint8_t err = can_->read(&frame_);
     if (err == Canny::ERR_OK) {
-        yield(frame_);
+        if (readFilter(frame_)) {
+            yield(frame_);
+        }
         return;
     }
     if (err != Canny::ERR_FIFO) {

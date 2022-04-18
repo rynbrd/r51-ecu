@@ -48,7 +48,9 @@ void RealDash::emit(const Yield& yield) {
     }
     if (readHeader() && readId() && readData() && validateChecksum()) {
         reset();
-        yield(frame_);
+        if (readFilter(frame_)) {
+            yield(frame_);
+        }
     }
 }
 
@@ -177,7 +179,7 @@ void RealDash::writeBytes(uint32_t data) {
 }
 
 void RealDash::handle(const Canny::Frame& frame) {
-    if (!filter(frame)) {
+    if (!writeFilter(frame)) {
         return;
     }
     if (stream_ == nullptr) {

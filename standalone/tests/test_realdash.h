@@ -16,9 +16,8 @@ using ::Canny::Frame;
 
 class FakeRealDash : public RealDash {
     public:
-        bool filter(const Canny::Frame&) const override {
-            return true;
-        }
+        bool readFilter(const Canny::Frame&) const override { return true; }
+        bool writeFilter(const Canny::Frame&) const override { return true; }
 };
 
 test(RealDashTest, Read44) {

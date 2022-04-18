@@ -30,8 +30,11 @@ class RealDash : public Node {
         // device may block.
         void emit(const Yield& yield) override;
 
-        // Only handle frames which match the filter.
-        virtual bool filter(const Canny::Frame& frame) const = 0; 
+        // Only read frames which match the filter.
+        virtual bool readFilter(const Canny::Frame& frame) const = 0;
+
+        // Only write frames which match the filter.
+        virtual bool writeFilter(const Canny::Frame& frame) const = 0; 
 
     private:
         Stream* stream_;

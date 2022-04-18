@@ -17,19 +17,40 @@ class ControllerCan : public CanNode {
     public:
         ControllerCan() : CanNode(&CAN) {}
 
+        // Read all CAN frames.
+        bool readFilter(const Canny::Frame& frame) const override {
+            return (frame.id() & 0xFFFFFFFE) == 0x54A ||
+                   (frame.id() & 0xFFFFFFFE) == 0x72E ||
+                    frame.id() == 0x625;
+        }
+
         // Only send climate and settings frames over CAN.
-        bool filter(const Canny::Frame& frame) const override {
-            return (frame.id & 0xFFFFFFFE) == 0x540 ||
-                   (frame.id & 0xFFFFFFFE) == 0x71E;
+        bool writeFilter(const Canny::Frame& frame) const override {
+            return (frame.id() & 0xFFFFFFFE) == 0x540 ||
+                   (frame.id() & 0xFFFFFFFE) == 0x71E;
         }
 };
 
 class ControllerRealDash : public RealDash {
     public:
-        // Only send dashboard state frames to RealDash.
-        bool filter(const Canny::Frame& frame) const override {
-            return frame.id == 0x5400 || frame.id == 0x5700 || frame.id == 0x5800;
+        // Only read dashboard control frames from RealDash.
+        bool readFilter(const Canny::Frame& frame) const override {
+            return frame.id() == 0x5401 ||
+                   frame.id() == 0x5701;
         }
+
+        // Only write dashboard state frames to RealDash.
+        bool writeFilter(const Canny::Frame& frame) const override {
+            return frame.id() == 0x5400 ||
+                   frame.id() == 0x5700 ||
+                   frame.id() == 0x5800;
+        }
+};
+
+class ControllerSerialText : public SerialText {
+    public:
+        bool readFilter(const Canny::Frame&) const override { return true; }
+        bool writeFilter(const Canny::Frame&) const override { return true; }
 };
 
 ControllerCan can;
@@ -37,7 +58,7 @@ Climate climate;
 ControllerRealDash realdash;
 Settings settings;
 SteeringKeypad steering_keypad;
-D(SerialText serial_text);
+D(ControllerSerialText serial_text);
 
 Bus* bus;
 Node* nodes[] = {

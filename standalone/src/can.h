@@ -18,8 +18,11 @@ class CanNode : public Node {
         // Read a single CAN frame and broadcast it to the event bus.
         virtual void emit(const Yield& yield) override;
 
+        // Only read CAN frames which match this filter.
+        virtual bool readFilter(const Canny::Frame& frame) const = 0;
+
         // Only write CAN frames which match this filter.
-        virtual bool filter(const Canny::Frame& frame) = 0;
+        virtual bool writeFilter(const Canny::Frame& frame) const = 0;
 
     private:
         Canny::Controller* can_;

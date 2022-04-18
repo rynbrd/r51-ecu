@@ -78,11 +78,13 @@ void SerialText::emit(const Yield& yield) {
     }
 
     reset();
-    yield(frame_);
+    if (readFilter(frame_)) {
+        yield(frame_);
+    }
 }
 
 void SerialText::handle(const Canny::Frame& frame) {
-    if (!filter(frame)) {
+    if (!writeFilter(frame)) {
         return;
     }
     stream_->print(frame.id(), HEX);
@@ -97,10 +99,6 @@ void SerialText::handle(const Canny::Frame& frame) {
         }
     }
     stream_->println("");
-}
-
-bool SerialText::filter(const Canny::Frame&) const {
-    return true;
 }
 
 void SerialText::reset() {

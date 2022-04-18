@@ -46,9 +46,11 @@ class SerialText : public Node {
         // Read a text frame from serial and emit it to the bus.
         void emit(const Yield& yield) override;
 
-        // Filter frames to receive from the serial connection. Defaults to
-        // allowing all frames.
-        virtual bool filter(const Canny::Frame& frame) const = 0;
+        // Only read frames from serial which match this filter.
+        virtual bool readFilter(const Canny::Frame& frame) const = 0;
+
+        // Only write frames to serial which match this filter.
+        virtual bool writeFilter(const Canny::Frame& frame) const = 0;
 
     private:
         Stream* stream_;
