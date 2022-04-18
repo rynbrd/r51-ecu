@@ -3,6 +3,7 @@
 
 #include "test_climate_control.h"
 #include "test_climate_state.h"
+#include "test_events.h"
 #include "test_momentary_output.h"
 #include "test_realdash.h"
 #include "test_settings.h"
