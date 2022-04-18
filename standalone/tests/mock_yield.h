@@ -37,11 +37,14 @@ class MockYield {
             count_ = 0;
         }
 
-        class YieldImpl : public Caster::Yield<Canny::Frame> {
+        class YieldImpl : public Caster::Yield<Message> {
             public:
-                void operator()(const Canny::Frame& frame) const override {
-                    if (mock_->filter_id_ == 0 || mock_->filter_id_ == (frame.id() & mock_->filter_mask_)) {
-                        mock_->append(frame);
+                void operator()(const Message& msg) const override {
+                    if (msg.type() != Message::CAN_FRAME) {
+                        return;
+                    }
+                    if (mock_->filter_id_ == 0 || mock_->filter_id_ == (msg.can_frame().id() & mock_->filter_mask_)) {
+                        mock_->append(msg.can_frame());
                     }
                 }
 

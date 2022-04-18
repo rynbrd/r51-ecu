@@ -33,7 +33,7 @@
 //
 // Frames written to the stream will be printed in the above form and end in a
 // CR+LF.
-class SerialText : public Caster::Node<Canny::Frame> {
+class SerialText : public Caster::Node<Message> {
     public:
         SerialText() : stream_(nullptr), frame_(8) {}
 
@@ -42,10 +42,10 @@ class SerialText : public Caster::Node<Canny::Frame> {
         void begin(Stream* stream);
 
         // Write a text frame to serial.
-        void handle(const Canny::Frame& frame) override;
+        void handle(const Message& msg) override;
 
         // Read a text frame from serial and emit it to the bus.
-        void emit(const Caster::Yield<Canny::Frame>& yield) override;
+        void emit(const Caster::Yield<Message>& yield) override;
 
         // Only read frames from serial which match this filter.
         virtual bool readFilter(const Canny::Frame& frame) const = 0;

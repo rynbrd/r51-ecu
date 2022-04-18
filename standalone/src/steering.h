@@ -24,7 +24,7 @@
 //
 // Bits are set to 1 when a button on the keypad is held down and 0 when
 // released.
-class SteeringKeypad : public Caster::Node<Canny::Frame> {
+class SteeringKeypad : public Caster::Node<Message> {
     public:
         // Construct a new steering switch keypad object.
         // analog pins to communicate. See config.h for configuration.
@@ -32,10 +32,10 @@ class SteeringKeypad : public Caster::Node<Canny::Frame> {
                 Faker::GPIO* gpio = Faker::GPIO::real());
 
         // Noop. This node does not process frames.
-        void handle(const Canny::Frame&) override {}
+        void handle(const Message&) override {}
 
         // Emit a state frame on keypad state change.
-        void emit(const Caster::Yield<Canny::Frame>& yield) override;
+        void emit(const Caster::Yield<Message>& yield) override;
 
     private:
         uint32_t last_change_;

@@ -16,18 +16,18 @@ Settings::Settings(Faker::Clock* clock) :
     memset(control_state_, 0, 8);
 }
 
-void Settings::handle(const Canny::Frame& frame) {
-    if (frame.size() < 8) {
+void Settings::handle(const Message& msg) {
+    if (msg.type() != Message::CAN_FRAME || msg.can_frame().size() < 8) {
         return;
     }
-    if (frame.id() == SETTINGS_CONTROL_FRAME_ID) {
-        handleControl(frame);
+    if (msg.can_frame().id() == SETTINGS_CONTROL_FRAME_ID) {
+        handleControl(msg.can_frame());
     } else {
-        state_changed_ = settings_.handle(frame);
+        state_changed_ = settings_.handle(msg.can_frame());
     }
 }
 
-void Settings::emit(const Caster::Yield<Canny::Frame>& yield) {
+void Settings::emit(const Caster::Yield<Message>& yield) {
     while (settings_.available()) {
         yield(settings_.frame());
     }

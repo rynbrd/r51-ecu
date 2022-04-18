@@ -63,15 +63,15 @@
 //     Bit 0: Request Latest Settings
 //     Bit 1-6: unused
 //     Bit 7: Reset Settings to Default
-class Settings : public Caster::Node<Canny::Frame> {
+class Settings : public Caster::Node<Message> {
     public:
         Settings(Faker::Clock* clock = Faker::Clock::real());
 
         // Send a frame to the node.
-        void handle(const Canny::Frame& frame) override;
+        void handle(const Message& msg) override;
 
         // Recieve frames from the node.
-        void emit(const Caster::Yield<Canny::Frame>& yield) override;
+        void emit(const Caster::Yield<Message>& yield) override;
 
         // Exchange init frames with BCM. 
         bool init();

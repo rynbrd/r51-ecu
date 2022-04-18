@@ -25,7 +25,7 @@ Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
     memset(control_state_, 0, 8);
 }
 
-void Climate::emit(const Caster::Yield<Canny::Frame>& yield) {
+void Climate::emit(const Caster::Yield<Message>& yield) {
     uint32_t control_hb = control_init_ ? CLIMATE_CONTROL_FRAME_HB : CLIMATE_CONTROL_INIT_HB;
     rear_defrost_.update();
 
@@ -50,11 +50,14 @@ void Climate::emit(const Caster::Yield<Canny::Frame>& yield) {
     }
 }
 
-void Climate::handle(const Canny::Frame& frame) {
-    handleTemps(frame);
-    handleSystem(frame);
-    handle625(frame);
-    handleControl(frame);
+void Climate::handle(const Message& msg) {
+    if (msg.type() != Message::CAN_FRAME) {
+        return;
+    }
+    handleTemps(msg.can_frame());
+    handleSystem(msg.can_frame());
+    handle625(msg.can_frame());
+    handleControl(msg.can_frame());
 }
 
 void Climate::handleTemps(const Canny::Frame& frame) {

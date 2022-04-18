@@ -62,7 +62,7 @@
 //     Bit 0: toggle rear window heating element
 //     Bit 1-7: unused
 //   Bytes 5-7: unused
-class Climate : public Caster::Node<Canny::Frame> {
+class Climate : public Caster::Node<Message> {
     public:
         Climate(Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
@@ -71,10 +71,10 @@ class Climate : public Caster::Node<Canny::Frame> {
         // vehicle and dash frames: 
         //   Vehicle: 0x54A, 0x54B, 0x625
         //   Dash:    0x5401
-        void handle(const Canny::Frame& frame) override;
+        void handle(const Message& msg) override;
 
         // Receive translated state frames.
-        void emit(const Caster::Yield<Canny::Frame>& yield) override;
+        void emit(const Caster::Yield<Message>& yield) override;
 
     private:
         Faker::Clock* clock_;

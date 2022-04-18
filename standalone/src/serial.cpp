@@ -13,7 +13,7 @@ void SerialText::begin(Stream* stream) {
     reset();
 }
 
-void SerialText::emit(const Caster::Yield<Canny::Frame>& yield) {
+void SerialText::emit(const Caster::Yield<Message>& yield) {
     if (stream_ == nullptr) {
         return;
     }
@@ -84,10 +84,11 @@ void SerialText::emit(const Caster::Yield<Canny::Frame>& yield) {
     }
 }
 
-void SerialText::handle(const Canny::Frame& frame) {
-    if (!writeFilter(frame)) {
+void SerialText::handle(const Message& msg) {
+    if (msg.type() != Message::CAN_FRAME || !writeFilter(msg.can_frame())) {
         return;
     }
+    const auto& frame = msg.can_frame();
     stream_->print(frame.id(), HEX);
     stream_->print("#");
     for (int i = 0; i < frame.size(); i++) {

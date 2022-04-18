@@ -13,7 +13,7 @@
 // 0x66 type frames. All written frames are 0x66 for error checking (0x44
 // frames do not contain a real checksum). This class is abstract. A child
 // class needs to implement the filter() method to be complete.
-class RealDash : public Caster::Node<Canny::Frame> {
+class RealDash : public Caster::Node<Message> {
     public:
         // Construct an uninitialized RealDash instance.
         RealDash();
@@ -24,12 +24,12 @@ class RealDash : public Caster::Node<Canny::Frame> {
 
         // Write frame to RealDash. Return false on success or false on
         // failure.
-        void handle(const Canny::Frame& frame) override;
+        void handle(const Message& msg) override;
 
         // Read a frame from RealDash. Returns true if a frame was read or
         // false if not. Should be called on every loop or the connected serial
         // device may block.
-        void emit(const Caster::Yield<Canny::Frame>& yield) override;
+        void emit(const Caster::Yield<Message>& yield) override;
 
         // Only read frames which match the filter.
         virtual bool readFilter(const Canny::Frame& frame) const = 0;

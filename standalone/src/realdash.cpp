@@ -38,7 +38,7 @@ void RealDash::updateChecksum(byte b) {
     }
 }
 
-void RealDash::emit(const Caster::Yield<Canny::Frame>& yield) {
+void RealDash::emit(const Caster::Yield<Message>& yield) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
         return;
@@ -179,8 +179,8 @@ void RealDash::writeBytes(uint32_t data) {
     writeBytes((const byte*)&data, 4);
 }
 
-void RealDash::handle(const Canny::Frame& frame) {
-    if (!writeFilter(frame)) {
+void RealDash::handle(const Message& msg) {
+    if (msg.type() != Message::CAN_FRAME || !writeFilter(msg.can_frame())) {
         return;
     }
     if (stream_ == nullptr) {
@@ -191,6 +191,7 @@ void RealDash::handle(const Canny::Frame& frame) {
         ERROR_MSG("realdash: not connected");
         return;
     }
+    const auto& frame = msg.can_frame();
     if (frame.size() > 64 || frame.size() % 4 != 0) {
         ERROR_MSG_VAL("realdash: frame write error, invalid length ", frame.size());
         return;
