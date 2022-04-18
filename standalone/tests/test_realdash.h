@@ -5,7 +5,7 @@
 #include <AUnit.h>
 #include <Canny.h>
 
-#include "mock_broadcast.h"
+#include "mock_yield.h"
 #include "mock_stream.h"
 #include "src/realdash.h"
 #include "testing.h"
@@ -22,7 +22,7 @@ class FakeRealDash : public RealDash {
 };
 
 test(RealDashTest, Read44) {
-    MockBroadcast broadcast(1);
+    MockYield yield(1);
     Frame expect(0x5800, 0, {0xf4, 0x08, 0x0e, 0xef, 0x39, 0x2c, 0x1b, 0x4c});
     byte buffer[] = {
         0x44, 0x33, 0x22, 0x11,
@@ -38,13 +38,13 @@ test(RealDashTest, Read44) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 1);
-    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 1);
+    assertTrue(checkFrameEquals(yield.frames()[0], expect));
 }
 
 test(RealDashTest, Read66Short) {
-    MockBroadcast broadcast(1);
+    MockYield yield(1);
     Frame expect(0x5800, 0, {0xf4, 0x08, 0x0e, 0xef, 0x39, 0x2c, 0x1b, 0x4c});
     byte buffer[] = {
         0x66, 0x33, 0x22, 0x11,
@@ -60,13 +60,13 @@ test(RealDashTest, Read66Short) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 1);
-    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 1);
+    assertTrue(checkFrameEquals(yield.frames()[0], expect));
 }
 
 test(RealDashTest, Read66Long) {
-    MockBroadcast broadcast(1);
+    MockYield yield(1);
     Frame expect = Frame(0x5200, 0, {
         0xe9, 0x1c, 0xfe, 0x5a, 0xa1, 0x7a, 0x18, 0x4e,
         0xe1, 0x52, 0xff, 0x9a, 0x47, 0xe8, 0x27, 0x11,
@@ -96,13 +96,13 @@ test(RealDashTest, Read66Long) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 1);
-    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 1);
+    assertTrue(checkFrameEquals(yield.frames()[0], expect));
 }
 
 test(RealDashTest, ReadMulti) {
-    MockBroadcast broadcast(2);
+    MockYield yield(2);
     Frame expect1(0x5800, 0, {0xf4, 0x08, 0x0e, 0xef, 0x39, 0x2c, 0x1b, 0x4c});
     Frame expect2(0x5800, 0, {0xf4, 0x08, 0x0e, 0xef, 0x39, 0x2c, 0x1b, 0x4c});
 
@@ -127,15 +127,15 @@ test(RealDashTest, ReadMulti) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    realdash.receive(broadcast.impl);
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 2);
-    assertTrue(checkFrameEquals(broadcast.frames()[0], expect1));
-    assertTrue(checkFrameEquals(broadcast.frames()[1], expect2));
+    realdash.emit(yield.impl);
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 2);
+    assertTrue(checkFrameEquals(yield.frames()[0], expect1));
+    assertTrue(checkFrameEquals(yield.frames()[1], expect2));
 }
 
 test(RealDashTest, ReadPartial) {
-    MockBroadcast broadcast(1);
+    MockYield yield(1);
     Frame expect(0x5800, 0, {0xf4, 0x08, 0x0e, 0xef, 0x39, 0x2c, 0x1b, 0x4c});
     byte buffer1[] = {
         0x66, 0x33, 0x22, 0x11,
@@ -153,17 +153,17 @@ test(RealDashTest, ReadPartial) {
     realdash.begin(&stream);
 
     stream.set(buffer1, sizeof(buffer1)/sizeof(buffer1[0]));
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 0);
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 0);
 
     stream.set(buffer2, sizeof(buffer2)/sizeof(buffer2[0]));
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 1);
-    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 1);
+    assertTrue(checkFrameEquals(yield.frames()[0], expect));
 }
 
 test(RealDashTest, ReadPreGarbage) {
-    MockBroadcast broadcast(1);
+    MockYield yield(1);
     Frame expect(0x5800, 0, {0xf4, 0x08, 0x0e, 0xef, 0x39, 0x2c, 0x1b, 0x4c});
     byte buffer[] = {
         0xf4, 0x08, 0x0e, 0xef,
@@ -180,13 +180,13 @@ test(RealDashTest, ReadPreGarbage) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 1);
-    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 1);
+    assertTrue(checkFrameEquals(yield.frames()[0], expect));
 }
 
 test(RealDashTest, ReadPostGarbage) {
-    MockBroadcast broadcast(1);
+    MockYield yield(1);
     Frame expect(0x5800, 0, {0xf4, 0x08, 0x0e, 0xef, 0x39, 0x2c, 0x1b, 0x4c});
     byte buffer[] = {
         0x66, 0x33, 0x22, 0x11,
@@ -203,12 +203,12 @@ test(RealDashTest, ReadPostGarbage) {
     FakeRealDash realdash;
     realdash.begin(&stream);
 
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 1);
-    assertTrue(checkFrameEquals(broadcast.frames()[0], expect));
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 1);
+    assertTrue(checkFrameEquals(yield.frames()[0], expect));
 
-    realdash.receive(broadcast.impl);
-    assertEqual(broadcast.count(), 1);
+    realdash.emit(yield.impl);
+    assertEqual(yield.count(), 1);
 }
 
 test(RealDashTest, Write) {
@@ -229,7 +229,7 @@ test(RealDashTest, Write) {
 
     FakeRealDash realdash;
     realdash.begin(&stream);
-    realdash.send(frame);
+    realdash.handle(frame);
 
     assertEqual(memcmp(actual, expect, size), 0);
 }

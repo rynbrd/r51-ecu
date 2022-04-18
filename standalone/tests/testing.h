@@ -3,10 +3,10 @@
 
 #include <Canny.h>
 
-#include "mock_broadcast.h"
+#include "mock_yield.h"
 
 
-bool checkFrameCount(const MockBroadcast& cast, uint8_t expect) {
+bool checkFrameCount(const MockYield& cast, uint8_t expect) {
     if (cast.count() == expect) {
         return true;
     }

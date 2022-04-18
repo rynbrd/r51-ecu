@@ -37,7 +37,7 @@ void RealDash::updateChecksum(byte b) {
     }
 }
 
-void RealDash::receive(const Broadcast& broadcast) {
+void RealDash::emit(const Yield& yield) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
         return;
@@ -48,7 +48,7 @@ void RealDash::receive(const Broadcast& broadcast) {
     }
     if (readHeader() && readId() && readData() && validateChecksum()) {
         reset();
-        broadcast(frame_);
+        yield(frame_);
     }
 }
 
@@ -176,7 +176,10 @@ void RealDash::writeBytes(uint32_t data) {
     writeBytes((const byte*)&data, 4);
 }
 
-void RealDash::send(const Canny::Frame& frame) {
+void RealDash::handle(const Canny::Frame& frame) {
+    if (!filter(frame)) {
+        return;
+    }
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
         return;

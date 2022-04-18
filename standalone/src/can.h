@@ -11,11 +11,16 @@ class CanNode : public Node {
         CanNode(Canny::Controller* can) :
             can_(can), retries_(5), frame_(8) {}
 
-        // Receive a frame from the CAN bus.
-        virtual void receive(const Broadcast& broadcast) override;
+        // Write a frame to the CAN bus. Only frames which match filter are
+        // written.
+        virtual void handle(const Canny::Frame& frame) override;
 
-        // Send a frame to the CAN bus.
-        virtual void send(const Canny::Frame& frame) override;
+        // Read a single CAN frame and broadcast it to the event bus.
+        virtual void emit(const Yield& yield) override;
+
+        // Only write CAN frames which match this filter.
+        virtual bool filter(const Canny::Frame& frame) = 0;
+
     private:
         Canny::Controller* can_;
         uint8_t retries_;

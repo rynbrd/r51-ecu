@@ -23,7 +23,7 @@ Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
     memset(control_state_, 0, 8);
 }
 
-void Climate::receive(const Broadcast& broadcast) {
+void Climate::emit(const Yield& yield) {
     uint32_t control_hb = control_init_ ? CLIMATE_CONTROL_FRAME_HB : CLIMATE_CONTROL_INIT_HB;
     rear_defrost_.update();
 
@@ -36,36 +36,30 @@ void Climate::receive(const Broadcast& broadcast) {
     if (system_control_.available() || fan_control_.available() ||
             clock_->millis() - control_last_broadcast_ >= control_hb) {
         control_last_broadcast_ = clock_->millis();
-        broadcast(system_control_.frame());
-        broadcast(fan_control_.frame());
+        yield(system_control_.frame());
+        yield(fan_control_.frame());
     }
 
     if (state_init_ == 0x03 && (state_changed_ ||
             clock_->millis() - state_last_broadcast_ >= CLIMATE_STATE_FRAME_HB)) {
         state_changed_ = false;
         state_last_broadcast_ = clock_->millis();
-        broadcast(state_frame_);
+        yield(state_frame_);
     }
 }
 
-void Climate::send(const Canny::Frame& frame) {
+void Climate::handle(const Canny::Frame& frame) {
     handleTemps(frame);
     handleSystem(frame);
     handle625(frame);
     handleControl(frame);
 }
 
-bool Climate::filter(const Canny::Frame& frame) const {
-    return frame.id() == 0x54A ||
-        frame.id() == 0x54B ||
-        frame.id() == 0x625 ||
-        frame.id() == CLIMATE_CONTROL_FRAME_ID;
-}
-
 void Climate::handleTemps(const Canny::Frame& frame) {
-    if (frame.id() == 0x54A) {
-        state_init_ |= 0x01;
+    if (frame.id() != 0x54A || frame.size() < 8) {
+        return;
     }
+    state_init_ |= 0x01;
     if (!temp_state_.handle(frame)) {
         return;
     }
@@ -75,9 +69,10 @@ void Climate::handleTemps(const Canny::Frame& frame) {
 }
 
 void Climate::handleSystem(const Canny::Frame& frame) {
-    if (frame.id() == 0x54B) {
-        state_init_ |= 0x02;
+    if (frame.id() != 0x54B || frame.size() < 8) {
+        return;
     }
+    state_init_ |= 0x02;
     if (!system_state_.handle(frame)) {
         return;
     }

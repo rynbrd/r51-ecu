@@ -66,16 +66,14 @@ class Climate : public Node {
         Climate(Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
 
-        // Receive translated state frames.
-        void receive(const Broadcast& broadcast) override;
-
-        // Update the climate state from vehicle state frames.
-        void send(const Canny::Frame& frame) override;
-
-        // Matches vehicle state frames and dash control frames.
+        // Update the climate state from vehicle state frames. Only handles
+        // vehicle and dash frames: 
         //   Vehicle: 0x54A, 0x54B, 0x625
         //   Dash:    0x5401
-        bool filter(const Canny::Frame& frame) const override;
+        void handle(const Canny::Frame& frame) override;
+
+        // Receive translated state frames.
+        void emit(const Yield& yield) override;
 
     private:
         Faker::Clock* clock_;

@@ -66,14 +66,11 @@ class Settings : public Node {
     public:
         Settings(Faker::Clock* clock = Faker::Clock::real());
 
-        // Recieve frames from the node.
-        void receive(const Broadcast& broadcast) override;
-
         // Send a frame to the node.
-        void send(const Canny::Frame& frame) override;
+        void handle(const Canny::Frame& frame) override;
 
-        // Filter sent frames to this node. Matches 0x71E and 0x72E.
-        bool filter(const Canny::Frame& frame) const override;
+        // Recieve frames from the node.
+        void emit(const Yield& yield) override;
 
         // Exchange init frames with BCM. 
         bool init();

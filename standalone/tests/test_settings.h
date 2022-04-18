@@ -6,7 +6,7 @@
 #include <Canny.h>
 #include <Faker.h>
 
-#include "mock_broadcast.h"
+#include "mock_yield.h"
 #include "src/binary.h"
 #include "src/settings.h"
 #include "testing.h"
@@ -86,14 +86,14 @@ class SettingsTest : public TestOnce {
                 uint32_t expect_id, uint8_t expect_command, uint8_t expect_value,
                 const Frame* state_71E_10, const Frame* state_71E_21,
                 const Frame* state_71E_22, const Frame* state_71F_05) {
-            MockBroadcast cast(1, 0x700, 0xFFFFFF00);
+            MockYield cast(1, 0x700, 0xFFFFFF00);
             Frame frame;
 
             // Send control frame to perform update.
-            settings->send(control);
+            settings->handle(control);
 
             // Exchange enter frames.
-            settings->receive(cast.impl);
+            settings->emit(cast.impl);
             fillEnterRequest(&frame, expect_id);
             if (!checkFrameCount(cast, 1) ||
                 !checkFrameEquals(cast.frames()[0], frame)) {
@@ -101,10 +101,10 @@ class SettingsTest : public TestOnce {
             }
             cast.reset();
             fillEnterResponse(&frame, responseId(expect_id));
-            settings->send(frame);
+            settings->handle(frame);
 
             // Exchange update frames.
-            settings->receive(cast.impl);
+            settings->emit(cast.impl);
             fillUpdateRequest(&frame, expect_id, expect_command, expect_value);
             if (!checkFrameCount(cast, 1) ||
                 !checkFrameEquals(cast.frames()[0], frame)) {
@@ -112,43 +112,43 @@ class SettingsTest : public TestOnce {
             }
             cast.reset();
             fillUpdateResponse(&frame, responseId(expect_id), expect_command);
-            settings->send(frame);
+            settings->handle(frame);
 
             if (expect_id == 0x71E) {
                 // Exchange initial state frames.
-                settings->receive(cast.impl);
+                settings->emit(cast.impl);
                 fillState0221Request(&frame, 0x71E);
                 if (!checkFrameCount(cast, 1) ||
                     !checkFrameEquals(cast.frames()[0], frame)) {
                     return false;
                 }
                 cast.reset();
-                settings->send(*state_71E_10);
+                settings->handle(*state_71E_10);
                 
                 // Exchange secondary state frames.
-                settings->receive(cast.impl);
+                settings->emit(cast.impl);
                 fillState3000Request(&frame, 0x71E);
                 if (!checkFrameCount(cast, 1) ||
                     !checkFrameEquals(cast.frames()[0], frame)) {
                     return false;
                 }
                 cast.reset();
-                settings->send(*state_71E_21);
-                settings->send(*state_71E_22);
+                settings->handle(*state_71E_21);
+                settings->handle(*state_71E_22);
             } else if (expect_id == 0x71F) {
                 // Exchange state frames.
-                settings->receive(cast.impl);
+                settings->emit(cast.impl);
                 fillState0221Request(&frame, 0x71F);
                 if (!checkFrameCount(cast, 1) ||
                     !checkFrameEquals(cast.frames()[0], frame)) {
                     return false;
                 }
                 cast.reset();
-                settings->send(*state_71F_05);
+                settings->handle(*state_71F_05);
             }
 
             // Exchange exit frames.
-            settings->receive(cast.impl);
+            settings->emit(cast.impl);
             fillExitRequest(&frame, expect_id);
             if (!checkFrameCount(cast, 1) ||
                 !checkFrameEquals(cast.frames()[0], frame)) {
@@ -156,7 +156,7 @@ class SettingsTest : public TestOnce {
             }
             cast.reset();
             fillExitResponse(&frame, responseId(expect_id));
-            settings->send(frame);
+            settings->handle(frame);
 
             return true;
         }
@@ -177,8 +177,8 @@ class SettingsTest : public TestOnce {
         }
 
         bool checkNoop(Settings* settings, const Frame& control) {
-            MockBroadcast cast(1, 0x700, 0xFFFFFF00);
-            settings->send(control);
+            MockYield cast(1, 0x700, 0xFFFFFF00);
+            settings->handle(control);
             return checkFrameCount(cast, 0);
         }
 
@@ -186,7 +186,7 @@ class SettingsTest : public TestOnce {
 };
 
 testF(SettingsTest, Init) {
-    MockBroadcast cast(2, 0x700, 0xFFFFFF00);
+    MockYield cast(2, 0x700, 0xFFFFFF00);
     Settings settings(&clock);
 
     Frame frameE;
@@ -194,7 +194,7 @@ testF(SettingsTest, Init) {
 
     // Trigger settings initialization.
     assertTrue(settings.init());
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
 
     // Receive enter frames.
     fillEnterRequest(&frameE, 0x71E);
@@ -205,12 +205,12 @@ testF(SettingsTest, Init) {
     cast.reset();
     // Simulate response.
     fillEnterResponse(&frameE, 0x72E);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillEnterResponse(&frameF, 0x72F);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive next init frames.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillFrame(&frameE, 0x71E, 0x02, 0x3B, 0x00);
     fillFrame(&frameF, 0x71F, 0x02, 0x3B, 0x00);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -219,12 +219,12 @@ testF(SettingsTest, Init) {
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillFrame(&frameF, 0x72F, 0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive next init frames. Final F frame.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillFrame(&frameE, 0x71E, 0x02, 0x3B, 0x20);
     fillExitRequest(&frameF, 0x71F);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -233,33 +233,33 @@ testF(SettingsTest, Init) {
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x06, 0x7B, 0x20, 0xC2, 0x6F, 0x73, 0xD3);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillExitResponse(&frameF, 0x72F);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive next E init Frame.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillFrame(&frameE, 0x71E, 0x02, 0x3B, 0x40);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], frameE));
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x06, 0x7B, 0x40, 0xC2, 0xA1, 0x90, 0x01);
-    settings.send(frameE);
+    settings.handle(frameE);
 
     // Receive next E init Frame.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillFrame(&frameE, 0x71E, 0x02, 0x3B, 0x60);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], frameE));
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x06, 0x7B, 0x60, 0x00, 0xFF, 0xF1, 0x70);
-    settings.send(frameE);
+    settings.handle(frameE);
 }
 
 testF(SettingsTest, Retrieve) {
-    MockBroadcast cast(3);
+    MockYield cast(3);
     Settings settings(&clock);
 
     Frame frameE;
@@ -268,10 +268,10 @@ testF(SettingsTest, Retrieve) {
 
     // Send control frame to trigger retrieve.
     Frame control = {0x5701, 8, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}};
-    settings.send(control);
+    settings.handle(control);
 
     // Receive enter request frames.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillEnterRequest(&frameE, 0x71E);
     fillEnterRequest(&frameF, 0x71F);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -280,12 +280,12 @@ testF(SettingsTest, Retrieve) {
     cast.reset();
     // Simulate response.
     fillEnterResponse(&frameE, 0x72E);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillEnterResponse(&frameF, 0x72F);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive initial state frames.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillState0221Request(&frameE, 0x71E);
     fillState0221Request(&frameF, 0x71F);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -294,12 +294,12 @@ testF(SettingsTest, Retrieve) {
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillFrame(&frameF, 0x72F, 0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive next E state frame and F exit frame.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillState3000Request(&frameE, 0x71E);
     fillExitRequest(&frameF, 0x71F);
     fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
@@ -309,32 +309,32 @@ testF(SettingsTest, Retrieve) {
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillFrame(&frameE, 0x72E, 0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillExitResponse(&frameF, 0x72F);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive E exit frame.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillExitRequest(&frameE, 0x71E);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], frameE));
     cast.reset();
     // Simulate response.
     fillExitResponse(&frameE, 0x72E);
-    settings.send(frameE);
+    settings.handle(frameE);
 
     // Ensure settings are at default.
     fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
     clock.delay(1000);
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], state));
 }
 
 testF(SettingsTest, ResetToDefault) {
-    MockBroadcast cast(3);
+    MockYield cast(3);
     Settings settings(&clock);
 
     Frame frameE;
@@ -343,10 +343,10 @@ testF(SettingsTest, ResetToDefault) {
 
     // Send control frame to trigger reset.
     Frame control = {0x5701, 8, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80}};
-    settings.send(control);
+    settings.handle(control);
 
     // Receive enter request frames.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillEnterRequest(&frameE, 0x71E);
     fillEnterRequest(&frameF, 0x71F);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -355,12 +355,12 @@ testF(SettingsTest, ResetToDefault) {
     cast.reset();
     // Simulate response.
     fillEnterResponse(&frameE, 0x72E);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillEnterResponse(&frameF, 0x72F);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Send reset all command.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillResetRequest(&frameE, 0x71E);
     fillResetRequest(&frameF, 0x71F);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -369,12 +369,12 @@ testF(SettingsTest, ResetToDefault) {
     cast.reset();
     // Simulate response.
     fillResetResponse(&frameE, 0x72E);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillResetResponse(&frameF, 0x72F);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive initial state frames.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillState0221Request(&frameE, 0x71E);
     fillState0221Request(&frameF, 0x71F);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -383,12 +383,12 @@ testF(SettingsTest, ResetToDefault) {
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillFrame(&frameF, 0x72F, 0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive next E state frame and F exit frame.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillState3000Request(&frameE, 0x71E);
     fillExitRequest(&frameF, 0x71F);
     assertTrue(checkFrameCount(cast, 2) &&
@@ -397,26 +397,26 @@ testF(SettingsTest, ResetToDefault) {
     cast.reset();
     // Simulate response.
     fillFrame(&frameE, 0x72E, 0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillFrame(&frameE, 0x72E, 0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF);
-    settings.send(frameE);
+    settings.handle(frameE);
     fillExitResponse(&frameF, 0x72F);
-    settings.send(frameF);
+    settings.handle(frameF);
 
     // Receive E exit frame.
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     fillExitRequest(&frameE, 0x71E);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], frameE));
     cast.reset();
     // Simulate response.
     fillExitResponse(&frameE, 0x72E);
-    settings.send(frameE);
+    settings.handle(frameE);
 
     // Ensure settings are at default.
     fillFrame(&state, 0x5700, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
     clock.delay(1000);
-    settings.receive(cast.impl);
+    settings.emit(cast.impl);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], state));
 }

@@ -6,7 +6,7 @@
 #include <Canny.h>
 #include <Faker.h>
 
-#include "mock_broadcast.h"
+#include "mock_yield.h"
 #include "src/climate.h"
 #include "testing.h"
 
@@ -20,23 +20,23 @@ using ::Canny::Frame;
     Climate climate(&clock, &gpio);
 
 bool checkStateFrames(Climate* climate, const Frame& state54A, const Frame& state54B, const Frame& expect) {
-    MockBroadcast cast(1, 0x5400);
-    climate->send(state54A);
-    climate->send(state54B);
-    climate->receive(cast.impl);
+    MockYield cast(1, 0x5400);
+    climate->handle(state54A);
+    climate->handle(state54B);
+    climate->emit(cast.impl);
     return checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], expect);
 }
 
 test(ClimateStateTest, OffAndHeartbeat) {
     INIT_STATE();
-    MockBroadcast cast(1, 0x5400);
+    MockYield cast(1, 0x5400);
 
     Frame state54A(0x54A, 0, {0x3C, 0x3E, 0x7F, 0x80, 0x00, 0x00, 0x00, 0x2C});
     Frame state54B(0x54B, 0, {0xF2, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x02});
     Frame expect(CLIMATE_STATE_FRAME_ID, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2C});
 
-    climate.receive(cast.impl);
+    climate.emit(cast.impl);
     assertTrue(checkFrameCount(cast, 0));
 
     cast.reset();
@@ -44,7 +44,7 @@ test(ClimateStateTest, OffAndHeartbeat) {
     assertTrue(checkStateFrames(&climate, state54A, state54B, expect));
 
     clock.delay(CLIMATE_STATE_FRAME_HB);
-    climate.receive(cast.impl);
+    climate.emit(cast.impl);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], expect));
 }
@@ -104,11 +104,11 @@ test(ClimateStateTest, RearDefrost) {
     Frame state625(0x625, 0, {0x33, 0x00, 0xFF, 0x9D, 0x00, 0x00});
     Frame expect(CLIMATE_STATE_FRAME_ID, 0, {0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x2B});
 
-    MockBroadcast cast(1, 0x5400);
-    climate.send(state54A);
-    climate.send(state54B);
-    climate.send(state625);
-    climate.receive(cast.impl);
+    MockYield cast(1, 0x5400);
+    climate.handle(state54A);
+    climate.handle(state54B);
+    climate.handle(state625);
+    climate.emit(cast.impl);
     assertTrue(checkFrameCount(cast, 1) &&
         checkFrameEquals(cast.frames()[0], expect));
 }

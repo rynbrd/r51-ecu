@@ -21,14 +21,17 @@ class RealDash : public Node {
         // serial stream. This is typically Serial or SerialUSB.
         void begin(Stream* stream);
 
+        // Write frame to RealDash. Return false on success or false on
+        // failure.
+        void handle(const Canny::Frame& frame) override;
+
         // Read a frame from RealDash. Returns true if a frame was read or
         // false if not. Should be called on every loop or the connected serial
         // device may block.
-        void receive(const Broadcast& broadcast) override;
+        void emit(const Yield& yield) override;
 
-        // Write frame to RealDash. Return false on success or false on
-        // failure.
-        void send(const Canny::Frame& frame) override;
+        // Only handle frames which match the filter.
+        virtual bool filter(const Canny::Frame& frame) const = 0; 
 
     private:
         Stream* stream_;

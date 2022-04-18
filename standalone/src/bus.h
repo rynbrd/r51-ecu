@@ -6,6 +6,6 @@
 
 typedef Caster::Bus<Canny::Frame> Bus;
 typedef Caster::Node<Canny::Frame> Node;
-typedef Caster::Broadcast<Canny::Frame> Broadcast;
+typedef Caster::Yield<Canny::Frame> Yield;
 
 #endif  // __R51_BUS_H__

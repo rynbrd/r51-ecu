@@ -15,18 +15,7 @@ Settings::Settings(Faker::Clock* clock) :
     memset(control_state_, 0, 8);
 }
 
-void Settings::receive(const Broadcast& broadcast) {
-    while (settings_.available()) {
-        broadcast(settings_.frame());
-    }
-    if (state_changed_ || clock_->millis() - state_last_broadcast_ >= SETTINGS_STATE_FRAME_HB) {
-        broadcast(state_);
-        state_changed_ = false;
-        state_last_broadcast_ = clock_->millis();
-    }
-}
-
-void Settings::send(const Canny::Frame& frame) {
+void Settings::handle(const Canny::Frame& frame) {
     if (frame.size() < 8) {
         return;
     }
@@ -34,6 +23,17 @@ void Settings::send(const Canny::Frame& frame) {
         handleControl(frame);
     } else {
         state_changed_ = settings_.handle(frame);
+    }
+}
+
+void Settings::emit(const Yield& yield) {
+    while (settings_.available()) {
+        yield(settings_.frame());
+    }
+    if (state_changed_ || clock_->millis() - state_last_broadcast_ >= SETTINGS_STATE_FRAME_HB) {
+        yield(state_);
+        state_changed_ = false;
+        state_last_broadcast_ = clock_->millis();
     }
 }
 
@@ -73,12 +73,6 @@ void Settings::handleControl(const Canny::Frame& frame) {
 
     // update the stored control state
     memcpy(control_state_, frame.data(), 8);
-}
-
-bool Settings::filter(const Canny::Frame& frame) const {
-    return frame.id() == SETTINGS_CONTROL_FRAME_ID ||
-        frame.id() == 0x72E ||
-        frame.id() == 0x72F;
 }
 
 bool Settings::init() {

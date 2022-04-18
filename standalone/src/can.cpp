@@ -7,18 +7,11 @@
 
 using Canny::ERR_OK;
 
-void CanNode::receive(const Broadcast& broadcast) {
-    uint8_t err = can_->read(&frame_);
-    if (err == Canny::ERR_OK) {
-        broadcast(frame_);
+void CanNode::handle(const Canny::Frame& frame) {
+    if (!filter(frame)) {
         return;
     }
-    if (err != Canny::ERR_FIFO) {
-        ERROR_MSG("can: read failed");
-    }
-}
 
-void CanNode::send(const Canny::Frame& frame) {
     uint8_t err;
     uint8_t attempts = 0;
     do {
@@ -28,5 +21,16 @@ void CanNode::send(const Canny::Frame& frame) {
 
     if (err != ERR_OK) {
         ERROR_MSG_VAL("can: dropped frame ", frame);
+    }
+}
+
+void CanNode::emit(const Yield& yield) {
+    uint8_t err = can_->read(&frame_);
+    if (err == Canny::ERR_OK) {
+        yield(frame_);
+        return;
+    }
+    if (err != Canny::ERR_FIFO) {
+        ERROR_MSG("can: read failed");
     }
 }

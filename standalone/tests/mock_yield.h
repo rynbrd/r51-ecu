@@ -1,5 +1,5 @@
-#ifndef __R51_TESTS_MOCK_BROADCAST__
-#define __R51_TESTS_MOCK_BROADCAST__
+#ifndef __R51_TESTS_MOCK_YIELD__
+#define __R51_TESTS_MOCK_YIELD__
 
 #include <Canny.h>
 
@@ -7,15 +7,15 @@
 #include "src/debug.h"
 
 
-// Mock broadcast implementation for node tests.
-class MockBroadcast {
+// Mock yield implementation for node tests.
+class MockYield {
     public:
-        MockBroadcast(int capacity = 1, uint32_t filter_id = 0, uint32_t filter_mask = 0xFFFFFFFF) :
+        MockYield(int capacity = 1, uint32_t filter_id = 0, uint32_t filter_mask = 0xFFFFFFFF) :
             impl(this), capacity_(capacity), count_(0),
             filter_id_(filter_id), filter_mask_(filter_mask),
             frames_(new Canny::Frame[capacity_]) {}
 
-        ~MockBroadcast() {
+        ~MockYield() {
             delete[] frames_;
         }
 
@@ -36,7 +36,7 @@ class MockBroadcast {
             count_ = 0;
         }
 
-        class BroadcastImpl : public Broadcast {
+        class YieldImpl : public Yield {
             public:
                 void operator()(const Canny::Frame& frame) const override {
                     if (mock_->filter_id_ == 0 || mock_->filter_id_ == (frame.id() & mock_->filter_mask_)) {
@@ -45,12 +45,12 @@ class MockBroadcast {
                 }
 
             private:
-                BroadcastImpl(MockBroadcast* mock) : mock_(mock) {}
-                MockBroadcast* mock_;
-                friend class MockBroadcast;
+                YieldImpl(MockYield* mock) : mock_(mock) {}
+                MockYield* mock_;
+                friend class MockYield;
         };
 
-        BroadcastImpl impl;
+        YieldImpl impl;
 
     private:
         void append(const Canny::Frame& frame) {
@@ -67,4 +67,4 @@ class MockBroadcast {
         Canny::Frame* frames_;
 };
 
-#endif  // __R51_TESTS_MOCK_BROADCAST__
+#endif  // __R51_TESTS_MOCK_YIELD__

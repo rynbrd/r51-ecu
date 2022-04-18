@@ -12,7 +12,7 @@ void SerialText::begin(Stream* stream) {
     reset();
 }
 
-void SerialText::receive(const Broadcast& broadcast) {
+void SerialText::emit(const Yield& yield) {
     if (stream_ == nullptr) {
         return;
     }
@@ -78,10 +78,13 @@ void SerialText::receive(const Broadcast& broadcast) {
     }
 
     reset();
-    broadcast(frame_);
+    yield(frame_);
 }
 
-void SerialText::send(const Canny::Frame& frame) {
+void SerialText::handle(const Canny::Frame& frame) {
+    if (!filter(frame)) {
+        return;
+    }
     stream_->print(frame.id(), HEX);
     stream_->print("#");
     for (int i = 0; i < frame.size(); i++) {

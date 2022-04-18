@@ -26,7 +26,7 @@ SteeringKeypad::SteeringKeypad(Faker::Clock* clock, Faker::GPIO* gpio) :
             AnalogMultiButton::DEFAULT_ANALOG_RESOLUTION,
             clock, gpio) {}
 
-void SteeringKeypad::receive(const Broadcast& broadcast) {
+void SteeringKeypad::emit(const Yield& yield) {
     sw_a_.update();
     bool changed = false;
     if (sw_a_.onPress(0))  {
@@ -96,6 +96,6 @@ void SteeringKeypad::receive(const Broadcast& broadcast) {
 
     if (changed || clock_->millis() - last_change_ >= STEERING_SWITCH_FRAME_HB) {
         last_change_ = clock_->millis();
-        broadcast(frame_);
+        yield(frame_);
     }
 }

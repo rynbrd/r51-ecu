@@ -30,14 +30,11 @@ class SteeringKeypad : public Node {
         SteeringKeypad(Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
 
-        // Broadcast a frame on keypad state change.
-        void receive(const Broadcast& broadcast) override;
-
         // Noop. This node does not process frames.
-        void send(const Canny::Frame&) override {}
+        void handle(const Canny::Frame&) override {}
 
-        // Always returns false. This node does not process frames.
-        bool filter(const Canny::Frame&) const override { return false; }
+        // Emit a state frame on keypad state change.
+        void emit(const Yield& yield) override;
 
     private:
         uint32_t last_change_;

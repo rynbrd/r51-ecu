@@ -6,7 +6,7 @@
 #include <Canny.h>
 #include <Faker.h>
 
-#include "mock_broadcast.h"
+#include "mock_yield.h"
 #include "src/binary.h"
 #include "src/climate.h"
 #include "src/config.h"
@@ -28,33 +28,33 @@ void initClimate(Climate* climate, Faker::FakeClock* clock, bool active = false)
     if (active) {
         state54B.data()[0] = 0x59;
     }
-    MockBroadcast cast(2);
+    MockYield cast(2);
     clock->set(1000);
-    climate->send(state54A);
-    climate->send(state54B);
-    climate->receive(cast.impl);
+    climate->handle(state54A);
+    climate->handle(state54B);
+    climate->emit(cast.impl);
 }
 
 bool checkControlFrames(Climate* climate, const Frame& control, const Frame& expect540, const Frame& expect541) {
-    MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
-    climate->send(control);
-    climate->receive(cast.impl);
+    MockYield cast(2, 0x540, 0xFFFFFFF0);
+    climate->handle(control);
+    climate->emit(cast.impl);
     return checkFrameCount(cast, 2) &&
         checkFrameEquals(cast.frames()[0], expect540) &&
         checkFrameEquals(cast.frames()[1], expect541);
 }
 
 bool checkNoControlFrames(Climate* climate, const Frame& control) {
-    MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
-    climate->send(control);
-    climate->receive(cast.impl);
+    MockYield cast(2, 0x540, 0xFFFFFFF0);
+    climate->handle(control);
+    climate->emit(cast.impl);
     return checkFrameCount(cast, 0);
 }
 
 test(ClimateControlTest, Init) {
     Faker::FakeClock clock;
     Faker::FakeGPIO gpio;
-    MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
+    MockYield cast(2, 0x540, 0xFFFFFFF0);
 
     Frame init540(0x540, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     Frame init541(0x541, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
@@ -63,14 +63,14 @@ test(ClimateControlTest, Init) {
 
     Climate climate(&clock, &gpio);
     for (int i = 0; i < 4; i++) {
-        climate.receive(cast.impl);
+        climate.emit(cast.impl);
         assertTrue(checkFrameCount(cast, 2) &&
             checkFrameEquals(cast.frames()[0], init540) &&
             checkFrameEquals(cast.frames()[1], init541));
         cast.reset();
         clock.delay(CLIMATE_CONTROL_INIT_HB);
     }
-    climate.receive(cast.impl);
+    climate.emit(cast.impl);
     assertTrue(checkFrameCount(cast, 2) &&
         checkFrameEquals(cast.frames()[0], ready540) &&
         checkFrameEquals(cast.frames()[1], ready541));
@@ -79,13 +79,13 @@ test(ClimateControlTest, Init) {
 test(ClimateControlTest, Heartbeat) {
     INIT_CONTROL(true);
     Frame expect540, expect541;
-    MockBroadcast cast(2, 0x540, 0xFFFFFFF0);
+    MockYield cast(2, 0x540, 0xFFFFFFF0);
 
     expect540 = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
     expect541 = Frame(0x541, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     clock.delay(CLIMATE_CONTROL_FRAME_HB);
-    climate.receive(cast.impl);
+    climate.emit(cast.impl);
     assertTrue(checkFrameCount(cast, 2) &&
         checkFrameEquals(cast.frames()[0], expect540) &&
         checkFrameEquals(cast.frames()[1], expect541));
@@ -194,16 +194,16 @@ test(ClimateControlTest, TriggerRearDefrost) {
 
     Frame control = Frame(CLIMATE_CONTROL_FRAME_ID, 0, {0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00});
 
-    MockBroadcast cast(0);
+    MockYield cast(0);
 
     assertEqual(gpio.pinMode(REAR_DEFROST_PIN), (uint32_t)OUTPUT);
     assertEqual(gpio.digitalRead(REAR_DEFROST_PIN), LOW);
-    climate.send(control);
-    climate.receive(cast.impl);
+    climate.handle(control);
+    climate.emit(cast.impl);
     assertEqual(gpio.digitalRead(REAR_DEFROST_PIN), HIGH);
 
     clock.delay(REAR_DEFROST_TRIGGER_MS + 100);
-    climate.receive(cast.impl);
+    climate.emit(cast.impl);
     assertEqual(gpio.digitalRead(REAR_DEFROST_PIN), LOW);
 }
 

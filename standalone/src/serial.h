@@ -40,15 +40,15 @@ class SerialText : public Node {
         // SerialUSB, or Serial1.
         void begin(Stream* stream);
 
-        // Receive a text frame over serial.
-        void receive(const Broadcast& broadcast) override;
+        // Write a text frame to serial.
+        void handle(const Canny::Frame& frame) override;
 
-        // Send a text frame over serial.
-        void send(const Canny::Frame& frame) override;
+        // Read a text frame from serial and emit it to the bus.
+        void emit(const Yield& yield) override;
 
         // Filter frames to receive from the serial connection. Defaults to
         // allowing all frames.
-        virtual bool filter(const Canny::Frame& frame) const override;
+        virtual bool filter(const Canny::Frame& frame) const = 0;
 
     private:
         Stream* stream_;
