@@ -3,10 +3,11 @@
 
 #include <Arduino.h>
 #include <Canny.h>
+#include <Caster.h>
 #include <Faker.h>
 #include <NissanR51.h>
 
-#include "bus.h"
+#include "events.h"
 #include "momentary_output.h"
 
 
@@ -61,7 +62,7 @@
 //     Bit 0: toggle rear window heating element
 //     Bit 1-7: unused
 //   Bytes 5-7: unused
-class Climate : public Node {
+class Climate : public Caster::Node<Canny::Frame> {
     public:
         Climate(Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
@@ -73,7 +74,7 @@ class Climate : public Node {
         void handle(const Canny::Frame& frame) override;
 
         // Receive translated state frames.
-        void emit(const Yield& yield) override;
+        void emit(const Caster::Yield<Canny::Frame>& yield) override;
 
     private:
         Faker::Clock* clock_;

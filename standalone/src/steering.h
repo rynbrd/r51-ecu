@@ -2,10 +2,11 @@
 #define __R51_STEERING__
 
 #include <Canny.h>
+#include <Caster.h>
 #include <Faker.h>
 
 #include "AnalogMultiButton.h"
-#include "bus.h"
+#include "events.h"
 
 
 // Steering wheel keypad. Sends 0x5800 CAN frames on button press and release.
@@ -23,7 +24,7 @@
 //
 // Bits are set to 1 when a button on the keypad is held down and 0 when
 // released.
-class SteeringKeypad : public Node {
+class SteeringKeypad : public Caster::Node<Canny::Frame> {
     public:
         // Construct a new steering switch keypad object.
         // analog pins to communicate. See config.h for configuration.
@@ -34,7 +35,7 @@ class SteeringKeypad : public Node {
         void handle(const Canny::Frame&) override {}
 
         // Emit a state frame on keypad state change.
-        void emit(const Yield& yield) override;
+        void emit(const Caster::Yield<Canny::Frame>& yield) override;
 
     private:
         uint32_t last_change_;

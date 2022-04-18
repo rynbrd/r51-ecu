@@ -2,11 +2,12 @@
 
 #include <Arduino.h>
 #include <Canny.h>
+#include <Caster.h>
 
 #include "binary.h"
-#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "events.h"
 
 
 static const uint32_t kReceiveTimeout = 5000;
@@ -37,7 +38,7 @@ void RealDash::updateChecksum(byte b) {
     }
 }
 
-void RealDash::emit(const Yield& yield) {
+void RealDash::emit(const Caster::Yield<Canny::Frame>& yield) {
     if (stream_ == nullptr) {
         ERROR_MSG("realdash: not initialized");
         return;

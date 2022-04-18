@@ -1,10 +1,11 @@
 #include "serial.h"
 
 #include <Canny.h>
+#include <Caster.h>
 
-#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "events.h"
 
 
 void SerialText::begin(Stream* stream) {
@@ -12,7 +13,7 @@ void SerialText::begin(Stream* stream) {
     reset();
 }
 
-void SerialText::emit(const Yield& yield) {
+void SerialText::emit(const Caster::Yield<Canny::Frame>& yield) {
     if (stream_ == nullptr) {
         return;
     }

@@ -1,12 +1,14 @@
 #include "climate.h"
 
 #include <Canny.h>
+#include <Caster.h>
 #include <Faker.h>
 #include <NissanR51.h>
+
 #include "binary.h"
-#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "events.h"
 
 
 Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
@@ -23,7 +25,7 @@ Climate::Climate(Faker::Clock* clock, Faker::GPIO* gpio) : clock_(clock),
     memset(control_state_, 0, 8);
 }
 
-void Climate::emit(const Yield& yield) {
+void Climate::emit(const Caster::Yield<Canny::Frame>& yield) {
     uint32_t control_hb = control_init_ ? CLIMATE_CONTROL_FRAME_HB : CLIMATE_CONTROL_INIT_HB;
     rear_defrost_.update();
 

@@ -1,12 +1,13 @@
 #include "settings.h"
 
 #include <Canny.h>
+#include <Caster.h>
 #include <Faker.h>
 
 #include "binary.h"
-#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "events.h"
 
 
 Settings::Settings(Faker::Clock* clock) :
@@ -26,7 +27,7 @@ void Settings::handle(const Canny::Frame& frame) {
     }
 }
 
-void Settings::emit(const Yield& yield) {
+void Settings::emit(const Caster::Yield<Canny::Frame>& yield) {
     while (settings_.available()) {
         yield(settings_.frame());
     }

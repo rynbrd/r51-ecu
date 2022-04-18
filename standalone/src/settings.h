@@ -3,10 +3,11 @@
 
 #include <Arduino.h>
 #include <Canny.h>
+#include <Caster.h>
 #include <Faker.h>
 #include <NissanR51.h>
 
-#include "bus.h"
+#include "events.h"
 
 
 // Communicates with the BCM to retrieve and update body control settings.
@@ -62,7 +63,7 @@
 //     Bit 0: Request Latest Settings
 //     Bit 1-6: unused
 //     Bit 7: Reset Settings to Default
-class Settings : public Node {
+class Settings : public Caster::Node<Canny::Frame> {
     public:
         Settings(Faker::Clock* clock = Faker::Clock::real());
 
@@ -70,7 +71,7 @@ class Settings : public Node {
         void handle(const Canny::Frame& frame) override;
 
         // Recieve frames from the node.
-        void emit(const Yield& yield) override;
+        void emit(const Caster::Yield<Canny::Frame>& yield) override;
 
         // Exchange init frames with BCM. 
         bool init();

@@ -1,31 +1,35 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Canny/Detect.h>
+#include <Caster.h>
 
-#include "src/bus.h"
 #include "src/can.h"
 #include "src/climate.h"
 #include "src/config.h"
 #include "src/debug.h"
+#include "src/events.h"
 #include "src/realdash.h"
 #include "src/serial.h"
 #include "src/settings.h"
 #include "src/steering.h"
 
+using ::Canny::Frame;
+using ::Caster::Bus;
+using ::Caster::Node;
 
 class ControllerCan : public CanNode {
     public:
         ControllerCan() : CanNode(&CAN) {}
 
         // Read all CAN frames.
-        bool readFilter(const Canny::Frame& frame) const override {
+        bool readFilter(const Frame& frame) const override {
             return (frame.id() & 0xFFFFFFFE) == 0x54A ||
                    (frame.id() & 0xFFFFFFFE) == 0x72E ||
                     frame.id() == 0x625;
         }
 
         // Only send climate and settings frames over CAN.
-        bool writeFilter(const Canny::Frame& frame) const override {
+        bool writeFilter(const Frame& frame) const override {
             return (frame.id() & 0xFFFFFFFE) == 0x540 ||
                    (frame.id() & 0xFFFFFFFE) == 0x71E;
         }
@@ -34,13 +38,13 @@ class ControllerCan : public CanNode {
 class ControllerRealDash : public RealDash {
     public:
         // Only read dashboard control frames from RealDash.
-        bool readFilter(const Canny::Frame& frame) const override {
+        bool readFilter(const Frame& frame) const override {
             return frame.id() == 0x5401 ||
                    frame.id() == 0x5701;
         }
 
         // Only write dashboard state frames to RealDash.
-        bool writeFilter(const Canny::Frame& frame) const override {
+        bool writeFilter(const Frame& frame) const override {
             return frame.id() == 0x5400 ||
                    frame.id() == 0x5700 ||
                    frame.id() == 0x5800;
@@ -49,8 +53,8 @@ class ControllerRealDash : public RealDash {
 
 class ControllerSerialText : public SerialText {
     public:
-        bool readFilter(const Canny::Frame&) const override { return true; }
-        bool writeFilter(const Canny::Frame&) const override { return true; }
+        bool readFilter(const Frame&) const override { return true; }
+        bool writeFilter(const Frame&) const override { return true; }
 };
 
 ControllerCan can;
@@ -60,8 +64,8 @@ Settings settings;
 SteeringKeypad steering_keypad;
 D(ControllerSerialText serial_text);
 
-Bus* bus;
-Node* nodes[] = {
+Bus<Frame>* bus;
+Node<Frame>* nodes[] = {
     &can,
     &climate,
     &realdash,

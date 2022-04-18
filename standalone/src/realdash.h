@@ -3,16 +3,17 @@
 
 #include <Arduino.h>
 #include <Canny.h>
+#include <Caster.h>
 
 #include "CRC32.h"
-#include "bus.h"
+#include "events.h"
 
 
 // Reads and writes frames to RealDash over serial. Supports RealDash 0x44 and
 // 0x66 type frames. All written frames are 0x66 for error checking (0x44
 // frames do not contain a real checksum). This class is abstract. A child
 // class needs to implement the filter() method to be complete.
-class RealDash : public Node {
+class RealDash : public Caster::Node<Canny::Frame> {
     public:
         // Construct an uninitialized RealDash instance.
         RealDash();
@@ -28,7 +29,7 @@ class RealDash : public Node {
         // Read a frame from RealDash. Returns true if a frame was read or
         // false if not. Should be called on every loop or the connected serial
         // device may block.
-        void emit(const Yield& yield) override;
+        void emit(const Caster::Yield<Canny::Frame>& yield) override;
 
         // Only read frames which match the filter.
         virtual bool readFilter(const Canny::Frame& frame) const = 0;

@@ -2,9 +2,10 @@
 #define __R51_TESTS_MOCK_YIELD__
 
 #include <Canny.h>
+#include <Caster.h>
 
-#include "src/bus.h"
 #include "src/debug.h"
+#include "src/events.h"
 
 
 // Mock yield implementation for node tests.
@@ -36,7 +37,7 @@ class MockYield {
             count_ = 0;
         }
 
-        class YieldImpl : public Yield {
+        class YieldImpl : public Caster::Yield<Canny::Frame> {
             public:
                 void operator()(const Canny::Frame& frame) const override {
                     if (mock_->filter_id_ == 0 || mock_->filter_id_ == (frame.id() & mock_->filter_mask_)) {

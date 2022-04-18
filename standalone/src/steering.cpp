@@ -1,11 +1,12 @@
 #include "steering.h"
 
+#include <Caster.h>
 #include <Faker.h>
 
 #include "binary.h"
-#include "bus.h"
 #include "config.h"
 #include "debug.h"
+#include "events.h"
 
 
 // This needs to be placed in memory.
@@ -26,7 +27,7 @@ SteeringKeypad::SteeringKeypad(Faker::Clock* clock, Faker::GPIO* gpio) :
             AnalogMultiButton::DEFAULT_ANALOG_RESOLUTION,
             clock, gpio) {}
 
-void SteeringKeypad::emit(const Yield& yield) {
+void SteeringKeypad::emit(const Caster::Yield<Canny::Frame>& yield) {
     sw_a_.update();
     bool changed = false;
     if (sw_a_.onPress(0))  {

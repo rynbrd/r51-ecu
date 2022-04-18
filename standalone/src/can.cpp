@@ -1,9 +1,10 @@
 #include "can.h"
 
 #include <Canny.h>
+#include <Caster.h>
 
-#include "bus.h"
 #include "debug.h"
+#include "events.h"
 
 using Canny::ERR_OK;
 
@@ -24,7 +25,7 @@ void CanNode::handle(const Canny::Frame& frame) {
     }
 }
 
-void CanNode::emit(const Yield& yield) {
+void CanNode::emit(const Caster::Yield<Canny::Frame>& yield) {
     uint8_t err = can_->read(&frame_);
     if (err == Canny::ERR_OK) {
         if (readFilter(frame_)) {
