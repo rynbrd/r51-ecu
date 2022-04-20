@@ -31,3 +31,6 @@
 [submodule "libraries/ArduinoR51Vehicle"]
 	path = libraries/ArduinoR51Vehicle
 	url = git@github.com:BlueDragonX/ArduinoR51Vehicle.git
+[submodule "libraries/ArduinoR51Test"]
+	path = libraries/ArduinoR51Test
+	url = git@github.com:BlueDragonX/ArduinoR51Test.git
