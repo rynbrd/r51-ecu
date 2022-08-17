@@ -1,5 +1,5 @@
-#ifndef _MONITOR_CONFIG_
-#define _MONITOR_CONFIG_
+#ifndef _R51_BRIDGE_CONFIG_
+#define _R51_BRIDGE_CONFIG_
 
 // Uncomment the following line to enable debug output.
 #define DEBUG_ENABLE
@@ -11,4 +11,4 @@
 #define STEERING_PIN_A A2
 #define STEERING_PIN_B A3
 
-#endif  // _MONITOR_CONFIG_
+#endif  // _R51_BRIDGE_CONFIG_

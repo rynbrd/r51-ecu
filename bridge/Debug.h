@@ -1,5 +1,5 @@
-#ifndef __R51_DEBUG_H__
-#define __R51_DEBUG_H__
+#ifndef __R51_BRIDGE_DEBUG_H__
+#define __R51_BRIDGE_DEBUG_H__
 
 #include <Arduino.h>
 
@@ -72,4 +72,4 @@
 
 #endif  // DEBUG_ENABLE
 
-#endif  // __R51_DEBUG_H__
+#endif  // __R51_BRIDGE_DEBUG_H__
