@@ -13,6 +13,11 @@ using ::R51::Message;
 FilteredCAN can;
 R51::Climate climate;
 R51::Settings settings;
+R51::IPDM ipdm;
+
+#ifdef DEFOG_HEATER_ENABLE
+R51::Defog defog(DEFOG_HEATER_PIN, DEFOGER_HEATER_MS);
+#endif
 
 #ifdef STEERING_KEYPAD_ENABLE
 R51::SteeringKeypad steering_keypad(STEERING_PIN_A, STEERING_PIN_B);
@@ -23,6 +28,10 @@ Node<Message>* nodes[] = {
     &can,
     &climate,
     &settings,
+    &ipdm;
+#ifdef DEFOG_HEATER_ENABLE
+    &defog,
+#endif
 #ifdef STEERING_KEYPAD_ENABLE
     &steering_keypad,
 #endif
