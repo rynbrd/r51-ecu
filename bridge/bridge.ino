@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Canny/Detect.h>
-#include <R51Core.h>
-#include <R51Vehicle.h>
+#include <Common.h>
+#include <Vehicle.h>
 
 #include "Nodes.h"
 
