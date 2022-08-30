@@ -1,5 +1,5 @@
-#ifndef _BLUETOOTH_NODE_H_
-#define _BLUETOOTH_NODE_H_
+#ifndef _R51_BLUETOOTH_NODE_H_
+#define _R51_BLUETOOTH_NODE_H_
 
 #include <Caster.h>
 #include <Common.h>
@@ -40,4 +40,4 @@ class BLENode : public Caster::Node<Message> {
 
 }  // namespace R51
 
-#endif  // _BLUETOOTH_SUBSYSTEM_H_
+#endif  // _R51_BLUETOOTH_SUBSYSTEM_H_

@@ -16,4 +16,9 @@
 #define STEERING_PIN_A A2
 #define STEERING_PIN_B A3
 
+// Uncomment to enable Bluetooth via SPI.
+#define BLUETOOTH_ENABLE
+#define BLUETOOTH_SPI_CS_PIN 24
+#define BLUETOOTH_SPI_IRQ_PIN 23
+
 #endif  // _R51_BRIDGE_CONFIG_
