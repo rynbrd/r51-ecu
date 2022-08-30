@@ -25,6 +25,7 @@ enum class SubSystem : uint8_t {
     CLIMATE = 0x0A,
     SETTINGS = 0x0B,
     STEERING_KEYPAD = 0x0C,
+    BLUETOOTH = 0x0D,
 };
 
 struct Event : public Printable {
@@ -34,10 +35,8 @@ struct Event : public Printable {
     uint8_t id;
     // Event data. Empty bytes are padded with 0xFF.
     uint8_t data[6];
-    // The number of bytes set in data. The unset bytes are padded with 0xFF.
-    uint8_t size;
 
-    // Construct an empty system event. ID is set to 0x00 and size to 0.
+    // Construct an empty system event. SubSystem and ID are set to 0x00.
     Event();
 
     // Construct a specific event with empty data.
@@ -61,7 +60,8 @@ bool operator!=(const Event& left, const Event& right);
 
 template <size_t N>
 Event::Event(uint8_t subsystem, uint8_t id, const uint8_t (&data)[N]) :
-        subsystem(subsystem), id(id), size(sizeof(data)) {
+        subsystem(subsystem), id(id) {
+    size_t size = sizeof(data);
     for (uint8_t i = 0; i < size; i++) {
         this->data[i] = data[i];
     }

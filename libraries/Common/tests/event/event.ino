@@ -12,7 +12,6 @@ test(EventTest, Empty) {
     Event event;
     assertEqual(event.subsystem, 0);
     assertEqual(event.id, 0);
-    assertEqual(event.size, 0);
     assertEqual(memcmp(expect, event.data, 6), 0);
 }
 
@@ -21,7 +20,6 @@ test(EventTest, WithID) {
     Event event(0x01, 0xA1);
     assertEqual(event.subsystem, 0x01);
     assertEqual(event.id, 0xA1);
-    assertEqual(event.size, 0);
     assertEqual(memcmp(expect, event.data, 6), 0);
 }
 
@@ -30,7 +28,6 @@ test(EventTest, WithData) {
     Event event(0x02, 0xA2, {0x00, 0x11});
     assertEqual(event.subsystem, 0x02);
     assertEqual(event.id, 0xA2);
-    assertEqual(event.size, 2);
     assertEqual(memcmp(expect, event.data, 6), 0);
 }
 
