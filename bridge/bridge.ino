@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Canny/Detect.h>
+#include <Canny/RealDash.h>
 #include <Common.h>
 #include <Vehicle.h>
 
@@ -10,7 +11,8 @@
 #include <Bluetooth.h>
 #endif
 
-#include "Nodes.h"
+#include "CAN.h"
+#include "RealDash.h"
 
 using ::Caster::Bus;
 using ::Caster::Node;
@@ -33,6 +35,11 @@ R51::SteeringKeypad steering_keypad(STEERING_PIN_A, STEERING_PIN_B);
 R51::BLE ble(BLUETOOTH_SPI_CS_PIN, BLUETOOTH_SPI_IRQ_PIN);
 #endif
 
+#ifdef REALDASH_ENABLE
+Canny::RealDash realdash_connection(&REALDASH_SERIAL);
+RealDashAdapter realdash(&realdash_connection, REALDASH_FRAME_ID);
+#endif
+
 Bus<Message>* bus;
 Node<Message>* nodes[] = {
     &can,
@@ -44,6 +51,9 @@ Node<Message>* nodes[] = {
 #endif
 #ifdef STEERING_KEYPAD_ENABLE
     &steering_keypad,
+#endif
+#ifdef REALDASH_ENABLE
+    &realdash,
 #endif
 };
 

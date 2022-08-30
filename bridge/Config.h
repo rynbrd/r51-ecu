@@ -21,4 +21,9 @@
 #define BLUETOOTH_SPI_CS_PIN 24
 #define BLUETOOTH_SPI_IRQ_PIN 23
 
+// Uncomment to enable RealDash serial.
+#define REALDASH_ENABLE
+#define REALDASH_SERIAL ble
+#define REALDASH_FRAME_ID 0x01
+
 #endif  // _R51_BRIDGE_CONFIG_
