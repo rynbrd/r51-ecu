@@ -36,4 +36,5 @@ void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
     event_.subsystem = frame_.data()[0];
     event_.id = frame_.data()[1];
     memcpy(event_.data, frame_.data()+2, 6);
+    yield(event_);
 }
