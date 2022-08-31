@@ -1,7 +1,18 @@
 #ifndef _R51_TEST_MATCHERS_H_
 #define _R51_TEST_MATCHERS_H_
 
-#define assertPrintableEqual(left, right) do { \
+#define assertStringsEqual(left, right) do { \
+    if (strcmp((char*)left, (char*)right) != 0) { \
+        SERIAL_PORT_MONITOR.print("\""); \
+        SERIAL_PORT_MONITOR.print((char*)left); \
+        SERIAL_PORT_MONITOR.print("\" != \""); \
+        SERIAL_PORT_MONITOR.println((char*)right); \
+        SERIAL_PORT_MONITOR.print("\""); \
+        assertTrue(false); \
+    } \
+} while (false)
+
+#define assertPrintablesEqual(left, right) do { \
     if (left != right) { \
         SERIAL_PORT_MONITOR.print(left); \
         SERIAL_PORT_MONITOR.print(" != "); \
@@ -15,10 +26,10 @@
 
 #define assertIsEvent(message, event_) \
     assertEqual(message.type(), R51::Message::EVENT); \
-    assertPrintableEqual(message.event(), event_);
+    assertPrintablesEqual(message.event(), event_);
 
 #define assertIsCANFrame(message, frame) \
     assertEqual(message.type(), R51::Message::CAN_FRAME);\
-    assertPrintableEqual(message.can_frame(), frame);
+    assertPrintablesEqual(message.can_frame(), frame);
 
 #endif  // _R51_TEST_MATCHERS_H_
