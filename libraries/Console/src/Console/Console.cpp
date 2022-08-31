@@ -7,8 +7,8 @@
 namespace R51 {
 
 bool Console::parseEvent() {
-    if (buffer_len_ < 6 || buffer_[2] != ':' || (
-            buffer_[5] != '#' && buffer_[5] != '\n' && buffer_[5] != '\r')) {
+    if (buffer_len_ < 5 || buffer_[2] != ':' || (
+            buffer_[5] != '#' && buffer_[5] != 0)) {
         print("invalid event format");
         return false;
     }
@@ -27,8 +27,8 @@ bool Console::parseEvent() {
     int begin = 6;
     int count = 0;
     int data_len = 0;
-    for (int i = 6; i < buffer_len_; i++) {
-        if (count == 2 || buffer_[i] == ':' || buffer_[i] == '\n' || buffer_[i] == '\r') {
+    for (size_t i = 6; i < buffer_len_+1; i++) {
+        if (count == 2 || buffer_[i] == ':' || buffer_[i] == 0) {
             tmp = buffer_[i];
             buffer_[i] = 0;
             event_.data[data_len++] = strtoul((char*)(buffer_ + begin), nullptr, 16);
@@ -58,26 +58,20 @@ void Console::emit(const Caster::Yield<Message>& yield) {
         return;
     }
 
-    byte b = 0;
-    while (stream_->available()) {
-        b = stream_->read();
-        if (b == '\n' || b == '\r') {
-            buffer_[buffer_len_++] = b;
-            // break on newline
+    switch (reader_.line(&buffer_len_)) {
+        case Reader::EOL:
             if (parseEvent()) {
                 yield(event_);
                 print("send", event_);
             }
             reset();
-        }
-        if (buffer_len_ >= 24) {
+            break;
+        case Reader::OVERRUN:
             print("buffer overflow");
-            reset();
-            return;
-        }
-        buffer_[buffer_len_++] = b;
+            break;
+        default:
+            break;
     }
-
 }
 
 void Console::handle(const Message& msg) {
