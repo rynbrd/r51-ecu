@@ -27,9 +27,12 @@ size_t Event::printTo(Print& p) const {
     n += printHexByte(p, subsystem);
     n += p.print(":");
     n += printHexByte(p, id);
+    n += p.print("#");
     for (uint8_t i = 0; i < 6; i++) {
-        n += p.print(":");
         n += printHexByte(p, data[i]);
+        if (i < 5) {
+            n += p.print(":");
+        }
     }
     return n;
 }

@@ -12,4 +12,16 @@ bool operator!=(const Message& left, const Message& right) {
         left.ref_ != right.ref_;
 }
 
+size_t Message::printTo(Print& p) const {
+    switch (type_) {
+        case EVENT:
+            return p.print(event());
+        case CAN_FRAME:
+            return p.print(can_frame());
+        case EMPTY:
+            break;
+    }
+    return 0;
+}
+
 }  // namespace R51

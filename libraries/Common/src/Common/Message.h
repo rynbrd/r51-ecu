@@ -7,7 +7,7 @@
 
 namespace R51 {
 
-class Message {
+class Message : public Printable {
     public:
         // The message type.
         enum Type {
@@ -37,6 +37,9 @@ class Message {
         // Return the can frame referenced by the message. Requires that type()
         // returns CAN_FRAME or undefined behavior will result.
         const Canny::Frame& can_frame() const { return *((Canny::Frame*)ref_); }
+
+        // Print the message. This prints the payload or nothing if empty.
+        size_t printTo(Print& p) const;
 
     private:
         Type type_;
