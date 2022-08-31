@@ -7,6 +7,10 @@
 #include <Common.h>
 #include <Vehicle.h>
 
+#if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
+#include <Console.h>
+#endif
+
 #ifdef BLUETOOTH_ENABLE
 #include <Bluetooth.h>
 #endif
@@ -22,6 +26,10 @@ FilteredCAN can;
 R51::Climate climate;
 R51::Settings settings;
 R51::IPDM ipdm;
+
+#if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
+R51::Console console(&SERIAL_DEVICE, kInfoPrefix);
+#endif
 
 #ifdef DEFOG_HEATER_ENABLE
 R51::Defog defog(DEFOG_HEATER_PIN, DEFOG_HEATER_MS);
@@ -57,11 +65,13 @@ Node<Message>* nodes[] = {
 #endif
 };
 
-void setup_debug() {
-#ifdef DEBUG
-    DEBUG_BEGIN();
-    while(!DEBUG_SERIAL) {
-        delay(100);
+void setup_serial() {
+#ifdef SERIAL_DEVICE
+    SERIAL_DEVICE.begin(SERIAL_BAUDRATE);
+    if (SERIAL_WAIT) {
+        while(!SERIAL_DEVICE) {
+            delay(100);
+        }
     }
 #endif
 }
@@ -90,7 +100,7 @@ void setup_bus() {
 }
 
 void setup() {
-    setup_debug();
+    setup_serial();
     setup_can();
     setup_bluetooth();
     setup_bus();

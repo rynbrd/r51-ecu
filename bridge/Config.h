@@ -1,10 +1,15 @@
 #ifndef _R51_BRIDGE_CONFIG_
 #define _R51_BRIDGE_CONFIG_
 
+#define SERIAL_DEVICE Serial
+#define SERIAL_BAUDRATE 115200
+#define SERIAL_WAIT true
+
 // Uncomment the following line to enable debug output.
 #define DEBUG_ENABLE
-#define DEBUG_SERIAL Serial
-#define DEBUG_BAUDRATE 115200
+
+// Uncomment to enable Console over serial.
+#define CONSOLE_ENABLE
 
 // Uncomment the following line to enable defog heater control.
 #define DEFOG_HEATER_ENABLE
