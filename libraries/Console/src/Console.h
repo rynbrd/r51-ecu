@@ -22,7 +22,7 @@ namespace R51 {
 // Each message printed is terminated with a CR+LF.
 class Console : public Caster::Node<R51::Message> {
     public:
-        Console(Stream* stream, char* prefix = nullptr) : stream_(stream), prefix_(prefix) { reset(); }
+        Console(Stream* stream, const char* prefix = nullptr) : stream_(stream), prefix_(prefix) { reset(); }
 
         // Write a message to serial.
         void handle(const R51::Message& msg) override;
@@ -38,7 +38,7 @@ class Console : public Caster::Node<R51::Message> {
 
     private:
         Stream* stream_;
-        char* prefix_;
+        const char* prefix_;
         byte buffer_[24];
         uint8_t buffer_len_;
         Event event_;
