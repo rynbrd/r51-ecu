@@ -41,6 +41,15 @@ R51::SteeringKeypad steering_keypad(STEERING_PIN_A, STEERING_PIN_B);
 
 #ifdef BLUETOOTH_ENABLE
 R51::BLE ble(BLUETOOTH_SPI_CS_PIN, BLUETOOTH_SPI_IRQ_PIN);
+R51::BLENode ble_node(&ble);
+
+void onBluetoothConnect() {
+    ble_node.onConnect();
+}
+
+void onBluetoothDisconnect() {
+    ble_node.onDisconnect();
+}
 #endif
 
 #ifdef REALDASH_ENABLE
@@ -59,6 +68,9 @@ Node<Message>* nodes[] = {
 #endif
 #ifdef STEERING_KEYPAD_ENABLE
     &steering_keypad,
+#endif
+#ifdef BLUETOOTH_ENABLE
+    &ble_node,
 #endif
 #ifdef REALDASH_ENABLE
     &realdash,
@@ -91,6 +103,8 @@ void setup_bluetooth() {
         DEBUG_MSG("setup: failed to init bluetooth");
         delay(500);
     }
+    ble.setOnConnect(onBluetoothConnect);
+    ble.setOnDisconnect(onBluetoothDisconnect);
 #endif
 }
 
@@ -109,4 +123,7 @@ void setup() {
 
 void loop() {
     bus->loop();
+#ifdef BLUETOOTH_ENABLE
+    ble.update();
+#endif
 }
