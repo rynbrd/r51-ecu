@@ -10,7 +10,7 @@ void EventSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yie
     size_t len = strlen(encoded_);
     if (len < 5 || encoded_[2] != ':' || (
             encoded_[5] != '#' && encoded_[5] != 0)) {
-        console->println("invalid event format");
+        console->println("console: invalid event format");
         return;
     }
 
@@ -21,7 +21,7 @@ void EventSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yie
 
     if (len <= 5) {
         memset(event_.data, 0xFF, 6);
-        console->print("send event ");
+        console->print("console: send event ");
         console->println(event_);
         yield(event_);
         return;
@@ -54,7 +54,7 @@ void EventSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yie
     for (int i = data_len; i < 6; ++i) {
         event_.data[i] = 0xFF;
     }
-    console->print("send event ");
+    console->print("console: send event ");
     console->println(event_);
     yield(event_);
 }

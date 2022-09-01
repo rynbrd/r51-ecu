@@ -23,7 +23,7 @@ void CANSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yield
     }
     frame_.id(strtoul(buffer_ + offset, nullptr, 16));
     if (frame_.id() == 0) {
-        console->println("invalid CAN frame format");
+        console->println("console: invalid CAN frame format");
         return;
     }
 
@@ -57,7 +57,7 @@ void CANSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yield
         }
     }
     frame_.data((uint8_t*)buffer_, data_len);
-    console->print("send frame ");
+    console->print("console: send frame ");
     console->println(frame_);
     yield(frame_);
 }

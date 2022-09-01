@@ -32,11 +32,11 @@ void Console::handle(const Message& msg) {
     }
     switch (msg.type()) {
         case Message::EVENT:
-            stream_->print("recv ");
+            stream_->print("console: recv ");
             stream_->println(msg.event());
             break;
         case Message::CAN_FRAME:
-            stream_->print("recv ");
+            stream_->print("console: recv ");
             stream_->println(msg.can_frame());
             break;
         case Message::EMPTY:

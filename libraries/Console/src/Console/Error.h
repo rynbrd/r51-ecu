@@ -18,7 +18,7 @@ class ErrorCommand : public Command {
 class NotFoundCommand : public ErrorCommand {
     public:
         void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("command not found");
+            console->println("console: command not found");
         }
 
         static Command* get() {
@@ -31,7 +31,7 @@ class NotFoundCommand : public ErrorCommand {
 class NotEnoughArgumentsCommand : public ErrorCommand {
     public:
         void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("not enough arguments");
+            console->println("console: not enough arguments");
         }
 
         static Command* get() {
@@ -44,7 +44,7 @@ class NotEnoughArgumentsCommand : public ErrorCommand {
 class TooManyArgumentsCommand : public ErrorCommand {
     public:
         void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("too many arguments");
+            console->println("console: too many arguments");
         }
 
         static Command* get() {

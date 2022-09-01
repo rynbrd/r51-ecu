@@ -24,7 +24,7 @@ class RootCommand : public Command {
         // Run the command. The command may yield messages or print information
         // to the user.
         void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("command incomplete");
+            console->println("console: command incomplete");
         }
 
     private:
