@@ -5,6 +5,7 @@
 #include <Canny.h>
 #include <Caster.h>
 #include <Common.h>
+#include "Command.h"
 #include "Reader.h"
 
 namespace R51 {
@@ -23,8 +24,11 @@ namespace R51 {
 // Each message printed is terminated with a CR+LF.
 class Console : public Caster::Node<R51::Message> {
     public:
-        Console(Stream* stream, const char* prefix = nullptr) :
-            stream_(stream), prefix_(prefix), reader_(stream_, buffer_, 24) { reset(); }
+        Console(Stream* stream) :
+            stream_(stream),
+            reader_(stream_, buffer_, 32),
+            root_(internal::Command::root()),
+            command_(root_) {}
 
         // Write a message to serial.
         void handle(const R51::Message& msg) override;
@@ -39,17 +43,11 @@ class Console : public Caster::Node<R51::Message> {
         virtual bool writeFilter(const R51::Message&) const { return true; }
 
     private:
+        char buffer_[32];
         Stream* stream_;
-        const char* prefix_;
         Reader reader_;
-        char buffer_[24];
-        size_t buffer_len_;
-        Event event_;
-
-        bool parseEvent();
-        void reset();
-        void print(const char* msg);
-        void print(const char* msg, const Printable& p);
+        internal::Command* root_;
+        internal::Command* command_;
 };
 
 }  // namespace R51

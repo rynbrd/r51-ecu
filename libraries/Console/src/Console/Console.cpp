@@ -6,71 +6,23 @@
 
 namespace R51 {
 
-bool Console::parseEvent() {
-    if (buffer_len_ < 5 || buffer_[2] != ':' || (
-            buffer_[5] != '#' && buffer_[5] != 0)) {
-        print("invalid event format");
-        return false;
-    }
-
-    buffer_[2] = 0;
-    event_.subsystem = strtoul((char*)buffer_, nullptr, 16);
-    buffer_[5] = 0;
-    event_.id = strtoul((char*)buffer_+3, nullptr, 16);
-
-    if (buffer_len_ <= 5) {
-        memset(event_.data, 0xFF, 6);
-        return true;
-    }
-
-    byte tmp;
-    int begin = 6;
-    int count = 0;
-    int data_len = 0;
-    for (size_t i = 6; i < buffer_len_+1; i++) {
-        if (count == 2 || buffer_[i] == ':' || buffer_[i] == 0) {
-            tmp = buffer_[i];
-            buffer_[i] = 0;
-            event_.data[data_len++] = strtoul((char*)(buffer_ + begin), nullptr, 16);
-            buffer_[i] = tmp;
-            if (data_len == 6) {
-                break;
-            }
-            if (buffer_[i] == ':') {
-                begin = i + 1;
-                count = 0;
-            } else {
-                begin = i;
-                count = 1;
-            }
-        } else {
-            ++count;
-        }
-    }
-    for (int i = data_len; i < 6; i++) {
-        event_.data[i] = 0xFF;
-    }
-    return true;
-}
-
 void Console::emit(const Caster::Yield<Message>& yield) {
-    if (stream_ == nullptr) {
-        return;
-    }
-
-    switch (reader_.line(&buffer_len_)) {
-        case Reader::EOL:
-            if (parseEvent()) {
-                yield(event_);
-                print("send", event_);
-            }
-            reset();
-            break;
-        case Reader::OVERRUN:
-            print("buffer overflow");
-            break;
-        default:
-            break;
+    while (stream_->available())  {
+        switch (reader_.word()) {
+            case Reader::EOW:
+                command_ = command_->next(buffer_);
+                break;
+            case Reader::EOL:
+                command_ = command_->next(buffer_);
+                command_->run(stream_, yield);
+                command_ = root_;
+                break;
+            case Reader::OVERRUN:
+                command_ = root_;
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -80,33 +32,16 @@ void Console::handle(const Message& msg) {
     }
     switch (msg.type()) {
         case Message::EVENT:
-            print("recv ", msg.event());
+            stream_->print("recv ");
+            stream_->println(msg.event());
             break;
         case Message::CAN_FRAME:
-            print("recv ", msg.can_frame());
+            stream_->print("recv ");
+            stream_->println(msg.can_frame());
             break;
         case Message::EMPTY:
             break;
     }
-}
-
-void Console::reset() {
-    buffer_len_ = 0;
-}
-
-void Console::print(const char* msg) {
-    if (prefix_ != nullptr) {
-        stream_->print(prefix_);
-    }
-    stream_->println(msg);
-}
-
-void Console::print(const char* msg, const Printable& p) {
-    if (prefix_ != nullptr) {
-        stream_->print(prefix_);
-    }
-    stream_->print(msg);
-    stream_->println(p);
 }
 
 }  // namespace R51
