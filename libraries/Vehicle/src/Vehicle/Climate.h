@@ -25,6 +25,7 @@ class Climate : public Caster::Node<Message> {
 
     private:
         Faker::Clock* clock_;
+        uint32_t startup_;
         Ticker state_ticker_;
         Ticker control_ticker_;
         uint8_t state_init_;

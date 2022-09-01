@@ -31,12 +31,13 @@ class ClimateTest : public TestOnce {
     public:
         void setup() {
             TestOnce::setup();
-            clock.set(0);
+            clock.set(1);
             yield.clear();
         }
 
         void initClimate(Climate* climate) {
-            clock.set(1000);
+            climate->emit(yield);
+            clock.delay(1000);
             climate->emit(yield);
             yield.clear();
         }

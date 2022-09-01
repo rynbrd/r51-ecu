@@ -24,12 +24,12 @@ enum AirflowMode : uint8_t {
     AIRFLOW_AUTO_FEET = 0x8C,
 };
 
-#define CONTROL_INIT_EXPIRE 450
+#define CONTROL_INIT_EXPIRE 400
 #define CONTROL_INIT_TICK 100
 #define CONTROL_FRAME_TICK 200
 
 Climate::Climate(uint32_t tick_ms, Faker::Clock* clock) :
-    clock_(clock),
+    clock_(clock), startup_(0),
     state_ticker_(tick_ms, clock), control_ticker_(CONTROL_INIT_TICK, clock),
     state_init_(0), control_init_(false),
     temp_state_changed_(false), system_state_changed_(false), airflow_state_changed_(false),
@@ -200,7 +200,10 @@ void Climate::handleEvent(const Event& event) {
 }
 
 void Climate::emit(const Caster::Yield<Message>& yield) {
-    if (!control_init_ && clock_->millis() >= CONTROL_INIT_EXPIRE) {
+    if (startup_ == 0) {
+        startup_ = clock_->millis();
+    }
+    if (!control_init_ && clock_->millis() - startup_ >= CONTROL_INIT_EXPIRE) {
         system_control_.ready();
         fan_control_.ready();
         yield(system_control_);
