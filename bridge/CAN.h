@@ -27,13 +27,13 @@ class FilteredCAN : public R51::CANNode {
 
         // Log read errors to debug serial.
         void onReadError(Canny::Error err) override {
-            ERROR_MSG_VAL("can: read error: ", err);
+            DEBUG_MSG_VAL("can: read error: ", err);
         }
 
         // Log write errors to debug serial.
         void onWriteError(Canny::Error err, const Canny::Frame& frame) override {
-            ERROR_MSG_VAL("can: write error: ", err);
-            ERROR_MSG_VAL("can: dropped frame: ", frame);
+            DEBUG_MSG_VAL("can: write error: ", err);
+            DEBUG_MSG_VAL("can: dropped frame: ", frame);
         }
 };
 

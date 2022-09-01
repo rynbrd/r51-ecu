@@ -28,7 +28,7 @@ R51::Settings settings;
 R51::IPDM ipdm;
 
 #if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
-R51::Console console(&SERIAL_DEVICE, kInfoPrefix);
+R51::Console console(&SERIAL_DEVICE);
 #endif
 
 #ifdef DEFOG_HEATER_ENABLE
@@ -77,25 +77,25 @@ void setup_serial() {
 }
 
 void setup_can() {
-    INFO_MSG("setup: connecting to can bus");
+    DEBUG_MSG("setup: connecting to can bus");
     while (!CAN.begin(Canny::CAN20_250K)) {
-        ERROR_MSG("setup: failed to init can bus");
+        DEBUG_MSG("setup: failed to init can bus");
         delay(200);
     }
 }
 
 void setup_bluetooth() {
 #ifdef BLUETOOTH_ENABLE
-    INFO_MSG("setup: initializing bluetooth");
+    DEBUG_MSG("setup: initializing bluetooth");
     while (!ble.begin()) {
-        ERROR_MSG("setup: failed to init bluetooth");
+        DEBUG_MSG("setup: failed to init bluetooth");
         delay(500);
     }
 #endif
 }
 
 void setup_bus() {
-    INFO_MSG("setup: initializing bus");
+    DEBUG_MSG("setup: initializing bus");
     bus = new Bus<Message>(nodes, sizeof(nodes)/sizeof(nodes[0]));
 }
 
@@ -104,7 +104,7 @@ void setup() {
     setup_can();
     setup_bluetooth();
     setup_bus();
-    INFO_MSG("setup: ecu started");
+    DEBUG_MSG("setup: ecu started");
 }
 
 void loop() {

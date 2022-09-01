@@ -17,8 +17,8 @@ void RealDashAdapter::handle(const Message& msg) {
     memcpy(frame_.data()+2, msg.event().data, 6);
     Canny::Error err = connection_->write(frame_);
     if (err != Canny::ERR_OK) {
-        ERROR_MSG_VAL("realdash: write error: ", err);
-        ERROR_MSG_VAL("realdash: discard frame: ", frame_);
+        DEBUG_MSG_VAL("realdash: write error: ", err);
+        DEBUG_MSG_VAL("realdash: discard frame: ", frame_);
     }
 }
 
@@ -27,7 +27,7 @@ void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
     if (err == Canny::ERR_FIFO) {
         return;
     } else if (err != Canny::ERR_OK) {
-        ERROR_MSG_VAL("realdash: read error: ", err);
+        DEBUG_MSG_VAL("realdash: read error: ", err);
         return;
     } else if (frame_.id() != frame_id_ || frame_.size() < 8) {
         return;
