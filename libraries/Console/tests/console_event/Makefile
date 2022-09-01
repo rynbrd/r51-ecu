@@ -1,7 +1,7 @@
 # See https://github.com/bxparks/EpoxyDuino for documentation about this
 # Makefile to compile and run Arduino programs natively on Linux or MacOS.
 
-APP_NAME := console
+APP_NAME := console_event
 ARDUINO_LIBS := AUnit CRC32 Canny Caster Common Console Faker Test
 EXTRA_CXXFLAGS += -g
 include ../../../EpoxyDuino/EpoxyDuino.mk

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "Command.h"
+#include "CAN.h"
 #include "Error.h"
 #include "Event.h"
 
@@ -12,7 +13,9 @@ namespace R51::internal {
 class RootCommand : public Command {
     public:
         Command* next(char* arg) override {
-            if (strcmp(arg, "event") == 0) {
+            if (strcmp(arg, "can") == 0) {
+                return &can_;
+            } else if (strcmp(arg, "event") == 0) {
                 return &event_;
             }
             return NotFoundCommand::get();
@@ -25,6 +28,7 @@ class RootCommand : public Command {
         }
 
     private:
+        CANCommand can_;
         EventCommand event_;
 };
 

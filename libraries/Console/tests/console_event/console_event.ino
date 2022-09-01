@@ -16,7 +16,7 @@ using ::Faker::FakeWriteStream;
 byte buffer[64];
 const size_t buffer_size = 64;
 
-test(ConsoleTest, WriteEmpty) {
+test(ConsoleEventTest, WriteEmpty) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
@@ -29,7 +29,7 @@ test(ConsoleTest, WriteEmpty) {
     assertEqual(stream.remaining(), buffer_size);
 }
 
-test(ConsoleTest, WriteEventEmptyPayload) {
+test(ConsoleEventTest, WriteEventEmptyPayload) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
@@ -41,7 +41,7 @@ test(ConsoleTest, WriteEventEmptyPayload) {
     assertStringsEqual("recv 01:02#FF:FF:FF:FF:FF:FF\r\n", buffer);
 }
 
-test(ConsoleTest, WriteEventPartialPayload) {
+test(ConsoleEventTest, WriteEventPartialPayload) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
@@ -53,7 +53,7 @@ test(ConsoleTest, WriteEventPartialPayload) {
     assertStringsEqual("recv 01:02#AA:BB:FF:FF:FF:FF\r\n", buffer);
 }
 
-test(ConsoleTest, WriteEventFullPayload) {
+test(ConsoleEventTest, WriteEventFullPayload) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
@@ -65,31 +65,7 @@ test(ConsoleTest, WriteEventFullPayload) {
     assertStringsEqual("recv 01:02#99:AA:BB:CC:DD:EE\r\n", buffer);
 }
 
-test(ConsoleTest, WriteStdFrame) {
-    memset(buffer, 0, buffer_size);
-    FakeWriteStream stream;
-    stream.set(buffer, buffer_size);
-    Console console(&stream);
-
-    Frame frame(0x0324, 0, {0x11, 0x22, 0x33, 0x44});
-    console.handle(frame);
-
-    assertStringsEqual("recv -324#11:22:33:44\r\n", buffer);
-}
-
-test(ConsoleTest, WriteExtFrame) {
-    memset(buffer, 0, buffer_size);
-    FakeWriteStream stream;
-    stream.set(buffer, buffer_size);
-    Console console(&stream);
-
-    Frame frame(0x45324, 1, {0x11, 0x22, 0x33, 0x44});
-    console.handle(frame);
-
-    assertStringsEqual("recv +45324#11:22:33:44\r\n", buffer);
-}
-
-test(ConsoleTest, ReadEmptyEvent) {
+test(ConsoleEventTest, ReadEmptyEvent) {
     Event expect(0x03, 0x04);
     strcpy((char*)buffer, "event send 03:04\n");
 
@@ -104,7 +80,7 @@ test(ConsoleTest, ReadEmptyEvent) {
     assertPrintablesEqual(yield.messages()[0].event(), expect);
 }
 
-test(ConsoleTest, ReadPartialEvent) {
+test(ConsoleEventTest, ReadPartialEvent) {
     Event expect(0x03, 0x04, {0x22, 0x33});
     strcpy((char*)buffer, "event send 03:04#22:33\r\n");
 
@@ -119,7 +95,7 @@ test(ConsoleTest, ReadPartialEvent) {
     assertPrintablesEqual(yield.messages()[0].event(), expect);
 }
 
-test(ConsoleTest, ReadFullEvent) {
+test(ConsoleEventTest, ReadFullEvent) {
     Event expect(0x03, 0x04, {0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
     strcpy((char*)buffer, "event send 03:04#22:33:44:55:66:77\n");
 
@@ -134,7 +110,7 @@ test(ConsoleTest, ReadFullEvent) {
     assertPrintablesEqual(yield.messages()[0].event(), expect);
 }
 
-test(ConsoleTest, ReadNoColons) {
+test(ConsoleEventTest, ReadNoColons) {
     Event expect(0x03, 0x04, {0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
     strcpy((char*)buffer, "event send 03:04#223344556677\n");
 
@@ -149,7 +125,7 @@ test(ConsoleTest, ReadNoColons) {
     assertPrintablesEqual(yield.messages()[0].event(), expect);
 }
 
-test(ConsoleTest, ReadValidButBadlyFormedEvent) {
+test(ConsoleEventTest, ReadValidButBadlyFormedEvent) {
     Event expect(0x03, 0x04, {0x22, 0x33, 0x04});
     strcpy((char*)buffer, "event send 03:04#2233:4\n");
 
@@ -164,7 +140,7 @@ test(ConsoleTest, ReadValidButBadlyFormedEvent) {
     assertPrintablesEqual(yield.messages()[0].event(), expect);
 }
 
-test(ConsoleTest, ReadInvalidEvent) {
+test(ConsoleEventTest, ReadInvalidEvent) {
     strcpy((char*)buffer, "0304#\n");
 
     FakeReadStream stream;
