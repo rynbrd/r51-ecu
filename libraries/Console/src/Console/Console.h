@@ -7,6 +7,7 @@
 #include <Common.h>
 #include "Command.h"
 #include "Reader.h"
+#include "Root.h"
 
 namespace R51 {
 
@@ -27,8 +28,7 @@ class Console : public Caster::Node<R51::Message> {
         Console(Stream* stream) :
             stream_(stream),
             reader_(stream_, buffer_, 32),
-            root_(internal::Command::root()),
-            command_(root_) {}
+            command_(&root_) {}
 
         // Write a message to serial.
         void handle(const R51::Message& msg) override;
@@ -46,7 +46,7 @@ class Console : public Caster::Node<R51::Message> {
         char buffer_[32];
         Stream* stream_;
         Reader reader_;
-        internal::Command* root_;
+        internal::RootCommand root_;
         internal::Command* command_;
 };
 

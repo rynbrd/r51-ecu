@@ -15,10 +15,10 @@ void Console::emit(const Caster::Yield<Message>& yield) {
             case Reader::EOL:
                 command_ = command_->next(buffer_);
                 command_->run(stream_, yield);
-                command_ = root_;
+                command_ = &root_;
                 break;
             case Reader::OVERRUN:
-                command_ = root_;
+                command_ = &root_;
                 break;
             default:
                 break;

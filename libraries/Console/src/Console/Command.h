@@ -7,8 +7,6 @@
 
 namespace R51::internal {
 
-class RootCommand;
-
 class Command {
     public:
         Command() {}
@@ -20,9 +18,6 @@ class Command {
         // Run the command. The command may yield messages or print information
         // to the user.
         virtual void run(Stream* console, const Caster::Yield<Message>& yield) = 0;
-
-        // Get the root command instance.
-        static Command* root();
 };
 
 }  // namespace R51::internal

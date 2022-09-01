@@ -1,10 +1,10 @@
-#include "Command.h"
+#ifndef _R51_CONSOLE_ROOT_H_
+#define _R51_CONSOLE_ROOT_H_
 
 #include <Arduino.h>
-#include <Caster.h>
-#include <Common.h>
-#include "Event.h"
+#include "Command.h"
 #include "Error.h"
+#include "Event.h"
 
 namespace R51::internal {
 
@@ -28,9 +28,6 @@ class RootCommand : public Command {
         EventCommand event_;
 };
 
-Command* Command::root() {
-    static RootCommand c;
-    return &c;
 }
 
-}  // namespace R51::internal
+#endif  // _R51_CONSOLE_ROOT_H_
