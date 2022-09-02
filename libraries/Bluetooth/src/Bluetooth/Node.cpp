@@ -4,7 +4,6 @@ namespace R51 {
 
 void BLENode::handle(const Message& msg) {
     if (msg.type() != Message::EVENT ||  msg.event().subsystem != (uint8_t)SubSystem::BLUETOOTH) {
-        Serial.println("bad event");
         return;
     }
 
