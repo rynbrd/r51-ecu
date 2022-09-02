@@ -31,7 +31,7 @@ enum AirflowMode : uint8_t {
 Climate::Climate(uint32_t tick_ms, Faker::Clock* clock) :
     clock_(clock), startup_(0),
     state_ticker_(tick_ms, clock), control_ticker_(CONTROL_INIT_TICK, clock),
-    state_init_(0), control_init_(false),
+    state_request_(false), state_init_(0), control_init_(false),
     temp_state_changed_(false), system_state_changed_(false), airflow_state_changed_(false),
     system_control_changed_(false), fan_control_changed_(false) {}
 
@@ -127,13 +127,15 @@ void Climate::handleSystemFrame(const Canny::Frame& frame) {
     }
 }
 
-//TODO: Implement state request.
 void Climate::handleEvent(const Event& event) {
     if (event.subsystem != (uint8_t)SubSystem::CLIMATE) {
         return;
     }
 
     switch ((ClimateEvent)event.id) {
+        case ClimateEvent::REQUEST:
+            state_request_ = true;
+            break;
         case ClimateEvent::TURN_OFF:
             system_control_.turnOff();
             system_control_changed_ = true;
@@ -225,11 +227,12 @@ void Climate::emit(const Caster::Yield<Message>& yield) {
         }
     }
 
-    if (state_ticker_.active()) {
+    if (state_request_ || state_ticker_.active()) {
         yield(temp_state_);
         yield(system_state_);
         yield(airflow_state_);
         state_ticker_.reset();
+        state_request_ = false;
     } else {
         if (temp_state_changed_) {
             yield(temp_state_);

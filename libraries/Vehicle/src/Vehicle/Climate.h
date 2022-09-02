@@ -28,6 +28,7 @@ class Climate : public Caster::Node<Message> {
         uint32_t startup_;
         Ticker state_ticker_;
         Ticker control_ticker_;
+        bool state_request_;
         uint8_t state_init_;
         bool control_init_;
         bool temp_state_changed_;

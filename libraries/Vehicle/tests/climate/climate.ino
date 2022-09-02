@@ -78,6 +78,34 @@ testF(ClimateTest, Init) {
     assertIsCANFrame(yield.messages()[1], ready541);
 }
 
+testF(ClimateTest, Request) {
+    Climate climate(0, &clock);
+    initClimate(&climate);
+    enableClimate(&climate);
+
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::REQUEST);
+    Event expect_temp(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::TEMP_STATE,
+        {0x3C, 0x41, 0x58, 0x01});
+    Event expect_system(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::SYSTEM_STATE,
+        {0x05});
+    Event expect_airflow(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::AIRFLOW_STATE,
+        {0x03, 0x02});
+
+    climate.handle(control);
+    climate.emit(yield);
+    assertSize(yield, 3);
+    assertIsEvent(yield.messages()[0], expect_temp);
+    assertIsEvent(yield.messages()[1], expect_system);
+    assertIsEvent(yield.messages()[2], expect_airflow);
+    yield.clear();
+}
+
 testF(ClimateTest, TurnOff) {
     Climate climate(0, &clock);
     initClimate(&climate);
