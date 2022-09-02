@@ -8,10 +8,12 @@
 #include <Vehicle.h>
 
 #if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
+#pragma message("serial console enabled")
 #include <Console.h>
 #endif
 
 #ifdef BLUETOOTH_ENABLE
+#pragma message("bluetooth enabled")
 #include <Bluetooth.h>
 #endif
 
@@ -32,10 +34,12 @@ R51::Console console(&SERIAL_DEVICE);
 #endif
 
 #ifdef DEFOG_HEATER_ENABLE
+#pragma message("defog enabled")
 R51::Defog defog(DEFOG_HEATER_PIN, DEFOG_HEATER_MS);
 #endif
 
 #ifdef STEERING_KEYPAD_ENABLE
+#pragma message("steering keypad enabled")
 R51::SteeringKeypad steering_keypad(STEERING_PIN_A, STEERING_PIN_B);
 #endif
 
@@ -53,6 +57,7 @@ void onBluetoothDisconnect() {
 #endif
 
 #ifdef REALDASH_ENABLE
+#pragma message("realdash enabled")
 Canny::RealDash realdash_connection(&REALDASH_SERIAL);
 RealDashAdapter realdash(&realdash_connection, REALDASH_FRAME_ID);
 #endif
@@ -63,6 +68,9 @@ Node<Message>* nodes[] = {
     &climate,
     &settings,
     &ipdm,
+#if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
+    &console,
+#endif
 #ifdef DEFOG_HEATER_ENABLE
     &defog,
 #endif
