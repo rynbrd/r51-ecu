@@ -49,30 +49,18 @@ void TirePressureState::handleFrame(const Canny::Frame& frame) {
 }
 
 void TirePressureState::handleEvent(const Event& event) {
-    //TODO: Implement state request.
-    if (event.subsystem != (uint8_t)SubSystem::TIRE ||
-            event.id != (uint8_t)TireEvent::SWAP_POSITION) {
+    if (event.subsystem != (uint8_t)SubSystem::TIRE) {
         return;
     }
 
-    uint8_t i = event.data[0] & 0x0F;
-    uint8_t j = (event.data[0] & 0xF0) >> 4;
-    if (i > 3 || j > 3 || i == j) {
-        return;
+    switch ((TireEvent)event.id) {
+        case TireEvent::REQUEST:
+            changed_ = true;
+            break;
+        case TireEvent::SWAP_POSITION:
+            swapPosition(event.data[0] & 0x0F, (event.data[0] & 0xF0) >> 4);
+            break;
     }
-
-    // swap mapping
-    uint8_t tmp = map_[i];
-    map_[i] = map_[j];
-    map_[j] = tmp;
-
-    // swap stored values
-    tmp = event_.data[i];
-    event_.data[i] = event_.data[j];
-    event_.data[j] = tmp;
-
-    // trigger an emit
-    changed_ = true;
 }
 
 void TirePressureState::emit(const Caster::Yield<Message>& yield) {
@@ -82,5 +70,25 @@ void TirePressureState::emit(const Caster::Yield<Message>& yield) {
         changed_ = false;
     }
 }
+
+void TirePressureState::swapPosition(uint8_t a, uint8_t b) {
+    if (a > 3 || b > 3 || a == b) {
+        return;
+    }
+
+    // swap mapping
+    uint8_t tmp = map_[a];
+    map_[a] = map_[b];
+    map_[b] = tmp;
+
+    // swap stored values
+    tmp = event_.data[a];
+    event_.data[a] = event_.data[b];
+    event_.data[b] = tmp;
+
+    // trigger an emit
+    changed_ = true;
+}
+
 
 }  // namespace R51

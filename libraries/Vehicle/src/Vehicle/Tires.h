@@ -34,6 +34,7 @@ class TirePressureState : public Caster::Node<Message> {
 
         void handleFrame(const Canny::Frame& frame);
         void handleEvent(const Event& event);
+        void swapPosition(uint8_t a, uint8_t b);
 };
 
 }

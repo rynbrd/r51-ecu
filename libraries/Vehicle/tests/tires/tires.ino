@@ -10,7 +10,7 @@ using namespace aunit;
 using ::Canny::Frame;
 using ::Faker::FakeClock;
 
-test(TirePressureState, IgnoreIncorrectID) {
+test(TirePressureStateTest, IgnoreIncorrectID) {
     FakeYield yield;
     Frame f(0x384, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
@@ -155,6 +155,38 @@ test(TirePressureStateTest, Swap) {
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
+}
+
+test(TirePressureStateTest, Request) {
+    FakeYield yield;
+    TirePressureState tire;
+    Frame f;
+    Event control = Event(
+        (uint8_t)SubSystem::TIRE,
+        (uint8_t)TireEvent::REQUEST);
+    Event expect = Event(
+        (uint8_t)SubSystem::TIRE,
+        (uint8_t)TireEvent::PRESSURE_STATE,
+        {0x01, 0x02, 0x03, 0x04});
+
+    // Populate initial values from frame.
+    f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    tire.handle(f);
+    tire.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Request the current values.
+    tire.handle(control);
+    tire.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Ensure additional events are not sent.
+    tire.emit(yield);
+    assertSize(yield, 0);
 }
 
 }  // namespace R51
