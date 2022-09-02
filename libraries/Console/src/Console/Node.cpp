@@ -1,20 +1,21 @@
-#include "Console.h"
+#include "Node.h"
 
 #include <Canny.h>
 #include <Caster.h>
 #include <Common.h>
+#include "Console.h"
 
 namespace R51 {
 
-void Console::emit(const Caster::Yield<Message>& yield) {
-    while (stream_->available())  {
+void ConsoleNode::emit(const Caster::Yield<Message>& yield) {
+    while (console_.stream()->available())  {
         switch (reader_.word()) {
             case Reader::EOW:
                 command_ = command_->next(buffer_);
                 break;
             case Reader::EOL:
                 command_ = command_->next(buffer_);
-                command_->run(stream_, yield);
+                command_->run(&console_, yield);
                 command_ = &root_;
                 break;
             case Reader::OVERRUN:
@@ -26,18 +27,17 @@ void Console::emit(const Caster::Yield<Message>& yield) {
     }
 }
 
-void Console::handle(const Message& msg) {
-    if (msg.type() == Message::EMPTY || !writeFilter(msg)) {
-        return;
-    }
+void ConsoleNode::handle(const Message& msg) {
     switch (msg.type()) {
         case Message::EVENT:
-            stream_->print("console: recv ");
-            stream_->println(msg.event());
+            console_.stream()->print("console: event recv ");
+            console_.stream()->println(msg.event());
             break;
         case Message::CAN_FRAME:
-            stream_->print("console: recv ");
-            stream_->println(msg.can_frame());
+            if (console_.can_filter()->match(msg.can_frame())) {
+                console_.stream()->print("console: can recv ");
+                console_.stream()->println(msg.can_frame());
+            }
             break;
         case Message::EMPTY:
             break;

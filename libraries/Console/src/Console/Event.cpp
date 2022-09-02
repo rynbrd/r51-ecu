@@ -3,14 +3,15 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Common.h>
+#include "Console.h"
 
 namespace R51::internal {
 
-void EventSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yield) {
+void EventSendRunCommand::run(Console* console, const Caster::Yield<Message>& yield) {
     size_t len = strlen(encoded_);
     if (len < 5 || encoded_[2] != ':' || (
             encoded_[5] != '#' && encoded_[5] != 0)) {
-        console->println("console: invalid event format");
+        console->stream()->println("console: invalid event format");
         return;
     }
 
@@ -21,8 +22,8 @@ void EventSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yie
 
     if (len <= 5) {
         memset(event_.data, 0xFF, 6);
-        console->print("console: send event ");
-        console->println(event_);
+        console->stream()->print("console: send event ");
+        console->stream()->println(event_);
         yield(event_);
         return;
     }
@@ -54,8 +55,8 @@ void EventSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yie
     for (int i = data_len; i < 6; ++i) {
         event_.data[i] = 0xFF;
     }
-    console->print("console: send event ");
-    console->println(event_);
+    console->stream()->print("console: send event ");
+    console->stream()->println(event_);
     yield(event_);
 }
 

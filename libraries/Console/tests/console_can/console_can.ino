@@ -20,7 +20,7 @@ test(ConsoleCANTest, WriteEmpty) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     Message msg;
     console.handle(msg);
@@ -33,24 +33,24 @@ test(ConsoleCANTest, WriteStdFrame) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     Frame frame(0x0324, 0, {0x11, 0x22, 0x33, 0x44});
     console.handle(frame);
 
-    assertStringsEqual("recv -324#11:22:33:44\r\n", buffer);
+    assertStringsEqual("console: can recv -324#11:22:33:44\r\n", buffer);
 }
 
 test(ConsoleCANTest, WriteExtFrame) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     Frame frame(0x45324, 1, {0x11, 0x22, 0x33, 0x44});
     console.handle(frame);
 
-    assertStringsEqual("recv +45324#11:22:33:44\r\n", buffer);
+    assertStringsEqual("console: can recv +45324#11:22:33:44\r\n", buffer);
 }
 
 test(ConsoleCANTest, ReadStdFrame) {
@@ -60,7 +60,7 @@ test(ConsoleCANTest, ReadStdFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -75,7 +75,7 @@ test(ConsoleCANTest, ReadExtFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -90,7 +90,7 @@ test(ConsoleCANTest, ReadAutoStdFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -105,7 +105,7 @@ test(ConsoleCANTest, ReadAutoExtFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -120,7 +120,7 @@ test(ConsoleCANTest, ReadNoColons) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -128,14 +128,14 @@ test(ConsoleCANTest, ReadNoColons) {
     assertPrintablesEqual(yield.messages()[0].can_frame(), expect);
 }
 
-test(ConsoleFrameTest, ReadValidButBadlyFormed) {
+test(ConsoleCANTest, ReadValidButBadlyFormed) {
     Frame expect(0x456, 0, {0x11, 0x02, 0xFF, 0xAB, 0x0C, 0x0E});
     strcpy((char*)buffer, "can send 00000456#112:FF:ABC:E\n");
 
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);

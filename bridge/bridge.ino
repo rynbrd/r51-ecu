@@ -30,7 +30,7 @@ R51::Settings settings;
 R51::IPDM ipdm;
 
 #if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
-R51::Console console(&SERIAL_DEVICE);
+R51::ConsoleNode console(&SERIAL_DEVICE);
 #endif
 
 #ifdef DEFOG_HEATER_ENABLE

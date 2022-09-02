@@ -2,8 +2,9 @@
 #define _R51_CONSOLE_ROOT_H_
 
 #include <Arduino.h>
-#include "Command.h"
 #include "CAN.h"
+#include "Command.h"
+#include "Console.h"
 #include "Error.h"
 #include "Event.h"
 
@@ -23,8 +24,8 @@ class RootCommand : public Command {
 
         // Run the command. The command may yield messages or print information
         // to the user.
-        void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("console: command incomplete");
+        void run(Console* console, const Caster::Yield<Message>&) {
+            console->stream()->println("console: command incomplete");
         }
 
     private:

@@ -3,10 +3,11 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Caster.h>
+#include "Console.h"
 
 namespace R51::internal {
 
-void CANSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yield) {
+void CANSendRunCommand::run(Console* console, const Caster::Yield<Message>& yield) {
     size_t len = strlen(buffer_);
     size_t pos = 0;
     size_t offset = 0;
@@ -23,7 +24,7 @@ void CANSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yield
     }
     frame_.id(strtoul(buffer_ + offset, nullptr, 16));
     if (frame_.id() == 0) {
-        console->println("console: invalid CAN frame format");
+        console->stream()->println("console: invalid CAN frame format");
         return;
     }
 
@@ -57,8 +58,8 @@ void CANSendRunCommand::run(Stream* console, const Caster::Yield<Message>& yield
         }
     }
     frame_.data((uint8_t*)buffer_, data_len);
-    console->print("console: send frame ");
-    console->println(frame_);
+    console->stream()->print("console: send frame ");
+    console->stream()->println(frame_);
     yield(frame_);
 }
 

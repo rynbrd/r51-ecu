@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "Command.h"
+#include "Console.h"
 
 namespace R51::internal {
 
@@ -17,8 +18,8 @@ class ErrorCommand : public Command {
 // Prints a "command not found" error when run.
 class NotFoundCommand : public ErrorCommand {
     public:
-        void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("console: command not found");
+        void run(Console* console, const Caster::Yield<Message>&) {
+            console->stream()->println("console: command not found");
         }
 
         static Command* get() {
@@ -30,8 +31,8 @@ class NotFoundCommand : public ErrorCommand {
 // Prints a "not enough arguments" error when run.
 class NotEnoughArgumentsCommand : public ErrorCommand {
     public:
-        void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("console: not enough arguments");
+        void run(Console* console, const Caster::Yield<Message>&) {
+            console->stream()->println("console: not enough arguments");
         }
 
         static Command* get() {
@@ -43,8 +44,8 @@ class NotEnoughArgumentsCommand : public ErrorCommand {
 // Prints a "too many arguments" error when run.
 class TooManyArgumentsCommand : public ErrorCommand {
     public:
-        void run(Stream* console, const Caster::Yield<Message>&) {
-            console->println("console: too many arguments");
+        void run(Console* console, const Caster::Yield<Message>&) {
+            console->stream()->println("console: too many arguments");
         }
 
         static Command* get() {

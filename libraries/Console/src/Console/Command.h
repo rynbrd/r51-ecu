@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Common.h>
+#include "Console.h"
 
 namespace R51::internal {
 
@@ -17,7 +18,7 @@ class Command {
 
         // Run the command. The command may yield messages or print information
         // to the user.
-        virtual void run(Stream* console, const Caster::Yield<Message>& yield) = 0;
+        virtual void run(Console* console, const Caster::Yield<Message>& yield) = 0;
 };
 
 }  // namespace R51::internal

@@ -5,6 +5,7 @@
 #include <Caster.h>
 #include <Common.h>
 #include "Command.h"
+#include "Console.h"
 #include "Error.h"
 
 namespace R51::internal {
@@ -18,7 +19,7 @@ class EventSendRunCommand : public Command {
         }
 
         // Run the command. Parses and yields the event.
-        void run(Stream* console, const Caster::Yield<Message>& yield) override;
+        void run(Console* console, const Caster::Yield<Message>& yield) override;
 
     private:
         char* encoded_;

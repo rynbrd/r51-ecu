@@ -20,7 +20,7 @@ test(ConsoleEventTest, WriteEmpty) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     Message msg;
     console.handle(msg);
@@ -33,36 +33,36 @@ test(ConsoleEventTest, WriteEventEmptyPayload) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     Event event(0x01, 0x02);
     console.handle(event);
 
-    assertStringsEqual("recv 01:02#FF:FF:FF:FF:FF:FF\r\n", buffer);
+    assertStringsEqual("console: event recv 01:02#FF:FF:FF:FF:FF:FF\r\n", buffer);
 }
 
 test(ConsoleEventTest, WriteEventPartialPayload) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     Event event(0x01, 0x02, {0xAA, 0xBB});
     console.handle(event);
 
-    assertStringsEqual("recv 01:02#AA:BB:FF:FF:FF:FF\r\n", buffer);
+    assertStringsEqual("console: event recv 01:02#AA:BB:FF:FF:FF:FF\r\n", buffer);
 }
 
 test(ConsoleEventTest, WriteEventFullPayload) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     Event event(0x01, 0x02, {0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE});
     console.handle(event);
 
-    assertStringsEqual("recv 01:02#99:AA:BB:CC:DD:EE\r\n", buffer);
+    assertStringsEqual("console: event recv 01:02#99:AA:BB:CC:DD:EE\r\n", buffer);
 }
 
 test(ConsoleEventTest, ReadEmptyEvent) {
@@ -72,7 +72,7 @@ test(ConsoleEventTest, ReadEmptyEvent) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -87,7 +87,7 @@ test(ConsoleEventTest, ReadPartialEvent) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -102,7 +102,7 @@ test(ConsoleEventTest, ReadFullEvent) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -117,7 +117,7 @@ test(ConsoleEventTest, ReadNoColons) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -132,7 +132,7 @@ test(ConsoleEventTest, ReadValidButBadlyFormedEvent) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -146,7 +146,7 @@ test(ConsoleEventTest, ReadInvalidEvent) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    Console console(&stream);
+    ConsoleNode console(&stream);
 
     console.emit(yield);
     assertSize(yield, 0);
