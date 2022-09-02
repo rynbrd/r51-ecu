@@ -30,6 +30,9 @@ class EngineTempState : public Caster::Node<Message> {
         bool changed_;
         Event event_;
         Ticker ticker_;
+
+        void handleFrame(const Canny::Frame& frame);
+        void handleEvent(const Event& event);
 };
 
 }  // namespace R51

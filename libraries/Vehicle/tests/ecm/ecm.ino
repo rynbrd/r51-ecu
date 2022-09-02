@@ -71,6 +71,37 @@ test(EngineTempStateTest, MaxTemp) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
+test(EngineTempStateTest, Request) {
+    FakeYield yield;
+    Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    Event control(
+        (uint8_t)SubSystem::ECM,
+        (uint8_t)ECMEvent::REQUEST);
+    Event expect(
+        (uint8_t)SubSystem::ECM,
+        (uint8_t)ECMEvent::ENGINE_TEMP_STATE,
+        {0x29});
+
+    // Set the temperature from frame.
+    EngineTempState ecm;
+    ecm.handle(f);
+    ecm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Request current state.
+    ecm.handle(control);
+    ecm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Ensure no additional events are sent.
+    ecm.emit(yield);
+    assertSize(yield, 0);
+}
+
 }  // namespace R51
 
 // Test boilerplate.
