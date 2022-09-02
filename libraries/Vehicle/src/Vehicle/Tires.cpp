@@ -60,6 +60,8 @@ void TirePressureState::handleEvent(const Event& event) {
         case TireEvent::SWAP_POSITION:
             swapPosition(event.data[0] & 0x0F, (event.data[0] & 0xF0) >> 4);
             break;
+        default:
+            break;
     }
 }
 
