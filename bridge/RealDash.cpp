@@ -23,6 +23,20 @@ void RealDashAdapter::handle(const Message& msg) {
 }
 
 void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
+    if (hb_id_ > 0 && hb_ticker_.active()) {
+        frame_.id(hb_id_);
+        frame_.resize(8);
+        frame_.data()[0] = hb_counter_++;
+        memset(frame_.data()+1, 0, 7);
+        hb_ticker_.reset();
+
+        Canny::Error err = connection_->write(frame_);
+        if (err != Canny::ERR_OK) {
+            DEBUG_MSG_VAL("realdash: write error: ", err);
+            DEBUG_MSG_VAL("realdash: discard frame: ", frame_);
+        }
+    }
+
     Canny::Error err = connection_->read(&frame_);
     if (err == Canny::ERR_FIFO) {
         return;

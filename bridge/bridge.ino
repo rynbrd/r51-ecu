@@ -59,7 +59,8 @@ void onBluetoothDisconnect() {
 #ifdef REALDASH_ENABLE
 #pragma message("realdash enabled")
 Canny::RealDash realdash_connection(&REALDASH_SERIAL);
-RealDashAdapter realdash(&realdash_connection, REALDASH_FRAME_ID);
+RealDashAdapter realdash(&realdash_connection, REALDASH_FRAME_ID,
+        REALDASH_HB_ID, REALDASH_HB_MS);
 #endif
 
 Bus<Message>* bus;
@@ -132,6 +133,6 @@ void setup() {
 void loop() {
     bus->loop();
 #ifdef BLUETOOTH_ENABLE
-    ble.update();
+    ble.update(BLUETOOTH_UPDATE_MS);
 #endif
 }

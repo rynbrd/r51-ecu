@@ -29,6 +29,8 @@
 // Uncomment to enable RealDash serial.
 #define REALDASH_ENABLE
 #define REALDASH_SERIAL ble
-#define REALDASH_FRAME_ID 0x01
+#define REALDASH_FRAME_ID 0x10
+#define REALDASH_HB_ID 0x20
+#define REALDASH_HB_MS 500
 
 #endif  // _R51_BRIDGE_CONFIG_
