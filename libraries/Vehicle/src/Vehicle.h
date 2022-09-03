@@ -4,6 +4,7 @@
 #include "Vehicle/Climate.h"
 #include "Vehicle/ClimateEvents.h"
 #include "Vehicle/ClimateFrames.h"
+#include "Vehicle/Config.h"
 #include "Vehicle/ECM.h"
 #include "Vehicle/IPDM.h"
 #include "Vehicle/Settings.h"

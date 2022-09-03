@@ -5,6 +5,7 @@
 #include <Canny.h>
 #include <Caster.h>
 #include <Common.h>
+#include "Config.h"
 
 namespace R51 {
 
@@ -17,7 +18,8 @@ enum class TireEvent : uint8_t {
 // Track tire pressure as reported in the 0x385 CAN frame.
 class TirePressureState : public Caster::Node<Message> {
     public:
-        TirePressureState(uint32_t tick_ms = 0, Faker::Clock* clock = Faker::Clock::real());
+        TirePressureState(ConfigStore* config = nullptr,
+                uint32_t tick_ms = 0, Faker::Clock* clock = Faker::Clock::real());
 
         // Handle 0x385 tire pressure state frames. Returns true if the state
         // changed as a result of handling the frame.
@@ -27,6 +29,7 @@ class TirePressureState : public Caster::Node<Message> {
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
+        ConfigStore* config_;
         bool changed_;
         Event event_;
         Ticker ticker_;

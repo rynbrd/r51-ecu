@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Common.h>
+#include "Config.h"
 
 namespace R51 {
 namespace {
@@ -16,10 +17,14 @@ uint8_t getPressureValue(const Canny::Frame& frame, int tire) {
 
 }  // namespace
 
-TirePressureState::TirePressureState(uint32_t tick_ms, Faker::Clock* clock) :
-    changed_(false),
+TirePressureState::TirePressureState(ConfigStore* config, uint32_t tick_ms, Faker::Clock* clock) :
+    config_(config), changed_(false),
     event_((uint8_t)SubSystem::TIRE, (uint8_t)TireEvent::PRESSURE_STATE, {0x00, 0x00, 0x00, 0x00}),
-    ticker_(tick_ms, clock), map_{0, 1, 2, 3} {}
+    ticker_(tick_ms, clock), map_{0, 1, 2, 3} {
+        if (config_ != nullptr) {
+            config_->loadTireMap(map_);
+        }
+    }
 
 void TirePressureState::handle(const Message& msg) {
     switch (msg.type()) {
@@ -59,6 +64,9 @@ void TirePressureState::handleEvent(const Event& event) {
             break;
         case TireEvent::SWAP_POSITION:
             swapPosition(event.data[0] & 0x0F, (event.data[0] & 0xF0) >> 4);
+            if (config_ != nullptr) {
+                config_->saveTireMap(map_);
+            }
             break;
         default:
             break;
