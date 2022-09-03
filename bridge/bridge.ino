@@ -28,6 +28,7 @@ FilteredCAN can;
 R51::Climate climate;
 R51::Settings settings;
 R51::IPDM ipdm;
+R51::TirePressureState tires;
 
 #if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
 R51::ConsoleNode console(&SERIAL_DEVICE);
@@ -69,6 +70,7 @@ Node<Message>* nodes[] = {
     &climate,
     &settings,
     &ipdm,
+    &tires,
 #if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
     &console,
 #endif
