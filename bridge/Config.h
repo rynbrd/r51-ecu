@@ -25,6 +25,7 @@
 #define BLUETOOTH_ENABLE
 #define BLUETOOTH_SPI_CS_PIN 24
 #define BLUETOOTH_SPI_IRQ_PIN 23
+#define BLUETOOTH_UPDATE_MS 1000
 
 // Uncomment to enable RealDash serial.
 #define REALDASH_ENABLE
