@@ -44,7 +44,7 @@ void TirePressureState::handleFrame(const Canny::Frame& frame) {
         return;
     }
 
-    for (int i = 0; i < 4; i++) {
+    for (uint8_t i = 0; i < 4; i++) {
         uint8_t value = getPressureValue(frame, map_[i]);
         if (event_.data[i] != value) {
             event_.data[i] = value;

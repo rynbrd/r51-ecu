@@ -41,7 +41,7 @@ class PicoConfigStore : public R51::ConfigStore {
             memset(data_, 0, FLASH_PAGE_SIZE);
 
             uint32_t checksum = CRC32::calculate(flash_, kDataLen);
-            if (memcmp(&checksum, flash_ + kDataLen, sizeof(checksum)) == 0) {
+            if (checksum != 0xFFFFFFFF && memcmp(&checksum, flash_ + kDataLen, sizeof(checksum)) == 0) {
                 memcpy(data_, flash_, kDataLen);
                 valid_ = true;
                 return;
@@ -60,7 +60,7 @@ class PicoConfigStore : public R51::ConfigStore {
 
         void save() {
             uint32_t checksum = CRC32::calculate(data_, kDataLen);
-            memcpy(&checksum, data_ + kDataLen, sizeof(checksum));
+            memcpy(data_ + kDataLen, &checksum, sizeof(checksum));
             if (memcmp(data_, flash_, kDataLen + sizeof(checksum)) == 0) {
                 return;
             }

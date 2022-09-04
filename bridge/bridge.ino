@@ -18,6 +18,7 @@
 #endif
 
 #include "CAN.h"
+#include "RP2040.h"
 #include "RealDash.h"
 
 using ::Caster::Bus;
@@ -28,7 +29,14 @@ FilteredCAN can;
 R51::Climate climate;
 R51::Settings settings;
 R51::IPDM ipdm;
+
+#ifdef RASPBERRYPI_PICO
+#pragma message("RP2040 support enabled")
+PicoConfigStore config(false);
+R51::TirePressureState tires(&config);
+#else
 R51::TirePressureState tires;
+#endif
 
 #if defined(CONSOLE_ENABLE) && defined(SERIAL_DEVICE)
 R51::ConsoleNode console(&SERIAL_DEVICE);
