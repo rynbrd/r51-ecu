@@ -10,8 +10,8 @@
 namespace R51 {
 
 enum class TireEvent : uint8_t {
-    PRESSURE_STATE = 0x00,
-    REQUEST = 0x01,
+    REQUEST = 0x00,
+    PRESSURE_STATE = 0x01,
     SWAP_POSITION = 0x02,
 };
 

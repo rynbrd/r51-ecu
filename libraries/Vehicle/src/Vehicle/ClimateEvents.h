@@ -8,17 +8,17 @@
 namespace R51 {
 
 enum class ClimateEvent : uint8_t {
-    SYSTEM_STATE = 0x00,        // State event. Holds climate system state.
-    AIRFLOW_STATE = 0x01,       // State event. Holds vent and fan speed state.
-    TEMP_STATE = 0x02,          // State event. Holds zone temperature settings.
-    REQUEST = 0x10,             // Request the current state. Responds with all three state events.
-    TURN_OFF = 0x03,            // Turn off climate control.
-    TOGGLE_AUTO = 0x04,         // Toggle climate auto mode.
-    TOGGLE_AC = 0x05,           // Toggle A/C compressor request on/off.
-    TOGGLE_DUAL = 0x06,         // Toggle dual zone mode.
-    TOGGLE_DEFROST = 0x07,      // Toggle defrost mode.
-    INC_FAN_SPEED = 0x08,       // Increase fan speed.
-    DEC_FAN_SPEED = 0x09,       // Decrease fan speed.
+    REQUEST = 0x00,             // Request the current state. Responds with all three state events.
+    SYSTEM_STATE = 0x01,        // State event. Holds climate system state.
+    AIRFLOW_STATE = 0x02,       // State event. Holds vent and fan speed state.
+    TEMP_STATE = 0x03,          // State event. Holds zone temperature settings.
+    TURN_OFF = 0x04,            // Turn off climate control.
+    TOGGLE_AUTO = 0x05,         // Toggle climate auto mode.
+    TOGGLE_AC = 0x06,           // Toggle A/C compressor request on/off.
+    TOGGLE_DUAL = 0x07,         // Toggle dual zone mode.
+    TOGGLE_DEFROST = 0x08,      // Toggle defrost mode.
+    INC_FAN_SPEED = 0x09,       // Increase fan speed.
+    DEC_FAN_SPEED = 0x10,       // Decrease fan speed.
     TOGGLE_RECIRCULATE = 0x0A,  // Toggle airflow recirculation.
     CYCLE_AIRFLOW_MODE = 0x0B,  // Cycle airflow mode (face, feet, etc).
     INC_DRIVER_TEMP = 0x0C,     // Increase driver zone temperature.

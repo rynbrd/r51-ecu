@@ -9,8 +9,8 @@
 namespace R51 {
 
 enum class ECMEvent : uint8_t {
-    ENGINE_TEMP_STATE = 0x00,
-    REQUEST = 0x01,
+    REQUEST = 0x00,
+    ENGINE_TEMP_STATE = 0x01,
 };
 
 // Track reported coolant temperature from the ECM via the 0x551 CAN frame.
