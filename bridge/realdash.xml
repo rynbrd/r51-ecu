@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RealDashCAN version="2">
+  <frames>
+    <!-- ECM -->
+    <frame id="0x10:0x0400:0:2">
+      <value name="ECM State Request" offset="2" length="1" initialValue="0"></value>
+    </frame>
+    <frame id="0x10:0x0401:0:2">
+      <value name="ECM Coolant Temperature" offset="2" length="1" conversion="V-40"></value>
+    </frame>
+
+    <!-- IPDM -->
+    <frame id="0x10:0x0600:0:2">
+      <value name="IPDM State Request" offset="2" length="1" initialValue="0"></value>
+    </frame>
+    <frame id="0x10:0x0601:0:2">
+      <value name="IPDM High Beams" offset="2" startbit="0"  bitcount="1"></value>
+      <value name="IPDM Low BeamS" offset="2" startbit="1"  bitcount="1"></value>
+      <value name="IPDM Running Lights" offset="2" startbit="2"  bitcount="1"></value>
+      <value name="IPDM Fog Lights" offset="2" startbit="3"  bitcount="1"></value>
+      <value name="IPDM Rear Window Defog" offset="2" startbit="6"  bitcount="1"></value>
+      <value name="IPDM A/C Compressor" offset="2" startbit="7"  bitcount="1"></value>
+    </frame>
+    <frame id="0x10:0x0602:0:2">
+      <value name="IPDM Toggle Defog" offset="2" length="1"></value>
+    </frame>
+
+    <!-- Climate -->
+    <frame id="0x10:0x0A00:0:2">
+      <value name="Climate Control Request" offset="2" length="1" initialValue="0"></value>
+    </frame>
+    <frame id="0x10:0x0A01:0:2">
+      <value name="Climate System Mode" offset="2" startbit="0" bitcount="2"></value>
+      <value name="Climate A/C Compressor" offset="2" startbit="2" bitcount="1"></value>
+      <value name="Climate DUal Zone" offset="2" startbit="3" bitcount="1"></value>
+    </frame>
+    <frame id="0x10:0x0A02:0:2">
+      <value name="Climate Fan Speed" offset="2" length="1"></value>
+      <value name="Climate Face Vents" offset="3" startbit="0" bitcount="1"></value>
+      <value name="Climate Feet Vents" offset="3" startbit="1" bitcount="1"></value>
+      <value name="Climate Windshield Vents" offset="3" startbit="2" bitcount="1"></value>
+      <value name="Climate Cabin Recirculate" offset="3" startbit="3" bitcount="1"></value>
+    </frame>
+    <frame id="0x10:0x0A03:0:2">
+      <value name="Climate Driver Temperature" offset="2" length="1"></value>
+      <value name="Climate Passenger Temperature" offset="3" length="1"></value>
+      <value name="Climate Outside Temperature" offset="4" length="1"></value>
+      <value name="Climate Temperature Units" offset="5" startbit="0" bitcount="1" enum="0:Metric,1:US"></value>
+    </frame>
+    <frame id="0x10:0x0A04:0:2">
+      <value name="Climate System Deactivate" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A05:0:2">
+      <value name="Climate Auto Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A06:0:2">
+      <value name="Climate A/C Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A07:0:2">
+      <value name="Climate Dual Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A08:0:2">
+      <value name="Climate Defrost Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A09:0:2">
+      <value name="Climate Fan Speed Increase" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A0A:0:2">
+      <value name="Climate Fan Speed Decrease" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A0B:0:2">
+      <value name="Climate Recirculate Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A0C:0:2">
+      <value name="Climate Mode Cycle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A0D:0:2">
+      <value name="Climate Driver Temperature Increase" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A0E:0:2">
+      <value name="Climate Driver Temperature Decrease" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A0F:0:2">
+      <value name="Climate Passenger Temperature Increase" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0A10:0:2">
+      <value name="Climate Passenger Temperature Decrease" offset="2" length="1"></value>
+    </frame>
+
+    <!-- Settings -->
+    <frame id="0x10:0x0B00:0:2">
+      <value name="Settings State Request" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B01:0:2">
+      <value name="Settings Auto Interior Illumination" offset="2" startbit="0" bitcount="1"></value>
+      <value name="Settings Slide Driver Seat Back on Exit" offset="2" startbit="1" bitcount="1"></value>
+      <value name="Settings Speed Sensing Wiper Interval" offset="2" startbit="2" bitcount="1"></value>
+      <value name="Settings Auto Headlights Sensitivity" offset="3" startbit="0" bitcount="2" conversion="V+1"></value>
+      <value name="Settings Auto Headlights Off Delay" offset="3" startbit="4" bitcount="4" conversion="V*15"></value>
+      <value name="Settings Selective Door Unlock" offset="4" startbit="0" bitcount="1"></value>
+      <value name="Settings Auto Re-Lock Time" offset="4" startbit="4" bitcount="4"></value>
+      <value name="Settings Remote Key Response Horn" offset="5" startbit="0" bitcount="1"></value>
+      <value name="Settings Remote Key Response Lights" offset="5" startbit="2" bitcount="2"></value>
+    </frame>
+    <frame id="0x10:0x0B02:0:2">
+      <value name="Settings Auto Interior Illumination Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B03:0:2">
+      <value name="Settings Slide Driver Seat Back On Exit Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B04:0:2">
+      <value name="Settings Speed Sensing Wiper Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B05:0:2">
+      <value name="Settings Auto Headlight Sensitivity Next" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B06:0:2">
+      <value name="Settings Auto Headlight Sensitivity Prev" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B07:0:2">
+      <value name="Settings Auto Headlight Off Delay Next" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B08:0:2">
+      <value name="Settings Auto Headlight Off Delay Prev" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B09:0:2">
+      <value name="Settings Selective Door Unlock Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B0A:0:2">
+      <value name="Settings Auto Relock Time Next" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B0B:0:2">
+      <value name="Settings Auto Relock Time Prev" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B0C:0:2">
+      <value name="Settings Remote Key Response Horn Toggle" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B0D:0:2">
+      <value name="Settings Remote Key Response Lights Next" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B0E:0:2">
+      <value name="Settings Remote Key Response Lights Prev" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0B0F:0:2">
+      <value name="Settings Factory Reset" offset="2" length="1"></value>
+    </frame>
+
+    <!-- Steering Keypad -->
+    <frame id="0x10:0x0C00:0:2">
+      <value name="Steering Power Key" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0C01:0:2">
+      <value name="Steering Mode Key" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0C02:0:2">
+      <value name="Steering Seek Up Key" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0C03:0:2">
+      <value name="Steering Seek Down Key" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0C04:0:2">
+      <value name="Steering Volume Up Key" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0C05:0:2">
+      <value name="Steering Volume Down Key" offset="2" length="1"></value>
+    </frame>
+
+    <!-- Bluetooth -->
+    <frame id="0x10:0x0D00:0:2">
+      <value name="Bluetooth State Request" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0D01:0:2">
+      <value name="Bluetooth Connected" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0D02:0:2">
+      <value name="Bluetooth Disconnect Host" offset="2" length="1"></value>
+    </frame>
+    <frame id="0x10:0x0D03:0:2">
+      <value name="Bluetooth Forget Host" offset="2" length="1"></value>
+    </frame>
+
+    <!-- RealDash -->
+    <frame id="0x20">
+      <value name="Heartbeat Counter" offset="0" length="1"></value>
+    </frame>
+  </frames>
+</RealDashCAN>
