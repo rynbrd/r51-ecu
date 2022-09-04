@@ -108,7 +108,7 @@ void setup_serial() {
 }
 
 void setup_can() {
-    DEBUG_MSG("setup: connecting to can bus");
+    DEBUG_MSG("setup: connecting to can");
     while (!CAN.begin(Canny::CAN20_250K)) {
         DEBUG_MSG("setup: failed to init can bus");
         delay(200);
@@ -128,7 +128,7 @@ void setup_bluetooth() {
 }
 
 void setup_bus() {
-    DEBUG_MSG("setup: initializing bus");
+    DEBUG_MSG("setup: configuring bus");
     bus = new Bus<Message>(nodes, sizeof(nodes)/sizeof(nodes[0]));
 }
 
