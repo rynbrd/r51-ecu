@@ -31,3 +31,6 @@
 [submodule "libraries/ArduinoR51Test"]
 	path = libraries/ArduinoR51Test
 	url = git@github.com:BlueDragonX/ArduinoR51Test.git
+[submodule "libraries/CRC32"]
+	path = libraries/CRC32
+	url = git@github.com:BlueDragonX/ArduionoCRC32.git
