@@ -12,11 +12,11 @@ class FilteredCAN : public R51::CANNode {
     public:
         FilteredCAN() : R51::CANNode(&CAN) {}
 
-        // Read R51 climate and settings state frames.
+        // Read R51 climate, settings, tire, and IPDM state frames.
         bool readFilter(const Canny::Frame& frame) const override {
             return (frame.id() & 0xFFFFFFFE) == 0x54A ||
                    (frame.id() & 0xFFFFFFFE) == 0x72E ||
-                    frame.id() == 0x625;
+                    frame.id() == 0x385 || frame.id() == 0x625;
         }
 
         // Send R51 climate and settings control frames.
