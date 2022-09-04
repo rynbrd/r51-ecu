@@ -8,8 +8,8 @@
 namespace R51 {
 
 enum class BluetoothEvent : uint8_t {
-    STATE = 0x00,       // State event. Holds the current connection state.
-    REQUEST = 0x01,     // Request the current connection state.
+    REQUEST = 0x00,     // Request the current connection state.
+    STATE = 0x01,       // State event. Holds the current connection state.
     DISCONNECT = 0x02,  // Disconnect the current host device.
     FORGET = 0x03,      // Disconnect and forget the current host device.
 };

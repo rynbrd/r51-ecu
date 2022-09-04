@@ -18,13 +18,13 @@ enum class ClimateEvent : uint8_t {
     TOGGLE_DUAL = 0x07,         // Toggle dual zone mode.
     TOGGLE_DEFROST = 0x08,      // Toggle defrost mode.
     INC_FAN_SPEED = 0x09,       // Increase fan speed.
-    DEC_FAN_SPEED = 0x10,       // Decrease fan speed.
-    TOGGLE_RECIRCULATE = 0x0A,  // Toggle airflow recirculation.
-    CYCLE_AIRFLOW_MODE = 0x0B,  // Cycle airflow mode (face, feet, etc).
-    INC_DRIVER_TEMP = 0x0C,     // Increase driver zone temperature.
-    DEC_DRIVER_TEMP = 0x0D,     // Decrease driver zone temperature.
-    INC_PASSENGER_TEMP = 0x0E,  // Increase passenger zone temperature.
-    DEC_PASSENGER_TEMP = 0x0F,  // Decrease passenger zone temperature.
+    DEC_FAN_SPEED = 0x0A,       // Decrease fan speed.
+    TOGGLE_RECIRCULATE = 0x0B,  // Toggle airflow recirculation.
+    CYCLE_AIRFLOW_MODE = 0x0C,  // Cycle airflow mode (face, feet, etc).
+    INC_DRIVER_TEMP = 0x0D,     // Increase driver zone temperature.
+    DEC_DRIVER_TEMP = 0x0E,     // Decrease driver zone temperature.
+    INC_PASSENGER_TEMP = 0x0F,  // Increase passenger zone temperature.
+    DEC_PASSENGER_TEMP = 0x10,  // Decrease passenger zone temperature.
 };
 
 enum ClimateSystemMode : uint8_t {
