@@ -22,9 +22,6 @@
 [submodule "libraries/AnalogMultiButton"]
 	path = libraries/AnalogMultiButton
 	url = git@github.com:BlueDragonX/AnalogMultiButton.git
-[submodule "libraries/CRC32"]
-	path = libraries/CRC32
-	url = git@github.com:BlueDragonX/ArduionoCRC32.git
 [submodule "libraries/ArduinoCanny"]
 	path = libraries/Canny
 	url = git@github.com:BlueDragonX/ArduinoCanny.git
