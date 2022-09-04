@@ -2,6 +2,7 @@
 #define _R51_VEHICLE_IPDM_H_
 
 #include <Arduino.h>
+#include <Canny.h>
 #include <Caster.h>
 #include <Common.h>
 #include <Faker.h>
@@ -10,8 +11,9 @@
 namespace R51 {
 
 enum class IPDMEvent : uint8_t {
-    POWER_STATE = 0x00,
-    TOGGLE_DEFOG = 0x01,
+    REQUEST = 0x00,
+    POWER_STATE = 0x01,
+    TOGGLE_DEFOG = 0x02,
 };
 
 // Tracks IPDM state stored in the 0x625 CAN frame.
@@ -28,6 +30,9 @@ class IPDM : public Caster::Node<Message> {
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
+        void handleFrame(const Canny::Frame& frame);
+        void handleEvent(const Event& event);
+
         bool changed_;
         Event event_;
         Ticker ticker_;
