@@ -14,7 +14,7 @@
 
 #include "CAN.h"
 #include "Debug.h"
-#include "RP2040.h"
+#include "Pico.h"
 #include "RealDash.h"
 
 namespace R51 {
@@ -33,7 +33,7 @@ class Core0 {
             steering_keypad_node_(STEERING_PIN_A, STEERING_PIN_B),
             #endif
             #if defined(RASPBERRYPI_PICO)
-            config_(false), tires_node_(&config_),
+            tires_node_(&config_),
             #endif
             #if defined(CONSOLE_ENABLE)
             console_node_(&SERIAL_DEVICE),

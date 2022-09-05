@@ -1,5 +1,5 @@
-#ifndef _R51_BRIDGE_RP2040_H_
-#define _R51_BRIDGE_RP2040_H_
+#ifndef _R51_BRIDGE_PICO_H_
+#define _R51_BRIDGE_PICO_H_
 #ifdef RASPBERRYPI_PICO
 
 #include <Arduino.h>
@@ -9,32 +9,31 @@
 extern "C" {
     #include <hardware/flash.h>
     #include <hardware/sync.h>
-    #include <pico/multicore.h>
 };
 
 #define FLASH_TARGET_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 #define FLASH_MEMORY_ADDRESS (XIP_BASE + FLASH_TARGET_OFFSET)
 
-class PicoConfigStore : public R51::ConfigStore {
+namespace R51 {
+
+class PicoConfigStore : public ConfigStore {
     public:
-        PicoConfigStore(bool multicore_lockout) :
-                lockout_(multicore_lockout), valid_(false),
-                flash_((const uint8_t*)(FLASH_MEMORY_ADDRESS)) {
+        PicoConfigStore() : valid_(false), flash_((const uint8_t*)(FLASH_MEMORY_ADDRESS)) {
             init();
         }
 
         Error loadTireMap(uint8_t* map) override {
             if (!valid_) {
-                return R51::ConfigStore::UNSET;
+                return ConfigStore::UNSET;
             }
             memcpy(map, data_, 4);
-            return R51::ConfigStore::SET;
+            return ConfigStore::SET;
         }
 
         Error saveTireMap(uint8_t* map) override {
             memcpy(data_, map, 4);
             save();
-            return R51::ConfigStore::SET;
+            return ConfigStore::SET;
         }
 
     private:
@@ -48,15 +47,11 @@ class PicoConfigStore : public R51::ConfigStore {
                 return;
             }
 
-            if (lockout_) {
-                multicore_lockout_start_blocking();
-            }
+            rp2040.idleOtherCore();
             uint32_t ints = save_and_disable_interrupts();
             flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE);
             restore_interrupts(ints);
-            if (lockout_) {
-                multicore_lockout_end_blocking();
-            }
+            rp2040.resumeOtherCore();
         }
 
         void save() {
@@ -66,23 +61,20 @@ class PicoConfigStore : public R51::ConfigStore {
                 return;
             }
 
-            if (lockout_) {
-                multicore_lockout_start_blocking();
-            }
+            rp2040.idleOtherCore();
             uint32_t ints = save_and_disable_interrupts();
             flash_range_program(FLASH_TARGET_OFFSET, data_, FLASH_PAGE_SIZE);
             restore_interrupts(ints);
-            if (lockout_) {
-                multicore_lockout_end_blocking();
-            }
+            rp2040.resumeOtherCore();
         }
 
-        bool lockout_;
         bool valid_;
         const uint8_t* flash_;
         uint8_t data_[FLASH_PAGE_SIZE];
         static const size_t kDataLen = 4;   // The amount of data we're actually storing in flash.
 };
 
+}  // namespace R51
+
 #endif  // RASPBERRYPI_PICO
-#endif  // _R51_BRIDGE_RP2040_H_
+#endif  // _R51_BRIDGE_PICO_H_
