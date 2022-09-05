@@ -24,8 +24,8 @@ void onBluetoothDisconnectProxy(void* arg);
 
 class Core0 {
     public:
-        Core0(Canny::Controller* can) :
-            can_controller_(can), can_node_(can),
+        Core0(Canny::Connection* can) :
+            can_connection_(can), can_node_(can),
             #if defined(DEFOG_HEATER_ENABLE)
             defog_node_(DEFOG_HEATER_PIN, DEFOG_HEATER_MS),
             #endif
@@ -79,11 +79,6 @@ class Core0 {
 
     private:
         void setup_can() {
-            DEBUG_MSG("setup: connecting to can");
-            while (!can_controller_->begin(VEHICLE_CAN_MODE)) {
-                DEBUG_MSG("setup: failed to connect to can");
-                delay(500);
-            }
             nodes_[node_count_++] = &can_node_;
         }
 
@@ -130,9 +125,9 @@ class Core0 {
             bus_ = new Caster::Bus<Message>(nodes_, node_count_);
         }
 
-        Canny::Controller* can_controller_;
+        Canny::Connection* can_connection_;
 
-        FilteredCAN can_node_;
+        LoggingCANNode can_node_;
         Climate climate_node_;
         Settings settings_node_;
         IPDM ipdm_node_;
