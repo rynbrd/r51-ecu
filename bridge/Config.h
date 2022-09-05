@@ -1,9 +1,11 @@
-#ifndef _R51_BRIDGE_CONFIG_
-#define _R51_BRIDGE_CONFIG_
+#ifndef _R51_BRIDGE_CONFIG_H_
+#define _R51_BRIDGE_CONFIG_H_
 
 #define SERIAL_DEVICE Serial
 #define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT true
+
+#define VEHICLE_CAN_MODE Canny::CAN20_250K
 
 // Uncomment the following line to enable debug output.
 #define DEBUG_ENABLE
@@ -29,9 +31,8 @@
 
 // Uncomment to enable RealDash serial.
 #define REALDASH_ENABLE
-#define REALDASH_SERIAL ble
 #define REALDASH_FRAME_ID 0x10
 #define REALDASH_HB_ID 0x20
 #define REALDASH_HB_MS 500
 
-#endif  // _R51_BRIDGE_CONFIG_
+#endif  // _R51_BRIDGE_CONFIG_H_

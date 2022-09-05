@@ -10,7 +10,7 @@ namespace R51 {
 
 class CANNode : public Caster::Node<Message> {
     public:
-        CANNode(Canny::Controller* can) :
+        CANNode(Canny::Connection* can) :
             can_(can), retries_(5), frame_(8) {}
 
         // Write a frame to the CAN bus. Only frames which match filter are
@@ -34,7 +34,7 @@ class CANNode : public Caster::Node<Message> {
 
 
     private:
-        Canny::Controller* can_;
+        Canny::Connection* can_;
         uint8_t retries_;
         Canny::Frame frame_;
 };

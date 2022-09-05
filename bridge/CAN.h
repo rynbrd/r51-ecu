@@ -7,10 +7,12 @@
 
 #include "Debug.h"
 
+namespace R51 {
+
 // CAN node which filters relevant R51 vehicle frames.
-class FilteredCAN : public R51::CANNode {
+class FilteredCAN : public CANNode {
     public:
-        FilteredCAN() : R51::CANNode(&CAN) {}
+        FilteredCAN(Canny::Connection* connection) : CANNode(connection) {}
 
         // Read R51 climate, settings, tire, and IPDM state frames.
         bool readFilter(const Canny::Frame& frame) const override {
@@ -36,5 +38,7 @@ class FilteredCAN : public R51::CANNode {
             DEBUG_MSG_VAL("can: dropped frame: ", frame);
         }
 };
+
+}  // namespace R51
 
 #endif  // _R51_BRIDGE_NODES_

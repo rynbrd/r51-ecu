@@ -7,8 +7,9 @@
 #include <Vehicle.h>
 
 extern "C" {
-    #include <hardware/sync.h>
     #include <hardware/flash.h>
+    #include <hardware/sync.h>
+    #include <pico/multicore.h>
 };
 
 #define FLASH_TARGET_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)

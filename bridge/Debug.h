@@ -1,9 +1,7 @@
-#ifndef __R51_BRIDGE_DEBUG_H__
-#define __R51_BRIDGE_DEBUG_H__
+#ifndef _R51_BRIDGE_DEBUG_H_
+#define _R51_BRIDGE_DEBUG_H_
 
 #include <Arduino.h>
-
-#include "Config.h"
 
 #if defined(DEBUG_ENABLE) && defined(SERIAL_DEVICE)
 
@@ -34,4 +32,4 @@
 
 #endif  // DEBUG_ENABLE && SERIAL_DEVICE
 
-#endif  // __R51_BRIDGE_DEBUG_H__
+#endif  // _R51_BRIDGE_DEBUG_H_
