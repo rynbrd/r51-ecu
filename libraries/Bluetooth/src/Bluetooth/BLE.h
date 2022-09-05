@@ -37,10 +37,10 @@ class BLE : public Stream {
         void update(uint32_t period_ms = 200);
 
         // Set the callback to execute when a host device connects.
-        void setOnConnect(void (*cb)(void));
+        void setOnConnect(void (*cb)(void*), void* arg = nullptr);
 
         // Set the callback to execute when a host device disconnects.
-        void setOnDisconnect(void (*cb)(void));
+        void setOnDisconnect(void (*cb)(void*), void*  arg = nullptr);
 
         // Stream functions.
         int available() override;

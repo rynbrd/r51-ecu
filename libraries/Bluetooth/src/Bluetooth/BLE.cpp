@@ -42,12 +42,12 @@ void BLE::update(uint32_t period_ms) {
     bluefruit_.update(period_ms);
 }
 
-void BLE::setOnConnect(void (*cb)(void)) {
-    bluefruit_.setConnectCallback(cb);
+void BLE::setOnConnect(void (*cb)(void*), void* arg) {
+    bluefruit_.setConnectCallback(cb, arg);
 }
 
-void BLE::setOnDisconnect(void (*cb)(void)) {
-    bluefruit_.setDisconnectCallback(cb);
+void BLE::setOnDisconnect(void (*cb)(void*), void* arg) {
+    bluefruit_.setDisconnectCallback(cb, arg);
 }
 
 int BLE::available() {
