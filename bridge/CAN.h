@@ -1,5 +1,5 @@
-#ifndef _R51_BRIDGE_NODES_
-#define _R51_BRIDGE_NODES_
+#ifndef _R51_BRIDGE_CAN_H_
+#define _R51_BRIDGE_CAN_H_
 
 #include <Canny.h>
 #include <Caster.h>
@@ -57,4 +57,4 @@ class LoggingCANNode : public CANNode {
 
 }  // namespace R51
 
-#endif  // _R51_BRIDGE_NODES_
+#endif  // _R51_BRIDGE_CAN_H_

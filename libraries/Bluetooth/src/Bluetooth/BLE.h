@@ -50,7 +50,6 @@ class BLE : public Stream {
         size_t write(const uint8_t* buffer, size_t size) override;
 
     private:
-
         Adafruit_BluefruitLE_SPI bluefruit_;
 };
 

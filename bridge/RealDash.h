@@ -1,5 +1,5 @@
-#ifndef _R51_BRIDGE_REALDASH_
-#define _R51_BRIDGE_REALDASH_
+#ifndef _R51_BRIDGE_REALDASH_H_
+#define _R51_BRIDGE_REALDASH_H_
 
 #include <Canny.h>
 #include <Caster.h>
@@ -37,4 +37,4 @@ class RealDashAdapter : public Caster::Node<R51::Message> {
         R51::Event event_;
 };
 
-#endif  // _R51_BRIDGE_REALDASH_
+#endif  // _R51_BRIDGE_REALDASH_H_
