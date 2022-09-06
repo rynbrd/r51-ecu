@@ -21,7 +21,7 @@ CANNode::CANNode(Canny::Connection* can, size_t read_buffer_size) :
     }
     read_buffer_ = new Frame[read_buffer_size_];
     for (size_t i = 0; i < read_buffer_size_; ++i) {
-        read_buffer_[read_buffer_size_].reserve(8);
+        read_buffer_[i].reserve(8);
     }
 }
 
