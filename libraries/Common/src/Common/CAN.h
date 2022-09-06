@@ -10,15 +10,15 @@ namespace R51 {
 
 class CANNode : public Caster::Node<Message> {
     public:
-        CANNode(Canny::Connection* can) :
-            can_(can), retries_(5), frame_(8) {}
+        CANNode(Canny::Connection* can, size_t read_buffer_size = 1);
+        virtual ~CANNode();
 
         // Write a frame to the CAN bus. Only frames which match filter are
         // written.
-        virtual void handle(const Message& msg) override;
+        void handle(const Message& msg) override;
 
         // Read a single CAN frame and broadcast it to the event bus.
-        virtual void emit(const Caster::Yield<Message>& yield) override;
+        void emit(const Caster::Yield<Message>& yield) override;
 
         // Only read CAN frames which match this filter.
         virtual bool readFilter(const Canny::Frame&) const { return true; }
@@ -32,11 +32,16 @@ class CANNode : public Caster::Node<Message> {
         // Called when a frame can't be written to the bus.
         virtual void onWriteError(Canny::Error, const Canny::Frame&) {}
 
-
     private:
         Canny::Connection* can_;
         uint8_t retries_;
-        Canny::Frame frame_;
+
+        Canny::Frame* read_buffer_;
+        size_t read_buffer_size_;
+        size_t read_buffer_len_;
+        size_t read_buffer_0_;
+
+        void fillReadBuffer();
 };
 
 }  // namespace R51
