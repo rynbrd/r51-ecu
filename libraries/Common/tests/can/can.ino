@@ -69,8 +69,20 @@ class FakeConnection : public Connection {
             return read_len_ - read_pos_;
         }
 
-        Frame* writes() { return write_buffer_; }
-        size_t writeCount() { return write_len_; }
+        Frame* writeData() { return write_buffer_; }
+        int writeCount() { return write_len_; }
+        void writeReset(int size = -1) {
+            if (size >= 0) {
+                write_size_ = size;
+                delete[] write_buffer_;
+                if (size > 0) {
+                    write_buffer_ = new Frame[size];
+                } else {
+                    write_buffer_ = nullptr;
+                }
+            }
+            write_len_ = 0;
+        }
 
     private:
         Frame* read_buffer_;
@@ -84,7 +96,8 @@ class FakeConnection : public Connection {
 
 class TestNode : public CANNode {
     public:
-        TestNode(Canny::Connection* can, size_t size) : CANNode(can, size) {}
+        TestNode(Canny::Connection* can, size_t read_size, size_t write_size) :
+                CANNode(can, read_size, write_size) {}
 
         bool readFilter(const Canny::Frame& frame) const override {
             return frame.id() != 0x10;
@@ -98,7 +111,7 @@ class TestNode : public CANNode {
 test(CANNodeTest, NoReads) {
     FakeYield yield;
     FakeConnection can(0, 0);
-    TestNode node(&can, 10);
+    TestNode node(&can, 10, 0);
 
     node.emit(yield);
     assertSize(yield, 0);
@@ -107,7 +120,7 @@ test(CANNodeTest, NoReads) {
 test(CANNodeTest, ReadOne) {
     FakeYield yield;
     FakeConnection can(1, 0);
-    TestNode node(&can, 10);
+    TestNode node(&can, 10, 0);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     can.setReadBuffer({f});
@@ -121,7 +134,7 @@ test(CANNodeTest, ReadOne) {
 test(CANNodeTest, ReadMultipleLargerBuffer) {
     FakeYield yield;
     FakeConnection can(3, 0);
-    TestNode node(&can, 10);
+    TestNode node(&can, 10, 0);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -149,7 +162,7 @@ test(CANNodeTest, ReadMultipleLargerBuffer) {
 test(CANNodeTest, ReadMultipleSmallerBuffer) {
     FakeYield yield;
     FakeConnection can(3, 0);
-    TestNode node(&can, 2);
+    TestNode node(&can, 2, 0);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -178,7 +191,7 @@ test(CANNodeTest, ReadMultipleSmallerBuffer) {
 test(CANNodeTest, ReadFiltered) {
     FakeYield yield;
     FakeConnection can(3, 0);
-    TestNode node(&can, 2);
+    TestNode node(&can, 2, 0);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x10, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -196,6 +209,87 @@ test(CANNodeTest, ReadFiltered) {
     assertSize(yield, 1);
     assertIsCANFrame(yield.messages()[0], f3);
     yield.clear();
+}
+
+test(CANNodeTest, WriteNoBuffer) {
+    FakeConnection can(0, 1);
+    TestNode node(&can, 1, 0);
+
+    Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    node.handle(f);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], f);
+}
+
+test(CANNodeTest, WriteBufferSuccess) {
+    FakeConnection can(0, 1);
+    TestNode node(&can, 1, 1);
+
+    Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+
+    node.handle(f);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], f);
+}
+
+test(CANNodeTest, WriteBufferSomeFIFOAndEmit) {
+    FakeYield yield;
+    FakeConnection can(0, 1);
+    TestNode node(&can, 1, 1);
+
+    Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+
+    node.handle(f1);
+    node.handle(f2);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], f1);
+    can.writeReset();
+
+    node.emit(yield);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], f2);
+}
+
+test(CANNodeTest, WriteBufferAllErrFIFOAndDrain) {
+    FakeYield yield;
+    FakeConnection can(0, 0);
+    TestNode node(&can, 1, 10);
+
+    Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    Frame f3(0x03, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+
+    node.handle(f1);
+    node.handle(f2);
+    assertEqual(can.writeCount(), 0);
+    can.writeReset(3);
+
+    node.handle(f3);
+    assertEqual(can.writeCount(), 3);
+    assertPrintablesEqual(can.writeData()[0], f1);
+    assertPrintablesEqual(can.writeData()[1], f2);
+    assertPrintablesEqual(can.writeData()[2], f3);
+}
+
+test(CANNodeTest, WritteBufferFiltered) {
+    FakeYield yield;
+    FakeConnection can(0, 0);
+    TestNode node(&can, 1, 10);
+
+    Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    Frame f2(0x10, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    Frame f3(0x03, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+
+    node.handle(f1);
+    node.handle(f2);
+    assertEqual(can.writeCount(), 0);
+    can.writeReset(3);
+
+    node.handle(f3);
+    assertEqual(can.writeCount(), 2);
+    assertPrintablesEqual(can.writeData()[0], f1);
+    assertPrintablesEqual(can.writeData()[1], f3);
 }
 
 }  // namespace R51
