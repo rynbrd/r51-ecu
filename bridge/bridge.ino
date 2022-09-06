@@ -1,4 +1,5 @@
 #include "Config.h"
+#include "Debug.h"
 
 #include <Arduino.h>
 
