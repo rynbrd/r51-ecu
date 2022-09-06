@@ -41,7 +41,7 @@ void CANNode::handle(const Message& msg) {
     do {
         err = can_->write(msg.can_frame());
         attempts++;
-    } while (err != ERR_OK && attempts <= retries_);
+    } while (err == ERR_FIFO && attempts <= retries_);
 
     if (err != ERR_OK) {
         onWriteError(err, msg.can_frame());
