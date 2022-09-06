@@ -1,6 +1,6 @@
 #include <AUnit.h>
 #include <Arduino.h>
-#include <R51Core.h>
+#include <Common.h>
 #include <Faker.h>
 
 namespace R51 {

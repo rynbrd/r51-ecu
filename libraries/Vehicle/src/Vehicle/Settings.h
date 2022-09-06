@@ -37,6 +37,7 @@ class SettingsReset;
 class Settings : public Caster::Node<Message> {
     public:
         Settings(bool init = true, Faker::Clock* clock = Faker::Clock::real());
+        ~Settings();
 
         // Handle BCM state frames 0x72E and 0x72F.
         void handle(const Message& msg) override;

@@ -294,6 +294,7 @@ class SettingsSequence {
         SettingsSequence(SettingsFrameId id, Faker::Clock* clock = Faker::Clock::real()) :
             request_id_((uint32_t)id), clock_(clock), started_(0),
             value_(0xFF), state_(0), sent_(false) {}
+        virtual ~SettingsSequence() = default;
 
         // Trigger the sequence. The next call to receive will broadcast the
         // first frame of the sequence. The sequence expects the next frame to
@@ -565,6 +566,17 @@ Settings::Settings(bool init, Faker::Clock* clock) :
     if (init) {
         this->init();
     }
+}
+
+Settings::~Settings() {
+        delete initE_;
+        delete retrieveE_;
+        delete updateE_;
+        delete resetE_;
+        delete initF_;
+        delete retrieveF_;
+        delete updateF_;
+        delete resetF_;
 }
 
 void Settings::handle(const Message& msg) {
