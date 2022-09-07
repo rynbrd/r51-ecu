@@ -127,7 +127,7 @@ class Core0 {
 
         Canny::Connection* can_connection_;
 
-        LoggingCANNode can_node_;
+        FilteredCANNode can_node_;
         Climate climate_node_;
         Settings settings_node_;
         IPDM ipdm_node_;

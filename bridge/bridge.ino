@@ -8,8 +8,7 @@
 #include "CAN.h"
 #include "Core0.h"
 
-R51::VehicleConnection vehicle_can(&CAN);
-R51::Core0 core0(&vehicle_can);
+R51::Core0 core0(&CAN);
 
 void setup_serial() {
     SERIAL_DEVICE.begin(SERIAL_BAUDRATE);

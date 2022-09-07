@@ -9,39 +9,23 @@
 
 namespace R51 {
 
-// Read R51 climate, settings, tire, and IPDM state frames.
-bool vehicleReadFilter(uint32_t id) {
-    return (id & 0xFFFFFFFE) == 0x54A ||
-           (id & 0xFFFFFFFE) == 0x72E ||
-            id == 0x385 || id == 0x625;
-}
-
-// Send R51 climate and settings control frames.
-bool vehicleWriteFilter(uint32_t id) {
-    return (id & 0xFFFFFFFE) == 0x540 ||
-           (id & 0xFFFFFFFE) == 0x71E;
-}
-
-class VehicleConnection : public Canny::FilteredConnection {
+// CAN node which logs errors.
+class FilteredCANNode : public CANNode<Canny::Frame> {
     public:
-        VehicleConnection(Canny::Connection* controller) :
-                Canny::FilteredConnection(controller) {}
+        FilteredCANNode(Canny::Connection* connection) : CANNode(connection) {}
 
         // Read R51 climate, settings, tire, and IPDM state frames.
-        bool readFilter(uint32_t id, uint8_t, uint8_t*, uint8_t) const override {
-            return vehicleReadFilter(id);
+        bool readFilter(const Canny::Frame& frame) {
+            return (frame.id() & 0xFFFFFFFE) == 0x54A ||
+                   (frame.id() & 0xFFFFFFFE) == 0x72E ||
+                    frame.id() == 0x385 || frame.id() == 0x625;
         }
 
         // Send R51 climate and settings control frames.
-        bool writeFilter(uint32_t id, uint8_t, uint8_t*, uint8_t) const override {
-            return vehicleWriteFilter(id);
+        bool writeFilter(const Canny::Frame& frame) {
+            return (frame.id() & 0xFFFFFFFE) == 0x540 ||
+                   (frame.id() & 0xFFFFFFFE) == 0x71E;
         }
-};
-
-// CAN node which logs errors.
-class LoggingCANNode : public CANNode<Canny::Frame> {
-    public:
-        LoggingCANNode(Canny::Connection* connection) : CANNode(connection) {}
 
         // Log read errors to debug serial.
         void onReadError(Canny::Error err) override {
