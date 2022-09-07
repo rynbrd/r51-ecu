@@ -1,18 +1,35 @@
-#include "CAN.h"
-
-#include <Canny.h>
-#include <Caster.h>
-
-#include "Message.h"
-
 namespace R51 {
+namespace {
 
 using ::Canny::ERR_FIFO;
 using ::Canny::ERR_OK;
 using ::Canny::Error;
-using ::Canny::Frame;
 
-CANNode::CANNode(Canny::Connection* can, size_t read_buffer_size, size_t write_buffer_size) :
+template <typename Frame>
+const Frame* extractMessageFrame(const Message& msg) {
+    return nullptr;
+}
+
+template <>
+const Canny::Frame* extractMessageFrame<Canny::Frame>(const Message& msg) {
+    if (msg.type() == Message::CAN_FRAME) {
+        return &msg.can_frame();
+    }
+    return nullptr;
+}
+
+template <>
+const Canny::J1939Message* extractMessageFrame<Canny::J1939Message>(const Message& msg) {
+    if (msg.type() == Message::J1939_MESSAGE) {
+        return &msg.j1939_message();
+    }
+    return nullptr;
+}
+
+}
+
+template <typename Frame>
+CANNode<Frame>::CANNode(Canny::Connection* can, size_t read_buffer_size, size_t write_buffer_size) :
         can_(can), retries_(5), read_buffer_(nullptr),
         read_buffer_size_(read_buffer_size),
         read_buffer_len_(0), read_buffer_0_(0),
@@ -34,7 +51,8 @@ CANNode::CANNode(Canny::Connection* can, size_t read_buffer_size, size_t write_b
     }
 }
 
-CANNode::~CANNode() {
+template <typename Frame>
+CANNode<Frame>::~CANNode() {
     if (read_buffer_ != nullptr) {
         delete[] read_buffer_;
     }
@@ -43,14 +61,16 @@ CANNode::~CANNode() {
     }
 }
 
-void CANNode::handle(const Message& msg) {
-    if (msg.type() != Message::CAN_FRAME || !writeFilter(msg.can_frame())) {
+template <typename Frame>
+void CANNode<Frame>::handle(const Message& msg) {
+    const Frame* frame = extractMessageFrame<Frame>(msg);
+    if (frame == nullptr || !writeFilter(*frame)) {
         return;
     }
 
     Error err = drainWriteBuffer();
     if (err != ERR_FIFO) {
-        err = can_->write(msg.can_frame());
+        err = can_->write(*frame);
     }
 
     if (err == ERR_OK) {
@@ -58,15 +78,16 @@ void CANNode::handle(const Message& msg) {
     }
 
     if (err == ERR_FIFO && write_buffer_len_ < write_buffer_size_) {
-        write_buffer_[(write_buffer_0_ + write_buffer_len_) % write_buffer_size_] = msg.can_frame();
+        write_buffer_[(write_buffer_0_ + write_buffer_len_) % write_buffer_size_] = *frame;
         ++write_buffer_len_;
         return;
     }
 
-    onWriteError(err, msg.can_frame());
+    onWriteError(err, *frame);
 }
 
-void CANNode::emit(const Caster::Yield<Message>& yield) {
+template <typename Frame>
+void CANNode<Frame>::emit(const Caster::Yield<Message>& yield) {
     drainWriteBuffer();
     fillReadBuffer();
     if (read_buffer_len_ > 0) {
@@ -76,7 +97,8 @@ void CANNode::emit(const Caster::Yield<Message>& yield) {
     }
 }
 
-void CANNode::fillReadBuffer() {
+template <typename Frame>
+void CANNode<Frame>::fillReadBuffer() {
     size_t i;
     Error err;
     while (read_buffer_len_ < read_buffer_size_) {
@@ -94,7 +116,8 @@ void CANNode::fillReadBuffer() {
     }
 }
 
-Error CANNode::drainWriteBuffer() {
+template <typename Frame>
+Error CANNode<Frame>::drainWriteBuffer() {
     Error err = ERR_OK;
     while (write_buffer_len_ > 0) {
         err = can_->write(write_buffer_[write_buffer_0_]);

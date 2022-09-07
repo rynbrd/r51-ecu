@@ -39,7 +39,7 @@ class VehicleConnection : public Canny::FilteredConnection {
 };
 
 // CAN node which logs errors.
-class LoggingCANNode : public CANNode {
+class LoggingCANNode : public CANNode<Canny::Frame> {
     public:
         LoggingCANNode(Canny::Connection* connection) : CANNode(connection) {}
 

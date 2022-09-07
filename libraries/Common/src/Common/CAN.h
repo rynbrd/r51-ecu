@@ -10,6 +10,7 @@ namespace R51 {
 
 // Bus node for reading and writing CAN frames to a CAN controller. Supports
 // buffering of reads and writes to avoid frame loss on busy networks.
+template <typename Frame>
 class CANNode : public Caster::Node<Message> {
     public:
         // Construct a new note that transmits frames over the given
@@ -35,27 +36,27 @@ class CANNode : public Caster::Node<Message> {
         void emit(const Caster::Yield<Message>& yield) override;
 
         // Only read CAN frames which match this filter.
-        virtual bool readFilter(const Canny::Frame&) const { return true; }
+        virtual bool readFilter(const Frame&) const { return true; }
 
         // Only write CAN frames which match this filter.
-        virtual bool writeFilter(const Canny::Frame&) const { return true; }
+        virtual bool writeFilter(const Frame&) const { return true; }
 
         // Called when a frame can't be read from the bus.
         virtual void onReadError(Canny::Error) {}
 
         // Called when a frame can't be written to the bus.
-        virtual void onWriteError(Canny::Error, const Canny::Frame&) {}
+        virtual void onWriteError(Canny::Error, const Frame&) {}
 
     private:
         Canny::Connection* can_;
         uint8_t retries_;
 
-        Canny::Frame* read_buffer_;
+        Frame* read_buffer_;
         size_t read_buffer_size_;
         size_t read_buffer_len_;
         size_t read_buffer_0_;
 
-        Canny::Frame* write_buffer_;
+        Frame* write_buffer_;
         size_t write_buffer_size_;
         size_t write_buffer_len_;
         size_t write_buffer_0_;
@@ -65,5 +66,7 @@ class CANNode : public Caster::Node<Message> {
 };
 
 }  // namespace R51
+
+#include "CAN.tpp"
 
 #endif  // _R51_COMMON_CAN_

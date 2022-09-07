@@ -13,6 +13,7 @@ using ::Canny::ERR_INTERNAL;
 using ::Canny::ERR_OK;
 using ::Canny::Error;
 using ::Canny::Frame;
+using ::Canny::J1939Message;
 
 class FakeConnection : public Connection {
     public:
@@ -94,24 +95,38 @@ class FakeConnection : public Connection {
         size_t write_len_;
 };
 
-class TestNode : public CANNode {
+class TestCANNode : public CANNode<Frame> {
     public:
-        TestNode(Canny::Connection* can, size_t read_size, size_t write_size) :
+        TestCANNode(Canny::Connection* can, size_t read_size, size_t write_size) :
                 CANNode(can, read_size, write_size) {}
 
-        bool readFilter(const Canny::Frame& frame) const override {
+        bool readFilter(const Frame& frame) const override {
             return frame.id() != 0x10;
         }
 
-        bool writeFilter(const Canny::Frame& frame) const override {
+        bool writeFilter(const Frame& frame) const override {
             return frame.id() != 0x10;
+        }
+};
+
+class TestJ1939Node : public CANNode<J1939Message> {
+    public:
+        TestJ1939Node(Canny::Connection* can, size_t read_size, size_t write_size) :
+                CANNode(can, read_size, write_size) {}
+
+        bool readFilter(const J1939Message& j1939) const override {
+            return j1939.dest_address() == 0x10 || j1939.broadcast();
+        }
+
+        bool writeFilter(const J1939Message& j1939) const override {
+            return j1939.source_address() == 0x10;
         }
 };
 
 test(CANNodeTest, NoReads) {
     FakeYield yield;
     FakeConnection can(0, 0);
-    TestNode node(&can, 10, 0);
+    TestCANNode node(&can, 10, 0);
 
     node.emit(yield);
     assertSize(yield, 0);
@@ -120,7 +135,7 @@ test(CANNodeTest, NoReads) {
 test(CANNodeTest, ReadOne) {
     FakeYield yield;
     FakeConnection can(1, 0);
-    TestNode node(&can, 10, 0);
+    TestCANNode node(&can, 10, 0);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     can.setReadBuffer({f});
@@ -134,7 +149,7 @@ test(CANNodeTest, ReadOne) {
 test(CANNodeTest, ReadMultipleLargerBuffer) {
     FakeYield yield;
     FakeConnection can(3, 0);
-    TestNode node(&can, 10, 0);
+    TestCANNode node(&can, 10, 0);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -162,7 +177,7 @@ test(CANNodeTest, ReadMultipleLargerBuffer) {
 test(CANNodeTest, ReadMultipleSmallerBuffer) {
     FakeYield yield;
     FakeConnection can(3, 0);
-    TestNode node(&can, 2, 0);
+    TestCANNode node(&can, 2, 0);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -191,7 +206,7 @@ test(CANNodeTest, ReadMultipleSmallerBuffer) {
 test(CANNodeTest, ReadFiltered) {
     FakeYield yield;
     FakeConnection can(3, 0);
-    TestNode node(&can, 2, 0);
+    TestCANNode node(&can, 2, 0);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x10, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -213,7 +228,7 @@ test(CANNodeTest, ReadFiltered) {
 
 test(CANNodeTest, WriteNoBuffer) {
     FakeConnection can(0, 1);
-    TestNode node(&can, 1, 0);
+    TestCANNode node(&can, 1, 0);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     node.handle(f);
@@ -223,7 +238,7 @@ test(CANNodeTest, WriteNoBuffer) {
 
 test(CANNodeTest, WriteBufferSuccess) {
     FakeConnection can(0, 1);
-    TestNode node(&can, 1, 1);
+    TestCANNode node(&can, 1, 1);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
 
@@ -235,7 +250,7 @@ test(CANNodeTest, WriteBufferSuccess) {
 test(CANNodeTest, WriteBufferSomeFIFOAndEmit) {
     FakeYield yield;
     FakeConnection can(0, 1);
-    TestNode node(&can, 1, 1);
+    TestCANNode node(&can, 1, 1);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -254,7 +269,7 @@ test(CANNodeTest, WriteBufferSomeFIFOAndEmit) {
 test(CANNodeTest, WriteBufferAllErrFIFOAndDrain) {
     FakeYield yield;
     FakeConnection can(0, 0);
-    TestNode node(&can, 1, 10);
+    TestCANNode node(&can, 1, 10);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x02, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -275,7 +290,7 @@ test(CANNodeTest, WriteBufferAllErrFIFOAndDrain) {
 test(CANNodeTest, WritteBufferFiltered) {
     FakeYield yield;
     FakeConnection can(0, 0);
-    TestNode node(&can, 1, 10);
+    TestCANNode node(&can, 1, 10);
 
     Frame f1(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     Frame f2(0x10, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
@@ -290,6 +305,24 @@ test(CANNodeTest, WritteBufferFiltered) {
     assertEqual(can.writeCount(), 2);
     assertPrintablesEqual(can.writeData()[0], f1);
     assertPrintablesEqual(can.writeData()[1], f3);
+}
+
+test(CANNodeTest, J1939) {
+    FakeYield yield;
+    FakeConnection can(3, 0);
+    TestJ1939Node node(&can, 1, 10);
+
+    J1939Message m1(0xEF00, 0x20, 0x10);
+    J1939Message m3(0xEF00, 0x20, 0x20);
+    J1939Message m2(0xFF00, 0x20);
+    can.setReadBuffer({m1, m2, m3});
+
+    node.emit(yield);
+    node.emit(yield);
+    node.emit(yield);
+    assertSize(yield, 2);
+    assertIsJ1939Message(yield.messages()[0], m1);
+    assertIsJ1939Message(yield.messages()[1], m2);
 }
 
 }  // namespace R51
