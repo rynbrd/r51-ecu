@@ -14,6 +14,7 @@ class Message : public Printable {
             EMPTY,
             EVENT,
             CAN_FRAME,
+            J1939_MESSAGE,
         };
 
         // Default constructor. Sets type to EMPTY.
@@ -27,6 +28,10 @@ class Message : public Printable {
         Message(Canny::Frame& can_frame) :
             type_(CAN_FRAME), ref_(&can_frame) {}
 
+        // Construct a message that references a J1939 message.
+        Message(Canny::J1939Message& j1939_message) :
+            type_(J1939_MESSAGE), ref_(&j1939_message) {}
+
         // Return the type of the mesasge.
         enum Type type() const { return type_; };
 
@@ -34,9 +39,13 @@ class Message : public Printable {
         // type() returns EVENT or undefined behavior will result.
         const Event& event() const { return *((Event*)ref_); }
 
-        // Return the can frame referenced by the message. Requires that type()
+        // Return the CAN frame referenced by the message. Requires that type()
         // returns CAN_FRAME or undefined behavior will result.
         const Canny::Frame& can_frame() const { return *((Canny::Frame*)ref_); }
+
+        // Return the J1939 message referenced by the message. Requires that
+        // type() returns J1939_MESSAGE or u ndefined behavior will result.
+        const Canny::J1939Message& j1939_message() const { return *((Canny::J1939Message*)ref_); }
 
         // Print the message. This prints the payload or nothing if empty.
         size_t printTo(Print& p) const;

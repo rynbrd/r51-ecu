@@ -39,6 +39,10 @@ void ConsoleNode::handle(const Message& msg) {
                 console_.stream()->println(msg.can_frame());
             }
             break;
+        case Message::J1939_MESSAGE:
+            console_.stream()->print("console: j1939 recv ");
+            console_.stream()->println(msg.j1939_message());
+            break;
         case Message::EMPTY:
             break;
     }

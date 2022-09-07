@@ -15,13 +15,16 @@ class MessageCopy : public Printable {
 
         MessageCopy(const Message& msg) : type_(msg.type()) {
             switch (msg.type()) {
-                case Message::EMPTY:
-                    break;
                 case Message::EVENT:
                     event_ = msg.event();
                     break;
                 case Message::CAN_FRAME:
                     can_frame_ = msg.can_frame();
+                    break;
+                case Message::J1939_MESSAGE:
+                    j1939_message_ = msg.j1939_message();
+                    break;
+                case Message::EMPTY:
                     break;
             }
         }
@@ -32,6 +35,8 @@ class MessageCopy : public Printable {
 
         const Canny::Frame& can_frame() const { return can_frame_; }
 
+        const Canny::J1939Message& j1939_messaage() const { return j1939_message_; }
+
         size_t printTo(Print& p) const {
             switch (type_) {
                 case Message::EMPTY:
@@ -40,8 +45,8 @@ class MessageCopy : public Printable {
                     return p.print("(EVENT)") + p.print(event_);
                 case Message::CAN_FRAME:
                     return p.print("(CAN_FRAME)") + p.print(can_frame_);
-                default:
-                    return 0;
+                case Message::J1939_MESSAGE:
+                    return p.print("(J1939_MESSAGE)") + p.print(j1939_message_);
             }
         }
 
@@ -49,6 +54,7 @@ class MessageCopy : public Printable {
         Message::Type type_;
         Event event_;
         Canny::Frame can_frame_;
+        Canny::J1939Message j1939_message_;
 };
 
 // A fake Yield implementation that collects copies of the yielded messages.
