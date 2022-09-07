@@ -32,4 +32,8 @@
     assertEqual(message.type(), R51::Message::CAN_FRAME);\
     assertPrintablesEqual(message.can_frame(), frame);
 
+#define assertIsJ1939Message(message, j1939) \
+    assertEqual(message.type(), R51::Message::J1939_MESSAGE);\
+    assertPrintablesEqual(message.j1939_message(), j1939);
+
 #endif  // _R51_TEST_MATCHERS_H_

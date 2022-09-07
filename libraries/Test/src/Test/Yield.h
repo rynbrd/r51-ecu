@@ -35,7 +35,7 @@ class MessageCopy : public Printable {
 
         const Canny::Frame& can_frame() const { return can_frame_; }
 
-        const Canny::J1939Message& j1939_messaage() const { return j1939_message_; }
+        const Canny::J1939Message& j1939_message() const { return j1939_message_; }
 
         size_t printTo(Print& p) const {
             switch (type_) {
@@ -48,6 +48,7 @@ class MessageCopy : public Printable {
                 case Message::J1939_MESSAGE:
                     return p.print("(J1939_MESSAGE)") + p.print(j1939_message_);
             }
+            return 0;
         }
 
     private:
