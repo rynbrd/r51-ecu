@@ -39,6 +39,21 @@ class FilteredCANNode : public CANNode<Canny::Frame> {
         }
 };
 
+// J1939 node which logs errors and filters frames not addressed to it.
+class FilteredJ1939Node : public CANNode<Canny::J1939Message>  {
+    public:
+        FilteredJ1939Node(Canny::Connection* connection, uint8_t address) :
+            CANNode(connection), address_(address) {}
+
+        // Read broadcast messages and messages addressed to this device.
+        bool readFilter(const Canny::J1939Message& j1939) {
+            return j1939.broadcast() || j1939.dest_address() == address_;
+        }
+
+    private:
+        uint8_t address_;
+};
+
 }  // namespace R51
 
 #endif  // _R51_BRIDGE_CAN_H_

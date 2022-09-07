@@ -24,8 +24,9 @@ void onBluetoothDisconnectProxy(void* arg);
 
 class Core0 {
     public:
-        Core0(Canny::Connection* can) :
-            can_connection_(can), can_node_(can),
+        Core0(Canny::Connection* can, Canny::Connection* j1939 = nullptr, uint8_t j1939_address = 1) :
+            can_connection_(can), j1939_connection_(j1939), j1939_address_(j1939_address),
+            can_node_(can), j1939_node_(nullptr),
             #if defined(DEFOG_HEATER_ENABLE)
             defog_node_(DEFOG_HEATER_PIN, DEFOG_HEATER_MS),
             #endif
@@ -47,10 +48,20 @@ class Core0 {
             realdash_node_(&realdash_connection_, REALDASH_FRAME_ID,
                 REALDASH_HB_ID, REALDASH_HB_MS),
             #endif
-            node_count_(0) {}
+            bus_(nullptr), node_count_(0) {}
+
+        ~Core0() {
+            if (j1939_node_ != nullptr) {
+                delete j1939_node_;
+            }
+            if (bus_ != nullptr) {
+                delete bus_;
+            }
+        }
 
         void setup() {
             setup_can();
+            setup_j1939();
             setup_console();
             setup_bluetooth();
             setup_realdash();
@@ -80,6 +91,14 @@ class Core0 {
     private:
         void setup_can() {
             nodes_[node_count_++] = &can_node_;
+        }
+
+        void setup_j1939() {
+            if (j1939_connection_  == nullptr) {
+                return;
+            }
+            j1939_node_ = new FilteredJ1939Node(j1939_connection_, j1939_address_);
+            nodes_[node_count_++] = j1939_node_;
         }
 
         void setup_console() {
@@ -126,8 +145,11 @@ class Core0 {
         }
 
         Canny::Connection* can_connection_;
+        Canny::Connection* j1939_connection_;
+        uint8_t j1939_address_;
 
         FilteredCANNode can_node_;
+        FilteredJ1939Node* j1939_node_;
         Climate climate_node_;
         Settings settings_node_;
         IPDM ipdm_node_;
@@ -154,7 +176,7 @@ class Core0 {
         #endif
 
         Caster::Bus<Message>* bus_;
-        Caster::Node<Message>* nodes_[10];
+        Caster::Node<Message>* nodes_[11];
         uint8_t node_count_;
 };
 
