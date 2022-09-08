@@ -14,6 +14,7 @@
 
 #include "CAN.h"
 #include "Debug.h"
+#include "J1939.h"
 #include "Pico.h"
 #include "RealDash.h"
 
@@ -28,7 +29,7 @@ class Core0 {
             can_connection_(can),
             can_node_(&can_connection_),
             j1939_connection_(j1939 == nullptr ? nullptr : new FilteredJ1939(j1939, j1939_address)),
-            j1939_node_(j1939 == nullptr ? nullptr : new CANNode<Canny::J1939Message>(j1939_connection_)),
+            j1939_node_(j1939 == nullptr ? nullptr : new J1939Adapter(j1939_connection_, j1939_address)),
             j1939_address_(j1939_address),
             #if defined(DEFOG_HEATER_ENABLE)
             defog_node_(DEFOG_HEATER_PIN, DEFOG_HEATER_MS),
@@ -152,7 +153,7 @@ class Core0 {
         CANNode<Canny::Frame> can_node_;
 
         FilteredJ1939* j1939_connection_;
-        CANNode<Canny::J1939Message>* j1939_node_;
+        J1939Adapter* j1939_node_;
         uint8_t j1939_address_;
 
         Climate climate_node_;
