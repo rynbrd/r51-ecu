@@ -7,11 +7,15 @@
 
 // Vehicle CAN bus mode and speed. This is CAN 2.0 at 500K for the R51.
 #define VEHICLE_CAN_MODE Canny::CAN20_500K
+#define VEHICLE_READ_BUFFER 10
+#define VEHICLE_WRITE_BUFFER 2
 
 // Uncomment to enable J1939 on boards that support it.
 #define J1939_ENABLE
 #define J1939_ADDRESS 0x19
 #define J1939_CAN_MODE Canny::CAN20_250K
+#define J1939_READ_BUFFER 4
+#define J1939_WRITE_BUFFER 2
 
 // Uncomment the following line to enable debug output.
 #define DEBUG_ENABLE

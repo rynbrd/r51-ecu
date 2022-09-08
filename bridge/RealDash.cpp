@@ -5,6 +5,8 @@
 
 using ::R51::Message;
 
+namespace R51 {
+
 void RealDashAdapter::handle(const Message& msg) {
     if (msg.type() != Message::EVENT) {
         return;
@@ -52,3 +54,5 @@ void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
     memcpy(event_.data, frame_.data()+2, 6);
     yield(event_);
 }
+
+}  // namespace R51

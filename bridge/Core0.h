@@ -25,8 +25,11 @@ void onBluetoothDisconnectProxy(void* arg);
 class Core0 {
     public:
         Core0(Canny::Connection* can, Canny::Connection* j1939 = nullptr, uint8_t j1939_address = 1) :
-            can_connection_(can), j1939_connection_(j1939), j1939_address_(j1939_address),
-            can_node_(can), j1939_node_(nullptr),
+            can_connection_(can),
+            can_node_(&can_connection_),
+            j1939_connection_(j1939 == nullptr ? nullptr : new FilteredJ1939(j1939, j1939_address)),
+            j1939_node_(j1939 == nullptr ? nullptr : new CANNode<Canny::J1939Message>(j1939_connection_)),
+            j1939_address_(j1939_address),
             #if defined(DEFOG_HEATER_ENABLE)
             defog_node_(DEFOG_HEATER_PIN, DEFOG_HEATER_MS),
             #endif
@@ -53,6 +56,9 @@ class Core0 {
         ~Core0() {
             if (j1939_node_ != nullptr) {
                 delete j1939_node_;
+            }
+            if (j1939_connection_ != nullptr) {
+                delete j1939_connection_;
             }
             if (bus_ != nullptr) {
                 delete bus_;
@@ -94,11 +100,9 @@ class Core0 {
         }
 
         void setup_j1939() {
-            if (j1939_connection_  == nullptr) {
-                return;
+            if (j1939_node_ != nullptr) {
+                nodes_[node_count_++] = j1939_node_;
             }
-            j1939_node_ = new FilteredJ1939Node(j1939_connection_, j1939_address_);
-            nodes_[node_count_++] = j1939_node_;
         }
 
         void setup_console() {
@@ -144,12 +148,13 @@ class Core0 {
             bus_ = new Caster::Bus<Message>(nodes_, node_count_);
         }
 
-        Canny::Connection* can_connection_;
-        Canny::Connection* j1939_connection_;
+        FilteredCAN can_connection_;
+        CANNode<Canny::Frame> can_node_;
+
+        FilteredJ1939* j1939_connection_;
+        CANNode<Canny::J1939Message>* j1939_node_;
         uint8_t j1939_address_;
 
-        FilteredCANNode can_node_;
-        FilteredJ1939Node* j1939_node_;
         Climate climate_node_;
         Settings settings_node_;
         IPDM ipdm_node_;
