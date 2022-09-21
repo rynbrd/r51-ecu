@@ -1,6 +1,7 @@
 #ifndef _R51_BRIDGE_DEBUG_H_
 #define _R51_BRIDGE_DEBUG_H_
 
+#include "Config.h"
 #include <Arduino.h>
 
 #if defined(DEBUG_ENABLE) && defined(SERIAL_DEVICE)

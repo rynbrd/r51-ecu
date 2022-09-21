@@ -32,7 +32,6 @@ class LoggingCANNode : public CANNode {
 LoggingCANNode can(&CAN);
 ConsoleNode console(&SERIAL_DEVICE);
 
-Frame frame;
 Bus<Message>* bus;
 Node<Message>* nodes[] = {
     &can,
