@@ -22,6 +22,18 @@ Event::Event(uint8_t subsystem, uint8_t id) :
     memset(data, 0xFF, 6);
 }
 
+Event::Event(SubSystem subsystem, uint8_t id) : Event((uint8_t)subsystem, id) {}
+
+Event::Event(uint8_t subsystem, uint8_t id, const uint8_t* data, size_t size) :
+        Event(subsystem, id) {
+    for (uint8_t i = 0; i < size; i++) {
+        this->data[i] = data[i];
+    }
+    for (uint8_t i = size; i < 6; i++) {
+        this->data[i] = 0xFF;
+    }
+}
+
 size_t Event::printTo(Print& p) const {
     size_t n = 0;
     n += printHexByte(p, subsystem);

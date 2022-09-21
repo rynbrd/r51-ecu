@@ -3,12 +3,12 @@
 
 // Convenience macro for defining getters and setters on child events.
 #define EVENT_PROPERTY(type, name, getter, setter) \
-    type name() const { return getter; } \
+    type name() const { return (getter); } \
     bool name(type value) { \
         if ((getter) == value) { \
             return false; \
         } \
-        setter; \
+        (setter); \
         return true; \
     }
 
@@ -26,6 +26,8 @@ enum class SubSystem : uint8_t {
     SETTINGS = 0x0B,
     STEERING_KEYPAD = 0x0C,
     BLUETOOTH = 0x0D,
+    HMI = 0x0E,
+    AUDIO = 0x0F,
 };
 
 struct Event : public Printable {
@@ -41,12 +43,16 @@ struct Event : public Printable {
 
     // Construct a specific event with empty data.
     Event(uint8_t subsystem, uint8_t id);
+    Event(SubSystem subsystem, uint8_t id);
 
     // Construct a specific event containing the provided data. The
     // size is set to the size of the provided data array. This array
     // should not exceed 5 bytes.
+    Event(uint8_t subsystem, uint8_t id, const uint8_t* data, size_t size);
     template <size_t N> 
     Event(uint8_t subsystem, uint8_t id, const uint8_t (&data)[N]);
+    template <size_t N> 
+    Event(SubSystem subsystem, uint8_t id, const uint8_t (&data)[N]);
 
     // Print the system event.
     size_t printTo(Print& p) const override;
@@ -60,15 +66,11 @@ bool operator!=(const Event& left, const Event& right);
 
 template <size_t N>
 Event::Event(uint8_t subsystem, uint8_t id, const uint8_t (&data)[N]) :
-        subsystem(subsystem), id(id) {
-    size_t size = sizeof(data);
-    for (uint8_t i = 0; i < size; i++) {
-        this->data[i] = data[i];
-    }
-    for (uint8_t i = size; i < 6; i++) {
-        this->data[i] = 0xFF;
-    }
-}
+        Event(subsystem, id, data, N) {}
+
+template <size_t N>
+Event::Event(SubSystem subsystem, uint8_t id, const uint8_t (&data)[N]) :
+        Event((uint8_t)subsystem, id, data, N) {}
 
 }  // namespace R51
 
