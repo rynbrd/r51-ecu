@@ -12,24 +12,20 @@ namespace R51::internal {
 
 class EventSendRunCommand : public Command {
     public:
-        void set(char* encoded) { encoded_ = encoded; }
-
         Command* next(char*) override {
             return TooManyArgumentsCommand::get();
         }
 
         // Run the command. Parses and yields the event.
-        void run(Console* console, const Caster::Yield<Message>& yield) override;
+        void run(Console* console, char* arg, const Caster::Yield<Message>& yield) override;
 
     private:
-        char* encoded_;
         Event event_;
 };
 
 class EventSendCommand : public NotEnoughArgumentsCommand {
     public:
-        Command* next(char* arg) override {
-            run_.set(arg);
+        Command* next(char*) override {
             return &run_;
         }
 

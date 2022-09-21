@@ -17,8 +17,13 @@ class Command {
         virtual Command* next(char* arg) = 0;
 
         // Run the command. The command may yield messages or print information
-        // to the user.
-        virtual void run(Console* console, const Caster::Yield<Message>& yield) = 0;
+        // to the user. The arg is the string passed to the previous command to
+        // choose this one.
+        virtual void run(Console* console, char* arg, const Caster::Yield<Message>& yield) = 0;
+
+        // Return true if this command consumes the remainder of the line for
+        // the next arg.
+        virtual bool line() { return false; }
 };
 
 }  // namespace R51::internal

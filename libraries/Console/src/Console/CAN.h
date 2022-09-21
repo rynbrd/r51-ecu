@@ -12,24 +12,20 @@ namespace R51::internal {
 
 class CANSendRunCommand : public Command {
     public:
-        void set(char* encoded) { buffer_ = encoded; }
-
         Command* next(char*) override {
             return TooManyArgumentsCommand::get();
         }
 
         // Run the command. Parses and yields the event.
-        void run(Console* console, const Caster::Yield<Message>& yield) override;
+        void run(Console* console, char* arg, const Caster::Yield<Message>& yield) override;
 
     private:
-        char* buffer_;
         Canny::Frame frame_;
 };
 
 class CANSendCommand : public NotEnoughArgumentsCommand {
     public:
-        Command* next(char* arg) override {
-            run_.set(arg);
+        Command* next(char*) override {
             return &run_;
         }
 
@@ -39,33 +35,16 @@ class CANSendCommand : public NotEnoughArgumentsCommand {
 
 class CANFilterAllowRunCommand : public Command {
     public:
-        void set(char* arg) { arg_ = arg; }
-
         Command* next(char*) override {
             return TooManyArgumentsCommand::get();
         }
 
-        void run(Console* console, const Caster::Yield<Message>&) override {
-            if (strcmp(arg_, "all") == 0) {
-                console->can_filter()->mode(Canny::FilterMode::ALLOW);
-            } else {
-                uint32_t id = strtoul(arg_, nullptr, 16);
-                if (id == 0) {
-                    console->stream()->println("invalid frame id");
-                } else {
-                    console->can_filter()->allow(id);
-                }
-            }
-        }
-
-    private:
-        char* arg_;
+        void run(Console* console, char* arg, const Caster::Yield<Message>&) override;
 };
 
 class CANFilterAllowCommand : public NotEnoughArgumentsCommand {
     public:
-        Command* next(char* arg) override {
-            run_.set(arg);
+        Command* next(char*) override {
             return &run_;
         }
 
@@ -75,33 +54,16 @@ class CANFilterAllowCommand : public NotEnoughArgumentsCommand {
 
 class CANFilterDropRunCommand : public Command {
     public:
-        void set(char* arg) { arg_ = arg; }
-
         Command* next(char*) override {
             return TooManyArgumentsCommand::get();
         }
 
-        void run(Console* console, const Caster::Yield<Message>&) override {
-            if (strcmp(arg_, "all") == 0) {
-                console->can_filter()->mode(Canny::FilterMode::DROP);
-            } else {
-                uint32_t id = strtoul(arg_, nullptr, 16);
-                if (id == 0) {
-                    console->stream()->println("invalid frame id");
-                } else {
-                    console->can_filter()->drop(id);
-                }
-            }
-        }
-
-    private:
-        char* arg_;
+        void run(Console* console, char* arg, const Caster::Yield<Message>&) override;
 };
 
 class CANFilterDropCommand : public NotEnoughArgumentsCommand {
     public:
-        Command* next(char* arg) override {
-            run_.set(arg);
+        Command* next(char*) override {
             return &run_;
         }
 

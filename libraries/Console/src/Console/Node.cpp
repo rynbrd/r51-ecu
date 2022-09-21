@@ -8,14 +8,20 @@
 namespace R51 {
 
 void ConsoleNode::emit(const Caster::Yield<Message>& yield) {
+    Reader::Error err;
     while (console_.stream()->available())  {
-        switch (reader_.word()) {
+        if (command_->line()) {
+            err = reader_.line();
+        } else {
+            err = reader_.word();
+        }
+        switch (err) {
             case Reader::EOW:
                 command_ = command_->next(buffer_);
                 break;
             case Reader::EOL:
                 command_ = command_->next(buffer_);
-                command_->run(&console_, yield);
+                command_->run(&console_, buffer_, yield);
                 command_ = &root_;
                 break;
             case Reader::OVERRUN:

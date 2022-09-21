@@ -18,7 +18,7 @@ class ErrorCommand : public Command {
 // Prints a "command not found" error when run.
 class NotFoundCommand : public ErrorCommand {
     public:
-        void run(Console* console, const Caster::Yield<Message>&) {
+        void run(Console* console, char*, const Caster::Yield<Message>&) {
             console->stream()->println("console: command not found");
         }
 
@@ -31,7 +31,7 @@ class NotFoundCommand : public ErrorCommand {
 // Prints a "not enough arguments" error when run.
 class NotEnoughArgumentsCommand : public ErrorCommand {
     public:
-        void run(Console* console, const Caster::Yield<Message>&) {
+        void run(Console* console, char*, const Caster::Yield<Message>&) {
             console->stream()->println("console: not enough arguments");
         }
 
@@ -44,7 +44,7 @@ class NotEnoughArgumentsCommand : public ErrorCommand {
 // Prints a "too many arguments" error when run.
 class TooManyArgumentsCommand : public ErrorCommand {
     public:
-        void run(Console* console, const Caster::Yield<Message>&) {
+        void run(Console* console, char*, const Caster::Yield<Message>&) {
             console->stream()->println("console: too many arguments");
         }
 
