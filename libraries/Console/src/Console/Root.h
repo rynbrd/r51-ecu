@@ -7,6 +7,7 @@
 #include "Console.h"
 #include "Error.h"
 #include "Event.h"
+#include "J1939.h"
 #include "Scratch.h"
 
 namespace R51::internal {
@@ -22,6 +23,8 @@ class RootCommand : public Command {
                 return &can_;
             } else if (strcmp(arg, "event") == 0) {
                 return &event_;
+            } else if (strcmp(arg, "j1939") == 0) {
+                return &j1939_;
             } else if (scratch_enable_ && strcmp(arg, "scratch") == 0) {
                 return &scratch_;
             }
@@ -37,10 +40,11 @@ class RootCommand : public Command {
     private:
         CANCommand can_;
         EventCommand event_;
+        J1939Command j1939_;
         ScratchCommand scratch_;
         bool scratch_enable_;
 };
 
-}
+}  // namespace R51::internal
 
 #endif  // _R51_CONSOLE_ROOT_H_

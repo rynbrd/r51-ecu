@@ -89,7 +89,7 @@ class CANFilterCommand : public NotEnoughArgumentsCommand {
 
 class CANCommand : public NotEnoughArgumentsCommand {
     public:
-        Command* next(char* arg) {
+        Command* next(char* arg) override {
             if (strcmp(arg, "send") == 0) {
                 return &send_;
             } else if (strcmp(arg, "filter") == 0) {
@@ -103,6 +103,6 @@ class CANCommand : public NotEnoughArgumentsCommand {
         CANFilterCommand filter_;
 };
 
-}
+}  // namespace R51::internal
 
 #endif  // _R51_CONSOLE_CAN_H_
