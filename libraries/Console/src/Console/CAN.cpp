@@ -89,4 +89,4 @@ void CANFilterDropRunCommand::run(Console* console, char* arg, const Caster::Yie
     }
 }
 
-}
+}  // namespace R51::internal
