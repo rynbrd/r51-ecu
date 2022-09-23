@@ -29,7 +29,7 @@ uint8_t counter(const J1939Message& msg) {
 }
 
 uint8_t id(uint8_t counter) {
-    return (counter & 0xF0) >> 4;
+    return (counter & 0xE0) >> 4;
 }
 
 uint8_t id(const J1939Message& msg) {
@@ -37,7 +37,7 @@ uint8_t id(const J1939Message& msg) {
 }
 
 uint8_t seq(uint8_t counter) {
-    return counter & 0x0F;
+    return counter & 0x1F;
 }
 
 uint8_t seq(const J1939Message& msg)  {
@@ -55,9 +55,10 @@ State detectState(const J1939Message& msg) {
 
 Fusion::Fusion(uint8_t address, uint8_t hu_address, Scratch* scratch) :
         address_(address), hu_address_(hu_address), scratch_(scratch),
-        emit_volume_(false), emit_eq_(false), emit_source_(false),
-        emit_playback_(false), emit_track_(false), emit_artist_(false),
-        emit_album_(false), state_(0xFF), counter_(0xFF) {}
+        emit_volume_(false), emit_mute_(false), emit_eq_(false),
+        emit_source_(false), emit_playback_(false), emit_track_(false),
+        emit_artist_(false), emit_album_(false), recent_mute_(false),
+        state_(0xFF), handle_counter_(0xFF) {}
 
 void Fusion::handle(const Message& msg) {
     switch (msg.type()) {
@@ -81,10 +82,10 @@ void Fusion::handleEvent(const Event& event) {
 }
 
 void Fusion::handleJ1939(const J1939Message& msg) {
-    if (id(msg) != id(counter_)) {
+    if (id(msg) != id(handle_counter_)) {
         state_ = detectState(msg);
     }
-    counter_ = counter(msg);
+    handle_counter_ = counter(msg);
 
     switch (state_) {
         case SOURCE:
@@ -132,7 +133,7 @@ void Fusion::handleSource(const J1939Message& msg) {
     if (seq(msg) != 0 || msg.data()[6] != msg.data()[7]) {
         return;
     }
-    emit_source_ |= source_.source(msg.data()[7]);
+    emit_source_ |= source_.source((AudioSource)msg.data()[7]);
 }
 
 void Fusion::handlePlayback(const J1939Message& msg) {
@@ -142,7 +143,7 @@ void Fusion::handlePlayback(const J1939Message& msg) {
             if (msg.data()[7] > 0x02) {
                 msg.data()[7] = 0x00;
             }
-            emit_playback_ |= playback_.playback((Playback)msg.data()[7]);
+            emit_playback_ |= playback_.playback((AudioPlayback)msg.data()[7]);
             break;
         case 2:
             time = msg.data()[3];
@@ -219,7 +220,7 @@ void Fusion::handleTone(const J1939Message& msg) {
 
 void Fusion::handleMute(const J1939Message& msg) {
     if (seq(msg) == 0) {
-        emit_volume_ |= volume_.mute(msg.data()[6] == 0x01);
+        emit_mute_ |= mute_.mute(msg.data()[6] != 0x00);
     }
 }
 
@@ -244,6 +245,10 @@ void Fusion::handleVolume(const J1939Message& msg) {
             emit_volume_ |= volume_.volume(zone2);
         }
         emit_volume_ |= volume_.fade(zone1 - zone2);
+        if (recent_mute_) {
+            emit_volume_ = false;
+            recent_mute_ = false;
+        }
     }
 }
 

@@ -21,23 +21,26 @@ enum class AudioSource : uint8_t {
     OPTICAL = 0x09,
     AIRPLAY = 0x0A,
     //UPNP,
+    NO_STEREO = 0xFF,
 };
 
-enum class Playback : uint8_t {
+enum class AudioPlayback : uint8_t {
     NO_TRACK = 0x00,
     PLAY = 0x01,
     PAUSE = 0x02,
+    NO_DEVICE = 0xFF,
 };
 
 enum class AudioEvent {
     VOLUME_STATE = 0x01,        // State event. Sends current volume, fade, and balance.
-    EQ_STATE = 0x02,            // State event. Sends equalizer high/mid/low values.
-    SOURCE_STATE = 0x03,        // State event. Sends the current audio source, gain,
+    MUTE_STATE = 0x02,          // State event. Sent on mute/unmute.
+    EQ_STATE = 0x03,            // State event. Sends equalizer high/mid/low values.
+    SOURCE_STATE = 0x04,        // State event. Sends the current audio source, gain,
                                 // and frequency when applicable.
-    PLAYBACK_STATE = 0x04,      // State event. Sends the playback status and track times.
-    TRACK_STATE = 0x05,         // State event. Sends the track title.
-    ARTIST_STATE = 0x06,        // State event. Sends the artist name.
-    ALBUM_STATE = 0x07,         // State event. Sends the album title.
+    PLAYBACK_STATE = 0x05,      // State event. Sends the playback status and track times.
+    TRACK_STATE = 0x06,         // State event. Sends the track title.
+    ARTIST_STATE = 0x07,        // State event. Sends the artist name.
+    ALBUM_STATE = 0x08,         // State event. Sends the album title.
 
     NEXT = 0x11,                // Next track/frequency/gain value.
     PREV = 0x12,                // Prev track/frequency/gain value.
@@ -66,12 +69,20 @@ class AudioVolumeState : public Event {
     public:
         AudioVolumeState() :
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::VOLUME_STATE,
-                    {0x00, 0x00, 0x00, 0x00}) {}
+                    {0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, volume, data[0], data[0] = value);
         EVENT_PROPERTY(int8_t, fade, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(int8_t, balance, (int8_t)data[2], data[2] = (uint8_t)value);
-        EVENT_PROPERTY(bool, mute, data[3] == 1, data[3] = (uint8_t)value);
+};
+
+class AudioMuteState : public Event {
+    public:
+        AudioMuteState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::MUTE_STATE,
+                    {0x00}) {}
+
+        EVENT_PROPERTY(bool, mute, data[0] != 0, data[0] = (uint8_t)value);
 };
 
 class  AudioEqState : public Event {
@@ -91,7 +102,7 @@ class AudioSourceState : public Event {
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SOURCE_STATE,
                     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) {}
 
-        EVENT_PROPERTY(uint8_t, source, data[0], data[0] = value);
+        EVENT_PROPERTY(AudioSource, source, (AudioSource)data[0], data[0] = (uint8_t)value);
         EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(uint32_t, frequency, getFrequency(), setFrequency(value));
 
@@ -113,7 +124,7 @@ class AudioPlaybackState : public Event {
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_STATE,
                     {0x00, 0x00, 0x00, 0x00, 0x00}) {}
 
-        EVENT_PROPERTY(Playback, playback, (Playback)data[0], data[0] = (uint8_t)value);
+        EVENT_PROPERTY(AudioPlayback, playback, (AudioPlayback)data[0], data[0] = (uint8_t)value);
         EVENT_PROPERTY(uint16_t, time_elapsed, getTime(data + 1), setTime(data + 1, value));
         EVENT_PROPERTY(uint16_t, time_total, getTime(data + 3), setTime(data + 3, value));
 
@@ -202,6 +213,7 @@ class Fusion : public Caster::Node<Message> {
         CRC32::Checksum checksum_;
 
         AudioVolumeState volume_;
+        AudioMuteState mute_;
         AudioEqState eq_;
         AudioSourceState source_;
         AudioPlaybackState playback_;
@@ -210,15 +222,17 @@ class Fusion : public Caster::Node<Message> {
         AudioAlbumState album_;
 
         bool emit_volume_;
+        bool emit_mute_;
         bool emit_eq_;
         bool emit_source_;
         bool emit_playback_;
         bool emit_track_;
         bool emit_artist_;
         bool emit_album_;
+        bool recent_mute_;
 
         uint8_t state_;
-        uint8_t counter_;
+        uint8_t handle_counter_;
 };
 
 }  // namespace R51
