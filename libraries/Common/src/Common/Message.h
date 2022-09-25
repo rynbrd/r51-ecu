@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include "Event.h"
+#include "J1939Claim.h"
 
 namespace R51 {
 
@@ -14,6 +15,7 @@ class Message : public Printable {
             EMPTY,
             EVENT,
             CAN_FRAME,
+            J1939_CLAIM,
             J1939_MESSAGE,
         };
 
@@ -27,6 +29,10 @@ class Message : public Printable {
         // Construct a message that references a CAN frame.
         Message(Canny::Frame& can_frame) :
             type_(CAN_FRAME), ref_(&can_frame) {}
+
+        // Construct a message that references a J1939 address claim.
+        Message(J1939Claim& j1939_claim) :
+            type_(J1939_CLAIM), ref_(&j1939_claim) {}
 
         // Construct a message that references a J1939 message.
         Message(Canny::J1939Message& j1939_message) :
@@ -42,6 +48,9 @@ class Message : public Printable {
         // Return the CAN frame referenced by the message. Requires that type()
         // returns CAN_FRAME or undefined behavior will result.
         const Canny::Frame& can_frame() const { return *((Canny::Frame*)ref_); }
+
+        // Return the J1939 address claim event referenced by the message.
+        const J1939Claim& j1939_claim() const { return *((J1939Claim*)ref_); }
 
         // Return the J1939 message referenced by the message. Requires that
         // type() returns J1939_MESSAGE or u ndefined behavior will result.

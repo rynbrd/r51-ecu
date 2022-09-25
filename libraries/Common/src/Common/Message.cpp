@@ -18,6 +18,8 @@ size_t Message::printTo(Print& p) const {
             return p.print(event());
         case CAN_FRAME:
             return p.print(can_frame());
+        case J1939_CLAIM:
+            return p.print(j1939_claim());
         case J1939_MESSAGE:
             return p.print(j1939_message());
         case EMPTY:
