@@ -35,7 +35,8 @@ Climate::Climate(uint32_t tick_ms, Faker::Clock* clock) :
     temp_state_changed_(false), system_state_changed_(false), airflow_state_changed_(false),
     system_control_changed_(false), fan_control_changed_(false) {}
 
-void Climate::handle(const Message& msg) {
+void Climate::handle(const Message& msg, const Caster::Yield<Message>&) {
+    //TODO: Emit events directly.
     switch (msg.type()) {
         case Message::CAN_FRAME:
             handleSystemFrame(msg.can_frame());

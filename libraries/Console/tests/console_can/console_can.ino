@@ -17,38 +17,44 @@ byte buffer[64];
 const size_t buffer_size = 64;
 
 test(ConsoleCANTest, WriteEmpty) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
     Message msg;
-    console.handle(msg);
+    console.handle(msg, yield);
+    assertSize(yield, 0);
 
     // Ensure nothing was written.
     assertEqual(stream.remaining(), buffer_size);
 }
 
 test(ConsoleCANTest, WriteStdFrame) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
     Frame frame(0x0324, 0, {0x11, 0x22, 0x33, 0x44});
-    console.handle(frame);
+    console.handle(frame, yield);
+    assertSize(yield, 0);
 
     assertStringsEqual("console: can recv -324#11:22:33:44\r\n", buffer);
 }
 
 test(ConsoleCANTest, WriteExtFrame) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
     Frame frame(0x45324, 1, {0x11, 0x22, 0x33, 0x44});
-    console.handle(frame);
+    console.handle(frame, yield);
+    assertSize(yield, 0);
 
     assertStringsEqual("console: can recv +45324#11:22:33:44\r\n", buffer);
 }

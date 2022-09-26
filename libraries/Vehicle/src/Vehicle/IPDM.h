@@ -24,7 +24,7 @@ class IPDM : public Caster::Node<Message> {
 
         // Handle a 0x625 IPDM state frame. Returns true if the state changed
         // as a result of handling the frame.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Yield a BODY_POWER_STATE frame on change or tick.
         void emit(const Caster::Yield<Message>& yield) override;
@@ -48,7 +48,7 @@ class Defog : public Caster::Node<Message> {
             output_(output_pin, output_ms, clock, gpio) {}
 
         // Handles the IPDM TOGGLE_DEFOG mesage.
-        void handle(const Message& message) override;
+        void handle(const Message& message, const Caster::Yield<Message>&) override;
 
         // Does not emit any messages but required to update the GPIO status.
         void emit(const Caster::Yield<Message>&) override;

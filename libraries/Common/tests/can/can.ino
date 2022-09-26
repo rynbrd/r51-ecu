@@ -116,11 +116,12 @@ test(CANNodeTest, Read) {
 }
 
 test(CANNodeTest, Write) {
+    FakeYield yield;
     FakeConnection can(0, 1);
     CANNode<Frame> node(&can);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
-    node.handle(f);
+    node.handle(f, yield);
     assertEqual(can.writeCount(), 1);
     assertPrintablesEqual(can.writeData()[0], f);
 }
@@ -142,22 +143,14 @@ test(CANNodeTest, J1939Read) {
 }
 
 test(CANNodeTest, J1939Write) {
+    FakeYield yield;
     FakeConnection can(0, 1);
     CANNode<J1939Message> node(&can);
 
     J1939Message m(0xEF00, 0x20, 0x10);
-    node.handle(m);
+    node.handle(m, yield);
     assertEqual(can.writeCount(), 1);
     assertPrintablesEqual(can.writeData()[0], m);
-}
-test(CANNodeTest, J1939WriteInvalid) {
-    FakeConnection can(0, 1);
-    CANNode<J1939Message> node(&can);
-
-    J1939Message m(0xEF00, 0x20, 0x10);
-    m.ext(0);
-    node.handle(m);
-    assertEqual(can.writeCount(), 0);
 }
 
 }  // namespace R51

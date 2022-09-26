@@ -23,7 +23,7 @@ class TirePressureState : public Caster::Node<Message> {
 
         // Handle 0x385 tire pressure state frames. Returns true if the state
         // changed as a result of handling the frame.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Yield a TIRE_PRESSURE_STATE frame on change or tick.
         void emit(const Caster::Yield<Message>& yield) override;

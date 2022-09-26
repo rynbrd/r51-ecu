@@ -29,7 +29,7 @@ const Canny::J1939Message* extractMessageFrame<Canny::J1939Message>(const Messag
 }
 
 template <typename Frame>
-void CANNode<Frame>::handle(const Message& msg) {
+void CANNode<Frame>::handle(const Message& msg, const Caster::Yield<Message>&) {
     const Frame* frame = extractMessageFrame<Frame>(msg);
     if (frame == nullptr) {
         return;

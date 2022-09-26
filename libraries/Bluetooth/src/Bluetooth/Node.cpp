@@ -2,7 +2,7 @@
 
 namespace R51 {
 
-void BLENode::handle(const Message& msg) {
+void BLENode::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::EVENT ||  msg.event().subsystem != (uint8_t)SubSystem::BLUETOOTH) {
         return;
     }

@@ -40,7 +40,8 @@ test(J1939AddressClaimTest, Request) {
     // handle request address claim
     J1939Message msg(0xEA00, 0x21, 0xFF, 0x06);
     msg.data({0x00, 0xEE, 0x00});
-    node.handle(msg);
+    node.handle(msg, yield);
+    assertSize(yield, 0);
 
     // we should respond with our address
     Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
@@ -63,7 +64,8 @@ test(J1939AddressClaimTest, NoArbitraryAddressCannotClaim) {
     // handle address claim with same address and higher priority name
     J1939Message msg(0xEA00, address, 0xFF, 0x06);
     msg.data({0x00, 0x00, 0x0B, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
-    node.handle(msg);
+    node.handle(msg, yield);
+    assertSize(yield, 0);
 
     // we should respond with a null address
     Frame expect_frame(0x18EEFFFE, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
@@ -88,7 +90,8 @@ test(J1939AddressClaimTest, ArbitraryAddressClaim) {
     // handle address claim with same address and higher priority name
     J1939Message msg(0xEA00, address, 0xFF, 0x06);
     msg.data({0x00, 0x00, 0x0B, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
-    node.handle(msg);
+    node.handle(msg, yield);
+    assertSize(yield, 0);
 
     // we should response with the next address
     Frame expect_frame(0x18EEFF0B, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
@@ -121,11 +124,11 @@ test(J1939AddressClaimTest, ArbitraryAddressCannotClaim) {
                 next = 1;
             }
         }
-        Serial.print(i);Serial.print(": ");Serial.print(address, HEX);Serial.print(" -> ");Serial.println(next, HEX);
 
         J1939Message msg(0xEA00, address, 0xFF, 0x06);
         msg.data({0x00, 0x00, 0x0B, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
-        node.handle(msg);
+        node.handle(msg, yield);
+        assertSize(yield, 0);
 
         // we should response with the next address
         Frame expect_frame(0x18EEFF00 | next, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});

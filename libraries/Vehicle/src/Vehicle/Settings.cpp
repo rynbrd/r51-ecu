@@ -579,7 +579,7 @@ Settings::~Settings() {
         delete resetF_;
 }
 
-void Settings::handle(const Message& msg) {
+void Settings::handle(const Message& msg, const Caster::Yield<Message>&) {
     switch (msg.type()) {
         case Message::CAN_FRAME:
             handleFrame(msg.can_frame());

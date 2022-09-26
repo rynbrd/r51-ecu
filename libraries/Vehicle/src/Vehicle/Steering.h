@@ -27,7 +27,7 @@ class SteeringKeypad : public Caster::Node<Message> {
                 Faker::GPIO* gpio = Faker::GPIO::real());
 
         // Noop. This node does not process messages.
-        void handle(const Message&) override {}
+        void handle(const Message&, const Caster::Yield<Message>&) override {}
 
         // Emit a state frame on keypad state change.
         void emit(const Caster::Yield<Message>& yield) override;

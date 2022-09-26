@@ -21,7 +21,7 @@ class EngineTempState : public Caster::Node<Message> {
 
         // Handle ECM 0x551 state frames. Returns true if the state changed as
         // a result of handling the frame.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Yield an ENGINE_TEMP_STATE frame on change or tick.
         void emit(const Caster::Yield<Message>& yield) override;

@@ -24,7 +24,7 @@ class RealDashAdapter : public Caster::Node<Message> {
             hb_counter_(0), hb_ticker_(heartbeat_ms), frame_(8) {}
 
         // Encode and send an Event message to RealDash.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Yield received Events from RealDash.
         void emit(const Caster::Yield<Message>& yield) override;

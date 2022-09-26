@@ -18,7 +18,7 @@ class Climate : public Caster::Node<Message> {
 
         // Update the climate state from vehicle state frames and process
         // control frames.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Emit control frames to the vehicle and climate state system events.
         void emit(const Caster::Yield<Message>& yield) override;

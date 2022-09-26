@@ -33,7 +33,7 @@ void ConsoleNode::emit(const Caster::Yield<Message>& yield) {
     }
 }
 
-void ConsoleNode::handle(const Message& msg) {
+void ConsoleNode::handle(const Message& msg, const Caster::Yield<R51::Message>&) {
     switch (msg.type()) {
         case Message::EVENT:
             console_.stream()->print("console: event recv ");

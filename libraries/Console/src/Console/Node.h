@@ -32,7 +32,7 @@ class ConsoleNode : public Caster::Node<R51::Message> {
             command_(&root_) {}
 
         // Write a message to serial.
-        void handle(const R51::Message& msg) override;
+        void handle(const R51::Message& msg, const Caster::Yield<R51::Message>&) override;
 
         // Read a text frame from serial and emit it to the bus.
         void emit(const Caster::Yield<R51::Message>& yield) override;

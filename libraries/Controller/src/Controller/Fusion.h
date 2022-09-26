@@ -183,7 +183,7 @@ class Fusion : public Caster::Node<Message> {
 
         // Handle J1939 state messages from the head unit and control Events
         // from other devices.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Emit state events from the head units.
         void emit(const Caster::Yield<Message>& yield) override;

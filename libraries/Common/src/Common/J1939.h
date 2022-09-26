@@ -21,7 +21,7 @@ class J1939AddressClaim : public Caster::Node<Message> {
             name_(name), emit_event_(true), emit_claim_(true) {}
 
         // Consume address claim J1939 messages.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Emit address claim J1939 messages.
         void emit(const Caster::Yield<Message>& yield) override;

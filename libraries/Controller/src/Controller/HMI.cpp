@@ -12,7 +12,7 @@ namespace R51 {
 HMI::HMI(Stream* stream, Scratch* scratch) :
         stream_(new HMIDebugStream(stream)), scratch_(scratch), climate_system_(0) {}
 
-void HMI::handle(const Message& msg) {
+void HMI::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::EVENT) {
         return;
     }

@@ -6,7 +6,8 @@
 
 namespace R51 {
 
-void EngineTempState::handle(const Message& msg) {
+void EngineTempState::handle(const Message& msg, const Caster::Yield<Message>&) {
+    //TODO: Emit events directly.
     switch (msg.type()) {
         case Message::CAN_FRAME:
             handleFrame(msg.can_frame());

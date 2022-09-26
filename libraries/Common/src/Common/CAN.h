@@ -19,7 +19,7 @@ class CANNode : public Caster::Node<Message> {
         virtual ~CANNode() = default;
 
         // Write a frame to the CAN bus.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Read a single CAN frame and broadcast it to the event bus.
         void emit(const Caster::Yield<Message>& yield) override;

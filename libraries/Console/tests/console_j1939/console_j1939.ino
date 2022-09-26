@@ -17,19 +17,22 @@ byte buffer[64];
 const size_t buffer_size = 64;
 
 test(ConsoleJ1939Test, WriteUnmuted) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
+    assertSize(yield, 0);
 
     J1939Message msg(0xEF00, 0x31, 0x42, 0x01);
     msg.data({0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
-    console.handle(msg);
+    console.handle(msg, yield);
 
     assertStringsEqual("console: j1939 recv 4EF4231#11:22:33:44:55:66:77:88\r\n", buffer);
 }
 
 test(ConsoleJ1939Test, WriteMuted) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
@@ -38,7 +41,8 @@ test(ConsoleJ1939Test, WriteMuted) {
 
     J1939Message msg(0xEF00, 0x31, 0x42, 0x01);
     msg.data({0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
-    console.handle(msg);
+    console.handle(msg, yield);
+    assertSize(yield, 0);
 
     assertStringsEqual("", buffer);
 }

@@ -27,7 +27,8 @@ bool isRequestAddressClaim(const J1939Message& msg, uint8_t address) {
 
 }  // namespace
 
-void J1939AddressClaim::handle(const Message& msg) {
+void J1939AddressClaim::handle(const Message& msg, const Caster::Yield<Message>&) {
+    //TODO: Yield messages directly.
     if (msg.type() != Message::J1939_MESSAGE ||
             (!msg.j1939_message().broadcast() &&
              msg.j1939_message().dest_address() != address_)) {

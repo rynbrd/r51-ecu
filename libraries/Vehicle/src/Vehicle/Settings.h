@@ -40,7 +40,7 @@ class Settings : public Caster::Node<Message> {
         ~Settings();
 
         // Handle BCM state frames 0x72E and 0x72F.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Yield CAN frames to communicate with the vehicle or SETTINGS_STATE
         // events to indicate a change to the stored settings.

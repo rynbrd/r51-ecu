@@ -22,7 +22,7 @@ class BLENode : public Caster::Node<Message> {
             event_((uint8_t)SubSystem::BLUETOOTH, (uint8_t)BluetoothEvent::STATE, {0x00}),
             emit_(false) {}
 
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         void emit(const Caster::Yield<Message>& yield) override;
 

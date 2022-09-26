@@ -60,7 +60,7 @@ Fusion::Fusion(uint8_t address, uint8_t hu_address, Scratch* scratch) :
         emit_artist_(false), emit_album_(false), recent_mute_(false),
         state_(0xFF), handle_counter_(0xFF) {}
 
-void Fusion::handle(const Message& msg) {
+void Fusion::handle(const Message& msg, const Caster::Yield<Message>&) {
     switch (msg.type()) {
         case Message::EVENT:
             if (msg.event().subsystem == (uint8_t)SubSystem::AUDIO) {

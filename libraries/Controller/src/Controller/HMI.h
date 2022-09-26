@@ -96,7 +96,7 @@ class HMI : public Caster::Node<Message> {
         HMI(Stream* stream, Scratch* scratch);
 
         // Updates the HMI display with received broadcast events.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Emit input events from the HMI display.
         void emit(const Caster::Yield<Message>& yield) override;

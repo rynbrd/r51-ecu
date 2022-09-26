@@ -11,7 +11,7 @@ J1939Adapter::J1939Adapter(Canny::Connection* connection, uint8_t address) :
     j1939_.reserve(8);
 }
 
-void J1939Adapter::handle(const Message& msg) {
+void J1939Adapter::handle(const Message& msg, const Caster::Yield<Message>&) override;
     if (msg.type() != Message::EVENT) {
         return;
     }

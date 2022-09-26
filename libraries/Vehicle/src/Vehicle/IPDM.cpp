@@ -6,7 +6,8 @@
 
 namespace R51 {
 
-void IPDM::handle(const Message& msg) {
+void IPDM::handle(const Message& msg, const Caster::Yield<Message>&) {
+    //TODO: Emit events directly.
     switch (msg.type()) {
         case Message::CAN_FRAME:
             handleFrame(msg.can_frame());
@@ -60,7 +61,8 @@ void IPDM::emit(const Caster::Yield<Message>& yield) {
     }
 }
 
-void Defog::handle(const Message& message) {
+void Defog::handle(const Message& message, const Caster::Yield<Message>&) {
+    //TODO: Emit events directly.
     if (message.type() != Message::EVENT ||
             message.event().subsystem !=  (uint8_t)SubSystem::IPDM ||
             message.event().id != (uint8_t)IPDMEvent::TOGGLE_DEFOG) {

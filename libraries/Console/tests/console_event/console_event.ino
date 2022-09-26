@@ -17,50 +17,58 @@ byte buffer[64];
 const size_t buffer_size = 64;
 
 test(ConsoleEventTest, WriteEmpty) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
     Message msg;
-    console.handle(msg);
+    console.handle(msg, yield);
+    assertSize(yield, 0);
 
     // Ensure nothing was written.
     assertEqual(stream.remaining(), buffer_size);
 }
 
 test(ConsoleEventTest, WriteEventEmptyPayload) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
     Event event(0x01, 0x02);
-    console.handle(event);
+    console.handle(event, yield);
+    assertSize(yield, 0);
 
     assertStringsEqual("console: event recv 01:02#FF:FF:FF:FF:FF:FF\r\n", buffer);
 }
 
 test(ConsoleEventTest, WriteEventPartialPayload) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
     Event event(0x01, 0x02, {0xAA, 0xBB});
-    console.handle(event);
+    console.handle(event, yield);
+    assertSize(yield, 0);
 
     assertStringsEqual("console: event recv 01:02#AA:BB:FF:FF:FF:FF\r\n", buffer);
 }
 
 test(ConsoleEventTest, WriteEventFullPayload) {
+    FakeYield yield;
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
     Event event(0x01, 0x02, {0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE});
-    console.handle(event);
+    console.handle(event, yield);
+    assertSize(yield, 0);
 
     assertStringsEqual("console: event recv 01:02#99:AA:BB:CC:DD:EE\r\n", buffer);
 }

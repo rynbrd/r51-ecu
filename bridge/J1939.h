@@ -14,7 +14,7 @@ class J1939Adapter : public Caster::Node<Message> {
         J1939Adapter(Canny::Connection* connection, uint8_t address);
 
         // Encode and send an Event message over the J1939 bus.
-        void handle(const Message& msg) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Yield received Events from the J1939 bus.
         void emit(const Caster::Yield<Message>& yield) override;

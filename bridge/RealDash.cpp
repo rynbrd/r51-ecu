@@ -7,7 +7,7 @@ using ::R51::Message;
 
 namespace R51 {
 
-void RealDashAdapter::handle(const Message& msg) {
+void RealDashAdapter::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::EVENT) {
         return;
     }

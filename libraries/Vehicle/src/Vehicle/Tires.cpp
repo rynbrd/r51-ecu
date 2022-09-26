@@ -26,7 +26,8 @@ TirePressureState::TirePressureState(ConfigStore* config, uint32_t tick_ms, Fake
         }
     }
 
-void TirePressureState::handle(const Message& msg) {
+void TirePressureState::handle(const Message& msg, const Caster::Yield<Message>&) {
+    //TODO: Emit events directly.
     switch (msg.type()) {
         case Message::CAN_FRAME:
             handleFrame(msg.can_frame());
