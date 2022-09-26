@@ -62,11 +62,11 @@ void J1939SendRunCommand::run(Console* console, char* arg, const Caster::Yield<M
     yield(msg_);
 }
 
-void J1939MuteCommand::run(Console* console, char* arg, const Caster::Yield<Message>& yield) {
+void J1939MuteCommand::run(Console* console, char*, const Caster::Yield<Message>&) {
     console->j1939_mute(true);
 }
 
-void J1939UnmuteCommand::run(Console* console, char* arg, const Caster::Yield<Message>& yield) {
+void J1939UnmuteCommand::run(Console* console, char*, const Caster::Yield<Message>&) {
     console->j1939_mute(false);
 }
 

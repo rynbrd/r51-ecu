@@ -40,7 +40,7 @@ class J1939MuteCommand : public Command {
             return TooManyArgumentsCommand::get();
         }
 
-        void run(Console* console, char* arg, const Caster::Yield<Message>& yield) override;
+        void run(Console* console, char*, const Caster::Yield<Message>&) override;
 };
 
 class J1939UnmuteCommand : public Command {
@@ -49,7 +49,7 @@ class J1939UnmuteCommand : public Command {
             return TooManyArgumentsCommand::get();
         }
 
-        void run(Console* console, char* arg, const Caster::Yield<Message>& yield) override;
+        void run(Console* console, char*, const Caster::Yield<Message>&) override;
 };
 
 class J1939Command : public NotEnoughArgumentsCommand {
