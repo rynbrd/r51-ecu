@@ -27,21 +27,21 @@ bool isRequestAddressClaim(const J1939Message& msg, uint8_t address) {
 
 }  // namespace
 
-void J1939AddressClaim::handle(const Message& msg, const Caster::Yield<Message>&) {
-    //TODO: Yield messages directly.
+void J1939AddressClaim::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     if (msg.type() != Message::J1939_MESSAGE ||
             (!msg.j1939_message().broadcast() &&
              msg.j1939_message().dest_address() != address_)) {
         return;
     }
     if (isAddressClaim(msg.j1939_message()) && msg.j1939_message().source_address() == address_) {
-        handleAddressClaim(msg.j1939_message());
+        handleAddressClaim(msg.j1939_message(), yield);
     } else if (isRequestAddressClaim(msg.j1939_message(), address_)) {
-        emit_claim_ = true;
+        emitClaim(yield);
     }
 }
 
-void J1939AddressClaim::handleAddressClaim(const Canny::J1939Message& msg) {
+void J1939AddressClaim::handleAddressClaim(const Canny::J1939Message& msg,
+        const Caster::Yield<Message>& yield) {
     if (address_ == Canny::NullAddress || address_ != msg.source_address()) {
         // no negotiation needed
         return;
@@ -54,7 +54,7 @@ void J1939AddressClaim::handleAddressClaim(const Canny::J1939Message& msg) {
 
     if (name_ <= msg.name()) {
         // we have higher priority; emit our address claim
-        emit_claim_ = true;
+        emitClaim(yield);
     } else if (Canny::j1939_name_arbitrary_address(name_)) {
         // we have lower priority and can negotiate a new address
         ++address_;
@@ -65,28 +65,33 @@ void J1939AddressClaim::handleAddressClaim(const Canny::J1939Message& msg) {
             // we've tried all of the addresses
             address_ = Canny::NullAddress;
         }
-        emit_event_ = true;
-        emit_claim_ = true;
+        emitClaim(yield);
+        emitEvent(yield);
     } else {
         // we have lower priority and cannot negotiate a new address
         address_ = Canny::NullAddress;
-        emit_event_ = true;
-        emit_claim_ = true;
+        emitClaim(yield);
+        emitEvent(yield);
     }
 }
 
 void J1939AddressClaim::emit(const Caster::Yield<Message>& yield) {
-    if (emit_claim_) {
+    if (!init_) {
+        emitClaim(yield);
+        emitEvent(yield);
+        init_ = true;
+    }
+}
+
+void J1939AddressClaim::emitEvent(const Caster::Yield<Message>& yield) {
+        J1939Claim claim(address_, name_);
+        yield(claim);
+}
+
+void J1939AddressClaim::emitClaim(const Caster::Yield<Message>& yield) {
         J1939Message msg(0xEE00, address_, 0xFF,  0x06);
         msg.name(name_);
         yield(msg);
-        emit_claim_ = false;
-    }
-    if (emit_event_) {
-        J1939Claim claim(address_, name_);
-        yield(claim);
-        emit_event_ = false;
-    }
 }
 
 }  // namespace R51

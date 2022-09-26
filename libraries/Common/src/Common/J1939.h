@@ -18,10 +18,10 @@ class J1939AddressClaim : public Caster::Node<Message> {
         // already claimed.
         J1939AddressClaim(uint8_t preferred_address, uint64_t name) :
             preferred_address_(preferred_address), address_(preferred_address),
-            name_(name), emit_event_(true), emit_claim_(true) {}
+            name_(name), init_(false) {}
 
         // Consume address claim J1939 messages.
-        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         // Emit address claim J1939 messages.
         void emit(const Caster::Yield<Message>& yield) override;
@@ -33,12 +33,16 @@ class J1939AddressClaim : public Caster::Node<Message> {
         uint64_t name() { return name_; }
 
     private:
-        void handleAddressClaim(const Canny::J1939Message& msg);
-        uint8_t preferred_address_;
+        void handleAddressClaim(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+
+        void emitEvent(const Caster::Yield<Message>& yield);
+        void emitClaim(const Caster::Yield<Message>& yield);
+
+        const uint8_t preferred_address_;
         uint8_t address_;
         uint64_t name_;
-        bool emit_event_;
-        bool emit_claim_;
+        bool init_;
 };
 
 }  // namespace R51
