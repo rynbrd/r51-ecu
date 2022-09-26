@@ -45,6 +45,17 @@ void ConsoleNode::handle(const Message& msg) {
                 console_.stream()->println(msg.can_frame());
             }
             break;
+        case Message::J1939_CLAIM:
+            if (!console_.j1939_mute()) {
+                console_.stream()->print("console: j1939 claim ");
+                if (msg.j1939_claim().address() <= 0x0F) {
+                    console_.stream()->print("0x0");
+                } else {
+                    console_.stream()->print("0x");
+                }
+                console_.stream()->println(msg.j1939_claim().address(), HEX);
+            }
+            break;
         case Message::J1939_MESSAGE:
             if (!console_.j1939_mute()) {
                 console_.stream()->print("console: j1939 recv ");
