@@ -18,12 +18,16 @@ class Climate : public Caster::Node<Message> {
 
         // Update the climate state from vehicle state frames and process
         // control frames.
-        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         // Emit control frames to the vehicle and climate state system events.
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
+        void handleTempFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
+        void handleSystemFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
+        void handleEvent(const Event& event, const Caster::Yield<Message>& yield);
+
         Faker::Clock* clock_;
         uint32_t startup_;
         Ticker state_ticker_;
@@ -31,20 +35,11 @@ class Climate : public Caster::Node<Message> {
         bool state_request_;
         uint8_t state_init_;
         bool control_init_;
-        bool temp_state_changed_;
-        bool system_state_changed_;
-        bool airflow_state_changed_;
-        bool system_control_changed_;
-        bool fan_control_changed_;
         ClimateTempStateEvent temp_state_;
         ClimateAirflowStateEvent airflow_state_;
         ClimateSystemStateEvent system_state_;
         ClimateSystemControlFrame system_control_;
         ClimateFanControlFrame fan_control_;
-
-        void handleTempFrame(const Canny::Frame& frame);
-        void handleSystemFrame(const Canny::Frame& frame);
-        void handleEvent(const Event& event);
 };
 
 }  // namespace R51

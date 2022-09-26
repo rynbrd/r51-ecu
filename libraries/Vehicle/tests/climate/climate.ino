@@ -14,7 +14,7 @@ using ::Canny::Frame;
 using ::Faker::FakeClock;
 
 #define assertYieldFrame(control, frame) ({\
-    climate.handle(control); \
+    climate.handle(control, yield); \
     climate.emit(yield); \
     assertSize(yield, 1); \
     assertIsCANFrame(yield.messages()[0], frame); \
@@ -22,7 +22,7 @@ using ::Faker::FakeClock;
 })
 
 #define assertNoYield(control) ({\
-    climate.handle(control); \
+    climate.handle(control, yield); \
     climate.emit(yield); \
     assertSize(yield, 0); \
 })
@@ -45,8 +45,8 @@ class ClimateTest : public TestOnce {
         void enableClimate(Climate* climate) {
             Frame state54A(0x54A, 0, {0x3C, 0x3E, 0x7F, 0x80, 0x3C, 0x41, 0x00, 0x58});
             Frame state54B(0x54B, 0, {0x59, 0x8C, 0x05, 0x24, 0x00, 0x00, 0x00, 0x02});
-            climate->handle(state54A);
-            climate->handle(state54B);
+            climate->handle(state54A, yield);
+            climate->handle(state54B, yield);
             climate->emit(yield);
             yield.clear();
         }
@@ -97,7 +97,7 @@ testF(ClimateTest, Request) {
         (uint8_t)ClimateEvent::AIRFLOW_STATE,
         {0x03, 0x02});
 
-    climate.handle(control);
+    climate.handle(control, yield);
     climate.emit(yield);
     assertSize(yield, 3);
     assertIsEvent(yield.messages()[0], expect_temp);
@@ -335,8 +335,8 @@ testF(ClimateTest, TickOffState) {
     ClimateSystemStateEvent system;
     system.mode(CLIMATE_SYSTEM_OFF);
 
-    climate.handle(state54A);
-    climate.handle(state54B);
+    climate.handle(state54A, yield);
+    climate.handle(state54B, yield);
     climate.emit(yield);
     assertSize(yield, 3);
     assertIsEvent(yield.messages()[0], temp);
