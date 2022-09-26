@@ -6,21 +6,20 @@
 
 namespace R51 {
 
-void EngineTempState::handle(const Message& msg, const Caster::Yield<Message>&) {
-    //TODO: Emit events directly.
+void EngineTempState::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::CAN_FRAME:
-            handleFrame(msg.can_frame());
+            handleFrame(msg.can_frame(), yield);
             break;
         case Message::EVENT:
-            handleEvent(msg.event());
+            handleEvent(msg.event(), yield);
             break;
         default:
             break;
     }
 }
 
-void EngineTempState::handleFrame(const Canny::Frame& frame) {
+void EngineTempState::handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield) {
     if (frame.id() != 0x551 || frame.size() < 1) {
         return;
     }
@@ -30,24 +29,27 @@ void EngineTempState::handleFrame(const Canny::Frame& frame) {
     uint8_t value = frame.data()[0];
     if (value != event_.data[0]) {
         event_.data[0] = value;
-        changed_ = true;
+        yieldEvent(yield);
     }
 }
 
-void EngineTempState::handleEvent(const Event& event) {
+void EngineTempState::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
     if (event.subsystem != (uint8_t)SubSystem::ECM ||
             event.id != (uint8_t)ECMEvent::REQUEST) {
         return;
     }
-    changed_ = true;
+    yieldEvent(yield);
 }
 
 void EngineTempState::emit(const Caster::Yield<Message>& yield) {
-    if (changed_ || ticker_.active()) {
-        ticker_.reset();
-        yield(event_);
-        changed_ = false;
+    if (ticker_.active()) {
+        yieldEvent(yield);
     }
+}
+
+void EngineTempState::yieldEvent(const Caster::Yield<Message>& yield) {
+    ticker_.reset();
+    yield(event_);
 }
 
 }  // namespace R51

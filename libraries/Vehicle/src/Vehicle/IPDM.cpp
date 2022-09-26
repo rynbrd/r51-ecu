@@ -6,21 +6,20 @@
 
 namespace R51 {
 
-void IPDM::handle(const Message& msg, const Caster::Yield<Message>&) {
-    //TODO: Emit events directly.
+void IPDM::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::CAN_FRAME:
-            handleFrame(msg.can_frame());
+            handleFrame(msg.can_frame(), yield);
             break;
         case Message::EVENT:
-            handleEvent(msg.event());
+            handleEvent(msg.event(), yield);
             break;
         default:
             break;
     }
 }
 
-void IPDM::handleFrame(const Canny::Frame& frame) {
+void IPDM::handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield) {
     if (frame.id() != 0x625 || frame.size() < 6) {
         return;
     }
@@ -41,28 +40,30 @@ void IPDM::handleFrame(const Canny::Frame& frame) {
 
     if (state != event_.data[0]) {
         event_.data[0] = state;
-        changed_ = true;
+        yieldEvent(yield);
     }
 }
 
-void IPDM::handleEvent(const Event& event) {
+void IPDM::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
     if (event.subsystem != (uint8_t)SubSystem::IPDM ||
             event.id != (uint8_t)IPDMEvent::REQUEST) {
         return;
     }
-    changed_ = true;
+    yieldEvent(yield);
 }
 
 void IPDM::emit(const Caster::Yield<Message>& yield) {
-    if (changed_ || ticker_.active()) {
-        ticker_.reset();
-        yield(event_);
-        changed_ = false;
+    if (ticker_.active()) {
+        yieldEvent(yield);
     }
 }
 
+void IPDM::yieldEvent(const Caster::Yield<Message>& yield) {
+    ticker_.reset();
+    yield(event_);
+}
+
 void Defog::handle(const Message& message, const Caster::Yield<Message>&) {
-    //TODO: Emit events directly.
     if (message.type() != Message::EVENT ||
             message.event().subsystem !=  (uint8_t)SubSystem::IPDM ||
             message.event().id != (uint8_t)IPDMEvent::TOGGLE_DEFOG) {

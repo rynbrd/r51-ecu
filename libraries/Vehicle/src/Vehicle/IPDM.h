@@ -20,20 +20,21 @@ enum class IPDMEvent : uint8_t {
 class IPDM : public Caster::Node<Message> {
     public:
         IPDM(uint32_t tick_ms = 0, Faker::Clock* clock = Faker::Clock::real()) :
-            changed_(false), event_((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00}), ticker_(tick_ms, clock) {}
+            event_((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE,
+                    {0x00}), ticker_(tick_ms, clock) {}
 
         // Handle a 0x625 IPDM state frame. Returns true if the state changed
         // as a result of handling the frame.
-        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         // Yield a BODY_POWER_STATE frame on change or tick.
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
-        void handleFrame(const Canny::Frame& frame);
-        void handleEvent(const Event& event);
+        void yieldEvent(const Caster::Yield<Message>& yield);
+        void handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
+        void handleEvent(const Event& event, const Caster::Yield<Message>& yield);
 
-        bool changed_;
         Event event_;
         Ticker ticker_;
 };

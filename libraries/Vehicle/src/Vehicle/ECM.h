@@ -21,18 +21,19 @@ class EngineTempState : public Caster::Node<Message> {
 
         // Handle ECM 0x551 state frames. Returns true if the state changed as
         // a result of handling the frame.
-        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         // Yield an ENGINE_TEMP_STATE frame on change or tick.
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
+        void yieldEvent(const Caster::Yield<Message>& yield);
+        void handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
+        void handleEvent(const Event& event, const Caster::Yield<Message>& yield);
+
         bool changed_;
         Event event_;
         Ticker ticker_;
-
-        void handleFrame(const Canny::Frame& frame);
-        void handleEvent(const Event& event);
 };
 
 }  // namespace R51
