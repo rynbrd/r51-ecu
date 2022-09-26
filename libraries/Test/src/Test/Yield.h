@@ -21,6 +21,9 @@ class MessageCopy : public Printable {
                 case Message::CAN_FRAME:
                     can_frame_ = msg.can_frame();
                     break;
+                case Message::J1939_CLAIM:
+                    j1939_claim_ = msg.j1939_claim();
+                    break;
                 case Message::J1939_MESSAGE:
                     j1939_message_ = msg.j1939_message();
                     break;
@@ -35,6 +38,8 @@ class MessageCopy : public Printable {
 
         const Canny::Frame& can_frame() const { return can_frame_; }
 
+        const J1939Claim& j1939_claim() const { return j1939_claim_; }
+
         const Canny::J1939Message& j1939_message() const { return j1939_message_; }
 
         size_t printTo(Print& p) const {
@@ -45,6 +50,8 @@ class MessageCopy : public Printable {
                     return p.print("(EVENT)") + p.print(event_);
                 case Message::CAN_FRAME:
                     return p.print("(CAN_FRAME)") + p.print(can_frame_);
+                case Message::J1939_CLAIM:
+                    return p.print("(J1939_CLAIM)") +  p.print(j1939_claim_);
                 case Message::J1939_MESSAGE:
                     return p.print("(J1939_MESSAGE)") + p.print(j1939_message_);
             }
@@ -55,6 +62,7 @@ class MessageCopy : public Printable {
         Message::Type type_;
         Event event_;
         Canny::Frame can_frame_;
+        J1939Claim j1939_claim_;
         Canny::J1939Message j1939_message_;
 };
 
