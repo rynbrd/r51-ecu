@@ -108,11 +108,11 @@ class HMI : public Caster::Node<Message> {
         void handleClimateAirflow(const ClimateAirflowStateEvent* event);
         void handleClimateTemp(const ClimateTempStateEvent* event);
         void handleSettings(const Event& event);
+        void handleAudioSystem(const AudioSystemState* event);
         void handleAudioVolume(const AudioVolumeState* event);
         void handleAudioMute(const AudioMuteState* event);
-        void handleAudioEq(const AudioEqState* event);
-        void handleAudioSource(const AudioSourceState* event);
-        void handleAudioPlayback(const AudioPlaybackState* event);
+        void handleAudioTone(const AudioToneState* event);
+        void handleAudioPlayback(const AudioTrackPlaybackState* event);
 
         void handleSerial(const Caster::Yield<Message>& yield);
         void handleClimateButton(uint8_t button, const Caster::Yield<Message>& yield);

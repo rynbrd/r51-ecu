@@ -5,6 +5,7 @@
 #include <CRC32.h>
 #include <Caster.h>
 #include <Common.h>
+#include <Faker.h>
 
 namespace R51 {
 
@@ -21,7 +22,6 @@ enum class AudioSource : uint8_t {
     OPTICAL = 0x09,
     AIRPLAY = 0x0A,
     //UPNP,
-    NO_STEREO = 0xFF,
 };
 
 enum class AudioPlayback : uint8_t {
@@ -32,15 +32,14 @@ enum class AudioPlayback : uint8_t {
 };
 
 enum class AudioEvent {
+    SYSTEM_STATE = 0x00,        // State event. Sends power, connectivity, gain, frequency.
     VOLUME_STATE = 0x01,        // State event. Sends current volume, fade, and balance.
     MUTE_STATE = 0x02,          // State event. Sent on mute/unmute.
     EQ_STATE = 0x03,            // State event. Sends equalizer high/mid/low values.
-    SOURCE_STATE = 0x04,        // State event. Sends the current audio source, gain,
-                                // and frequency when applicable.
-    PLAYBACK_STATE = 0x05,      // State event. Sends the playback status and track times.
-    TRACK_STATE = 0x06,         // State event. Sends the track title.
-    ARTIST_STATE = 0x07,        // State event. Sends the artist name.
-    ALBUM_STATE = 0x08,         // State event. Sends the album title.
+    TRACK_PLAYBACK_STATE = 0x04,      // State event. Sends the playback status and track times.
+    TRACK_TITLE_STATE = 0x05,         // State event. Sends the track title.
+    TRACK_ARTIST_STATE = 0x06,        // State event. Sends the artist name.
+    TRACK_ALBUM_STATE = 0x07,         // State event. Sends the album title.
 
     NEXT = 0x11,                // Next track/frequency/gain value.
     PREV = 0x12,                // Prev track/frequency/gain value.
@@ -65,6 +64,35 @@ enum class AudioEvent {
     FORGET_BT = 0x25,           // Forget a Bluetooth device.
 };
 
+class AudioSystemState : public Event {
+    public:
+        AudioSystemState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SYSTEM_STATE,
+                    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) {}
+
+        EVENT_PROPERTY(bool, available, getBit(data, 0, 4), setBit(data, 0, 4, value));
+        EVENT_PROPERTY(bool, power, getBit(data, 0, 5), setBit(data, 0, 5, value));
+        EVENT_PROPERTY(bool, bt_connected, getBit(data, 0, 6), setBit(data, 0, 6, value));
+        EVENT_PROPERTY(bool, bt_discoverable, getBit(data, 0, 7), setBit(data, 0, 7, value));
+        EVENT_PROPERTY(AudioSource, source,
+                (AudioSource)(data[0] & 0x0F),
+                data[0] |= ((uint8_t)value & 0x0F));
+        EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
+        EVENT_PROPERTY(uint32_t, frequency, getFrequency(), setFrequency(value));
+
+    private:
+        uint32_t getFrequency() const {
+            uint32_t value = 0;
+            NetworkToUInt32(&value, data + 2);
+            return value;
+        }
+
+        void setFrequency(uint32_t value) {
+            UInt32ToNetwork(data + 2, value);
+        }
+};
+
+
 class AudioVolumeState : public Event {
     public:
         AudioVolumeState() :
@@ -85,9 +113,9 @@ class AudioMuteState : public Event {
         EVENT_PROPERTY(bool, mute, data[0] != 0, data[0] = (uint8_t)value);
 };
 
-class  AudioEqState : public Event {
+class AudioToneState : public Event {
     public:
-        AudioEqState() :
+        AudioToneState() :
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::EQ_STATE,
                     {0x00, 0x00, 0x00}) {}
 
@@ -96,32 +124,10 @@ class  AudioEqState : public Event {
         EVENT_PROPERTY(int8_t, treble, (int8_t)data[2], data[3] = (uint8_t)value);
 };
 
-class AudioSourceState : public Event {
+class AudioTrackPlaybackState : public Event {
     public:
-        AudioSourceState() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SOURCE_STATE,
-                    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) {}
-
-        EVENT_PROPERTY(AudioSource, source, (AudioSource)data[0], data[0] = (uint8_t)value);
-        EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
-        EVENT_PROPERTY(uint32_t, frequency, getFrequency(), setFrequency(value));
-
-    private:
-        uint32_t getFrequency() const {
-            uint32_t value = 0;
-            memcpy(&value, data + 2, 4);
-            return value;
-        }
-
-        void setFrequency(uint32_t value) {
-            memcpy(data + 2, &value, 4);
-        }
-};
-
-class AudioPlaybackState : public Event {
-    public:
-        AudioPlaybackState() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_STATE,
+        AudioTrackPlaybackState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TRACK_PLAYBACK_STATE,
                     {0x00, 0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(AudioPlayback, playback, (AudioPlayback)data[0], data[0] = (uint8_t)value);
@@ -158,77 +164,100 @@ class AudioChecksumEvent : public Event {
         }
 };
 
-class AudioTrackState : public AudioChecksumEvent {
+class AudioTrackTitleState : public AudioChecksumEvent {
     public:
-        AudioTrackState() :  AudioChecksumEvent(AudioEvent::TRACK_STATE) {}
+        AudioTrackTitleState() :  AudioChecksumEvent(AudioEvent::TRACK_TITLE_STATE) {}
 };
 
-class AudioArtistState : public AudioChecksumEvent {
+class AudioTrackArtistState : public AudioChecksumEvent {
     public:
-        AudioArtistState() :  AudioChecksumEvent(AudioEvent::ARTIST_STATE) {}
+        AudioTrackArtistState() :  AudioChecksumEvent(AudioEvent::TRACK_ARTIST_STATE) {}
 };
 
-class AudioAlbumState : public AudioChecksumEvent {
+class AudioTrackAlbumState : public AudioChecksumEvent {
     public:
-        AudioAlbumState() :  AudioChecksumEvent(AudioEvent::ALBUM_STATE) {}
+        AudioTrackAlbumState() :  AudioChecksumEvent(AudioEvent::TRACK_ALBUM_STATE) {}
 };
 
 // Node for interacting with Garming Fusion head units over J1939/NMEA2000.
 class Fusion : public Caster::Node<Message> {
     public:
-        // Construct a fusion node which communicates from the provided
-        // address. Events with string contents write their payloads to
-        // scratch.
-        Fusion(uint8_t address, uint8_t hu_address, Scratch* scratch);
+        // Construct a fusion node. Events with string contents write their
+        // payloads to scratch.
+        Fusion(Scratch* scratch, Faker::Clock* clock = Faker::Clock::real());
 
         // Handle J1939 state messages from the head unit and control Events
         // from other devices.
-        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         // Emit state events from the head units.
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
-        void handleEvent(const Event& event);
-        void handleJ1939(const Canny::J1939Message& msg);
+        void handleEvent(const Event& event,
+                const Caster::Yield<Message>& yield);
+        void handleJ1939Claim(const J1939Claim& claim,
+                const Caster::Yield<Message>& yield);
+        void handleJ1939Message(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
 
-        void handleSource(const Canny::J1939Message& msg);
-        void handlePlayback(const Canny::J1939Message& msg);
-        void handleTrack(const Canny::J1939Message& msg);
-        void handleArtist(const Canny::J1939Message& msg);
-        void handleAlbum(const Canny::J1939Message& msg);
-        void handleTimeElapsed(const Canny::J1939Message& msg);
-        void handleFrequency(const Canny::J1939Message& msg);
-        void handleGain(const Canny::J1939Message& msg);
-        void handleTone(const Canny::J1939Message& msg);
-        void handleMute(const Canny::J1939Message& msg);
-        void handleBalance(const Canny::J1939Message& msg);
-        void handleVolume(const Canny::J1939Message& msg);
+        void handleAnnounce(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handlePower(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleHeartbeat(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleSource(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleTrackPlayback(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleTrackTitle(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleTrackArtiat(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleTrackAlbum(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleTimeElapsed(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleRadioFrequency(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleInputGain(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleTone(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleMute(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleBalance(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleVolume(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+        void handleBluetoothConnection(bool connected,
+                const Caster::Yield<Message>& yield);
 
         bool handleString(const Canny::J1939Message& msg);
 
-        uint8_t address_;
-        uint8_t hu_address_;
+        void sendStereoRequest(const Caster::Yield<Message>& yield);
+        void sendStereoDiscovery(const Caster::Yield<Message>& yield);
+
+        Faker::Clock* clock_;
         Scratch* scratch_;
         CRC32::Checksum checksum_;
 
+        uint8_t address_;
+        uint8_t hu_address_;
+        Ticker hb_timer_;
+        Ticker disco_timer_;
+
+
+        AudioSystemState system_;
         AudioVolumeState volume_;
         AudioMuteState mute_;
-        AudioEqState eq_;
-        AudioSourceState source_;
-        AudioPlaybackState playback_;
-        AudioTrackState track_;
-        AudioArtistState artist_;
-        AudioAlbumState album_;
+        AudioToneState tone_;
+        AudioTrackPlaybackState track_playback_;
+        AudioTrackTitleState track_title_;
+        AudioTrackArtistState track_artist_;
+        AudioTrackAlbumState track_album_;
 
-        bool emit_volume_;
-        bool emit_mute_;
-        bool emit_eq_;
-        bool emit_source_;
-        bool emit_playback_;
-        bool emit_track_;
-        bool emit_artist_;
-        bool emit_album_;
         bool recent_mute_;
 
         uint8_t state_;

@@ -50,6 +50,9 @@ void HMI::handle(const Message& msg, const Caster::Yield<Message>&) {
             break;
         case SubSystem::AUDIO:
             switch ((AudioEvent)event.id) {
+                case AudioEvent::SYSTEM_STATE:
+                    handleAudioSystem((AudioSystemState*)&event);
+                    break;
                 case AudioEvent::VOLUME_STATE:
                     handleAudioVolume((AudioVolumeState*)&event);
                     break;
@@ -57,21 +60,18 @@ void HMI::handle(const Message& msg, const Caster::Yield<Message>&) {
                     handleAudioMute((AudioMuteState*)&event);
                     break;
                 case AudioEvent::EQ_STATE:
-                    handleAudioEq((AudioEqState*)&event);
+                    handleAudioTone((AudioToneState*)&event);
                     break;
-                case AudioEvent::SOURCE_STATE:
-                    handleAudioSource((AudioSourceState*)&event);
+                case AudioEvent::TRACK_PLAYBACK_STATE:
+                    handleAudioPlayback((AudioTrackPlaybackState*)&event);
                     break;
-                case AudioEvent::PLAYBACK_STATE:
-                    handleAudioPlayback((AudioPlaybackState*)&event);
-                    break;
-                case AudioEvent::TRACK_STATE:
+                case AudioEvent::TRACK_TITLE_STATE:
                     setTxt("audio_track.title_txt", scratch_);
                     break;
-                case AudioEvent::ARTIST_STATE:
+                case AudioEvent::TRACK_ARTIST_STATE:
                     setTxt("audio_track.artist_txt", scratch_);
                     break;
-                case AudioEvent::ALBUM_STATE:
+                case AudioEvent::TRACK_ALBUM_STATE:
                     setTxt("audio_track.album_txt", scratch_);
                     break;
                 default:
@@ -181,22 +181,7 @@ void HMI::handleSettings(const Event& event) {
     }
 }
 
-void HMI::handleAudioVolume(const AudioVolumeState* event) {
-    //TODO: implement fade and balance
-    setVolume(event->volume());
-    page(Page::AUDIO_VOLUME);
-}
-
-void HMI::handleAudioMute(const AudioMuteState* event) {
-    setVal("audio.mute", event->mute());
-    refresh();
-}
-
-void HMI::handleAudioEq(const AudioEqState*) {
-    //TODO: implement EQ handling in the display.
-}
-
-void HMI::handleAudioSource(const AudioSourceState* event) {
+void HMI::handleAudioSystem(const AudioSystemState* event) {
     setVal("audio.source", (uint8_t)event->source());
 
     switch (event->source()) {
@@ -236,7 +221,22 @@ void HMI::handleAudioSource(const AudioSourceState* event) {
     }
 }
 
-void HMI::handleAudioPlayback(const AudioPlaybackState* event) {
+void HMI::handleAudioVolume(const AudioVolumeState* event) {
+    //TODO: implement fade and balance
+    setVolume(event->volume());
+    page(Page::AUDIO_VOLUME);
+}
+
+void HMI::handleAudioMute(const AudioMuteState* event) {
+    setVal("audio.mute", event->mute());
+    refresh();
+}
+
+void HMI::handleAudioTone(const AudioToneState*) {
+    //TODO: implement EQ handling in the display.
+}
+
+void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
     setVal("audio.playback", (uint8_t)event->playback());
     if (event->playback() == AudioPlayback::NO_TRACK)  {
         setTxt("audio_track.telapsed_txt", "");
@@ -509,7 +509,7 @@ void HMI::handleVehicleButton(uint8_t button, const Caster::Yield<Message>& yiel
     switch (button) {
         case 0x17:
             {
-                uint16_t tires = (uint8_t)get("vehicle.swap_tires");
+                uint8_t tires = get("vehicle.swap_tires");
                 if ((tires & 0x0F) != ((tires >> 4) & 0x0F)) {
                     Event event = Event(SubSystem::TIRE,
                                 (uint8_t)TireEvent::SWAP_POSITION,
