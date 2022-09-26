@@ -3,6 +3,7 @@
 
 #include "Common/Binary.h"
 #include "Common/CAN.h"
+#include "Common/Endian.h"
 #include "Common/Event.h"
 #include "Common/J1939.h"
 #include "Common/J1939Claim.h"
