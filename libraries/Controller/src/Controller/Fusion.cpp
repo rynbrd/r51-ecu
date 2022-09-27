@@ -116,8 +116,8 @@ Fusion::Fusion(Scratch* scratch, Clock* clock) :
         clock_(clock), scratch_(scratch),
         address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, clock), disco_timer_(kDiscoveryTick, clock),
-        recent_mute_(false), state_(0xFF), state_counter_(0xFF), cmd_counter_(0x00),
-        cmd_(0x1EF00, Canny::NullAddress) {
+        recent_mute_(false), state_(0xFF), state_counter_(0xFF),
+        cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress) {
     cmd_.resize(8);
 }
 
@@ -672,11 +672,8 @@ void Fusion::emit(const Yield<Message>& yield) {
 void Fusion::sendStereoRequest(const Yield<Message>& yield) {
     // 1DEF0A10#00:05:A3:99:1C:00:01:FF
     // 1DEF0A10#A0:04:A3:99:01:00:FF:FF
-    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
-    msg.data({0x00, 0x05, 0xA3, 0x99, 0x1C, 0x00, 0x01, 0xFF});
-    yield(msg);
-    msg.data({0xA0, 0x04, 0xA3, 0x99, 0x01, 0x00, 0xFF, 0xFF});
-    yield(msg);
+    sendCmd(yield, 0x05, 0x1C, 0x01);
+    sendCmd(yield, 0x04, 0x01);
 }
 
 void Fusion::sendStereoDiscovery(const Yield<Message>& yield) {
@@ -688,7 +685,7 @@ void Fusion::sendStereoDiscovery(const Yield<Message>& yield) {
 
 void Fusion::sendCmd(const Yield<Message>& yield,
         uint8_t cs, uint8_t id, uint8_t payload0, uint8_t payload1) {
-    cmd_counter_ = counter_id(cmd_counter_) + 0x20;
+    cmd_counter_ = (cmd_counter_ & 0xE0) + 0x20;
     cmd_.data({cmd_counter_++, cs, 0xA3, 0x99, id, 0x00, payload0, payload1});
     yield(cmd_);
 }
@@ -706,7 +703,7 @@ void Fusion::sendPowerCmd(const Yield<Message>& yield, bool power) {
     // on:  1DEF0A21#C0:05:A3:99:1C:00:01:FF
     // off: 1DEF0A21#40:05:A3:99:1C:00:02:FF
     uint8_t power_byte = power ? 0x01 : 0x02;
-    sendCmd(yield, 0x05, 0x1c, power_byte);
+    sendCmd(yield, 0x05, 0x1C, power_byte);
 }
 
 void Fusion::sendSourceSetCmd(const Yield<Message>& yield, AudioSource source) {
@@ -729,8 +726,10 @@ void Fusion::sendRadioCmd(const Yield<Message>& yield, uint8_t cmd) {
     // 1DEF0A21#E0:0A:A3:99:05:00:00:02 next manual
     // 1DEF0A21#C0:0A:A3:99:05:00:00:03 prev auto
     // 1DEF0A21#20:0A:A3:99:05:00:00:04 prev manual
+    //                             |
+    //                             +---- source: am/fm
     // 1DEF0A21#41:50:16:08:00:FF:FF:FF current freq
-    sendCmd(yield, 0x0A, 0x05, 0x00, cmd);
+    sendCmd(yield, 0x0A, 0x05, (uint8_t)system_.source(), cmd);
     sendCmdPayload(yield, system_.frequency());
 }
 
@@ -751,9 +750,6 @@ void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_
     //              |
     //              +------------------- zone 3
 
-    if (volume > kVolumeMax) {
-        volume = kVolumeMax;
-    }
     if (fade < kFadeMin) {
         fade = kFadeMin;
     } else if (fade > kFadeMax) {
@@ -764,13 +760,17 @@ void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_
     if (fade < 0) {
         // fade to back; reduce front volume
         zone1 += fade;
-        if (zone1 < 0) {
+        if (zone1 > kVolumeMax) {
+            zone1 = kVolumeMax;
+        } else if (zone1 < 0) {
             zone1 = 0;
         }
     } else {
         // fade to front; reduce rear volume
         zone2 -= fade;
-        if (zone2 < 0) {
+        if (zone2 > kVolumeMax) {
+            zone2 = kVolumeMax;
+        } else if (zone2 < 0) {
             zone2 = 0;
         }
     }
@@ -786,7 +786,7 @@ void Fusion::sendVolumeMuteCmd(const Yield<Message>& yield, bool mute) {
 }
 
 void Fusion::sendBalanceSetCmd(const Yield<Message>& yield, int8_t balance) {
-    // 1DEF0A21#00:06:A3:99:12:00:00:01
+    // 1DEF0A21#00:06:A4:99:12:00:00:01
     //                                |
     //                                +- balance (signed)
     if (balance < kBalanceMin) {
@@ -794,7 +794,9 @@ void Fusion::sendBalanceSetCmd(const Yield<Message>& yield, int8_t balance) {
     } else if (balance > kBalanceMax) {
         balance = kBalanceMax;
     }
+    // Sync balance in front and rear zones.
     sendCmd(yield, 0x06, 0x12, 0x00, balance);
+    sendCmd(yield, 0x06, 0x12, 0x01, balance);
 }
 
 void Fusion::sendMenu(const Yield<Message>& yield, uint8_t page, uint8_t item) {

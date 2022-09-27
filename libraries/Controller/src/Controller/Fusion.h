@@ -96,13 +96,6 @@ enum class AudioEvent {
     SETTINGS_STATE_EXIT     = 0xF6,  // Sent by Fusion to stop displaying the settings menu.
 };
 
-enum class AudioSettingsType : uint8_t {
-    SUBMENU = 0x49,
-    SELECT = 0x11,
-    CHECKBOX_OFF = 0x89,
-    CHECKBOX_ON = 0x8B,
-};
-
 class AudioSystemState : public Event {
     public:
         AudioSystemState() :
@@ -115,7 +108,7 @@ class AudioSystemState : public Event {
         EVENT_PROPERTY(bool, bt_discoverable, getBit(data, 0, 7), setBit(data, 0, 7, value));
         EVENT_PROPERTY(AudioSource, source,
                 (AudioSource)(data[0] & 0x0F),
-                data[0] |= ((uint8_t)value & 0x0F));
+                data[0] = data[0] & 0xF0 | ((uint8_t)value & 0x0F));
         EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(uint32_t, frequency,
                 Endian::btohl(data + 2, Endian::LITTLE),
@@ -364,7 +357,7 @@ class Fusion : public Caster::Node<Message> {
         void sendStereoDiscovery(const Caster::Yield<Message>& yield);
 
         void sendCmd(const Caster::Yield<Message>& yield,
-                uint8_t cs, uint8_t id, uint8_t payload0, uint8_t payload1 = 0xFF);
+                uint8_t cs, uint8_t id, uint8_t payload0 = 0xFF, uint8_t payload1 = 0xFF);
         void sendCmdPayload(const Caster::Yield<Message>& yield, uint32_t payload);
         template <size_t N> 
         void sendCmdPayload(const Caster::Yield<Message>& yield, const uint8_t (&payload)[N]);
@@ -425,6 +418,7 @@ void Fusion::sendCmdPayload(const Caster::Yield<Message>& yield, const uint8_t (
         cmd_.data()[i + 1] = payload[i];
     }
     memset(cmd_.data() + 1, 0xFF, 7 - N);
+    yield(cmd_);
 }
 
 }  // namespace R51
