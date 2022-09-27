@@ -46,10 +46,7 @@ enum class AudioEvent {
     // System controls.
     POWER_ON                = 0x10,  // Turn on the stereo.
     POWER_OFF               = 0x11,  // Turn off the stereo.
-    SET_SOURCE              = 0x12,  // Set source.
-    BT_DISCO_TOGGLE         = 0x13,  // Toggle Bluetooth discovery on/off.
-    BT_CONNECT              = 0x14,  // Connect to a Bluetooth device.
-    BT_FORGET               = 0x15,  // Forget a Bluetooth device.
+    SOURCE_SET              = 0x12,  // Set source.
 
     // Track controls.
     TRACK_PLAY              = 0x20,  // Play current track.
@@ -64,24 +61,30 @@ enum class AudioEvent {
     RADIO_FREQ_PREV_MANUAL  = 0x33,  // Prev radio frequency in manual scan mode.
 
     // Input controls.
-    INPUT_GAIN_INC          = 0x40,  // Increment the input gain value.
-    INPUT_GAIN_DEC          = 0x41,  // Decrement the input gain value.
+    INPUT_GAIN_SET          = 0x40,  // Set the input gain to specific value.
+    INPUT_GAIN_INC          = 0x41,  // Increment the input gain value.
+    INPUT_GAIN_DEC          = 0x42,  // Decrement the input gain value.
 
-    // Volums and EQ controls.
-    VOLUME_INC              = 0x50,  // Increment volume.
-    VOLUME_DEC              = 0x51,  // Decrement volume.
-    BALANCE_LEFT            = 0x52,  // Shift audio balance to the left.
-    BALANCE_RIGHT           = 0x53,  // Shift audio balance to the right.
-    FADE_FRONT              = 0x54,  // Fade audio to the front.
-    FADE_BACK               = 0x55,  // Fade audio to the back.
-    BASS_INC                = 0x56,  // Increase bass.
-    BASS_DEC                = 0x57,  // Decrease bass.
-    MID_INC                 = 0x58,  // Increase mid.
-    MID_DEC                 = 0x59,  // Decrease mid.
-    TREBLE_INC              = 0x5A,  // Increase treble.
-    TREBLE_DEC              = 0x5B,  // Decrease treble.
-    MUTE                    = 0x5C,  // Mute volume.
-    UNMUTE                  = 0x5D,  // Unmute volume.
+    // Volums controls.
+    VOLUME_SET              = 0x50,  // Set volume.
+    VOLUME_INC              = 0x51,  // Increment volume.
+    VOLUME_DEC              = 0x52,  // Decrement volume.
+    VOLUME_MUTE             = 0x53,  // Mute volume.
+    VOLUME_UNMUTE           = 0x54,  // Unmute volume.
+    BALANCE_SET             = 0x55,  // Set the audio balance.
+    BALANCE_LEFT            = 0x56,  // Shift audio balance to the left.
+    BALANCE_RIGHT           = 0x57,  // Shift audio balance to the right.
+    FADE_SET                = 0x58,  // Set the audio fade.
+    FADE_FRONT              = 0x59,  // Fade audio to the front.
+    FADE_REAR               = 0x5A,  // Fade audio to the back.
+
+    // EQ controls.
+    BASS_INC                = 0x60,  // Increase bass.
+    BASS_DEC                = 0x61,  // Decrease bass.
+    MID_INC                 = 0x62,  // Increase mid.
+    MID_DEC                 = 0x63,  // Decrease mid.
+    TREBLE_INC              = 0x64,  // Increase treble.
+    TREBLE_DEC              = 0x65,  // Decrease treble.
 
     // Settings menu events and controls.
     SETTINGS_CMD_OPEN       = 0xF0,  // Sent by the user to open the settings menu.
@@ -115,8 +118,8 @@ class AudioSystemState : public Event {
                 data[0] |= ((uint8_t)value & 0x0F));
         EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(uint32_t, frequency,
-                Endian::nbtohl(data + 2),
-                Endian::hltonb(data + 2, value));
+                Endian::btohl(data + 2, Endian::LITTLE),
+                Endian::hltob(data + 2, value, Endian::LITTLE));
 };
 
 
@@ -253,6 +256,48 @@ class AudioTrackAlbumState : public AudioChecksumEvent {
         AudioTrackAlbumState() :  AudioChecksumEvent(AudioEvent::TRACK_ALBUM_STATE) {}
 };
 
+class AudioSourceSetEvent : public Event {
+    public:
+        AudioSourceSetEvent() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SOURCE_SET, {0x00}) {}
+
+        EVENT_PROPERTY(AudioSource, source,
+                (AudioSource)data[0],
+                data[0] = (uint8_t)value);
+};
+
+class AudioInputGainSetEvent : public Event {
+    public:
+        AudioInputGainSetEvent() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::INPUT_GAIN_SET, {0x00}) {}
+
+        EVENT_PROPERTY(int8_t, gain, (int8_t)data[0], data[0] = (uint8_t)value);
+};
+
+class AudioVolumeSetEvent : public Event {
+    public:
+        AudioVolumeSetEvent() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::VOLUME_SET, {0x00}) {}
+
+        EVENT_PROPERTY(uint8_t, volume, data[0], data[0] = value);
+};
+
+class AudioBalanceSetEvent : public Event {
+    public:
+        AudioBalanceSetEvent() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::BALANCE_SET, {0x00}) {}
+
+        EVENT_PROPERTY(int8_t, balance, (int8_t)data[0], data[0] = (uint8_t)value);
+};
+
+class AudioFadeSetEvent : public Event {
+    public:
+        AudioFadeSetEvent() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::BALANCE_SET, {0x00}) {}
+
+        EVENT_PROPERTY(int8_t, fade, (int8_t)data[0], data[0] = (uint8_t)value);
+};
+
 // Node for interacting with Garming Fusion head units over J1939/NMEA2000.
 class Fusion : public Caster::Node<Message> {
     public:
@@ -269,11 +314,6 @@ class Fusion : public Caster::Node<Message> {
 
     private:
         void handleEvent(const Event& event, const Caster::Yield<Message>& yield);
-        void handleSettingsOpenEvent(const Caster::Yield<Message>& yield);
-        void handleSettingsSelectEvent(const AudioSettingsSelectCmd* event,
-                const Caster::Yield<Message>& yield);
-        void handleSettingsBackEvent(const Caster::Yield<Message>& yield);
-        void handleSettingsExitEvent(const Caster::Yield<Message>& yield);
 
         void handleJ1939Claim(const J1939Claim& claim,
                 const Caster::Yield<Message>& yield);
@@ -320,20 +360,33 @@ class Fusion : public Caster::Node<Message> {
 
         bool handleString(const Canny::J1939Message& msg, uint8_t offset);
 
-        void resetControlCounter();
-
         void sendStereoRequest(const Caster::Yield<Message>& yield);
         void sendStereoDiscovery(const Caster::Yield<Message>& yield);
-        void sendPower(bool power, const Caster::Yield<Message>& yield);
-        void sendSetSource(AudioSource source, const Caster::Yield<Message>& yield);
 
-        void sendMenu(uint8_t page, uint8_t item, const Caster::Yield<Message>& yield);
+        void sendCmd(const Caster::Yield<Message>& yield,
+                uint8_t cs, uint8_t id, uint8_t payload0, uint8_t payload1 = 0xFF);
+        void sendCmdPayload(const Caster::Yield<Message>& yield, uint32_t payload);
+        template <size_t N> 
+        void sendCmdPayload(const Caster::Yield<Message>& yield, const uint8_t (&payload)[N]);
+
+        void sendPowerCmd(const Caster::Yield<Message>& yield, bool power);
+        void sendSourceSetCmd(const Caster::Yield<Message>& yield, AudioSource source);
+        void sendTrackCmd(const Caster::Yield<Message>& yield, uint8_t cmd);
+        void sendRadioCmd(const Caster::Yield<Message>& yield, uint8_t cmd);
+        void sendInputGainSetCmd(const Caster::Yield<Message>& yield, int8_t gain);
+        void sendVolumeSetCmd(const Caster::Yield<Message>& yield, uint8_t volume, int8_t fade);
+        void sendVolumeMuteCmd(const Caster::Yield<Message>& yield, bool mute);
+        void sendBalanceSetCmd(const Caster::Yield<Message>& yield, int8_t balance);
+
+        void sendMenu(const Caster::Yield<Message>& yield, uint8_t page, uint8_t item);
         void sendMenuSettings(const Caster::Yield<Message>& yield);
-        void sendMenuSelectItem(uint8_t item, const Caster::Yield<Message>& yield);
+        void sendMenuSelectItem(const Caster::Yield<Message>& yield, uint8_t item);
         void sendMenuBack(const Caster::Yield<Message>& yield);
         void sendMenuExit(const Caster::Yield<Message>& yield);
         void sendMenuReqItemCount(const Caster::Yield<Message>& yield);
-        void sendMenuReqItemList(uint8_t count, const Caster::Yield<Message>& yield);
+        void sendMenuReqItemList(const Caster::Yield<Message>& yield, uint8_t count);
+
+        uint8_t volume();
 
         Faker::Clock* clock_;
         Scratch* scratch_;
@@ -359,9 +412,20 @@ class Fusion : public Caster::Node<Message> {
         bool recent_mute_;
 
         uint8_t state_;
-        uint8_t handle_counter_;
-        uint8_t control_counter_;
+        uint8_t state_counter_;
+        uint8_t cmd_counter_;
+        Canny::J1939Message cmd_;
 };
+
+template <size_t N> 
+void Fusion::sendCmdPayload(const Caster::Yield<Message>& yield, const uint8_t (&payload)[N]) {
+    uint8_t i;
+    cmd_.data()[0] = cmd_counter_++;
+    for (i = 0; i < N; ++i) {
+        cmd_.data()[i + 1] = payload[i];
+    }
+    memset(cmd_.data() + 1, 0xFF, 7 - N);
+}
 
 }  // namespace R51
 

@@ -282,13 +282,10 @@ void HMI::handleSerial(const Caster::Yield<Message>& yield) {
                         handleAudioSourceButton(button, yield);
                         break;
                     case Page::AUDIO_BT:
-                        handleAudioBtButton(button, yield);
                         break;
                     case Page::AUDIO_CONNECT:
-                        handleAudioConnectButton(button, yield);
                         break;
                     case Page::AUDIO_FORGET:
-                        handleAudioForgetButton(button, yield);
                         break;
                     case Page::VEHICLE:
                         handleVehicleButton(button, yield);
@@ -379,124 +376,32 @@ void HMI::handleAudioSourceButton(uint8_t button, const Caster::Yield<Message>& 
     switch (button) {
         case 0x01:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SET_SOURCE,
+                        (uint8_t)AudioEvent::SOURCE_SET,
                         {(uint8_t)AudioSource::BLUETOOTH});
             yield(event);
             break;
         case 0x02:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SET_SOURCE,
+                        (uint8_t)AudioEvent::SOURCE_SET,
                         {(uint8_t)AudioSource::AM});
             yield(event);
             break;
         case 0x03:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SET_SOURCE,
+                        (uint8_t)AudioEvent::SOURCE_SET,
                         {(uint8_t)AudioSource::FM});
             yield(event);
             break;
         case 0x04:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SET_SOURCE,
+                        (uint8_t)AudioEvent::SOURCE_SET,
                         {(uint8_t)AudioSource::AUX});
             yield(event);
             break;
         case 0x0A:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SET_SOURCE,
+                        (uint8_t)AudioEvent::SOURCE_SET,
                         {(uint8_t)AudioSource::OPTICAL});
-            yield(event);
-            break;
-        default:
-            Serial.println(button, HEX);
-            break;
-    }
-}
-
-void HMI::handleAudioBtButton(uint8_t button, const Caster::Yield<Message>& yield) {
-    Event event;
-    switch (button) {
-        case 0x04:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_DISCO_TOGGLE);
-            yield(event);
-            break;
-        default:
-            Serial.println(button, HEX);
-            break;
-    }
-}
-
-void HMI::handleAudioConnectButton(uint8_t button, const Caster::Yield<Message>& yield) {
-    Event event;
-    switch (button) {
-        case 0x01:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_CONNECT,
-                        {0x00});
-            yield(event);
-            break;
-        case 0x02:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_CONNECT,
-                        {0x01});
-            yield(event);
-            break;
-        case 0x03:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_CONNECT,
-                        {0x02});
-            yield(event);
-            break;
-        case 0x04:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_CONNECT,
-                        {0x03});
-            yield(event);
-            break;
-        case 0x0A:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_CONNECT,
-                        {0x04});
-            yield(event);
-            break;
-        default:
-            Serial.println(button, HEX);
-            break;
-    }
-}
-
-void HMI::handleAudioForgetButton(uint8_t button, const Caster::Yield<Message>& yield) {
-    Event event;
-    switch (button) {
-        case 0x01:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_FORGET,
-                        {0x00});
-            yield(event);
-            break;
-        case 0x02:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_FORGET,
-                        {0x01});
-            yield(event);
-            break;
-        case 0x03:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_FORGET,
-                        {0x02});
-            yield(event);
-            break;
-        case 0x04:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_FORGET,
-                        {0x03});
-            yield(event);
-            break;
-        case 0x0A:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::BT_FORGET,
-                        {0x04});
             yield(event);
             break;
         default:

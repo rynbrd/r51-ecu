@@ -3,16 +3,23 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Common.h>
+#include <Endian.h>
 #include <Faker.h>
 
 namespace R51 {
 namespace {
 
 using ::Canny::J1939Message;
+using ::Caster::Yield;
 using ::Faker::Clock;
 
 static const uint32_t kAvailabilityTimeout = 5000;
 static const uint32_t kDiscoveryTick = 5000;
+static const uint8_t kVolumeMax = 24;
+static const int8_t kBalanceMin = -7;
+static const int8_t kBalanceMax = 7;
+static const int8_t kFadeMin = -24;
+static const int8_t kFadeMax = 24;
 
 enum State : uint8_t {
     // 4th byte of A3:99:XX:80 state frames.
@@ -42,24 +49,38 @@ enum State : uint8_t {
     BLUETOOTH_DISCONNECT = 0xF3,
 };
 
+enum TrackCmd : uint8_t {
+    TRACK_CMD_PLAY = 0x01,
+    TRACK_CMD_PAUSE = 0x02,
+    TRACK_CMD_NEXT = 0x04,
+    TRACK_CMD_PREV = 0x06,
+};
+
+enum RadioCmd : uint8_t {
+    RADIO_CMD_NEXT_AUTO = 0x01,
+    RADIO_CMD_NEXT_MANUAL = 0x02,
+    RADIO_CMD_PREV_AUTO = 0x03,
+    RADIO_CMD_PREV_MANUAL = 0x04,
+};
+
 uint8_t counter(const J1939Message& msg) {
     return msg.data()[0];
 }
 
-uint8_t id(uint8_t counter) {
+uint8_t counter_id(uint8_t counter) {
     return (counter & 0xE0) >> 4;
 }
 
-uint8_t id(const J1939Message& msg) {
-    return id(counter(msg));
+uint8_t counter_id(const J1939Message& msg) {
+    return counter_id(counter(msg));
 }
 
-uint8_t seq(uint8_t counter) {
+uint8_t counter_seq(uint8_t counter) {
     return counter & 0x1F;
 }
 
-uint8_t seq(const J1939Message& msg) {
-    return seq(counter(msg));
+uint8_t counter_seq(const J1939Message& msg) {
+    return counter_seq(counter(msg));
 }
 
 template <size_t N> 
@@ -95,9 +116,12 @@ Fusion::Fusion(Scratch* scratch, Clock* clock) :
         clock_(clock), scratch_(scratch),
         address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, clock), disco_timer_(kDiscoveryTick, clock),
-        recent_mute_(false), state_(0xFF), handle_counter_(0xFF), control_counter_(0x00) {}
+        recent_mute_(false), state_(0xFF), state_counter_(0xFF), cmd_counter_(0x00),
+        cmd_(0x1EF00, Canny::NullAddress) {
+    cmd_.resize(8);
+}
 
-void Fusion::handle(const Message& msg, const Caster::Yield<Message>& yield) {
+void Fusion::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
             if (msg.event().subsystem == (uint8_t)SubSystem::AUDIO) {
@@ -115,74 +139,155 @@ void Fusion::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     }
 }
 
-void Fusion::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
+void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
     if (address_ == Canny::NullAddress) {
         return;
     }
     switch ((AudioEvent)event.id) {
         case AudioEvent::POWER_ON:
-            sendPower(true, yield);
+            sendPowerCmd(yield, true);
             break;
         case AudioEvent::POWER_OFF:
-            sendPower(false, yield);
+            sendPowerCmd(yield, false);
             break;
-        case AudioEvent::SET_SOURCE:
+        case AudioEvent::SOURCE_SET:
+            {
+                auto* e = (AudioSourceSetEvent*)&event;
+                sendSourceSetCmd(yield, e->source());
+            }
+            break;
+        case AudioEvent::TRACK_PLAY:
+            sendTrackCmd(yield, TRACK_CMD_PLAY);
+            break;
+        case AudioEvent::TRACK_PAUSE:
+            sendTrackCmd(yield, TRACK_CMD_PAUSE);
+            break;
+        case AudioEvent::TRACK_NEXT:
+            sendTrackCmd(yield, TRACK_CMD_NEXT);
+            break;
+        case AudioEvent::TRACK_PREV:
+            sendTrackCmd(yield, TRACK_CMD_PREV);
+            break;
+        case AudioEvent::RADIO_FREQ_NEXT_AUTO:
+            sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO);
+            break;
+        case AudioEvent::RADIO_FREQ_PREV_AUTO:
+            sendRadioCmd(yield, RADIO_CMD_PREV_AUTO);
+            break;
+        case AudioEvent::RADIO_FREQ_NEXT_MANUAL:
+            sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL);
+            break;
+        case AudioEvent::RADIO_FREQ_PREV_MANUAL:
+            sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL);
+            break;
+        case AudioEvent::INPUT_GAIN_SET:
+            {
+                auto* e = (AudioInputGainSetEvent*)&event;
+                sendInputGainSetCmd(yield, e->gain());
+            }
+            break;
+        case AudioEvent::INPUT_GAIN_INC:
+            sendInputGainSetCmd(yield, system_.gain() + 1);
+            break;
+        case AudioEvent::INPUT_GAIN_DEC:
+            sendInputGainSetCmd(yield, system_.gain() - 1);
+            break;
+        case AudioEvent::VOLUME_SET:
+            {
+                auto* e = (AudioVolumeSetEvent*)&event;
+                sendVolumeSetCmd(yield, e->volume(), volume_.fade());
+            }
+            break;
+        case AudioEvent::VOLUME_INC:
+            sendVolumeSetCmd(yield, volume_.volume() + 1, volume_.fade());
+            break;
+        case AudioEvent::VOLUME_DEC:
+            sendVolumeSetCmd(yield, volume_.volume() - 1, volume_.fade());
+            break;
+        case AudioEvent::VOLUME_MUTE:
+            sendVolumeMuteCmd(yield, true);
+            break;
+        case AudioEvent::VOLUME_UNMUTE:
+            sendVolumeMuteCmd(yield, false);
+            break;
+        case AudioEvent::BALANCE_SET:
+            {
+                auto* e = (AudioBalanceSetEvent*)&event;
+                sendBalanceSetCmd(yield, e->balance());
+            }
+            break;
+        case AudioEvent::BALANCE_LEFT:
+            sendBalanceSetCmd(yield, volume_.balance() - 1);
+            break;
+        case AudioEvent::BALANCE_RIGHT:
+            sendBalanceSetCmd(yield, volume_.balance() + 1);
+            break;
+        case AudioEvent::FADE_SET:
+            {
+                auto* e = (AudioFadeSetEvent*)&event;
+                sendVolumeSetCmd(yield, volume_.volume(), e->fade());
+            }
+            break;
+        case AudioEvent::FADE_FRONT:
+            sendVolumeSetCmd(yield, volume_.volume(), volume_.fade() + 1);
+            break;
+        case AudioEvent::FADE_REAR:
+            sendVolumeSetCmd(yield, volume_.volume(), volume_.fade() - 1);
+            break;
+        case AudioEvent::BASS_INC:
+            break;
+        case AudioEvent::BASS_DEC:
+            break;
+        case AudioEvent::MID_INC:
+            break;
+        case AudioEvent::MID_DEC:
+            break;
+        case AudioEvent::TREBLE_INC:
+            break;
+        case AudioEvent::TREBLE_DEC:
             break;
         case AudioEvent::SETTINGS_CMD_OPEN:
-            handleSettingsOpenEvent(yield);
+            sendMenuSettings(yield);
             break;
         case AudioEvent::SETTINGS_CMD_SELECT:
-            handleSettingsSelectEvent((AudioSettingsSelectCmd*)&event, yield);
+            {
+                auto* e = (AudioSettingsSelectCmd*)&event;
+                sendMenuSelectItem(yield, e->item());
+            }
             break;
         case AudioEvent::SETTINGS_CMD_BACK:
-            handleSettingsBackEvent(yield);
+            if (settings_menu_.page() == 0x01)  {
+                yield(settings_exit_);
+                sendMenuExit(yield);
+            } else {
+                sendMenuBack(yield);
+            }
             break;
         case AudioEvent::SETTINGS_CMD_EXIT:
-            handleSettingsExitEvent(yield);
+            sendMenuExit(yield);
             break;
         default:
             break;
     }
 }
 
-void Fusion::handleSettingsOpenEvent(const Caster::Yield<Message>& yield) {
-    sendMenuSettings(yield);
-}
-
-void Fusion::handleSettingsSelectEvent(const AudioSettingsSelectCmd* event,
-        const Caster::Yield<Message>& yield) {
-    sendMenuSelectItem(event->item(), yield);
-}
-
-void Fusion::handleSettingsBackEvent(const Caster::Yield<Message>& yield) {
-    if (settings_menu_.page() == 0x01)  {
-        yield(settings_exit_);
-        sendMenuExit(yield);
-    } else {
-        sendMenuBack(yield);
-    }
-}
-
-void Fusion::handleSettingsExitEvent(const Caster::Yield<Message>& yield) {
-    sendMenuExit(yield);
-}
-
-void Fusion::handleJ1939Claim(const J1939Claim& claim, const Caster::Yield<Message>& yield) {
+void Fusion::handleJ1939Claim(const J1939Claim& claim, const Yield<Message>& yield) {
     address_ = claim.address();
+    cmd_.source_address(address_);
     if (address_ != Canny::NullAddress && hu_address_ == Canny::NullAddress) {
         sendStereoDiscovery(yield);
     }
 }
 
-void Fusion::handleJ1939Message(const J1939Message& msg, const Caster::Yield<Message>& yield) {
+void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& yield) {
     if (address_ == Canny::NullAddress) {
         return;
     }
 
-    if (id(msg) != id(handle_counter_)) {
+    if (counter_id(msg) != counter_id(state_counter_)) {
         state_ = detectState(msg, hu_address_);
     }
-    handle_counter_ = counter(msg);
+    state_counter_ = counter(msg);
 
     switch (state_) {
         case SOURCE:
@@ -251,12 +356,13 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Caster::Yield<Mes
 }
 
 void Fusion::handleAnnounce(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     // 19F0140A#A0:86:35:08:8E:12:4D:53
-    if (seq(msg) != 0 || !match(msg.data() + 1, {0x86, 0x35})) {
+    if (counter_seq(msg) != 0 || !match(msg.data() + 1, {0x86, 0x35})) {
         return;
     }
     hu_address_ = msg.source_address();
+    cmd_.dest_address(hu_address_);
     Serial.print("found stereo: ");
     if (hu_address_ <= 0x0F) {
         Serial.print("0");
@@ -271,8 +377,8 @@ void Fusion::handleAnnounce(const Canny::J1939Message& msg,
 }
 
 void Fusion::handlePower(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    if (seq(msg) != 0) {
+        const Yield<Message>& yield) {
+    if (counter_seq(msg) != 0) {
         return;
     }
     if (system_.power(msg.data()[6] != 0x00)) {
@@ -281,16 +387,16 @@ void Fusion::handlePower(const Canny::J1939Message& msg,
 }
 
 void Fusion::handleHeartbeat(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>&) {
-    if (seq(msg) != 0) {
+        const Yield<Message>&) {
+    if (counter_seq(msg) != 0) {
         return;
     }
     hb_timer_.reset();
 }
 
 void Fusion::handleSource(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    if (seq(msg) != 0 || msg.data()[6] != msg.data()[7]) {
+        const Yield<Message>& yield) {
+    if (counter_seq(msg) != 0 || msg.data()[6] != msg.data()[7]) {
         return;
     }
     if (system_.source((AudioSource)msg.data()[7])) {
@@ -299,9 +405,9 @@ void Fusion::handleSource(const J1939Message& msg,
 }
 
 void Fusion::handleTrackPlayback(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     uint32_t time;
-    switch (seq(msg)) {
+    switch (counter_seq(msg)) {
         case 0:
             if (msg.data()[7] > 0x02) {
                 msg.data()[7] = 0x00;
@@ -324,29 +430,29 @@ void Fusion::handleTrackPlayback(const J1939Message& msg,
 }
 
 void Fusion::handleTrackTitle(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     if (handleString(msg, 4) && track_title_.checksum(checksum_.value())) {
         yield(track_title_);
     }
 }
 
 void Fusion::handleTrackArtiat(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     if (handleString(msg, 4) && track_artist_.checksum(checksum_.value())) {
         yield(track_artist_);
     }
 }
 
 void Fusion::handleTrackAlbum(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     if (handleString(msg, 4) && track_album_.checksum(checksum_.value())) {
         yield(track_album_);
     }
 }
 
 void Fusion::handleTimeElapsed(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    if (seq(msg) == 1) {
+        const Yield<Message>& yield) {
+    if (counter_seq(msg) == 1) {
         uint32_t time = msg.data()[1];
         time |= (msg.data()[2] << 8);
         time |= (msg.data()[3] << 16);
@@ -357,8 +463,8 @@ void Fusion::handleTimeElapsed(const J1939Message& msg,
 }
 
 void Fusion::handleRadioFrequency(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    if (seq(msg) == 1) {
+        const Yield<Message>& yield) {
+    if (counter_seq(msg) == 1) {
         uint32_t frequency = msg.data()[1];
         frequency |= (msg.data()[2] << 8);
         frequency |= (msg.data()[3] << 16);
@@ -370,21 +476,21 @@ void Fusion::handleRadioFrequency(const J1939Message& msg,
 }
 
 void Fusion::handleInputGain(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    if (seq(msg) == 0 && system_.gain((int8_t)msg.data()[7]))  {
+        const Yield<Message>& yield) {
+    if (counter_seq(msg) == 0 && system_.gain((int8_t)msg.data()[7]))  {
         yield(system_);
     }
 }
 
 void Fusion::handleTone(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     // We set all zones to the same EQ so we only care about reading the first
     // zone.
     if (msg.data()[6] != 0x00) {
         return;
     }
     bool changed = false;
-    switch (seq(msg)) {
+    switch (counter_seq(msg)) {
         case 0:
             changed |= tone_.bass(msg.data()[7]);
             break;
@@ -401,27 +507,27 @@ void Fusion::handleTone(const J1939Message& msg,
 }
 
 void Fusion::handleMute(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    if (seq(msg) == 0 && mute_.mute(msg.data()[6] != 0x00))  {
+        const Yield<Message>& yield) {
+    if (counter_seq(msg) == 0 && mute_.mute(msg.data()[6] != 0x00))  {
         yield(mute_);
     }
 }
 
 void Fusion::handleBalance(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     // We balance all zones together so we only need to read
     // balance from zone 1.
-    if (seq(msg) == 0 && msg.data()[6] == 0x00 && volume_.balance(msg.data()[7])) {
+    if (counter_seq(msg) == 0 && msg.data()[6] == 0x00 && volume_.balance(msg.data()[7])) {
         yield(volume_);
     }
 }
 
 void Fusion::handleVolume(const J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     // The second message contains the volume for zone 3. We don't use zone 3
     // because we're mimicing a car stereo with front/rear. So we only parse
     // the first message.
-    if (seq(msg) == 0) {
+    if (counter_seq(msg) == 0) {
         uint8_t zone1 = msg.data()[6];
         uint8_t zone2 = msg.data()[7];
         bool changed = false;
@@ -442,8 +548,8 @@ void Fusion::handleVolume(const J1939Message& msg,
 }
 
 void Fusion::handleMenuLoad(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    switch (seq(msg)) {
+        const Yield<Message>& yield) {
+    switch (counter_seq(msg)) {
         case 0:
             settings_menu_.item(msg.data()[7]);
             break;
@@ -469,29 +575,29 @@ void Fusion::handleMenuLoad(const Canny::J1939Message& msg,
 }
 
 void Fusion::handleMenuItemCount(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     // 1DFF040A#20:0A:A3:99:10:80:07:03
     //                                |
     //                                +- count
     // 1DFF040A#21:00:00:00:03:FF:FF:FF
-    if (seq(msg) == 0) {
+    if (counter_seq(msg) == 0) {
         uint8_t count = msg.data()[7];
         if (count > 5) {
             count = 5;
         }
         settings_menu_.count(count);
         yield(settings_menu_);
-        sendMenuReqItemList(count, yield);
+        sendMenuReqItemList(yield, count);
     }
 }
 
 void Fusion::handleMenuItemList(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     // 1DFF040A#60:19:A3:99:11:80:07:00
     // 1DFF040A#61:00:00:00:89:03:0C:44
     // 1DFF040A#62:69:73:63:6F:76:65:72
     // 1DFF040A#63:61:62:6C:65:00:FF:FF
-    switch (seq(msg)) {
+    switch (counter_seq(msg)) {
         case 0:
             settings_item_.item(msg.data()[7]);
             break;
@@ -505,21 +611,21 @@ void Fusion::handleMenuItemList(const Canny::J1939Message& msg,
 }
 
 void Fusion::handleBluetoothConnection(bool connected,
-        const Caster::Yield<Message>& yield) {
+        const Yield<Message>& yield) {
     if (system_.bt_connected(connected)) {
         yield(system_);
     }
 }
 
 bool Fusion::handleString(const J1939Message& msg, uint8_t offset) {
-    if (seq(msg) == 0) {
+    if (counter_seq(msg) == 0) {
         scratch_->size = 0;
         checksum_.reset();
         return false;
     }
 
     uint8_t i = 0;
-    if (seq(msg) == 1) {
+    if (counter_seq(msg) == 1) {
         // skip prefix in first frame
         i = offset;
     }
@@ -540,7 +646,7 @@ bool Fusion::handleString(const J1939Message& msg, uint8_t offset) {
     return false;
 }
 
-void Fusion::emit(const Caster::Yield<Message>& yield) {
+void Fusion::emit(const Yield<Message>& yield) {
     if (address_ == Canny::NullAddress) {
         // we can't send messages if we don't have an address
         return;
@@ -556,17 +662,14 @@ void Fusion::emit(const Caster::Yield<Message>& yield) {
         Serial.println("heartbeat timeout");
         hb_timer_.reset();
         hu_address_ = Canny::NullAddress;
+        cmd_.dest_address(Canny::NullAddress);
         if (system_.available(false) || system_.power(false))  {
             yield(system_);
         }
     }
 }
 
-void Fusion::resetControlCounter() {
-    control_counter_ = id(control_counter_) + 0x20;
-}
-
-void Fusion::sendStereoRequest(const Caster::Yield<Message>& yield) {
+void Fusion::sendStereoRequest(const Yield<Message>& yield) {
     // 1DEF0A10#00:05:A3:99:1C:00:01:FF
     // 1DEF0A10#A0:04:A3:99:01:00:FF:FF
     J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
@@ -576,85 +679,165 @@ void Fusion::sendStereoRequest(const Caster::Yield<Message>& yield) {
     yield(msg);
 }
 
-void Fusion::sendStereoDiscovery(const Caster::Yield<Message>& yield) {
+void Fusion::sendStereoDiscovery(const Yield<Message>& yield) {
     disco_timer_.reset();
     J1939Message msg(0xEAFF, address_, 0xFF, 0x06);
     msg.data({0x14, 0xF0, 0x01});
     yield(msg);
 }
 
-void Fusion::sendPower(bool power, const Caster::Yield<Message>& yield) {
+void Fusion::sendCmd(const Yield<Message>& yield,
+        uint8_t cs, uint8_t id, uint8_t payload0, uint8_t payload1) {
+    cmd_counter_ = counter_id(cmd_counter_) + 0x20;
+    cmd_.data({cmd_counter_++, cs, 0xA3, 0x99, id, 0x00, payload0, payload1});
+    yield(cmd_);
+}
+
+void Fusion::sendCmdPayload(const Yield<Message>& yield, uint32_t payload) {
+    cmd_.data()[0] = cmd_counter_++;
+    // Fusion expects ints in little-endian byte order.
+    Endian::hltob(cmd_.data() + 1, payload, Endian::LITTLE);
+    memset(cmd_.data() + 5, 0xFF, 3);
+    yield(cmd_);
+}
+
+
+void Fusion::sendPowerCmd(const Yield<Message>& yield, bool power) {
     // on:  1DEF0A21#C0:05:A3:99:1C:00:01:FF
     // off: 1DEF0A21#40:05:A3:99:1C:00:02:FF
-    resetControlCounter();
     uint8_t power_byte = power ? 0x01 : 0x02;
-    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
-    msg.data({control_counter_++, 0x05, 0xA3, 0x99, 0x1C, 0x00, power_byte});
-    yield(msg);
+    sendCmd(yield, 0x05, 0x1c, power_byte);
 }
 
-void Fusion::sendSetSource(AudioSource source, const Caster::Yield<Message>& yield) {
-    //1DEF0A21#E0:05:A3:99:02:00:00:FF
-    //                            |
-    //                            +---- source
-    resetControlCounter();
-    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
-    msg.data({control_counter_++, 0x05, 0xA3, 0x99, 0x02, 0x00, (uint8_t)source});
-    yield(msg);
+void Fusion::sendSourceSetCmd(const Yield<Message>& yield, AudioSource source) {
+    // 1DEF0A21#E0:05:A3:99:02:00:00:FF
+    //                             |
+    //                             +---- source
+    sendCmd(yield, 0x05, 0x02, (uint8_t)source);
 }
 
-void Fusion::sendMenu(uint8_t page, uint8_t item, const Caster::Yield<Message>& yield) {
-    resetControlCounter();
-    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
-    msg.data({control_counter_++, 0x0B, 0xA3, 0x99, 0x09, 0x00, (uint8_t)system_.source(), item});
-    yield(msg);
-    msg.data({control_counter_++, 0x00, 0x00, 0x00, page, 0x03, 0xFF, 0xFF});
-    yield(msg);
+void Fusion::sendTrackCmd(const Yield<Message>& yield, uint8_t cmd) {
+    // play:  1DEF0A21#A0:06:A3:99:03:00:07:01
+    // pause: 1DEF0A21#C0:06:A3:99:03:00:07:02
+    // next:  1DEF0A21#00:06:A3:99:03:00:07:04
+    // prev:  1DEF0A21#20:06:A3:99:03:00:07:06
+    sendCmd(yield, 0x06, 0x03, 0x07, cmd);
 }
 
-void Fusion::sendMenuSettings(const Caster::Yield<Message>& yield) {
+void Fusion::sendRadioCmd(const Yield<Message>& yield, uint8_t cmd) {
+    // 1DEF0A21#40:0A:A3:99:05:00:00:01 next auto
+    // 1DEF0A21#E0:0A:A3:99:05:00:00:02 next manual
+    // 1DEF0A21#C0:0A:A3:99:05:00:00:03 prev auto
+    // 1DEF0A21#20:0A:A3:99:05:00:00:04 prev manual
+    // 1DEF0A21#41:50:16:08:00:FF:FF:FF current freq
+    sendCmd(yield, 0x0A, 0x05, 0x00, cmd);
+    sendCmdPayload(yield, system_.frequency());
+}
+
+void Fusion::sendInputGainSetCmd(const Yield<Message>& yield, int8_t gain) {
+    // 1DEF0A21#60:06:A3:99:0D:00:03:01
+    //                             |  |
+    //                             |  +- gain (signed)
+    //                             +---- source
+    sendCmd(yield, 0x06, 0x0D, (uint8_t)system_.source(), gain);
+}
+
+void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_t fade) {
+    // 1DEF0A21#80:08:A3:99:19:00:11:0E
+    //                             |  |
+    //                             |  +- zone 2
+    //                             +---- zone 1
+    // 1DEF0A21#81:0A:01:FF:FF:FF:FF:FF
+    //              |
+    //              +------------------- zone 3
+
+    if (volume > kVolumeMax) {
+        volume = kVolumeMax;
+    }
+    if (fade < kFadeMin) {
+        fade = kFadeMin;
+    } else if (fade > kFadeMax) {
+        fade = kFadeMax;
+    }
+    int8_t zone1 = (int8_t)volume;
+    int8_t zone2 = (int8_t)volume;
+    if (fade < 0) {
+        // fade to back; reduce front volume
+        zone1 += fade;
+        if (zone1 < 0) {
+            zone1 = 0;
+        }
+    } else {
+        // fade to front; reduce rear volume
+        zone2 -= fade;
+        if (zone2 < 0) {
+            zone2 = 0;
+        }
+    }
+
+    sendCmd(yield, 0x08, 0x19, zone1, zone2);
+    sendCmdPayload(yield, {volume, 0x01});
+}
+
+void Fusion::sendVolumeMuteCmd(const Yield<Message>& yield, bool mute) {
+    // mute:   1DEF0A21#40:05:A3:99:11:00:01:FF
+    // unmute: 1DEF0A21#60:05:A3:99:11:00:02:FF
+    sendCmd(yield, 0x05, 0x11, mute ? 0x01 : 0x02);
+}
+
+void Fusion::sendBalanceSetCmd(const Yield<Message>& yield, int8_t balance) {
+    // 1DEF0A21#00:06:A3:99:12:00:00:01
+    //                                |
+    //                                +- balance (signed)
+    if (balance < kBalanceMin) {
+        balance = kBalanceMin;
+    } else if (balance > kBalanceMax) {
+        balance = kBalanceMax;
+    }
+    sendCmd(yield, 0x06, 0x12, 0x00, balance);
+}
+
+void Fusion::sendMenu(const Yield<Message>& yield, uint8_t page, uint8_t item) {
+    sendCmd(yield, 0x0B, 0x09, (uint8_t)system_.source(), item);
+    sendCmdPayload(yield, {0x00, 0x00, 0x00, page, 0x03});
+}
+
+void Fusion::sendMenuSettings(const Yield<Message>& yield) {
     // 1DEF0A21#40:0B:A3:99:09:00:07:00
     // 1DEF0A21#41:00:00:00:01:03:FF:FF
-    sendMenu(0x01, 0x00, yield);
+    sendMenu(yield, 0x01, 0x00);
 }
 
-void Fusion::sendMenuSelectItem(uint8_t item, const Caster::Yield<Message>& yield) {
+void Fusion::sendMenuSelectItem(const Yield<Message>& yield, uint8_t item) {
     // 1DEF0A21#80:0B:A3:99:09:00:07:01
     // 1DEF0A21#81:00:00:00:02:03:FF:FF
-    sendMenu(0x02, item, yield);
+    sendMenu(yield, 0x02, item);
 }
 
-void Fusion::sendMenuBack(const Caster::Yield<Message>& yield) {
+void Fusion::sendMenuBack(const Yield<Message>& yield) {
     // 1DEF0A21#A0:0B:A3:99:09:00:07:00
     // 1DEF0A21#A1:00:00:00:03:03:FF:FF
-    sendMenu(0x03, 0x00, yield);
+    sendMenu(yield, 0x03, 0x00);
 }
     
-void Fusion::sendMenuExit(const Caster::Yield<Message>& yield) {
+void Fusion::sendMenuExit(const Yield<Message>& yield) {
     // 1DEF0A21#40:0B:A3:99:09:00:07:00
     // 1DEF0A21#41:00:00:00:04:03:FF:FF
-    sendMenu(0x04, 0x00, yield);
+    sendMenu(yield, 0x04, 0x00);
 }
 
-void Fusion::sendMenuReqItemCount(const Caster::Yield<Message>& yield) {
+void Fusion::sendMenuReqItemCount(const Yield<Message>& yield) {
     // 1DEF0A21#40:06:A3:99:0A:00:07:03
-    resetControlCounter();
-    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
-    msg.data({control_counter_++, 0x06, 0xA3, 0x99, 0x0A, 0x00, (uint8_t)system_.source(), 0x03});
-    yield(msg);
+    sendCmd(yield, 0x06, 0x0A, (uint8_t)system_.source(), 0x03);
 }
 
-void Fusion::sendMenuReqItemList(uint8_t count, const Caster::Yield<Message>& yield) {
+void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
     // 1DEF0A21#60:0E:A3:99:0B:00:07:00
     // 1DEF0A21#61:00:00:00:03:00:00:00
     //                       |
     //                       +---------- item count
-    resetControlCounter();
-    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
-    msg.data({control_counter_++, 0x0E, 0xA3, 0x99, 0x0B, 0x00, (uint8_t)system_.source(), 0x00});
-    yield(msg);
-    msg.data({control_counter_++, 0x00, 0x00, 0x00, count, 0x00, 0x00, 0x00});
-    yield(msg);
+    sendCmd(yield, 0x0E, 0x0B, (uint8_t)system_.source(), 0x00);
+    sendCmdPayload(yield, {0x00, 0x00, 0x00, count, 0x00, 0x00, 0x00});
 }
 
 }  // namespace R51
