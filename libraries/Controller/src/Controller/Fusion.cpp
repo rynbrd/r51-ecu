@@ -16,6 +16,7 @@ static const uint32_t kDiscoveryTick = 5000;
 
 enum State : uint8_t {
     // 4th byte of A3:99:XX:80 state frames.
+    // 1DFF040A#C0:19:A3:99:11:80:07:00
     SOURCE = 0x02,
     TRACK_PLAYBACK = 0x04,
     TRACK_TITLE = 0x05,
@@ -23,6 +24,9 @@ enum State : uint8_t {
     TRACK_ALBUM = 0x07,
     TRACK_ELAPSED = 0x09,
     RADIO_FREQUENCY = 0x0B,
+    MENU_LOAD = 0x0F,
+    MENU_ITEM_COUNT = 0x10,
+    MENU_ITEM_LIST = 0x11,
     INPUT_GAIN = 0x13,
     TONE = 0x16,
     MUTE = 0x17,
@@ -54,7 +58,7 @@ uint8_t seq(uint8_t counter) {
     return counter & 0x1F;
 }
 
-uint8_t seq(const J1939Message& msg)  {
+uint8_t seq(const J1939Message& msg) {
     return seq(counter(msg));
 }
 
@@ -91,7 +95,7 @@ Fusion::Fusion(Scratch* scratch, Clock* clock) :
         clock_(clock), scratch_(scratch),
         address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, clock), disco_timer_(kDiscoveryTick, clock),
-        recent_mute_(false), state_(0xFF), handle_counter_(0xFF) {}
+        recent_mute_(false), state_(0xFF), handle_counter_(0xFF), control_counter_(0x00) {}
 
 void Fusion::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
@@ -112,7 +116,55 @@ void Fusion::handle(const Message& msg, const Caster::Yield<Message>& yield) {
 }
 
 void Fusion::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
-    // TODO implement
+    if (address_ == Canny::NullAddress) {
+        return;
+    }
+    switch ((AudioEvent)event.id) {
+        case AudioEvent::POWER_ON:
+            sendPower(true, yield);
+            break;
+        case AudioEvent::POWER_OFF:
+            sendPower(false, yield);
+            break;
+        case AudioEvent::SET_SOURCE:
+            break;
+        case AudioEvent::SETTINGS_CMD_OPEN:
+            handleSettingsOpenEvent(yield);
+            break;
+        case AudioEvent::SETTINGS_CMD_SELECT:
+            handleSettingsSelectEvent((AudioSettingsSelectCmd*)&event, yield);
+            break;
+        case AudioEvent::SETTINGS_CMD_BACK:
+            handleSettingsBackEvent(yield);
+            break;
+        case AudioEvent::SETTINGS_CMD_EXIT:
+            handleSettingsExitEvent(yield);
+            break;
+        default:
+            break;
+    }
+}
+
+void Fusion::handleSettingsOpenEvent(const Caster::Yield<Message>& yield) {
+    sendMenuSettings(yield);
+}
+
+void Fusion::handleSettingsSelectEvent(const AudioSettingsSelectCmd* event,
+        const Caster::Yield<Message>& yield) {
+    sendMenuSelectItem(event->item(), yield);
+}
+
+void Fusion::handleSettingsBackEvent(const Caster::Yield<Message>& yield) {
+    if (settings_menu_.page() == 0x01)  {
+        yield(settings_exit_);
+        sendMenuExit(yield);
+    } else {
+        sendMenuBack(yield);
+    }
+}
+
+void Fusion::handleSettingsExitEvent(const Caster::Yield<Message>& yield) {
+    sendMenuExit(yield);
 }
 
 void Fusion::handleJ1939Claim(const J1939Claim& claim, const Caster::Yield<Message>& yield) {
@@ -129,7 +181,6 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Caster::Yield<Mes
 
     if (id(msg) != id(handle_counter_)) {
         state_ = detectState(msg, hu_address_);
-    } else {
     }
     handle_counter_ = counter(msg);
 
@@ -176,16 +227,25 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Caster::Yield<Mes
         case POWER:
             handlePower(msg, yield);
             break;
+        case MENU_LOAD:
+            handleMenuLoad(msg, yield);
+            break;
+        case MENU_ITEM_COUNT:
+            handleMenuItemCount(msg, yield);
+            break;
+        case MENU_ITEM_LIST:
+            handleMenuItemList(msg, yield);
+            break;
         case INFO14:
             handleAnnounce(msg, yield);
+            break;
+        case INFO16:
             break;
         case BLUETOOTH_CONNECT:
             handleBluetoothConnection(true, yield);
             break;
         case BLUETOOTH_DISCONNECT:
             handleBluetoothConnection(false, yield);
-            break;
-        default:
             break;
     }
 }
@@ -221,14 +281,11 @@ void Fusion::handlePower(const Canny::J1939Message& msg,
 }
 
 void Fusion::handleHeartbeat(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
+        const Caster::Yield<Message>&) {
     if (seq(msg) != 0) {
         return;
     }
     hb_timer_.reset();
-    if (system_.power(msg.data()[6] == 0x01)) {
-        yield(system_);
-    }
 }
 
 void Fusion::handleSource(const J1939Message& msg,
@@ -268,21 +325,21 @@ void Fusion::handleTrackPlayback(const J1939Message& msg,
 
 void Fusion::handleTrackTitle(const J1939Message& msg,
         const Caster::Yield<Message>& yield) {
-    if (handleString(msg) && track_title_.checksum(checksum_.value())) {
+    if (handleString(msg, 4) && track_title_.checksum(checksum_.value())) {
         yield(track_title_);
     }
 }
 
 void Fusion::handleTrackArtiat(const J1939Message& msg,
         const Caster::Yield<Message>& yield) {
-    if (handleString(msg) && track_artist_.checksum(checksum_.value())) {
+    if (handleString(msg, 4) && track_artist_.checksum(checksum_.value())) {
         yield(track_artist_);
     }
 }
 
 void Fusion::handleTrackAlbum(const J1939Message& msg,
         const Caster::Yield<Message>& yield) {
-    if (handleString(msg) && track_album_.checksum(checksum_.value())) {
+    if (handleString(msg, 4) && track_album_.checksum(checksum_.value())) {
         yield(track_album_);
     }
 }
@@ -384,6 +441,69 @@ void Fusion::handleVolume(const J1939Message& msg,
     }
 }
 
+void Fusion::handleMenuLoad(const Canny::J1939Message& msg,
+        const Caster::Yield<Message>& yield) {
+    switch (seq(msg)) {
+        case 0:
+            settings_menu_.item(msg.data()[7]);
+            break;
+        case 1:
+            settings_menu_.page(msg.data()[4]);
+            switch (msg.data()[4]) {
+                case 0x01:
+                case 0x02:
+                    // load menu page
+                    sendMenuReqItemCount(yield);
+                    break;
+                case 0x03:
+                    // refresh menu item
+                case 0x04:
+                    // exit menu
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void Fusion::handleMenuItemCount(const Canny::J1939Message& msg,
+        const Caster::Yield<Message>& yield) {
+    // 1DFF040A#20:0A:A3:99:10:80:07:03
+    //                                |
+    //                                +- count
+    // 1DFF040A#21:00:00:00:03:FF:FF:FF
+    if (seq(msg) == 0) {
+        uint8_t count = msg.data()[7];
+        if (count > 5) {
+            count = 5;
+        }
+        settings_menu_.count(count);
+        yield(settings_menu_);
+        sendMenuReqItemList(count, yield);
+    }
+}
+
+void Fusion::handleMenuItemList(const Canny::J1939Message& msg,
+        const Caster::Yield<Message>& yield) {
+    // 1DFF040A#60:19:A3:99:11:80:07:00
+    // 1DFF040A#61:00:00:00:89:03:0C:44
+    // 1DFF040A#62:69:73:63:6F:76:65:72
+    // 1DFF040A#63:61:62:6C:65:00:FF:FF
+    switch (seq(msg)) {
+        case 0:
+            settings_item_.item(msg.data()[7]);
+            break;
+        case 1:
+            settings_item_.type((AudioSettingsType)msg.data()[4]);
+            break;
+    }
+    if (handleString(msg, 6)) {
+        yield(settings_item_);
+    }
+}
+
 void Fusion::handleBluetoothConnection(bool connected,
         const Caster::Yield<Message>& yield) {
     if (system_.bt_connected(connected)) {
@@ -391,7 +511,7 @@ void Fusion::handleBluetoothConnection(bool connected,
     }
 }
 
-bool Fusion::handleString(const J1939Message& msg) {
+bool Fusion::handleString(const J1939Message& msg, uint8_t offset) {
     if (seq(msg) == 0) {
         scratch_->size = 0;
         checksum_.reset();
@@ -401,7 +521,7 @@ bool Fusion::handleString(const J1939Message& msg) {
     uint8_t i = 0;
     if (seq(msg) == 1) {
         // skip prefix in first frame
-        i = 4;
+        i = offset;
     }
     for (; i < 7; i++) {
         if (scratch_->size >= 256) {
@@ -442,6 +562,10 @@ void Fusion::emit(const Caster::Yield<Message>& yield) {
     }
 }
 
+void Fusion::resetControlCounter() {
+    control_counter_ = id(control_counter_) + 0x20;
+}
+
 void Fusion::sendStereoRequest(const Caster::Yield<Message>& yield) {
     // 1DEF0A10#00:05:A3:99:1C:00:01:FF
     // 1DEF0A10#A0:04:A3:99:01:00:FF:FF
@@ -456,6 +580,80 @@ void Fusion::sendStereoDiscovery(const Caster::Yield<Message>& yield) {
     disco_timer_.reset();
     J1939Message msg(0xEAFF, address_, 0xFF, 0x06);
     msg.data({0x14, 0xF0, 0x01});
+    yield(msg);
+}
+
+void Fusion::sendPower(bool power, const Caster::Yield<Message>& yield) {
+    // on:  1DEF0A21#C0:05:A3:99:1C:00:01:FF
+    // off: 1DEF0A21#40:05:A3:99:1C:00:02:FF
+    resetControlCounter();
+    uint8_t power_byte = power ? 0x01 : 0x02;
+    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
+    msg.data({control_counter_++, 0x05, 0xA3, 0x99, 0x1C, 0x00, power_byte});
+    yield(msg);
+}
+
+void Fusion::sendSetSource(AudioSource source, const Caster::Yield<Message>& yield) {
+    //1DEF0A21#E0:05:A3:99:02:00:00:FF
+    //                            |
+    //                            +---- source
+    resetControlCounter();
+    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
+    msg.data({control_counter_++, 0x05, 0xA3, 0x99, 0x02, 0x00, (uint8_t)source});
+    yield(msg);
+}
+
+void Fusion::sendMenu(uint8_t page, uint8_t item, const Caster::Yield<Message>& yield) {
+    resetControlCounter();
+    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
+    msg.data({control_counter_++, 0x0B, 0xA3, 0x99, 0x09, 0x00, (uint8_t)system_.source(), item});
+    yield(msg);
+    msg.data({control_counter_++, 0x00, 0x00, 0x00, page, 0x03, 0xFF, 0xFF});
+    yield(msg);
+}
+
+void Fusion::sendMenuSettings(const Caster::Yield<Message>& yield) {
+    // 1DEF0A21#40:0B:A3:99:09:00:07:00
+    // 1DEF0A21#41:00:00:00:01:03:FF:FF
+    sendMenu(0x01, 0x00, yield);
+}
+
+void Fusion::sendMenuSelectItem(uint8_t item, const Caster::Yield<Message>& yield) {
+    // 1DEF0A21#80:0B:A3:99:09:00:07:01
+    // 1DEF0A21#81:00:00:00:02:03:FF:FF
+    sendMenu(0x02, item, yield);
+}
+
+void Fusion::sendMenuBack(const Caster::Yield<Message>& yield) {
+    // 1DEF0A21#A0:0B:A3:99:09:00:07:00
+    // 1DEF0A21#A1:00:00:00:03:03:FF:FF
+    sendMenu(0x03, 0x00, yield);
+}
+    
+void Fusion::sendMenuExit(const Caster::Yield<Message>& yield) {
+    // 1DEF0A21#40:0B:A3:99:09:00:07:00
+    // 1DEF0A21#41:00:00:00:04:03:FF:FF
+    sendMenu(0x04, 0x00, yield);
+}
+
+void Fusion::sendMenuReqItemCount(const Caster::Yield<Message>& yield) {
+    // 1DEF0A21#40:06:A3:99:0A:00:07:03
+    resetControlCounter();
+    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
+    msg.data({control_counter_++, 0x06, 0xA3, 0x99, 0x0A, 0x00, (uint8_t)system_.source(), 0x03});
+    yield(msg);
+}
+
+void Fusion::sendMenuReqItemList(uint8_t count, const Caster::Yield<Message>& yield) {
+    // 1DEF0A21#60:0E:A3:99:0B:00:07:00
+    // 1DEF0A21#61:00:00:00:03:00:00:00
+    //                       |
+    //                       +---------- item count
+    resetControlCounter();
+    J1939Message msg(0x1EF00, address_, hu_address_, 0x07);
+    msg.data({control_counter_++, 0x0E, 0xA3, 0x99, 0x0B, 0x00, (uint8_t)system_.source(), 0x00});
+    yield(msg);
+    msg.data({control_counter_++, 0x00, 0x00, 0x00, count, 0x00, 0x00, 0x00});
     yield(msg);
 }
 

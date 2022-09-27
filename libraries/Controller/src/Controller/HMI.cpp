@@ -418,7 +418,7 @@ void HMI::handleAudioBtButton(uint8_t button, const Caster::Yield<Message>& yiel
     switch (button) {
         case 0x04:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::TOGGLE_BT_DISCO);
+                        (uint8_t)AudioEvent::BT_DISCO_TOGGLE);
             yield(event);
             break;
         default:
@@ -432,31 +432,31 @@ void HMI::handleAudioConnectButton(uint8_t button, const Caster::Yield<Message>&
     switch (button) {
         case 0x01:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::CONNECT_BT,
+                        (uint8_t)AudioEvent::BT_CONNECT,
                         {0x00});
             yield(event);
             break;
         case 0x02:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::CONNECT_BT,
+                        (uint8_t)AudioEvent::BT_CONNECT,
                         {0x01});
             yield(event);
             break;
         case 0x03:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::CONNECT_BT,
+                        (uint8_t)AudioEvent::BT_CONNECT,
                         {0x02});
             yield(event);
             break;
         case 0x04:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::CONNECT_BT,
+                        (uint8_t)AudioEvent::BT_CONNECT,
                         {0x03});
             yield(event);
             break;
         case 0x0A:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::CONNECT_BT,
+                        (uint8_t)AudioEvent::BT_CONNECT,
                         {0x04});
             yield(event);
             break;
@@ -471,31 +471,31 @@ void HMI::handleAudioForgetButton(uint8_t button, const Caster::Yield<Message>& 
     switch (button) {
         case 0x01:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::FORGET_BT,
+                        (uint8_t)AudioEvent::BT_FORGET,
                         {0x00});
             yield(event);
             break;
         case 0x02:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::FORGET_BT,
+                        (uint8_t)AudioEvent::BT_FORGET,
                         {0x01});
             yield(event);
             break;
         case 0x03:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::FORGET_BT,
+                        (uint8_t)AudioEvent::BT_FORGET,
                         {0x02});
             yield(event);
             break;
         case 0x04:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::FORGET_BT,
+                        (uint8_t)AudioEvent::BT_FORGET,
                         {0x03});
             yield(event);
             break;
         case 0x0A:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::FORGET_BT,
+                        (uint8_t)AudioEvent::BT_FORGET,
                         {0x04});
             yield(event);
             break;
