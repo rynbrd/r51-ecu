@@ -36,12 +36,11 @@ enum class AudioEvent {
     // State events.
     SYSTEM_STATE            = 0x00, // State event. Sends power, connectivity, gain, frequency.
     VOLUME_STATE            = 0x01, // State event. Sends current volume, fade, and balance.
-    MUTE_STATE              = 0x02, // State event. Sent on mute/unmute.
-    EQ_STATE                = 0x03, // State event. Sends equalizer high/mid/low values.
-    TRACK_PLAYBACK_STATE    = 0x04, // State event. Sends the playback status and track times.
-    TRACK_TITLE_STATE       = 0x05, // State event. Sends the track title.
-    TRACK_ARTIST_STATE      = 0x06, // State event. Sends the artist name.
-    TRACK_ALBUM_STATE       = 0x07, // State event. Sends the album title.
+    TONE_STATE              = 0x02, // State event. Sends equalizer high/mid/low values.
+    TRACK_PLAYBACK_STATE    = 0x03, // State event. Sends the playback status and track times.
+    TRACK_TITLE_STATE       = 0x04, // State event. Sends the track title.
+    TRACK_ARTIST_STATE      = 0x05, // State event. Sends the artist name.
+    TRACK_ALBUM_STATE       = 0x06, // State event. Sends the album title.
 
     // System controls.
     POWER_ON                = 0x10, // Turn on the stereo.
@@ -125,15 +124,7 @@ class AudioVolumeState : public Event {
         EVENT_PROPERTY(uint8_t, volume, data[0], data[0] = value);
         EVENT_PROPERTY(int8_t, fade, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(int8_t, balance, (int8_t)data[2], data[2] = (uint8_t)value);
-};
-
-class AudioMuteState : public Event {
-    public:
-        AudioMuteState() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::MUTE_STATE,
-                    {0x00}) {}
-
-        EVENT_PROPERTY(bool, mute, data[0] != 0, data[0] = (uint8_t)value);
+        EVENT_PROPERTY(bool, mute, data[3] != 0, data[3] = (uint8_t)value);
 };
 
 class AudioToneState : public Event {
@@ -423,7 +414,6 @@ class Fusion : public Caster::Node<Message> {
 
         AudioSystemState system_;
         AudioVolumeState volume_;
-        AudioMuteState mute_;
         AudioToneState tone_;
         AudioTrackPlaybackState track_playback_;
         AudioTrackTitleState track_title_;

@@ -538,8 +538,8 @@ void Fusion::handleTone(const J1939Message& msg,
 
 void Fusion::handleMute(const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (counter_seq(msg) == 0 && mute_.mute(msg.data()[6] != 0x00))  {
-        yield(mute_);
+    if (counter_seq(msg) == 0 && volume_.mute(msg.data()[6] != 0x00))  {
+        yield(volume_);
     }
 }
 
