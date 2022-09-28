@@ -9,6 +9,15 @@
 namespace R51 {
 namespace {
 
+template <typename T>
+void clamp(T* var, T min, T max) {
+    if (*var < min) {
+        *var = min;
+    } else if (*var > max) {
+        *var = max;
+    }
+}
+
 using ::Canny::J1939Message;
 using ::Caster::Yield;
 using ::Faker::Clock;
@@ -20,6 +29,8 @@ static const int8_t kBalanceMin = -7;
 static const int8_t kBalanceMax = 7;
 static const int8_t kFadeMin = -24;
 static const int8_t kFadeMax = 24;
+static const int8_t kToneMin = -15;
+static const int8_t kToneMax = 15;
 
 enum State : uint8_t {
     // 4th byte of A3:99:XX:80 state frames.
@@ -35,9 +46,9 @@ enum State : uint8_t {
     MENU_ITEM_COUNT = 0x10,
     MENU_ITEM_LIST = 0x11,
     INPUT_GAIN = 0x13,
-    TONE = 0x16,
     MUTE = 0x17,
     BALANCE = 0x18,
+    TONE = 0x1B,
     VOLUME = 0x1D,
     HEARTBEAT = 0x20,
     POWER = 0x39,
@@ -116,7 +127,7 @@ Fusion::Fusion(Scratch* scratch, Clock* clock) :
         clock_(clock), scratch_(scratch),
         address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, clock), disco_timer_(kDiscoveryTick, clock),
-        recent_mute_(false), state_(0xFF), state_counter_(0xFF),
+        recent_mute_(false), state_(0xFF), state_ignore_(false), state_counter_(0xFF),
         cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress) {
     cmd_.resize(8);
 }
@@ -234,17 +245,29 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::FADE_REAR:
             sendVolumeSetCmd(yield, volume_.volume(), volume_.fade() - 1);
             break;
-        case AudioEvent::BASS_INC:
+        case AudioEvent::TONE_SET:
+            {
+                auto* e = (AudioToneSetEvent*)&event;
+                sendToneSetCmd(yield, e->bass(), e->mid(), e->treble());
+            }
             break;
-        case AudioEvent::BASS_DEC:
+        case AudioEvent::TONE_BASS_INC:
+            sendToneSetCmd(yield, tone_.bass() + 1, tone_.mid(), tone_.treble());
             break;
-        case AudioEvent::MID_INC:
+        case AudioEvent::TONE_BASS_DEC:
+            sendToneSetCmd(yield, tone_.bass() - 1, tone_.mid(), tone_.treble());
             break;
-        case AudioEvent::MID_DEC:
+        case AudioEvent::TONE_MID_INC:
+            sendToneSetCmd(yield, tone_.bass(), tone_.mid() + 1, tone_.treble());
             break;
-        case AudioEvent::TREBLE_INC:
+        case AudioEvent::TONE_MID_DEC:
+            sendToneSetCmd(yield, tone_.bass(), tone_.mid() - 1, tone_.treble());
             break;
-        case AudioEvent::TREBLE_DEC:
+        case AudioEvent::TONE_TREBLE_INC:
+            sendToneSetCmd(yield, tone_.bass(), tone_.mid(), tone_.treble() + 1);
+            break;
+        case AudioEvent::TONE_TREBLE_DEC:
+            sendToneSetCmd(yield, tone_.bass(), tone_.mid(), tone_.treble() - 1);
             break;
         case AudioEvent::SETTINGS_CMD_OPEN:
             sendMenuSettings(yield);
@@ -286,8 +309,12 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
 
     if (counter_id(msg) != counter_id(state_counter_)) {
         state_ = detectState(msg, hu_address_);
+        state_ignore_ = false;
     }
     state_counter_ = counter(msg);
+    if (state_ignore_) {
+        return;
+    }
 
     switch (state_) {
         case SOURCE:
@@ -363,11 +390,6 @@ void Fusion::handleAnnounce(const Canny::J1939Message& msg,
     }
     hu_address_ = msg.source_address();
     cmd_.dest_address(hu_address_);
-    Serial.print("found stereo: ");
-    if (hu_address_ <= 0x0F) {
-        Serial.print("0");
-    }
-    Serial.println(hu_address_, HEX);
     hb_timer_.reset();
     disco_timer_.reset();
     if (system_.available(true) || system_.power(false)) {
@@ -486,12 +508,13 @@ void Fusion::handleTone(const J1939Message& msg,
         const Yield<Message>& yield) {
     // We set all zones to the same EQ so we only care about reading the first
     // zone.
-    if (msg.data()[6] != 0x00) {
-        return;
-    }
     bool changed = false;
     switch (counter_seq(msg)) {
         case 0:
+            if (msg.data()[6] != 0x00) {
+                state_ignore_ = true;
+                return;
+            }
             changed |= tone_.bass(msg.data()[7]);
             break;
         case 1:
@@ -654,12 +677,10 @@ void Fusion::emit(const Yield<Message>& yield) {
     if (hu_address_ == Canny::NullAddress) {
         // periodically try to discover a stereo if we don't have one
         if (disco_timer_.active()) {
-            Serial.println("disco timeout");
             sendStereoDiscovery(yield);
         }
     } else if (hb_timer_.active()) {
         // otherwise trigger loss of connectivity if no heartbeat has been received
-        Serial.println("heartbeat timeout");
         hb_timer_.reset();
         hu_address_ = Canny::NullAddress;
         cmd_.dest_address(Canny::NullAddress);
@@ -760,19 +781,11 @@ void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_
     if (fade < 0) {
         // fade to back; reduce front volume
         zone1 += fade;
-        if (zone1 > kVolumeMax) {
-            zone1 = kVolumeMax;
-        } else if (zone1 < 0) {
-            zone1 = 0;
-        }
+        clamp<int8_t>(&zone1, 0, kVolumeMax);
     } else {
         // fade to front; reduce rear volume
         zone2 -= fade;
-        if (zone2 > kVolumeMax) {
-            zone2 = kVolumeMax;
-        } else if (zone2 < 0) {
-            zone2 = 0;
-        }
+        clamp<int8_t>(&zone2, 0, kVolumeMax);
     }
 
     sendCmd(yield, 0x08, 0x19, zone1, zone2);
@@ -797,6 +810,23 @@ void Fusion::sendBalanceSetCmd(const Yield<Message>& yield, int8_t balance) {
     // Sync balance in front and rear zones.
     sendCmd(yield, 0x06, 0x12, 0x00, balance);
     sendCmd(yield, 0x06, 0x12, 0x01, balance);
+}
+
+void Fusion::sendToneSetCmd(const Caster::Yield<Message>& yield,
+        int8_t bass, int8_t mid, int8_t treble) {
+    // 7(21->0A)EF00#40:08:A3:99:16:00:00:F1
+    //                                  |  +-- bass
+    //                                  +----- zone
+    // 7(21->0A)EF00#41:01:0E:FF:FF:FF:FF:FF
+    //                   |  +----------------- treble
+    //                   +-------------------- mid
+    clamp(&bass, kToneMin, kToneMax);
+    clamp(&mid, kToneMin, kToneMax);
+    clamp(&treble, kToneMin, kToneMax);
+    sendCmd(yield, 0x08, 0x16, 0x00, bass);
+    sendCmdPayload(yield, {mid, treble});
+    sendCmd(yield, 0x08, 0x16, 0x01, bass);
+    sendCmdPayload(yield, {mid, treble});
 }
 
 void Fusion::sendMenu(const Yield<Message>& yield, uint8_t page, uint8_t item) {

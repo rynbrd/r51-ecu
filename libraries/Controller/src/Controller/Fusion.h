@@ -34,66 +34,67 @@ enum class AudioPlayback : uint8_t {
 
 enum class AudioEvent {
     // State events.
-    SYSTEM_STATE            = 0x00,  // State event. Sends power, connectivity, gain, frequency.
-    VOLUME_STATE            = 0x01,  // State event. Sends current volume, fade, and balance.
-    MUTE_STATE              = 0x02,  // State event. Sent on mute/unmute.
-    EQ_STATE                = 0x03,  // State event. Sends equalizer high/mid/low values.
-    TRACK_PLAYBACK_STATE    = 0x04,  // State event. Sends the playback status and track times.
-    TRACK_TITLE_STATE       = 0x05,  // State event. Sends the track title.
-    TRACK_ARTIST_STATE      = 0x06,  // State event. Sends the artist name.
-    TRACK_ALBUM_STATE       = 0x07,  // State event. Sends the album title.
+    SYSTEM_STATE            = 0x00, // State event. Sends power, connectivity, gain, frequency.
+    VOLUME_STATE            = 0x01, // State event. Sends current volume, fade, and balance.
+    MUTE_STATE              = 0x02, // State event. Sent on mute/unmute.
+    EQ_STATE                = 0x03, // State event. Sends equalizer high/mid/low values.
+    TRACK_PLAYBACK_STATE    = 0x04, // State event. Sends the playback status and track times.
+    TRACK_TITLE_STATE       = 0x05, // State event. Sends the track title.
+    TRACK_ARTIST_STATE      = 0x06, // State event. Sends the artist name.
+    TRACK_ALBUM_STATE       = 0x07, // State event. Sends the album title.
 
     // System controls.
-    POWER_ON                = 0x10,  // Turn on the stereo.
-    POWER_OFF               = 0x11,  // Turn off the stereo.
-    SOURCE_SET              = 0x12,  // Set source.
+    POWER_ON                = 0x10, // Turn on the stereo.
+    POWER_OFF               = 0x11, // Turn off the stereo.
+    SOURCE_SET              = 0x12, // Set source.
 
     // Track controls.
-    TRACK_PLAY              = 0x20,  // Play current track.
-    TRACK_PAUSE             = 0x21,  // Pause current track.
-    TRACK_NEXT              = 0x22,  // Next track.
-    TRACK_PREV              = 0x23,  // Prev track.
+    TRACK_PLAY              = 0x20, // Play current track.
+    TRACK_PAUSE             = 0x21, // Pause current track.
+    TRACK_NEXT              = 0x22, // Next track.
+    TRACK_PREV              = 0x23, // Prev track.
 
     // Radio controls.
-    RADIO_FREQ_NEXT_AUTO    = 0x30,  // Next radio frequency in auto scan mode.
-    RADIO_FREQ_PREV_AUTO    = 0x31,  // Prev radio frequency in auto scan mode.
-    RADIO_FREQ_NEXT_MANUAL  = 0x32,  // Next radio frequency in manual scan mode.
-    RADIO_FREQ_PREV_MANUAL  = 0x33,  // Prev radio frequency in manual scan mode.
+    RADIO_FREQ_NEXT_AUTO    = 0x30, // Next radio frequency in auto scan mode.
+    RADIO_FREQ_PREV_AUTO    = 0x31, // Prev radio frequency in auto scan mode.
+    RADIO_FREQ_NEXT_MANUAL  = 0x32, // Next radio frequency in manual scan mode.
+    RADIO_FREQ_PREV_MANUAL  = 0x33, // Prev radio frequency in manual scan mode.
 
     // Input controls.
-    INPUT_GAIN_SET          = 0x40,  // Set the input gain to specific value.
-    INPUT_GAIN_INC          = 0x41,  // Increment the input gain value.
-    INPUT_GAIN_DEC          = 0x42,  // Decrement the input gain value.
+    INPUT_GAIN_SET          = 0x40, // Set the input gain to specific value.
+    INPUT_GAIN_INC          = 0x41, // Increment the input gain value.
+    INPUT_GAIN_DEC          = 0x42, // Decrement the input gain value.
 
     // Volums controls.
-    VOLUME_SET              = 0x50,  // Set volume.
-    VOLUME_INC              = 0x51,  // Increment volume.
-    VOLUME_DEC              = 0x52,  // Decrement volume.
-    VOLUME_MUTE             = 0x53,  // Mute volume.
-    VOLUME_UNMUTE           = 0x54,  // Unmute volume.
-    BALANCE_SET             = 0x55,  // Set the audio balance.
-    BALANCE_LEFT            = 0x56,  // Shift audio balance to the left.
-    BALANCE_RIGHT           = 0x57,  // Shift audio balance to the right.
-    FADE_SET                = 0x58,  // Set the audio fade.
-    FADE_FRONT              = 0x59,  // Fade audio to the front.
-    FADE_REAR               = 0x5A,  // Fade audio to the back.
+    VOLUME_SET              = 0x50, // Set volume.
+    VOLUME_INC              = 0x51, // Increment volume.
+    VOLUME_DEC              = 0x52, // Decrement volume.
+    VOLUME_MUTE             = 0x53, // Mute volume.
+    VOLUME_UNMUTE           = 0x54, // Unmute volume.
+    BALANCE_SET             = 0x55, // Set the audio balance.
+    BALANCE_LEFT            = 0x56, // Shift audio balance to the left.
+    BALANCE_RIGHT           = 0x57, // Shift audio balance to the right.
+    FADE_SET                = 0x58, // Set the audio fade.
+    FADE_FRONT              = 0x59, // Fade audio to the front.
+    FADE_REAR               = 0x5A, // Fade audio to the back.
 
     // EQ controls.
-    BASS_INC                = 0x60,  // Increase bass.
-    BASS_DEC                = 0x61,  // Decrease bass.
-    MID_INC                 = 0x62,  // Increase mid.
-    MID_DEC                 = 0x63,  // Decrease mid.
-    TREBLE_INC              = 0x64,  // Increase treble.
-    TREBLE_DEC              = 0x65,  // Decrease treble.
+    TONE_SET                = 0x60, // Set bass, mid, and treble.
+    TONE_BASS_INC           = 0x61, // Increase bass.
+    TONE_BASS_DEC           = 0x62, // Decrease bass.
+    TONE_MID_INC            = 0x63, // Increase mid.
+    TONE_MID_DEC            = 0x64, // Decrease mid.
+    TONE_TREBLE_INC         = 0x65, // Increase treble.
+    TONE_TREBLE_DEC         = 0x66, // Decrease treble.
 
     // Settings menu events and controls.
-    SETTINGS_CMD_OPEN       = 0xF0,  // Sent by the user to open the settings menu.
-    SETTINGS_CMD_SELECT     = 0xF1,  // Sent by the user to select a settings menu item.
-    SETTINGS_CMD_BACK       = 0xF2,  // Sent by the user to go the the previous settings menu.
-    SETTINGS_CMD_EXIT       = 0xF3,  // Sent by the user to exit the settings menu.
-    SETTINGS_STATE_MENU     = 0xF4,  // Sent by Fusion to display a settings menu.
-    SETTINGS_STATE_ITEM     = 0xF5,  // Sent by Fusion to display an item in a settings menu.
-    SETTINGS_STATE_EXIT     = 0xF6,  // Sent by Fusion to stop displaying the settings menu.
+    SETTINGS_CMD_OPEN       = 0xF0, // Sent by the user to open the settings menu.
+    SETTINGS_CMD_SELECT     = 0xF1, // Sent by the user to select a settings menu item.
+    SETTINGS_CMD_BACK       = 0xF2, // Sent by the user to go the the previous settings menu.
+    SETTINGS_CMD_EXIT       = 0xF3, // Sent by the user to exit the settings menu.
+    SETTINGS_STATE_MENU     = 0xF4, // Sent by Fusion to display a settings menu.
+    SETTINGS_STATE_ITEM     = 0xF5, // Sent by Fusion to display an item in a settings menu.
+    SETTINGS_STATE_EXIT     = 0xF6, // Sent by Fusion to stop displaying the settings menu.
 };
 
 class AudioSystemState : public Event {
@@ -108,7 +109,7 @@ class AudioSystemState : public Event {
         EVENT_PROPERTY(bool, bt_discoverable, getBit(data, 0, 7), setBit(data, 0, 7, value));
         EVENT_PROPERTY(AudioSource, source,
                 (AudioSource)(data[0] & 0x0F),
-                data[0] = data[0] & 0xF0 | ((uint8_t)value & 0x0F));
+                data[0] = (data[0] & 0xF0) | ((uint8_t)value & 0x0F));
         EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(uint32_t, frequency,
                 Endian::btohl(data + 2, Endian::LITTLE),
@@ -144,7 +145,7 @@ class AudioToneState : public Event {
 
         EVENT_PROPERTY(int8_t, bass, (int8_t)data[0], data[0] = (uint8_t)value);
         EVENT_PROPERTY(int8_t, mid, (int8_t)data[1], data[1] = (uint8_t)value);
-        EVENT_PROPERTY(int8_t, treble, (int8_t)data[2], data[3] = (uint8_t)value);
+        EVENT_PROPERTY(int8_t, treble, (int8_t)data[2], data[2] = (uint8_t)value);
 };
 
 class AudioTrackPlaybackState : public Event {
@@ -178,6 +179,13 @@ class AudioSettingsMenuState : public Event {
         EVENT_PROPERTY(uint8_t, page, data[0], data[0] = value);
         EVENT_PROPERTY(uint8_t, item, data[1], data[1] = value);
         EVENT_PROPERTY(uint8_t, count, data[2], data[2] = value);
+};
+
+enum class AudioSettingsType : uint8_t {
+    SUBMENU = 0x49,
+    SELECT = 0x11,
+    CHECKBOX_OFF = 0x89,
+    CHECKBOX_ON = 0x8B,
 };
 
 class AudioSettingsItemState : public Event {
@@ -291,6 +299,17 @@ class AudioFadeSetEvent : public Event {
         EVENT_PROPERTY(int8_t, fade, (int8_t)data[0], data[0] = (uint8_t)value);
 };
 
+class AudioToneSetEvent : public Event {
+    public:
+        AudioToneSetEvent() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TONE_SET,
+                    {0x00, 0x00, 0x00}) {}
+
+        EVENT_PROPERTY(int8_t, bass, (int8_t)data[0], data[0] = (uint8_t)value);
+        EVENT_PROPERTY(int8_t, mid, (int8_t)data[1], data[1] = (uint8_t)value);
+        EVENT_PROPERTY(int8_t, treble, (int8_t)data[2], data[2] = (uint8_t)value);
+};
+
 // Node for interacting with Garming Fusion head units over J1939/NMEA2000.
 class Fusion : public Caster::Node<Message> {
     public:
@@ -370,6 +389,8 @@ class Fusion : public Caster::Node<Message> {
         void sendVolumeSetCmd(const Caster::Yield<Message>& yield, uint8_t volume, int8_t fade);
         void sendVolumeMuteCmd(const Caster::Yield<Message>& yield, bool mute);
         void sendBalanceSetCmd(const Caster::Yield<Message>& yield, int8_t balance);
+        void sendToneSetCmd(const Caster::Yield<Message>& yield,
+                int8_t bass, int8_t treble, int8_t mid);
 
         void sendMenu(const Caster::Yield<Message>& yield, uint8_t page, uint8_t item);
         void sendMenuSettings(const Caster::Yield<Message>& yield);
@@ -405,6 +426,7 @@ class Fusion : public Caster::Node<Message> {
         bool recent_mute_;
 
         uint8_t state_;
+        bool state_ignore_;
         uint8_t state_counter_;
         uint8_t cmd_counter_;
         Canny::J1939Message cmd_;
@@ -417,7 +439,7 @@ void Fusion::sendCmdPayload(const Caster::Yield<Message>& yield, const uint8_t (
     for (i = 0; i < N; ++i) {
         cmd_.data()[i + 1] = payload[i];
     }
-    memset(cmd_.data() + 1, 0xFF, 7 - N);
+    memset(cmd_.data() + N + 1, 0xFF, 7 - N);
     yield(cmd_);
 }
 
