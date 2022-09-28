@@ -72,6 +72,7 @@ enum RadioCmd : uint8_t {
     RADIO_CMD_NEXT_MANUAL = 0x02,
     RADIO_CMD_PREV_AUTO = 0x03,
     RADIO_CMD_PREV_MANUAL = 0x04,
+    RADIO_CMD_TUNE = 0x05,
 };
 
 uint8_t counter(const J1939Message& msg) {
@@ -179,17 +180,23 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::TRACK_PREV:
             sendTrackCmd(yield, TRACK_CMD_PREV);
             break;
-        case AudioEvent::RADIO_FREQ_NEXT_AUTO:
-            sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO);
+        case AudioEvent::RADIO_TUNE:
+            {
+                auto* e = (AudioRadioTuneEvent*)&event;
+                sendRadioCmd(yield, RADIO_CMD_TUNE, e->frequency());
+            }
             break;
-        case AudioEvent::RADIO_FREQ_PREV_AUTO:
-            sendRadioCmd(yield, RADIO_CMD_PREV_AUTO);
+        case AudioEvent::RADIO_NEXT_AUTO:
+            sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, system_.frequency());
             break;
-        case AudioEvent::RADIO_FREQ_NEXT_MANUAL:
-            sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL);
+        case AudioEvent::RADIO_PREV_AUTO:
+            sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, system_.frequency());
             break;
-        case AudioEvent::RADIO_FREQ_PREV_MANUAL:
-            sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL);
+        case AudioEvent::RADIO_NEXT_MANUAL:
+            sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+            break;
+        case AudioEvent::RADIO_PREV_MANUAL:
+            sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, system_.frequency());
             break;
         case AudioEvent::INPUT_GAIN_SET:
             {
@@ -742,16 +749,17 @@ void Fusion::sendTrackCmd(const Yield<Message>& yield, uint8_t cmd) {
     sendCmd(yield, 0x06, 0x03, 0x07, cmd);
 }
 
-void Fusion::sendRadioCmd(const Yield<Message>& yield, uint8_t cmd) {
+void Fusion::sendRadioCmd(const Yield<Message>& yield, uint8_t cmd, uint32_t freq) {
     // 1DEF0A21#40:0A:A3:99:05:00:00:01 next auto
     // 1DEF0A21#E0:0A:A3:99:05:00:00:02 next manual
     // 1DEF0A21#C0:0A:A3:99:05:00:00:03 prev auto
     // 1DEF0A21#20:0A:A3:99:05:00:00:04 prev manual
+    // 1DEF0A21#20:0A:A3:99:05:00:00:05 tune to frequency
     //                             |
     //                             +---- source: am/fm
-    // 1DEF0A21#41:50:16:08:00:FF:FF:FF current freq
+    // 1DEF0A21#41:50:16:08:00:FF:FF:FF current or desired freq
     sendCmd(yield, 0x0A, 0x05, (uint8_t)system_.source(), cmd);
-    sendCmdPayload(yield, system_.frequency());
+    sendCmdPayload(yield, freq);
 }
 
 void Fusion::sendInputGainSetCmd(const Yield<Message>& yield, int8_t gain) {

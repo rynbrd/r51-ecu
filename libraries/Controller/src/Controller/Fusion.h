@@ -55,10 +55,11 @@ enum class AudioEvent {
     TRACK_PREV              = 0x23, // Prev track.
 
     // Radio controls.
-    RADIO_FREQ_NEXT_AUTO    = 0x30, // Next radio frequency in auto scan mode.
-    RADIO_FREQ_PREV_AUTO    = 0x31, // Prev radio frequency in auto scan mode.
-    RADIO_FREQ_NEXT_MANUAL  = 0x32, // Next radio frequency in manual scan mode.
-    RADIO_FREQ_PREV_MANUAL  = 0x33, // Prev radio frequency in manual scan mode.
+    RADIO_TUNE              = 0x30, // Tune radio to a specific frequency.
+    RADIO_NEXT_AUTO         = 0x31, // Next radio frequency in auto scan mode.
+    RADIO_PREV_AUTO         = 0x32, // Prev radio frequency in auto scan mode.
+    RADIO_NEXT_MANUAL       = 0x33, // Next radio frequency in manual scan mode.
+    RADIO_PREV_MANUAL       = 0x34, // Prev radio frequency in manual scan mode.
 
     // Input controls.
     INPUT_GAIN_SET          = 0x40, // Set the input gain to specific value.
@@ -106,16 +107,14 @@ class AudioSystemState : public Event {
         EVENT_PROPERTY(bool, available, getBit(data, 0, 4), setBit(data, 0, 4, value));
         EVENT_PROPERTY(bool, power, getBit(data, 0, 5), setBit(data, 0, 5, value));
         EVENT_PROPERTY(bool, bt_connected, getBit(data, 0, 6), setBit(data, 0, 6, value));
-        EVENT_PROPERTY(bool, bt_discoverable, getBit(data, 0, 7), setBit(data, 0, 7, value));
         EVENT_PROPERTY(AudioSource, source,
                 (AudioSource)(data[0] & 0x0F),
                 data[0] = (data[0] & 0xF0) | ((uint8_t)value & 0x0F));
         EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(uint32_t, frequency,
-                Endian::btohl(data + 2, Endian::LITTLE),
-                Endian::hltob(data + 2, value, Endian::LITTLE));
+                Endian::nbtohl(data + 2),
+                Endian::hltonb(data + 2, value));
 };
-
 
 class AudioVolumeState : public Event {
     public:
@@ -267,6 +266,17 @@ class AudioSourceSetEvent : public Event {
                 data[0] = (uint8_t)value);
 };
 
+class AudioRadioTuneEvent : public Event {
+    public:
+        AudioRadioTuneEvent() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::RADIO_TUNE,
+                    {0x00, 0x00, 0x00, 0x00}) {}
+
+        EVENT_PROPERTY(uint32_t, frequency,
+                Endian::nbtohl(data),
+                Endian::hltonb(data, value));
+};
+
 class AudioInputGainSetEvent : public Event {
     public:
         AudioInputGainSetEvent() :
@@ -384,7 +394,7 @@ class Fusion : public Caster::Node<Message> {
         void sendPowerCmd(const Caster::Yield<Message>& yield, bool power);
         void sendSourceSetCmd(const Caster::Yield<Message>& yield, AudioSource source);
         void sendTrackCmd(const Caster::Yield<Message>& yield, uint8_t cmd);
-        void sendRadioCmd(const Caster::Yield<Message>& yield, uint8_t cmd);
+        void sendRadioCmd(const Caster::Yield<Message>& yield, uint8_t cmd, uint32_t freq);
         void sendInputGainSetCmd(const Caster::Yield<Message>& yield, int8_t gain);
         void sendVolumeSetCmd(const Caster::Yield<Message>& yield, uint8_t volume, int8_t fade);
         void sendVolumeMuteCmd(const Caster::Yield<Message>& yield, bool mute);
