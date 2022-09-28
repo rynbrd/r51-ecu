@@ -139,7 +139,7 @@ class AudioMuteState : public Event {
 class AudioToneState : public Event {
     public:
         AudioToneState() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::EQ_STATE,
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TONE_STATE,
                     {0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(int8_t, bass, (int8_t)data[0], data[0] = (uint8_t)value);

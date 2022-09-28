@@ -832,9 +832,9 @@ void Fusion::sendToneSetCmd(const Caster::Yield<Message>& yield,
     clamp(&mid, kToneMin, kToneMax);
     clamp(&treble, kToneMin, kToneMax);
     sendCmd(yield, 0x08, 0x16, 0x00, bass);
-    sendCmdPayload(yield, {mid, treble});
+    sendCmdPayload(yield, {(uint8_t)mid, (uint8_t)treble});
     sendCmd(yield, 0x08, 0x16, 0x01, bass);
-    sendCmdPayload(yield, {mid, treble});
+    sendCmdPayload(yield, {(uint8_t)mid, (uint8_t)treble});
 }
 
 void Fusion::sendMenu(const Yield<Message>& yield, uint8_t page, uint8_t item) {
