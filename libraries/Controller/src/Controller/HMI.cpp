@@ -204,7 +204,7 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
             }
             break;
         case AudioSource::FM:
-            setTxt("audio_radio.freq_txt", (double)(event->frequency() / 1000000), 1);
+            setTxt("audio_radio.freq_txt", ((double)event->frequency() / 1000000.0), 1);
             setTxt("audio_radio.freq_label", "MHz");
             if (isAudioSourcePage() && !isPage(HMIPage::AUDIO_RADIO)) {
                 page(HMIPage::AUDIO_RADIO);
