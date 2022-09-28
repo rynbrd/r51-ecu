@@ -9,26 +9,25 @@
 
 namespace R51 {
 
-enum class Page : uint8_t {
-    SPLASH = 0,
-    HOME = 1,
-    CLIMATE = 2,
-    AUDIO = 3,
-    AUDIO_TRACK = 4,
-    AUDIO_RADIO = 5,
-    AUDIO_AUX = 6,
-    AUDIO_NO_STEREO = 7,
-    AUDIO_VOLUME = 8,
-    AUDIO_SOURCE = 9,
-    AUDIO_BT = 10,
-    AUDIO_CONNECT = 11,
-    AUDIO_FORGET = 12,
-    VEHICLE = 13,
-    SETTINGS = 14,
-    SETTINGS_1 = 15,
-    SETTINGS_2 = 16,
-    SETTINGS_3 = 17,
-    SHARED = 18,
+enum class HMIPage : uint8_t {
+    SPLASH          = 0,
+    HOME            = 1,
+    CLIMATE         = 2,
+    AUDIO           = 3,
+    AUDIO_TRACK     = 4,
+    AUDIO_RADIO     = 5,
+    AUDIO_AUX       = 6,
+    AUDIO_POWER_OFF = 7,
+    AUDIO_NO_STEREO = 8,
+    AUDIO_VOLUME    = 9,
+    AUDIO_SOURCE    = 10,
+    AUDIO_SETTINGS  = 11,
+    VEHICLE         = 12,
+    SETTINGS        = 13,
+    SETTINGS_1      = 14,
+    SETTINGS_2      = 15,
+    SETTINGS_3      = 16,
+    SHARED          = 17,
 };
 
 enum class HMIEvent : uint8_t {
@@ -41,7 +40,7 @@ class DisplayPageState : public Event {
         DisplayPageState() :
             Event(SubSystem::HMI, (uint8_t)HMIEvent::PAGE_STATE, {0x00}) {}
 
-        EVENT_PROPERTY(uint8_t, page, data[0], data[0] = value);
+        EVENT_PROPERTY(HMIPage, page, (HMIPage)data[0], data[0] = (uint8_t)value);
 };
 
 class DisplaySleepState : public Event {
@@ -110,7 +109,6 @@ class HMI : public Caster::Node<Message> {
         void handleSettings(const Event& event);
         void handleAudioSystem(const AudioSystemState* event);
         void handleAudioVolume(const AudioVolumeState* event);
-        void handleAudioMute(const AudioMuteState* event);
         void handleAudioTone(const AudioToneState* event);
         void handleAudioPlayback(const AudioTrackPlaybackState* event);
 
@@ -127,9 +125,10 @@ class HMI : public Caster::Node<Message> {
         void refresh();
         void show(const char* obj);
         void hide(const char* obj); 
-        bool isPage(Page value);
+        bool isPage(HMIPage value);
+        bool isAudioPage();
         bool isAudioSourcePage();
-        void page(Page value);
+        void page(HMIPage value);
         void printEscaped(const char* value);
         int32_t get(const char* key);
         void setVal(const char* key, int32_t value);
@@ -150,6 +149,8 @@ class HMI : public Caster::Node<Message> {
         Stream* stream_;
         Scratch* scratch_;
         uint8_t climate_system_;
+
+        bool mute_;
 };
 
 }  // namespace R51
