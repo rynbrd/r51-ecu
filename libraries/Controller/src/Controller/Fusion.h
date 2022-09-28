@@ -55,10 +55,10 @@ enum class AudioEvent {
 
     // Radio controls.
     RADIO_TUNE              = 0x30, // Tune radio to a specific frequency.
-    RADIO_NEXT_AUTO         = 0x31, // Next radio frequency in auto scan mode.
-    RADIO_PREV_AUTO         = 0x32, // Prev radio frequency in auto scan mode.
-    RADIO_NEXT_MANUAL       = 0x33, // Next radio frequency in manual scan mode.
-    RADIO_PREV_MANUAL       = 0x34, // Prev radio frequency in manual scan mode.
+    RADIO_NEXT_AUTO         = 0x31, // Next radio frequency in auto seek mode.
+    RADIO_PREV_AUTO         = 0x32, // Prev radio frequency in auto seek mode.
+    RADIO_NEXT_MANUAL       = 0x33, // Next radio frequency in manual seek mode.
+    RADIO_PREV_MANUAL       = 0x34, // Prev radio frequency in manual seek mode.
 
     // Input controls.
     INPUT_GAIN_SET          = 0x40, // Set the input gain to specific value.
