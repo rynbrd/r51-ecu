@@ -629,6 +629,7 @@ void Fusion::handleMenuItemList(const Canny::J1939Message& msg,
     // 1DFF040A#63:61:62:6C:65:00:FF:FF
     switch (counter_seq(msg)) {
         case 0:
+            settings_item_.reload(settings_menu_.page() == 0x03);
             settings_item_.item(msg.data()[7]);
             break;
         case 1:

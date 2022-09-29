@@ -183,7 +183,12 @@ class AudioSettingsItemState : public Event {
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_STATE_ITEM,
                     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) {}
 
-        EVENT_PROPERTY(uint8_t, item, data[1], data[1] = value);
+        EVENT_PROPERTY(uint8_t, item,
+                data[1] & 0x0F,
+                data[1] = (data[1] & 0xF0) | (value & 0x0F));
+        EVENT_PROPERTY(bool, reload,
+                getBit(data, 1, 5),
+                setBit(data, 1, 5, value));
         EVENT_PROPERTY(AudioSettingsType, type,
                 (AudioSettingsType)data[2],
                 data[2] = (uint8_t)value);
