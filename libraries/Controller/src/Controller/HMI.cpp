@@ -255,10 +255,11 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
         setTxt("audio_track.ttotal_txt", "");
         setVal("audio_track.progress_bar", 0);
     } else {
-        setTxtTime("audio_track.telapsed_txt", event->time_elapsed());
         if (event->time_total() == 0) {
+            setTxt("audio_track.telapsed_txt", "");
             setTxt("audio_track.ttotal_txt", "");
         } else {
+            setTxtTime("audio_track.telapsed_txt", event->time_elapsed());
             setTxtTime("audio_track.ttotal_txt", event->time_total());
         }
         if (event->time_elapsed() == 0) {
