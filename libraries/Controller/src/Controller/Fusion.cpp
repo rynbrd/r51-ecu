@@ -892,8 +892,10 @@ void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
     // 1DEF0A21#61:00:00:00:03:00:00:00
     //                       |
     //                       +---------- item count
+    // 1DEF0A21#82:03:FF:FF:FF:FF:FF:FF
     sendCmd(yield, 0x0E, 0x0B, (uint8_t)system_.source(), 0x00);
     sendCmdPayload(yield, {0x00, 0x00, 0x00, count, 0x00, 0x00, 0x00});
+    sendCmdPayload(yield, {0x03});
 }
 
 }  // namespace R51
