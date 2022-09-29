@@ -152,6 +152,7 @@ class HMI : public Caster::Node<Message> {
         uint8_t climate_system_;
 
         bool mute_;
+        bool seek_mode_;
 };
 
 }  // namespace R51

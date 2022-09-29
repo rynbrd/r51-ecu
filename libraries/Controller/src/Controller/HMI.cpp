@@ -372,10 +372,14 @@ void HMI::handleClimateButton(uint8_t button, const Caster::Yield<Message>& yiel
 
 void HMI::handleAudioRadioButton(uint8_t button, const Caster::Yield<Message>& yield) {
     switch (button) {
-        case 0x0B:
+        case 11:
+            seek_mode_ = !seek_mode_;
+            setVal("audio_radio.seek_mode", seek_mode_);
+            if (isPage(HMIPage::AUDIO_RADIO)) {
+                refresh();
+            }
             break;
         default:
-            Serial.println(button, HEX);
             break;
     }
 }
