@@ -21,15 +21,12 @@ void HMI::handle(const Message& msg, const Yield<Message>&) {
     const auto& event = msg.event();
     switch ((SubSystem)event.subsystem) {
         case SubSystem::ECM:
-            Serial.println("ecm event");
             handleECM(event);
             break;
         case SubSystem::IPDM:
-            Serial.println("ipdm event");
             handleIPDM(event);
             break;
         case SubSystem::TIRE:
-            Serial.println("tire event");
             handleTire(event);
             break;
         case SubSystem::CLIMATE:
@@ -311,7 +308,6 @@ void HMI::handleAudioSettingsMenu(const AudioSettingsMenuState* event) {
                         handleSettings3Button(button, yield);
                         break;
                     default:
-                        Serial.print(scratch_->bytes[1]);
                         break;
                 }
             }
@@ -367,7 +363,6 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
             yield(event);
             break;
         default:
-            Serial.println(button, HEX);
             break;
     }
 }
@@ -420,7 +415,6 @@ void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
             yield(event);
             break;
         default:
-            Serial.println(button, HEX);
             break;
     }
 }
@@ -439,7 +433,6 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
             }
             break;
         default:
-            Serial.println(button, HEX);
             break;
     }
 }
@@ -483,7 +476,6 @@ void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
             yield(event);
             break;
         default:
-            Serial.println(button, HEX);
             break;
     }
 }
@@ -527,7 +519,6 @@ void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
             yield(event);
             break;
         default:
-            Serial.println(button, HEX);
             break;
     }
 }
@@ -541,7 +532,6 @@ void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
             yield(event);
             break;
         default:
-            Serial.println(button, HEX);
             break;
     }
 }
