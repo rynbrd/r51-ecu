@@ -235,8 +235,8 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
             }
             break;
         default:
-            setVal("audio_track.device", event->bt_connected());
-            if (isPage(HMIPage::AUDIO_TRACK)) {
+            setVal("audio.device", event->bt_connected());
+            if (isPageWithHeader() || isPage(HMIPage::AUDIO_TRACK)) {
                 refresh();
             }
             break;
