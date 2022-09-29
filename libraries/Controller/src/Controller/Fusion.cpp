@@ -317,71 +317,74 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
     if (state_ignore_) {
         return;
     }
+    handleState(counter_seq(msg), msg, yield);
+}
 
+void Fusion::handleState(uint8_t seq, const J1939Message& msg, const Yield<Message>& yield) {
     switch (state_) {
         case SOURCE:
             handleSource(seq, msg, yield);
             break;
         case TRACK_PLAYBACK:
-            handleTrackPlayback(msg, yield);
+            handleTrackPlayback(seq, msg, yield);
             break;
         case TRACK_TITLE:
-            handleTrackTitle(msg, yield);
+            handleTrackString(seq, msg, &track_title_, yield);
             break;
         case TRACK_ARTIST:
-            handleTrackArtiat(msg, yield);
+            handleTrackString(seq, msg, &track_artist_, yield);
             break;
         case TRACK_ALBUM:
-            handleTrackAlbum(msg, yield);
+            handleTrackString(seq, msg, &track_album_, yield);
             break;
         case TRACK_ELAPSED:
-            handleTimeElapsed(msg, yield);
+            handleTimeElapsed(seq, msg, yield);
             break;
         case RADIO_FREQUENCY:
-            handleRadioFrequency(msg, yield);
+            handleRadioFrequency(seq, msg, yield);
             break;
         case INPUT_GAIN:
-            handleInputGain(msg, yield);
+            handleInputGain(seq, msg, yield);
             break;
         case TONE:
-            handleTone(msg, yield);
+            handleTone(seq, msg, yield);
             break;
         case MUTE:
-            handleMute(msg, yield);
+            handleMute(seq, msg, yield);
             break;
         case BALANCE:
-            handleBalance(msg, yield);
+            handleBalance(seq, msg, yield);
             break;
         case VOLUME:
-            handleVolume(msg, yield);
+            handleVolume(seq, msg, yield);
             break;
         case HEARTBEAT:
-            handleHeartbeat(msg, yield);
+            handleHeartbeat(seq, msg, yield);
             break;
         case POWER:
-            handlePower(msg, yield);
+            handlePower(seq, msg, yield);
             break;
         case MENU_LOAD:
-            handleMenuLoad(msg, yield);
+            handleMenuLoad(seq, msg, yield);
             break;
         case MENU_ITEM_COUNT:
-            handleMenuItemCount(msg, yield);
+            handleMenuItemCount(seq, msg, yield);
             break;
         case MENU_ITEM_LIST:
-            handleMenuItemList(msg, yield);
+            handleMenuItemList(seq, msg, yield);
             break;
         case INFO14:
-            handleAnnounce(msg, yield);
+            handleAnnounce(seq, msg, yield);
             break;
         case INFO16:
             break;
     }
 }
 
-void Fusion::handleAnnounce(const Canny::J1939Message& msg,
+void Fusion::handleAnnounce(uint8_t seq, const Canny::J1939Message& msg,
         const Yield<Message>& yield) {
     // 19F0140A#A0:86:35:08:8E:12:4D:53
-    if (counter_seq(msg) != 0 || !match(msg.data() + 1, {0x86, 0x35})) {
+    if (seq != 0 || !match(msg.data() + 1, {0x86, 0x35})) {
         return;
     }
     hu_address_ = msg.source_address();
@@ -394,9 +397,9 @@ void Fusion::handleAnnounce(const Canny::J1939Message& msg,
     sendStereoRequest(yield);
 }
 
-void Fusion::handlePower(const Canny::J1939Message& msg,
+void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
         const Yield<Message>& yield) {
-    if (counter_seq(msg) != 0) {
+    if (seq != 0) {
         return;
     }
     if (system_.power(msg.data()[6] != 0x00)) {
@@ -404,9 +407,9 @@ void Fusion::handlePower(const Canny::J1939Message& msg,
     }
 }
 
-void Fusion::handleHeartbeat(const Canny::J1939Message& msg,
+void Fusion::handleHeartbeat(uint8_t seq, const Canny::J1939Message&,
         const Yield<Message>&) {
-    if (counter_seq(msg) != 0) {
+    if (seq != 0) {
         return;
     }
     hb_timer_.reset();
@@ -440,10 +443,10 @@ void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
     }
 }
 
-void Fusion::handleTrackPlayback(const J1939Message& msg,
+void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     uint32_t time;
-    switch (counter_seq(msg)) {
+    switch (seq) {
         case 0:
             if (msg.data()[7] > 0x02) {
                 msg.data()[7] = 0x00;
@@ -465,30 +468,16 @@ void Fusion::handleTrackPlayback(const J1939Message& msg,
     }
 }
 
-void Fusion::handleTrackTitle(const J1939Message& msg,
-        const Yield<Message>& yield) {
-    if (handleString(msg, 4) && track_title_.checksum(checksum_.value())) {
-        yield(track_title_);
+void Fusion::handleTrackString(uint8_t seq, const J1939Message& msg,
+        AudioChecksumEvent* event, const Yield<Message>& yield) {
+    if (handleString(seq, msg, 4) && event->checksum(checksum_.value())) {
+        yield(*event);
     }
 }
 
-void Fusion::handleTrackArtiat(const J1939Message& msg,
+void Fusion::handleTimeElapsed(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (handleString(msg, 4) && track_artist_.checksum(checksum_.value())) {
-        yield(track_artist_);
-    }
-}
-
-void Fusion::handleTrackAlbum(const J1939Message& msg,
-        const Yield<Message>& yield) {
-    if (handleString(msg, 4) && track_album_.checksum(checksum_.value())) {
-        yield(track_album_);
-    }
-}
-
-void Fusion::handleTimeElapsed(const J1939Message& msg,
-        const Yield<Message>& yield) {
-    if (counter_seq(msg) == 1) {
+    if (seq == 1) {
         uint32_t time = msg.data()[1];
         time |= (msg.data()[2] << 8);
         time |= (msg.data()[3] << 16);
@@ -498,9 +487,9 @@ void Fusion::handleTimeElapsed(const J1939Message& msg,
     }
 }
 
-void Fusion::handleRadioFrequency(const J1939Message& msg,
+void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (counter_seq(msg) == 1) {
+    if (seq == 1) {
         uint32_t frequency = msg.data()[1];
         frequency |= (msg.data()[2] << 8);
         frequency |= (msg.data()[3] << 16);
@@ -511,19 +500,19 @@ void Fusion::handleRadioFrequency(const J1939Message& msg,
     }
 }
 
-void Fusion::handleInputGain(const J1939Message& msg,
+void Fusion::handleInputGain(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (counter_seq(msg) == 0 && system_.gain((int8_t)msg.data()[7]))  {
+    if (seq == 0 && system_.gain((int8_t)msg.data()[7]))  {
         yield(system_);
     }
 }
 
-void Fusion::handleTone(const J1939Message& msg,
+void Fusion::handleTone(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     // We set all zones to the same EQ so we only care about reading the first
     // zone.
     bool changed = false;
-    switch (counter_seq(msg)) {
+    switch (seq) {
         case 0:
             if (msg.data()[6] != 0x00) {
                 state_ignore_ = true;
@@ -543,28 +532,28 @@ void Fusion::handleTone(const J1939Message& msg,
     }
 }
 
-void Fusion::handleMute(const J1939Message& msg,
+void Fusion::handleMute(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (counter_seq(msg) == 0 && volume_.mute(msg.data()[6] == 0x01))  {
+    if (seq == 0 && volume_.mute(msg.data()[6] == 0x01))  {
         yield(volume_);
     }
 }
 
-void Fusion::handleBalance(const J1939Message& msg,
+void Fusion::handleBalance(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     // We balance all zones together so we only need to read
     // balance from zone 1.
-    if (counter_seq(msg) == 0 && msg.data()[6] == 0x00 && volume_.balance(msg.data()[7])) {
+    if (seq == 0 && msg.data()[6] == 0x00 && volume_.balance(msg.data()[7])) {
         yield(volume_);
     }
 }
 
-void Fusion::handleVolume(const J1939Message& msg,
+void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     // The second message contains the volume for zone 3. We don't use zone 3
     // because we're mimicing a car stereo with front/rear. So we only parse
     // the first message.
-    if (counter_seq(msg) == 0) {
+    if (seq == 0) {
         uint8_t zone1 = msg.data()[6];
         uint8_t zone2 = msg.data()[7];
         bool changed = false;
@@ -584,9 +573,9 @@ void Fusion::handleVolume(const J1939Message& msg,
     }
 }
 
-void Fusion::handleMenuLoad(const Canny::J1939Message& msg,
+void Fusion::handleMenuLoad(uint8_t seq, const Canny::J1939Message& msg,
         const Yield<Message>& yield) {
-    switch (counter_seq(msg)) {
+    switch (seq) {
         case 0:
             settings_menu_.item(msg.data()[7]);
             break;
@@ -611,13 +600,13 @@ void Fusion::handleMenuLoad(const Canny::J1939Message& msg,
     }
 }
 
-void Fusion::handleMenuItemCount(const Canny::J1939Message& msg,
+void Fusion::handleMenuItemCount(uint8_t seq, const Canny::J1939Message& msg,
         const Yield<Message>& yield) {
     // 1DFF040A#20:0A:A3:99:10:80:07:03
     //                                |
     //                                +- count
     // 1DFF040A#21:00:00:00:03:FF:FF:FF
-    if (counter_seq(msg) == 0) {
+    if (seq == 0) {
         uint8_t count = msg.data()[7];
         if (count > 5) {
             count = 5;
@@ -628,13 +617,13 @@ void Fusion::handleMenuItemCount(const Canny::J1939Message& msg,
     }
 }
 
-void Fusion::handleMenuItemList(const Canny::J1939Message& msg,
+void Fusion::handleMenuItemList(uint8_t seq, const Canny::J1939Message& msg,
         const Yield<Message>& yield) {
     // 1DFF040A#60:19:A3:99:11:80:07:00
     // 1DFF040A#61:00:00:00:89:03:0C:44
     // 1DFF040A#62:69:73:63:6F:76:65:72
     // 1DFF040A#63:61:62:6C:65:00:FF:FF
-    switch (counter_seq(msg)) {
+    switch (seq) {
         case 0:
             settings_item_.reload(settings_menu_.page() == 0x03);
             settings_item_.item(msg.data()[7]);
@@ -658,7 +647,7 @@ void Fusion::handleMenuItemList(const Canny::J1939Message& msg,
             }
             break;
     }
-    if (handleString(msg, 6)) {
+    if (handleString(seq, msg, 6)) {
         yield(settings_item_);
     }
 }
@@ -670,15 +659,15 @@ void Fusion::handleBluetoothConnection(bool connected,
     }
 }
 
-bool Fusion::handleString(const J1939Message& msg, uint8_t offset) {
-    if (counter_seq(msg) == 0) {
+bool Fusion::handleString(uint8_t seq, const J1939Message& msg, uint8_t offset) {
+    if (seq == 0) {
         scratch_->size = 0;
         checksum_.reset();
         return false;
     }
 
     uint8_t i = 0;
-    if (counter_seq(msg) == 1) {
+    if (seq == 1) {
         // skip prefix in first frame
         i = offset;
     }

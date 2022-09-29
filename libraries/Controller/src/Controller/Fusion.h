@@ -336,46 +336,45 @@ class Fusion : public Caster::Node<Message> {
                 const Caster::Yield<Message>& yield);
         void handleJ1939Message(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleAnnounce(const Canny::J1939Message& msg,
+
+        void handleState(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handlePower(const Canny::J1939Message& msg,
+        void handleAnnounce(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleHeartbeat(const Canny::J1939Message& msg,
+        void handlePower(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
+        void handleHeartbeat(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleTrackPlayback(const Canny::J1939Message& msg,
-                const Caster::Yield<Message>& yield);
-        void handleTrackTitle(const Canny::J1939Message& msg,
-                const Caster::Yield<Message>& yield);
-        void handleTrackArtiat(const Canny::J1939Message& msg,
         void handleSource(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleTrackAlbum(const Canny::J1939Message& msg,
+        void handleTrackPlayback(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleTimeElapsed(const Canny::J1939Message& msg,
+        void handleTrackString(uint8_t seq, const Canny::J1939Message& msg,
+                AudioChecksumEvent* event, const Caster::Yield<Message>& yield);
+        void handleTimeElapsed(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleRadioFrequency(const Canny::J1939Message& msg,
+        void handleRadioFrequency(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleInputGain(const Canny::J1939Message& msg,
+        void handleInputGain(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleTone(const Canny::J1939Message& msg,
+        void handleTone(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleMute(const Canny::J1939Message& msg,
+        void handleMute(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleBalance(const Canny::J1939Message& msg,
+        void handleBalance(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleVolume(const Canny::J1939Message& msg,
+        void handleVolume(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleMenuLoad(const Canny::J1939Message& msg,
+        void handleMenuLoad(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleMenuItemCount(const Canny::J1939Message& msg,
+        void handleMenuItemCount(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleMenuItemList(const Canny::J1939Message& msg,
+        void handleMenuItemList(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handleBluetoothConnection(bool connected,
                 const Caster::Yield<Message>& yield);
 
-        bool handleString(const Canny::J1939Message& msg, uint8_t offset);
+        bool handleString(uint8_t seq, const Canny::J1939Message& msg, uint8_t offset);
 
         void sendStereoRequest(const Caster::Yield<Message>& yield);
         void sendStereoDiscovery(const Caster::Yield<Message>& yield);
