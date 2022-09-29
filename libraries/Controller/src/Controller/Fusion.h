@@ -13,7 +13,7 @@ namespace R51 {
 enum class AudioSource : uint8_t {
     AM = 0x00,
     FM = 0x01,
-    SIRIUSXM = 0x02,
+    //SIRIUSXM,
     AUX = 0x03,
     //USB,
     //IPOD,
@@ -21,7 +21,7 @@ enum class AudioSource : uint8_t {
     BLUETOOTH = 0x07,
     //DAB,
     OPTICAL = 0x09,
-    AIRPLAY = 0x0A,
+    //AIRPLAY,
     //UPNP,
 };
 
