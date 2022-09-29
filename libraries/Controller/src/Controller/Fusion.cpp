@@ -632,7 +632,22 @@ void Fusion::handleMenuItemList(const Canny::J1939Message& msg,
             settings_item_.item(msg.data()[7]);
             break;
         case 1:
-            settings_item_.type((AudioSettingsType)msg.data()[4]);
+            switch (msg.data()[4]) {
+                case 0x49:
+                    settings_item_.type(AudioSettingsType::SUBMENU);
+                    break;
+                case 0x011:
+                    settings_item_.type(AudioSettingsType::SELECT);
+                    break;
+                case 0x81:
+                case 0x89:
+                    settings_item_.type(AudioSettingsType::CHECKBOX_OFF);
+                    break;
+                case 0x83:
+                case 0x8B:
+                    settings_item_.type(AudioSettingsType::CHECKBOX_ON);
+                    break;
+            }
             break;
     }
     if (handleString(msg, 6)) {

@@ -29,7 +29,6 @@ enum class AudioPlayback : uint8_t {
     NO_TRACK = 0x00,
     PLAY = 0x01,
     PAUSE = 0x02,
-    NO_DEVICE = 0xFF,
 };
 
 enum class AudioEvent {
@@ -89,9 +88,9 @@ enum class AudioEvent {
 
     // Settings menu events and controls.
     SETTINGS_CMD_OPEN       = 0xF0, // Sent by the user to open the settings menu.
-    SETTINGS_CMD_SELECT     = 0xF1, // Sent by the user to select a settings menu item.
-    SETTINGS_CMD_BACK       = 0xF2, // Sent by the user to go the the previous settings menu.
-    SETTINGS_CMD_EXIT       = 0xF3, // Sent by the user to exit the settings menu.
+    SETTINGS_CMD_BACK       = 0xF1, // Sent by the user to go the the previous settings menu.
+    SETTINGS_CMD_EXIT       = 0xF2, // Sent by the user to exit the settings menu.
+    SETTINGS_CMD_SELECT     = 0xF3, // Sent by the user to select a settings menu item.
     SETTINGS_STATE_MENU     = 0xF4, // Sent by Fusion to display a settings menu.
     SETTINGS_STATE_ITEM     = 0xF5, // Sent by Fusion to display an item in a settings menu.
     SETTINGS_STATE_EXIT     = 0xF6, // Sent by Fusion to stop displaying the settings menu.
@@ -172,10 +171,10 @@ class AudioSettingsMenuState : public Event {
 };
 
 enum class AudioSettingsType : uint8_t {
-    SUBMENU = 0x49,
-    SELECT = 0x11,
-    CHECKBOX_OFF = 0x89,
-    CHECKBOX_ON = 0x8B,
+    SUBMENU = 1,
+    SELECT = 2,
+    CHECKBOX_OFF = 3,
+    CHECKBOX_ON = 4,
 };
 
 class AudioSettingsItemState : public Event {
