@@ -128,6 +128,7 @@ class HMI : public Caster::Node<Message> {
         bool isPage(HMIPage value);
         bool isAudioPage();
         bool isAudioSourcePage();
+        bool isPageWithHeader();
         void page(HMIPage value);
         void printEscaped(const char* value);
         int32_t get(const char* key);

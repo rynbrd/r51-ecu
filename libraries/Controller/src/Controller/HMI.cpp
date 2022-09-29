@@ -226,8 +226,8 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
             break;
         default:
             setVal("audio_track.device", event->bt_connected());
-            if (isAudioSourcePage() && !isPage(HMIPage::AUDIO_TRACK)) {
-                page(HMIPage::AUDIO_TRACK);
+            if (isPage(HMIPage::AUDIO_TRACK)) {
+                refresh();
             }
             break;
     }
@@ -270,7 +270,9 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
                     (int32_t)(100 * event->time_elapsed() / event->time_total()));
         }
     }
-    refresh();
+    if (isPageWithHeader() || isPage(HMIPage::AUDIO_TRACK)) {
+        refresh();
+    }
 }
 
 void HMI::handleSerial(const Caster::Yield<Message>& yield) {
@@ -598,7 +600,20 @@ bool HMI::isAudioSourcePage() {
         isPage(HMIPage::AUDIO_AUX) ||
         isPage(HMIPage::AUDIO_POWER_OFF) ||
         isPage(HMIPage::AUDIO_NO_STEREO) ||
-        isPage(HMIPage::AUDIO_VOLUME);
+        isPage(HMIPage::AUDIO_VOLUME) ||
+        isPage(HMIPage::AUDIO_SOURCE);
+}
+
+bool HMI::isPageWithHeader() {
+    return isPage(HMIPage::HOME) ||
+        isPage(HMIPage::CLIMATE) ||
+        isPage(HMIPage::AUDIO_TRACK) ||
+        isPage(HMIPage::AUDIO_RADIO) ||
+        isPage(HMIPage::AUDIO_AUX) ||
+        isPage(HMIPage::AUDIO_POWER_OFF) ||
+        isPage(HMIPage::AUDIO_NO_STEREO) ||
+        isPage(HMIPage::AUDIO_VOLUME) ||
+        isPage(HMIPage::VEHICLE);
 }
 
 void HMI::page(HMIPage value) {
