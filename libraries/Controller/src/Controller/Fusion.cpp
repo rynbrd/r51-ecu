@@ -56,8 +56,6 @@ enum State : uint8_t {
     // Other state frames.
     INFO14 = 0xF0,
     INFO16 = 0xF1,
-    BLUETOOTH_CONNECT = 0xF2,
-    BLUETOOTH_DISCONNECT = 0xF3,
 };
 
 enum TrackCmd : uint8_t {
@@ -113,10 +111,6 @@ State detectState(const J1939Message& msg, uint8_t hu_address) {
     } else if (msg.pgn() == 0x1FF04 && msg.source_address() == hu_address) {
         if (match(msg.data() + 2, {0xA3, 0x99, 0xFF, 0x80})) {
             return (State)msg.data()[4];
-        } else if (match(msg.data() + 2, {0xA5, 0x02, 0x42, 0x54})) {
-            return State::BLUETOOTH_CONNECT;
-        } else if (match(msg.data() + 2, {0x85, 0x02, 0x42, 0x54})) {
-            return State::BLUETOOTH_DISCONNECT;
         }
     }
     return (State)0xFF;
@@ -129,7 +123,8 @@ Fusion::Fusion(Scratch* scratch, Clock* clock) :
         address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, clock), disco_timer_(kDiscoveryTick, clock),
         recent_mute_(false), state_(0xFF), state_ignore_(false), state_counter_(0xFF),
-        cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress) {
+        cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress),
+        secondary_source_((AudioSource)0xFF) {
     cmd_.resize(8);
 }
 
@@ -325,7 +320,7 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
 
     switch (state_) {
         case SOURCE:
-            handleSource(msg, yield);
+            handleSource(seq, msg, yield);
             break;
         case TRACK_PLAYBACK:
             handleTrackPlayback(msg, yield);
@@ -380,12 +375,6 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
             break;
         case INFO16:
             break;
-        case BLUETOOTH_CONNECT:
-            handleBluetoothConnection(true, yield);
-            break;
-        case BLUETOOTH_DISCONNECT:
-            handleBluetoothConnection(false, yield);
-            break;
     }
 }
 
@@ -423,13 +412,31 @@ void Fusion::handleHeartbeat(const Canny::J1939Message& msg,
     hb_timer_.reset();
 }
 
-void Fusion::handleSource(const J1939Message& msg,
+void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (counter_seq(msg) != 0 || msg.data()[6] != msg.data()[7]) {
-        return;
-    }
-    if (system_.source((AudioSource)msg.data()[7])) {
-        yield(system_);
+    switch (seq) {
+        case 0:
+            secondary_source_ = (AudioSource)msg.data()[6];
+            if (msg.data()[6] == msg.data()[7] && system_.source((AudioSource)msg.data()[7])) {
+                yield(system_);
+            }
+            break;
+        case 1:
+            if (secondary_source_ == AudioSource::BLUETOOTH) {
+                switch (msg.data()[2]) {
+                    case 0xA5:
+                        handleBluetoothConnection(true, yield);
+                        break;
+                    case 0x85:
+                        handleBluetoothConnection(false, yield);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            break;
+        default:
+            break;
     }
 }
 

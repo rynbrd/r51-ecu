@@ -342,13 +342,13 @@ class Fusion : public Caster::Node<Message> {
                 const Caster::Yield<Message>& yield);
         void handleHeartbeat(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleSource(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handleTrackPlayback(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handleTrackTitle(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handleTrackArtiat(const Canny::J1939Message& msg,
+        void handleSource(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handleTrackAlbum(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
@@ -434,6 +434,8 @@ class Fusion : public Caster::Node<Message> {
         uint8_t state_counter_;
         uint8_t cmd_counter_;
         Canny::J1939Message cmd_;
+
+        AudioSource secondary_source_;
 };
 
 template <size_t N> 
