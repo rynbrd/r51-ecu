@@ -236,7 +236,7 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
 void HMI::handleAudioVolume(const AudioVolumeState* event) {
     setVal("audio.mute", event->mute());
     setVolume(event->volume());
-    if (!mute_ && !event->mute()) {
+    if (!mute_ && !event->mute() && !isPage(HMIPage::SPLASH)) {
         page(HMIPage::AUDIO_VOLUME);
     }
     mute_ = event->mute();
