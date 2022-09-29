@@ -666,6 +666,7 @@ void Fusion::handleBluetoothConnection(bool connected,
 
 bool Fusion::handleString(uint8_t seq, const J1939Message& msg, uint8_t offset) {
     if (seq == 0) {
+        scratch_->bytes[0] = 0;
         scratch_->size = 0;
         checksum_.reset();
         return false;
