@@ -589,8 +589,13 @@ void Fusion::handleMenuLoad(uint8_t seq, const Canny::J1939Message& msg,
                     break;
                 case 0x03:
                     // refresh menu item
+                    break;
                 case 0x04:
-                    // exit menu
+                    {
+                        Event event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_STATE_EXIT);
+                        yield(event);
+                    }
+                    break;
                 default:
                     break;
             }
