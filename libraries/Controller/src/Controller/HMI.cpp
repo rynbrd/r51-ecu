@@ -12,7 +12,9 @@ namespace R51 {
 using ::Caster::Yield;
 
 HMI::HMI(Stream* stream, Scratch* scratch) :
-        stream_(new HMIDebugStream(stream)), scratch_(scratch), climate_system_(0) {}
+        stream_(new HMIDebugStream(stream)), scratch_(scratch),
+        climate_system_(0), mute_(false), seek_mode_(false),
+        audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::handle(const Message& msg, const Yield<Message>&) {
     if (msg.type() != Message::EVENT) {
@@ -69,6 +71,15 @@ void HMI::handle(const Message& msg, const Yield<Message>&) {
                     break;
                 case AudioEvent::TRACK_ALBUM_STATE:
                     setTxt("audio_track.album_txt", scratch_);
+                    break;
+                case AudioEvent::SETTINGS_STATE_MENU:
+                    handleAudioSettingsMenu((AudioSettingsMenuState*)&event);
+                    break;
+                case AudioEvent::SETTINGS_STATE_ITEM:
+                    handleAudioSettingsItem((AudioSettingsItemState*)&event);
+                    break;
+                case AudioEvent::SETTINGS_STATE_EXIT:
+                    handleAudioSettingsExit((AudioSettingsExitState*)&event);
                     break;
                 default:
                     break;
@@ -276,6 +287,54 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
 }
 
 void HMI::handleAudioSettingsMenu(const AudioSettingsMenuState* event) {
+    audio_settings_page_ = event->page();
+    audio_settings_count_ = event->count();
+    if (!isPage(HMIPage::AUDIO_SETTINGS)) {
+        page(HMIPage::AUDIO_SETTINGS);
+    }
+}
+
+void HMI::setAudioSettingsItem(uint8_t item, uint8_t type) {
+    // set item type
+    stream_->print("m");
+    stream_->print(item);
+    stream_->print("_type.val=");
+    stream_->print(type);
+    terminate();
+
+    // set item label
+    stream_->print("m");
+    stream_->print(item);
+    stream_->print("_txt.txt=\"");
+    if (type != 0) {
+        printEscaped((char*)scratch_->bytes);
+    }
+    stream_->print("\"");
+    terminate();
+}
+
+void HMI::handleAudioSettingsItem(const AudioSettingsItemState* event) {
+    if (event->item() > 4) {
+        return;
+    }
+
+    setAudioSettingsItem(event->item(), (uint8_t)event->type());
+
+    if (event->reload()) {
+        refresh();
+    } else if (event->item() == audio_settings_count_ - 1) {
+        for (uint8_t i = audio_settings_count_; i < 5; ++i) {
+            setAudioSettingsItem(i, 0);
+        }
+        refresh();
+    }
+}
+
+void HMI::handleAudioSettingsExit(const AudioSettingsExitState*) {
+    page(HMIPage::AUDIO);
+}
+
+void HMI::handleSerial(const Yield<Message>& yield) {
     if (scratch_->size == 0) {
         return;
     }
@@ -292,8 +351,14 @@ void HMI::handleAudioSettingsMenu(const AudioSettingsMenuState* event) {
                     case HMIPage::AUDIO_RADIO:
                         handleAudioRadioButton(button, yield);
                         break;
+                    case HMIPage::AUDIO_TRACK:
+                        handleAudioTrackButton(button, yield);
+                        break;
                     case HMIPage::AUDIO_SOURCE:
                         handleAudioSourceButton(button, yield);
+                        break;
+                    case HMIPage::AUDIO_SETTINGS:
+                        handleAudioSettingsButton(button, yield);
                         break;
                     case HMIPage::VEHICLE:
                         handleVehicleButton(button, yield);
@@ -382,6 +447,65 @@ void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>&) {
 }
 
 void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
+    Event event;
+    switch (button) {
+        case 14:
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_OPEN);
+            yield(event);
+            break;
+    }
+}
+
+void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield) {
+    Event event;
+    switch (button) {
+        case 30:
+            // on page exit
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_EXIT);
+            yield(event);
+            break;
+        case 14:
+            // on back button
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_BACK);
+            yield(event);
+            break;
+        case 1:
+        case 6:
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x00});
+            yield(event);
+            break;
+        case 5:
+        case 7:
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x01});
+            yield(event);
+            break;
+        case 4:
+        case 8:
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x02});
+            yield(event);
+            break;
+        case 3:
+        case 9:
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x03});
+            yield(event);
+            break;
+        case 2:
+        case 15:
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x04});
+            yield(event);
+            break;
+    }
+}
+
+void HMI::handleAudioSourceButton(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x01:

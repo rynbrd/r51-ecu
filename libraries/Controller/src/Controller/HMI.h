@@ -111,11 +111,16 @@ class HMI : public Caster::Node<Message> {
         void handleAudioVolume(const AudioVolumeState* event);
         void handleAudioTone(const AudioToneState* event);
         void handleAudioPlayback(const AudioTrackPlaybackState* event);
+        void handleAudioSettingsMenu(const AudioSettingsMenuState* event);
+        void handleAudioSettingsItem(const AudioSettingsItemState* event);
+        void handleAudioSettingsExit(const AudioSettingsExitState* event);
 
         void handleSerial(const Caster::Yield<Message>& yield);
         void handleClimateButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioRadioButton(uint8_t button, const Caster::Yield<Message>& yield);
+        void handleAudioTrackButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioSourceButton(uint8_t button, const Caster::Yield<Message>& yield);
+        void handleAudioSettingsButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleVehicleButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings1Button(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings2Button(uint8_t button, const Caster::Yield<Message>& yield);
@@ -141,18 +146,24 @@ class HMI : public Caster::Node<Message> {
         void setTxtTime(const char* key, uint16_t seconds);
         void setVolume(uint8_t value);
         void setGain(int8_t db);
+        void setAudioSettingsItem(uint8_t item, uint8_t type);
 
         bool read(bool block);
+
+        Stream* stream_;
+        Scratch* scratch_;
 
         DisplayPageState page_;
         DisplaySleepState sleep_;
 
-        Stream* stream_;
-        Scratch* scratch_;
+        // climate state
         uint8_t climate_system_;
 
+        // audio state
         bool mute_;
         bool seek_mode_;
+        uint8_t audio_settings_page_;
+        uint8_t audio_settings_count_;
 };
 
 }  // namespace R51
