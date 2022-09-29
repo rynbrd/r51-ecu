@@ -9,10 +9,12 @@
 
 namespace R51 {
 
+using ::Caster::Yield;
+
 HMI::HMI(Stream* stream, Scratch* scratch) :
         stream_(new HMIDebugStream(stream)), scratch_(scratch), climate_system_(0) {}
 
-void HMI::handle(const Message& msg, const Caster::Yield<Message>&) {
+void HMI::handle(const Message& msg, const Yield<Message>&) {
     if (msg.type() != Message::EVENT) {
         return;
     }
@@ -276,7 +278,7 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
     }
 }
 
-void HMI::handleSerial(const Caster::Yield<Message>& yield) {
+void HMI::handleAudioSettingsMenu(const AudioSettingsMenuState* event) {
     if (scratch_->size == 0) {
         return;
     }
@@ -336,7 +338,7 @@ void HMI::handleSerial(const Caster::Yield<Message>& yield) {
     }
 }
 
-void HMI::handleClimateButton(uint8_t button, const Caster::Yield<Message>& yield) {
+void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x11:
@@ -370,7 +372,7 @@ void HMI::handleClimateButton(uint8_t button, const Caster::Yield<Message>& yiel
     }
 }
 
-void HMI::handleAudioRadioButton(uint8_t button, const Caster::Yield<Message>& yield) {
+void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>&) {
     switch (button) {
         case 11:
             seek_mode_ = !seek_mode_;
@@ -384,7 +386,7 @@ void HMI::handleAudioRadioButton(uint8_t button, const Caster::Yield<Message>& y
     }
 }
 
-void HMI::handleAudioSourceButton(uint8_t button, const Caster::Yield<Message>& yield) {
+void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x01:
@@ -423,7 +425,7 @@ void HMI::handleAudioSourceButton(uint8_t button, const Caster::Yield<Message>& 
     }
 }
 
-void HMI::handleVehicleButton(uint8_t button, const Caster::Yield<Message>& yield) {
+void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x17:
             {
@@ -442,7 +444,7 @@ void HMI::handleVehicleButton(uint8_t button, const Caster::Yield<Message>& yiel
     }
 }
 
-void HMI::handleSettings1Button(uint8_t button, const Caster::Yield<Message>& yield) {
+void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x05:
@@ -486,7 +488,7 @@ void HMI::handleSettings1Button(uint8_t button, const Caster::Yield<Message>& yi
     }
 }
 
-void HMI::handleSettings2Button(uint8_t button, const Caster::Yield<Message>& yield) {
+void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x0A:
@@ -530,7 +532,7 @@ void HMI::handleSettings2Button(uint8_t button, const Caster::Yield<Message>& yi
     }
 }
 
-void HMI::handleSettings3Button(uint8_t button, const Caster::Yield<Message>& yield) {
+void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x03:
@@ -544,7 +546,7 @@ void HMI::handleSettings3Button(uint8_t button, const Caster::Yield<Message>& yi
     }
 }
 
-void HMI::emit(const Caster::Yield<Message>& yield) {
+void HMI::emit(const Yield<Message>& yield) {
     if (read(false)) {
         Serial.print("hmi recv: ");
         for (size_t i = 0; i < scratch_->size; ++i) {
