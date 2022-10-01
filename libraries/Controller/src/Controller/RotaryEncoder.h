@@ -32,7 +32,7 @@ class RotaryEncoder {
 
         // Set the color of the encoder's neopixel. Must call showPixel for the
         // changes to take effect.
-        void setColor(uint8_t r, uint8_t g, uint8_t b);
+        void setColor(KeypadColor color);
 
         // Set the brightness of the encoder's neopixel. Must call showPixel
         // for the changes to take effect.
@@ -53,16 +53,38 @@ class RotaryEncoder {
         static const int kSwitchPin = 24;
 };
 
+// A bus node that manages a group of Adafruit rotary encoders. Encoders have
+// two inputs - the encoder knob and the press switch of the encoder. IDs are
+// sequentually assigned to each encoder knob and switch starting at 0.
+// Encoders also have a backlight that can be controlled via the
+// BACKLIGHT_LED_CMD event. A maximum of 8 encoders are supported in the group.
+// This is, without coincidence, also the maximum number of encoders that can
+// be connected to a single I2C bus.
 class RotaryEncoderGroup : public Caster::Node<Message> {
     public:
+        // Construct a new group with the given keypad ID and set of encoders.
         RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders, uint8_t count);
 
+        // Handle a backlight LED command.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
+        // Emit encoder and keypad events.
         void emit(const Caster::Yield<Message>& yield) override;
 
+        // Enable interrupts and set the interrupts callbacks. When interrupts
+        // are enabled the ISR must call interrupt() in order for data to be
+        // read from an encoder. The callbacks are used to pause and resume
+        // interrupts to avoid hanging the I2C bus. 
+        void enableInterrupts(void (*pause_cb)(uint8_t), void (*resume_cb)(uint8_t));
+
+        // Disable interrupts. Emit will read events on each iteration instead
+        // of waiting for an interrupt.
+        void disableInterrupts();
+
+        // Called by an ISR to trigger a read for a specific encoder. If n is
+        // 0xFF then all encoders are read.
+        void interrupt(uint8_t n);
     private:
-        void setBacklightColor(RotaryEncoder* encoder, KeypadColor color);
         void pauseInterrupts(uint8_t n);
         void resumeInterrupts(uint8_t n);
 
@@ -73,8 +95,10 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
         RotaryEncoder** encoders_;
         uint8_t count_;
 
-        void (*pause_int_cb_)(uint8_t);
-        void (*resume_int_cb_)(uint8_t);
+        bool intr_enable_;
+        volatile uint8_t intr_read_;
+        void (*pause_intr_cb_)(uint8_t);
+        void (*resume_intr_cb_)(uint8_t);
 };
 
 }  // namespace R51 {

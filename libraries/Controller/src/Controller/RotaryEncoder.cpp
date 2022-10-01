@@ -34,8 +34,36 @@ int8_t RotaryEncoder::getSwitch() {
     return 0;
 }
 
-void RotaryEncoder::setColor(uint8_t r, uint8_t g, uint8_t b) {
-    neopixel_.setPixelColor(0, neopixel_.Color(r, g, b));
+void RotaryEncoder::setColor(KeypadColor color) {
+    switch (color) {
+        case KeypadColor::WHITE:
+            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0xFF, 0xFF));
+            break;
+        case KeypadColor::RED:
+            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0x00, 0x00));
+            break;
+        case KeypadColor::GREEN:
+            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0xFF, 0x00));
+            break;
+        case KeypadColor::BLUE:
+            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0x00, 0xFF));
+            break;
+        case KeypadColor::CYAN:
+            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0xFF, 0xFF));
+            break;
+        case KeypadColor::YELLOW:
+            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0xFF, 0x00));
+            break;
+        case KeypadColor::MAGENTA:
+            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0x00, 0xFF));
+            break;
+        case KeypadColor::AMBER:
+            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0xBF, 0x00));
+            break;
+        default:
+            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0x00, 0x00));
+            break;
+    }
 }
 
 void RotaryEncoder::setBrightness(uint8_t value) {
@@ -47,7 +75,9 @@ void RotaryEncoder::showPixel() {
 }
 
 RotaryEncoderGroup::RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders, uint8_t count) :
-        keypad_(keypad), encoders_(encoders), count_(count) {
+        keypad_(keypad), encoders_(encoders), count_(count),
+        intr_enable_(false), intr_read_(0),
+        pause_intr_cb_(nullptr), resume_intr_cb_(nullptr) {
     encoder_event_.keypad(keypad_);
     keypress_event_.keypad(keypad_);
 }
@@ -67,7 +97,7 @@ void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>&) {
     RotaryEncoder* encoder = encoders_[n];
     pauseInterrupts(n);
     encoder->setBrightness(e->brightness());
-    setBacklightColor(encoder, e->color());
+    encoder->setColor(e->color());
     encoder->showPixel();
     resumeInterrupts(n);
 }
@@ -76,6 +106,10 @@ void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
     RotaryEncoder* encoder;
     int8_t sw;
     for (uint8_t i = 0; i < count_; ++i) {
+        if (intr_enable_ && ((0x01 << i) & intr_read_) == 0) {
+            continue;
+        }
+
         encoder = encoders_[i];
         pauseInterrupts(i);
         sw = encoder->getSwitch();
@@ -91,48 +125,41 @@ void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
             yield(encoder_event_);
         }
     }
+    intr_read_ = 0;
 }
 
-void RotaryEncoderGroup::setBacklightColor(RotaryEncoder* encoder, KeypadColor color) {
-    switch (color) {
-        case KeypadColor::WHITE:
-           break;
-        case KeypadColor::RED:
-           encoder->setColor(0xFF, 0x00, 0x00);
-           break;
-        case KeypadColor::GREEN:
-           encoder->setColor(0x00, 0xFF, 0x00);
-           break;
-        case KeypadColor::BLUE:
-           encoder->setColor(0x00, 0x00, 0xFF);
-           break;
-        case KeypadColor::CYAN:
-           encoder->setColor(0x00, 0xFF, 0xFF);
-           break;
-        case KeypadColor::YELLOW:
-           encoder->setColor(0xFF, 0xFF, 0x00);
-           break;
-        case KeypadColor::MAGENTA:
-           encoder->setColor(0xFF, 0x00, 0xFF);
-           break;
-        case KeypadColor::AMBER:
-           encoder->setColor(0xFF, 0xBF, 0x00);
-           break;
-        default:
-           encoder->setColor(0x00, 0x00, 0x00);
-           break;
+void RotaryEncoderGroup::enableInterrupts(
+        void (*pause_cb)(uint8_t), void (*resume_cb)(uint8_t)) {
+    intr_enable_ = true;
+    intr_read_ = 0;
+    pause_intr_cb_ = pause_cb;
+    resume_intr_cb_ = resume_cb;
+}
+
+void RotaryEncoderGroup::disableInterrupts() {
+    intr_enable_ = false;
+    intr_read_ = 0;
+    pause_intr_cb_ = 0;
+    resume_intr_cb_ = 0;
+}
+
+void RotaryEncoderGroup::interrupt(uint8_t read) {
+    if (read >= 8) {
+        intr_read_ = 0xFF;
+        return;
     }
+    intr_read_ = 0x01 << read;
 }
 
 void RotaryEncoderGroup::pauseInterrupts(uint8_t n) {
-    if (pause_int_cb_ != nullptr) {
-        pause_int_cb_(n);
+    if (intr_enable_ && pause_intr_cb_ != nullptr) {
+        pause_intr_cb_(n);
     }
 }
 
 void RotaryEncoderGroup::resumeInterrupts(uint8_t n) {
-    if (resume_int_cb_ != nullptr) {
-        resume_int_cb_(n);
+    if (intr_enable_ && resume_intr_cb_ != nullptr) {
+        resume_intr_cb_(n);
     }
 }
 
