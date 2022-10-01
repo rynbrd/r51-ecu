@@ -19,15 +19,16 @@ namespace R51 {
 
 // Sub-system identifier. This allows a physical to host multiple subsystems.
 enum class SubSystem : uint8_t {
-    ECM = 0x04,
-    IPDM = 0x06,
-    TIRE = 0x08,
-    CLIMATE = 0x0A,
-    SETTINGS = 0x0B,
+    ECM             = 0x04,
+    IPDM            = 0x06,
+    TIRE            = 0x08,
+    CLIMATE         = 0x0A,
+    SETTINGS        = 0x0B,
     STEERING_KEYPAD = 0x0C,
-    BLUETOOTH = 0x0D,
-    HMI = 0x0E,
-    AUDIO = 0x0F,
+    BLUETOOTH       = 0x0D,
+    HMI             = 0x0E,
+    AUDIO           = 0x0F,
+    KEYPAD          = 0x10,
 };
 
 struct Event : public Printable {
