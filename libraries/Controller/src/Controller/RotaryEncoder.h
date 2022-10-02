@@ -18,6 +18,7 @@ class RotaryEncoder {
     public:
         RotaryEncoder(TwoWire* wire) : encoder_(wire),
                 neopixel_(1, 6, NEO_GRB + NEO_KHZ800, wire),
+                color_(0xFFFFFF), brightness_(255),
                 pos_(0), new_pos_(0), sw_(false), new_sw_(false) {}
 
         // Connect to the encoder on the given I2C address.
@@ -44,6 +45,9 @@ class RotaryEncoder {
     private:
         Adafruit_seesaw encoder_;
         seesaw_NeoPixel neopixel_;
+
+        uint32_t color_;
+        uint8_t brightness_;
 
         int32_t pos_;
         int32_t new_pos_;
@@ -85,6 +89,10 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
         // 0xFF then all encoders are read.
         void interrupt(uint8_t n);
     private:
+
+        void handleKeyLEDCommand(const KeyLEDCommand* cmd);
+        void handleKeypadDimCommand(const KeypadDimCommand* cmd);
+
         void pauseInterrupts(uint8_t n);
         void resumeInterrupts(uint8_t n);
 

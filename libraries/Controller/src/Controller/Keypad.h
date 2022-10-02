@@ -23,20 +23,18 @@ enum class KeypadEvent : uint8_t {
     KEY_PRESS_EVENT         = 0x01, // Send on button press/release.
     ENCODER_ROTATE_EVENT    = 0x02, // Send on rotary encoder rotation.
 
-    INDICATOR_LED_CMD       = 0x10, // Change power state, color, and
-                                    // brightness of the indicator LED on a
-                                    // key or encoder.
-    BACKLIGHT_LED_CMD       = 0x11, // Change power state, color, and
-                                    // brightness of the backlight on a key or
-                                    // encoder.
+    KEY_LED_CMD             = 0x11, // Change power or color of the backlight
+                                    // on a single key or encoder.
+    KEYPAD_DIM_CMD          = 0x12, // Change the brightness of the keypad's
+                                    // backlight.
 };
 
 // Sent when a key is pressed or released.
 class KeyPressEvent : public Event {
     public:
-        KeyPressEvent() : Event(SubSystem::KEYPAD,
+        KeyPressEvent(uint8_t keypad = 0x00) : Event(SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::KEY_PRESS_EVENT,
-                {0x00, 0x00, 0x00}) {}
+                {keypad, 0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -52,7 +50,7 @@ class EncoderRotateEvent : public Event {
     public:
         EncoderRotateEvent() : Event(SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::ENCODER_ROTATE_EVENT,
-                {0x00, 0x00}) {}
+                {0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -64,10 +62,12 @@ class EncoderRotateEvent : public Event {
         EVENT_PROPERTY(int8_t, delta, (int8_t)data[2], data[2] = (uint8_t)value);
 };
 
-class LEDCommand : public Event {
+// Command to change the color of a key's backlight.
+class KeyLEDCommand : public Event {
     public:
-        LEDCommand(KeypadEvent event) :
-                Event(SubSystem::KEYPAD, (uint8_t)event, {0x00, 0x00}) {}
+        KeyLEDCommand() :
+                Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::KEY_LED_CMD,
+                        {0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -75,21 +75,23 @@ class LEDCommand : public Event {
         EVENT_PROPERTY(uint8_t, id, data[1], data[1] = value);
         // The color the LED. Off is a color.
         EVENT_PROPERTY(KeypadColor, color, (KeypadColor)data[2], data[2] = (uint8_t)value);
-        // The brightness for the LED from 0 to 256. 0 turns off the LED.
-        EVENT_PROPERTY(uint8_t, brightness, data[3], data[3] = value);
 
 };
 
-class IndicatorLEDCommand : public LEDCommand {
+// Command to change the brightness of the keypad's backlight.
+class KeypadDimCommand : public Event {
     public:
-        IndicatorLEDCommand() : LEDCommand(KeypadEvent::BACKLIGHT_LED_CMD) {}
+        KeypadDimCommand() :
+                Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::KEYPAD_DIM_CMD,
+                        {0x00, 0x00}) {}
+
+        // The ID of the keypad.
+        EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
+        // The brightness for the backlight from 0 to 256. 0 turns off the LED.
+        EVENT_PROPERTY(uint8_t, brightness, data[1], data[1] = value);
+
 };
 
-class BacklightLEDCommand : public LEDCommand {
-    public:
-        BacklightLEDCommand() : LEDCommand(KeypadEvent::BACKLIGHT_LED_CMD) {}
-};
-
-}  // namespace R51 {
+}  // namespace R51
 
 #endif  // _R51_CONTROLLER_KEYPAD_H_

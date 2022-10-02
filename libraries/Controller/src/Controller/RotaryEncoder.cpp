@@ -37,69 +37,92 @@ int8_t RotaryEncoder::getSwitch() {
 void RotaryEncoder::setColor(KeypadColor color) {
     switch (color) {
         case KeypadColor::WHITE:
-            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0xFF, 0xFF));
+            color_ = 0xFFFFFF;
             break;
         case KeypadColor::RED:
-            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0x00, 0x00));
+            color_ = 0xFF0000;
             break;
         case KeypadColor::GREEN:
-            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0xFF, 0x00));
+            color_ = 0x00FF00;
             break;
         case KeypadColor::BLUE:
-            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0x00, 0xFF));
+            color_ = 0x0000FF;
             break;
         case KeypadColor::CYAN:
-            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0xFF, 0xFF));
+            color_ = 0x00FFFF;
             break;
         case KeypadColor::YELLOW:
-            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0xFF, 0x00));
+            color_ = 0xFFFF00;
             break;
         case KeypadColor::MAGENTA:
-            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0x00, 0xFF));
+            color_ = 0xFF00FF;
             break;
         case KeypadColor::AMBER:
-            neopixel_.setPixelColor(0, neopixel_.Color(0xFF, 0xBF, 0x00));
+            color_ = 0xFFBF00;
             break;
         default:
-            neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0x00, 0x00));
+            color_ = 0x000000;
             break;
     }
 }
 
 void RotaryEncoder::setBrightness(uint8_t value) {
-    neopixel_.setBrightness(value);
+    brightness_ = value;
 }
 
 void RotaryEncoder::showPixel() {
+    neopixel_.setBrightness(brightness_);
+    neopixel_.setPixelColor(0, neopixel_.Color(
+                (color_ & 0xFF0000) >> 16,
+                (color_ & 0x00FF00) >> 8,
+                (color_ & 0x0000FF)));
     neopixel_.show();
 }
 
 RotaryEncoderGroup::RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders, uint8_t count) :
-        keypad_(keypad), encoders_(encoders), count_(count),
+        encoders_(encoders), count_(count),
         intr_enable_(false), intr_read_(0),
         pause_intr_cb_(nullptr), resume_intr_cb_(nullptr) {
-    encoder_event_.keypad(keypad_);
-    keypress_event_.keypad(keypad_);
+    encoder_event_.keypad(keypad);
+    keypress_event_.keypad(keypad);
 }
 
-void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>&) {
+void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT ||
-            msg.event().subsystem != (uint8_t)SubSystem::KEYPAD ||
-            msg.event().id != (uint8_t)KeypadEvent::BACKLIGHT_LED_CMD) {
+            msg.event().subsystem != (uint8_t)SubSystem::KEYPAD) {
         return;
     }
+    switch ((KeypadEvent)msg.event().id) {
+        case KeypadEvent::KEY_LED_CMD:
+            handleKeyLEDCommand((KeyLEDCommand*)&msg.event());
+            break;
+        case KeypadEvent::KEYPAD_DIM_CMD:
+            handleKeypadDimCommand((KeypadDimCommand*)&msg.event());
+            break;
+        default:
+            break;
+    }
+}
 
-    const auto* e = (BacklightLEDCommand*)&msg.event();
-    uint8_t n = e->id() / 2;
-    if (e->keypad() != keypad_ || n >= count_) {
+void RotaryEncoderGroup::handleKeyLEDCommand(const KeyLEDCommand* cmd) {
+    uint8_t n = cmd->id() / 2;
+    if (cmd->keypad() != keypress_event_.keypad() || n >= count_) {
         return;
     }
     RotaryEncoder* encoder = encoders_[n];
     pauseInterrupts(n);
-    encoder->setBrightness(e->brightness());
-    encoder->setColor(e->color());
+    encoder->setColor(cmd->color());
     encoder->showPixel();
     resumeInterrupts(n);
+}
+
+void RotaryEncoderGroup::handleKeypadDimCommand(const KeypadDimCommand* cmd) {
+    for (uint8_t i = 0; i < count_; ++i) {
+        pauseInterrupts(i);
+        encoders_[i]->setBrightness(cmd->brightness());
+        encoders_[i]->showPixel();
+        resumeInterrupts(i);
+    }
 }
 
 void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
