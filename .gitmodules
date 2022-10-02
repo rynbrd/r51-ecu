@@ -4,6 +4,12 @@
 [submodule "libraries/Adafruit_BluefruitLE_nRF51"]
 	path = libraries/BluefruitLE
 	url = git@github.com:BlueDragonX/Adafruit_BluefruitLE_nRF51.git
+[submodule "libraries/Adafruit_BusIO"]
+    path = libraries/Adafruit_BusIO
+    url = git@github.com:BlueDragonX/Adafruit_BusIO.git
+[submodule "libraries/Adafruit_Seesaw"]
+    path = libraries/Adafruit_Seesaw
+    url = git@github.com:BlueDragonX/Adafruit_Seesaw.git
 [submodule "libraries/Aruino_CAN_BUS_MCP2515"]
 	path = libraries/Longan_MCP2515
 	url = git@github.com:BlueDragonX/Aruino_CAN_BUS_MCP2515.git
