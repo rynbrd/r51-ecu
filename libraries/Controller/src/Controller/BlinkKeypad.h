@@ -34,14 +34,20 @@ class BlinkKeypad : public Caster::Node<Message> {
         void handleJ1939Claim(const J1939Claim& claim);
         void handleJ1939Message(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleKeyLEDCommand(const KeyLEDCommand* cmd,
+        void handleIndicatorCommand(const IndicatorCommand* cmd,
                 const Caster::Yield<Message>& yield);
-        void handleKeypadDimCommand(const KeypadDimCommand* cmd,
+        void handleBrightnessCommand(const BrightnessCommand* cmd,
+                const Caster::Yield<Message>& yield);
+        void handleBacklightCommand(const BacklightCommand* cmd,
                 const Caster::Yield<Message>& yield);
 
         void setKeyColor(uint8_t key, KeypadColor color,
                 const Caster::Yield<Message>& yield);
         void setKeyBrightness(uint8_t brightness,
+                const Caster::Yield<Message>& yield);
+        void setBacklightColor(KeypadColor color,
+                const Caster::Yield<Message>& yield);
+        void setBacklightBrightness(uint8_t brightness,
                 const Caster::Yield<Message>& yield);
 
         KeyPressEvent keypress_;

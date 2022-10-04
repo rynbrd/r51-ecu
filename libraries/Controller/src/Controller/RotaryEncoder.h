@@ -19,6 +19,7 @@ class RotaryEncoder {
         RotaryEncoder(TwoWire* wire) : encoder_(wire),
                 neopixel_(1, 6, NEO_GRB + NEO_KHZ800, wire),
                 color_(0xFFFFFF), brightness_(0),
+                backlight_color_(0xFFFFFF), backlight_brightness_(0),
                 pos_(0), new_pos_(0), sw_(false), new_sw_(false) {}
 
         // Connect to the encoder on the given I2C address.
@@ -39,6 +40,12 @@ class RotaryEncoder {
         // for the changes to take effect.
         void setBrightness(uint8_t value);
 
+        // Set the color and brightness of the encoder's backlight. A backlight
+        // is simulated by turning on the neopixel with this color and
+        // brightness when setColor or setBrightness are turned "off". Must
+        // call showPixel for the changes to take effect.
+        void setBacklight(KeypadColor color, uint8_t brightness);
+
         // Update the neopixel with the new color and brightness.
         void showPixel();
 
@@ -48,6 +55,9 @@ class RotaryEncoder {
 
         uint32_t color_;
         uint8_t brightness_;
+
+        uint32_t backlight_color_;
+        uint8_t backlight_brightness_;
 
         int32_t pos_;
         int32_t new_pos_;
@@ -90,8 +100,9 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
         void interrupt(uint8_t n);
     private:
 
-        void handleKeyLEDCommand(const KeyLEDCommand* cmd);
-        void handleKeypadDimCommand(const KeypadDimCommand* cmd);
+        void handleIndicatorCommand(const IndicatorCommand* cmd);
+        void handleBrightnessCommand(const BrightnessCommand* cmd);
+        void handleBacklightCommand(const BacklightCommand* cmd);
 
         void pauseInterrupts(uint8_t n);
         void resumeInterrupts(uint8_t n);

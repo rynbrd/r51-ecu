@@ -5,8 +5,34 @@
 #include <Common.h>
 
 namespace R51 {
+namespace {
 
 using ::Caster::Yield;
+
+uint32_t toNeopixelColor(KeypadColor color) {
+    switch (color) {
+        case KeypadColor::WHITE:
+            return 0xFFFFFF;
+        case KeypadColor::RED:
+            return 0xFF0000;
+        case KeypadColor::GREEN:
+            return 0x00FF00;
+        case KeypadColor::BLUE:
+            return 0x0000FF;
+        case KeypadColor::CYAN:
+            return 0x00FFFF;
+        case KeypadColor::YELLOW:
+            return 0xFFFF00;
+        case KeypadColor::MAGENTA:
+            return 0xFF00FF;
+        case KeypadColor::AMBER:
+            return 0xFFBF00;
+        default:
+            return 0x000000;
+    }
+}
+
+}  // namespace
 
 bool RotaryEncoder::begin(uint8_t addr) {
     if (!encoder_.begin(addr) || !neopixel_.begin(addr)) {
@@ -36,44 +62,19 @@ int8_t RotaryEncoder::getSwitch() {
 }
 
 void RotaryEncoder::setColor(KeypadColor color) {
-    switch (color) {
-        case KeypadColor::WHITE:
-            color_ = 0xFFFFFF;
-            break;
-        case KeypadColor::RED:
-            color_ = 0xFF0000;
-            break;
-        case KeypadColor::GREEN:
-            color_ = 0x00FF00;
-            break;
-        case KeypadColor::BLUE:
-            color_ = 0x0000FF;
-            break;
-        case KeypadColor::CYAN:
-            color_ = 0x00FFFF;
-            break;
-        case KeypadColor::YELLOW:
-            color_ = 0xFFFF00;
-            break;
-        case KeypadColor::MAGENTA:
-            color_ = 0xFF00FF;
-            break;
-        case KeypadColor::AMBER:
-            color_ = 0xFFBF00;
-            break;
-        default:
-            color_ = 0x000000;
-            break;
-    }
+    color_ = toNeopixelColor(color);
 }
 
 void RotaryEncoder::setBrightness(uint8_t value) {
     brightness_ = value;
 }
 
+void RotaryEncoder::setBacklight(KeypadColor color, uint8_t brightness) {
+    backlight_color_ = toNeopixelColor(color);
+    backlight_brightness_ = brightness;
+}
+
 void RotaryEncoder::showPixel() {
-    Serial.print("set pixel brightness ");Serial.println(brightness_, HEX);
-    Serial.print("set pixel color ");Serial.println(color_, HEX);
     if (brightness_ == 0) {
         // a brightness of 0 is 100% according to Adafruit
         neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0x00, 0x00));
@@ -101,18 +102,18 @@ void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>&) {
         return;
     }
     switch ((KeypadEvent)msg.event().id) {
-        case KeypadEvent::KEY_LED_CMD:
-            handleKeyLEDCommand((KeyLEDCommand*)&msg.event());
+        case KeypadEvent::INDICATOR_CMD:
+            handleIndicatorCommand((IndicatorCommand*)&msg.event());
             break;
-        case KeypadEvent::KEYPAD_DIM_CMD:
-            handleKeypadDimCommand((KeypadDimCommand*)&msg.event());
+        case KeypadEvent::BRIGHTNESS_CMD:
+            handleBrightnessCommand((BrightnessCommand*)&msg.event());
             break;
         default:
             break;
     }
 }
 
-void RotaryEncoderGroup::handleKeyLEDCommand(const KeyLEDCommand* cmd) {
+void RotaryEncoderGroup::handleIndicatorCommand(const IndicatorCommand* cmd) {
     uint8_t n = cmd->id() / 2;
     if (cmd->keypad() != keypress_event_.keypad() || n >= count_) {
         return;
@@ -124,13 +125,25 @@ void RotaryEncoderGroup::handleKeyLEDCommand(const KeyLEDCommand* cmd) {
     resumeInterrupts(n);
 }
 
-void RotaryEncoderGroup::handleKeypadDimCommand(const KeypadDimCommand* cmd) {
+void RotaryEncoderGroup::handleBrightnessCommand(const BrightnessCommand* cmd) {
     if (cmd->keypad() != keypress_event_.keypad()) {
         return;
     }
     for (uint8_t i = 0; i < count_; ++i) {
         pauseInterrupts(i);
         encoders_[i]->setBrightness(cmd->brightness());
+        encoders_[i]->showPixel();
+        resumeInterrupts(i);
+    }
+}
+
+void RotaryEncoderGroup::handleBacklightCommand(const BacklightCommand* cmd) {
+    if (cmd->keypad() != keypress_event_.keypad()) {
+        return;
+    }
+    for (uint8_t i = 0; i < count_; ++i) {
+        pauseInterrupts(i);
+        encoders_[i]->setBacklight(cmd->color(), cmd->brightness());
         encoders_[i]->showPixel();
         resumeInterrupts(i);
     }
