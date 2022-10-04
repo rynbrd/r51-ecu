@@ -18,7 +18,7 @@ class RotaryEncoder {
     public:
         RotaryEncoder(TwoWire* wire) : encoder_(wire),
                 neopixel_(1, 6, NEO_GRB + NEO_KHZ800, wire),
-                color_(0xFFFFFF), brightness_(255),
+                color_(0xFFFFFF), brightness_(0),
                 pos_(0), new_pos_(0), sw_(false), new_sw_(false) {}
 
         // Connect to the encoder on the given I2C address.
@@ -70,7 +70,7 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
         RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders, uint8_t count);
 
         // Handle a backlight LED command.
-        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
         // Emit encoder and keypad events.
         void emit(const Caster::Yield<Message>& yield) override;

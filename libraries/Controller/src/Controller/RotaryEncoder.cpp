@@ -16,6 +16,7 @@ bool RotaryEncoder::begin(uint8_t addr) {
     delay(10);
     encoder_.setGPIOInterrupts((uint32_t)1 << kSwitchPin, 1);
     encoder_.enableEncoderInterrupt();
+    showPixel();
     return true;
 }
 
@@ -71,11 +72,18 @@ void RotaryEncoder::setBrightness(uint8_t value) {
 }
 
 void RotaryEncoder::showPixel() {
-    neopixel_.setBrightness(brightness_);
-    neopixel_.setPixelColor(0, neopixel_.Color(
-                (color_ & 0xFF0000) >> 16,
-                (color_ & 0x00FF00) >> 8,
-                (color_ & 0x0000FF)));
+    Serial.print("set pixel brightness ");Serial.println(brightness_, HEX);
+    Serial.print("set pixel color ");Serial.println(color_, HEX);
+    if (brightness_ == 0) {
+        // a brightness of 0 is 100% according to Adafruit
+        neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0x00, 0x00));
+    } else {
+        neopixel_.setBrightness(brightness_);
+        neopixel_.setPixelColor(0, neopixel_.Color(
+                    (color_ & 0xFF0000) >> 16,
+                    (color_ & 0x00FF00) >> 8,
+                    (color_ & 0x0000FF)));
+    }
     neopixel_.show();
 }
 
@@ -87,7 +95,7 @@ RotaryEncoderGroup::RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders,
     keypress_event_.keypad(keypad);
 }
 
-void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>& yield) {
+void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>&) {
     if (msg.type() != Message::EVENT ||
             msg.event().subsystem != (uint8_t)SubSystem::KEYPAD) {
         return;
@@ -117,6 +125,9 @@ void RotaryEncoderGroup::handleKeyLEDCommand(const KeyLEDCommand* cmd) {
 }
 
 void RotaryEncoderGroup::handleKeypadDimCommand(const KeypadDimCommand* cmd) {
+    if (cmd->keypad() != keypress_event_.keypad()) {
+        return;
+    }
     for (uint8_t i = 0; i < count_; ++i) {
         pauseInterrupts(i);
         encoders_[i]->setBrightness(cmd->brightness());
@@ -142,6 +153,7 @@ void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
         if (sw != 0) {
             keypress_event_.id(i * 2 + 1);
             keypress_event_.pressed(sw == 1);
+            yield(keypress_event_);
         }
         if (encoder_event_.delta() != 0) {
             encoder_event_.id(i * 2);
