@@ -36,10 +36,10 @@ uint8_t toBlinkColor(KeypadColor color) {
 }
 
 uint8_t toBlinkBrightness(uint8_t brightness) {
-    if (brightness % 4 != 0) {
-        // round up since we expect a value of 1 to turn on the
-        // backlight at the lowest level
-        return brightness / 4 + 1;
+    if (brightness == 0x00) {
+        return 0x00;
+    } else if (brightness < 0x04) {
+        return 0x01;
     }
     return brightness / 4;
 }
@@ -47,7 +47,7 @@ uint8_t toBlinkBrightness(uint8_t brightness) {
 }  // namespace
 
 BlinkKeypad::BlinkKeypad(uint8_t keypad, uint8_t address, uint8_t key_count) :
-        keypress_(KeyPressEvent(keypad)), command_(0xEF00, Canny::NullAddress, address),
+        keypress_(KeyPressEvent(keypad)), command_(0xEF00, Canny::NullAddress, address, 0x06),
         address_(address), key_count_(key_count) {
     command_.resize(8);
     command_.data()[0] = 0x04;
@@ -101,7 +101,9 @@ void BlinkKeypad::handleJ1939Message(const J1939Message& msg, const Yield<Messag
 
 void BlinkKeypad::handleKeyLEDCommand(const KeyLEDCommand* cmd,
         const Yield<Message>& yield) {
-    if (command_.source_address() == Canny::NullAddress || cmd->id() >= key_count_) {
+    if (command_.source_address() == Canny::NullAddress ||
+            cmd->id() >= key_count_ ||
+            cmd->keypad() != keypress_.keypad()) {
         return;
     }
 
@@ -118,11 +120,12 @@ void BlinkKeypad::handleKeyLEDCommand(const KeyLEDCommand* cmd,
 
 void BlinkKeypad::handleKeypadDimCommand(const KeypadDimCommand* cmd,
         const Yield<Message>& yield) {
-    if (command_.source_address() == Canny::NullAddress) {
+    if (command_.source_address() == Canny::NullAddress ||
+            cmd->keypad() != keypress_.keypad()) {
         return;
     }
 
-    command_.data()[2] = 0x03;
+    command_.data()[2] = 0x02;
     command_.data()[3] = toBlinkBrightness(cmd->brightness());
     command_.data()[4] = 0xFF;
     command_.data()[5] = 0xFF;
