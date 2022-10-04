@@ -28,7 +28,7 @@ class J1939AddressClaim : public Caster::Node<Message> {
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         // Does nothing. 
-        void emit(const Caster::Yield<Message>& yield) override {};
+        void emit(const Caster::Yield<Message>&) override {};
 
         // Address of this device.
         uint8_t address() { return address_; }
