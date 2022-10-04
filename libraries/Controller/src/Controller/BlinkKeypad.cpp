@@ -54,6 +54,13 @@ BlinkKeypad::BlinkKeypad(uint8_t keypad, uint8_t address, uint8_t key_count) :
     command_.data()[1] = 0x1B;
 }
 
+void BlinkKeypad::init(const Caster::Yield<Message>& yield) {
+    setKeyBrightness(0, yield);
+    for (uint8_t i = 0; i < key_count_; ++i) {
+        setKeyColor(i, KeypadColor::OFF, yield);
+    }
+}
+
 void BlinkKeypad::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
@@ -106,16 +113,7 @@ void BlinkKeypad::handleKeyLEDCommand(const KeyLEDCommand* cmd,
             cmd->keypad() != keypress_.keypad()) {
         return;
     }
-
-    command_.data()[2] = 0x01;
-    command_.data()[3] = cmd->id() + 1;
-    command_.data()[4] = toBlinkColor(cmd->color());
-    if (cmd->color() == KeypadColor::OFF) {
-        command_.data()[5] = 0x00;
-    } else {
-        command_.data()[5] = 0x01;
-    }
-    yield(command_);
+    setKeyColor(cmd->id(), cmd->color(), yield);
 }
 
 void BlinkKeypad::handleKeypadDimCommand(const KeypadDimCommand* cmd,
@@ -124,9 +122,24 @@ void BlinkKeypad::handleKeypadDimCommand(const KeypadDimCommand* cmd,
             cmd->keypad() != keypress_.keypad()) {
         return;
     }
+    setKeyBrightness(cmd->brightness(), yield);
+}
 
+void BlinkKeypad::setKeyColor(uint8_t key, KeypadColor color, const Yield<Message>& yield) {
+    command_.data()[2] = 0x01;
+    command_.data()[3] = key + 1;
+    command_.data()[4] = toBlinkColor(color);
+    if (color == KeypadColor::OFF) {
+        command_.data()[5] = 0x00;
+    } else {
+        command_.data()[5] = 0x01;
+    }
+    yield(command_);
+}
+
+void BlinkKeypad::setKeyBrightness(uint8_t brightness, const Yield<Message>& yield) {
     command_.data()[2] = 0x02;
-    command_.data()[3] = toBlinkBrightness(cmd->brightness());
+    command_.data()[3] = toBlinkBrightness(brightness);
     command_.data()[4] = 0xFF;
     command_.data()[5] = 0xFF;
     yield(command_);
