@@ -27,6 +27,11 @@ bool isRequestAddressClaim(const J1939Message& msg, uint8_t address) {
 
 }  // namespace
 
+void J1939AddressClaim::init(const Caster::Yield<Message>& yield) {
+    emitClaim(yield);
+    emitEvent(yield);
+}
+
 void J1939AddressClaim::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     if (msg.type() != Message::J1939_MESSAGE ||
             (!msg.j1939_message().broadcast() &&
@@ -72,14 +77,6 @@ void J1939AddressClaim::handleAddressClaim(const Canny::J1939Message& msg,
         address_ = Canny::NullAddress;
         emitClaim(yield);
         emitEvent(yield);
-    }
-}
-
-void J1939AddressClaim::emit(const Caster::Yield<Message>& yield) {
-    if (!init_) {
-        emitClaim(yield);
-        emitEvent(yield);
-        init_ = true;
     }
 }
 

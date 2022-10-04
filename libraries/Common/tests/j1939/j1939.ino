@@ -21,7 +21,7 @@ test(J1939AddressClaimTest, Init) {
     Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
     J1939Claim expect_claim(address, name);
 
-    node.emit(yield);
+    node.init(yield);
     assertSize(yield, 2);
     assertIsJ1939Message(yield.messages()[0], expect_frame);
     assertIsJ1939Claim(yield.messages()[1], expect_claim);
