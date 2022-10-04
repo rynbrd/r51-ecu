@@ -20,22 +20,22 @@ enum class KeypadColor : uint8_t {
 };
 
 enum class KeypadEvent : uint8_t {
-    KEY_PRESS_EVENT         = 0x01, // Send on button press/release.
-    ENCODER_ROTATE_EVENT    = 0x02, // Send on rotary encoder rotation.
+    KEY_STATE       = 0x01, // Send on button press/release.
+    ENCODER_STATE   = 0x02, // Send on rotary encoder rotation.
 
-    INDICATOR_CMD           = 0x11, // Change power or color of the indicator
-                                    // on a single key/encoder.
-    BRIGHTNESS_CMD          = 0x12, // Change the brightness of the indicator
-                                    // LEDs for the entire keypad.
-    BACKLIGHT_CMD           = 0x13, // Change the color and brightness of the
-                                    // keypad's backlight.
+    INDICATOR_CMD   = 0x11, // Change power or color of the indicator on a
+                            // single key/encoder.
+    BRIGHTNESS_CMD  = 0x12, // Change the brightness of the indicator LEDs for
+                            // the entire keypad.
+    BACKLIGHT_CMD   = 0x13, // Change the color and brightness of the keypad's
+                            // backlight.
 };
 
 // Sent when a key is pressed or released.
 class KeyPressEvent : public Event {
     public:
         KeyPressEvent(uint8_t keypad = 0x00) : Event(SubSystem::KEYPAD,
-                (uint8_t)KeypadEvent::KEY_PRESS_EVENT,
+                (uint8_t)KeypadEvent::KEY_STATE,
                 {keypad, 0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
@@ -51,7 +51,7 @@ class KeyPressEvent : public Event {
 class EncoderRotateEvent : public Event {
     public:
         EncoderRotateEvent() : Event(SubSystem::KEYPAD,
-                (uint8_t)KeypadEvent::ENCODER_ROTATE_EVENT,
+                (uint8_t)KeypadEvent::ENCODER_STATE,
                 {0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
