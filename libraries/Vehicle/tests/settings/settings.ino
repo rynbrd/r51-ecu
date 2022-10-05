@@ -99,7 +99,8 @@ class SettingsTest : public TestOnce {
             Frame frame;
 
             // Send control event to perform update.
-            settings->handle(control);
+            settings->handle(control, yield);
+            yield.clear();
 
             // Exchange enter frames.
             settings->emit(yield);
@@ -108,7 +109,8 @@ class SettingsTest : public TestOnce {
             assertIsCANFrame(yield.messages()[0], frame);
             yield.clear();
             fillEnterResponse(&frame, responseId(expect_id));
-            settings->handle(frame);
+            settings->handle(frame, yield);
+            yield.clear();
 
             // Exchange update frames.
             settings->emit(yield);
@@ -117,7 +119,8 @@ class SettingsTest : public TestOnce {
             assertIsCANFrame(yield.messages()[0], frame);
             yield.clear();
             fillUpdateResponse(&frame, responseId(expect_id), expect_command);
-            settings->handle(frame);
+            settings->handle(frame, yield);
+            yield.clear();
 
             if (expect_id == 0x71E) {
                 // Exchange initial state frames.
@@ -126,7 +129,8 @@ class SettingsTest : public TestOnce {
                 assertSize(yield, 1);
                 assertIsCANFrame(yield.messages()[0], frame);
                 yield.clear();
-                settings->handle(*state_71E_10);
+                settings->handle(*state_71E_10, yield);
+                yield.clear();
                 
                 // Exchange secondary state frames.
                 settings->emit(yield);
@@ -134,8 +138,9 @@ class SettingsTest : public TestOnce {
                 assertSize(yield, 1);
                 assertIsCANFrame(yield.messages()[0], frame);
                 yield.clear();
-                settings->handle(*state_71E_21);
-                settings->handle(*state_71E_22);
+                settings->handle(*state_71E_21, yield);
+                settings->handle(*state_71E_22, yield);
+                yield.clear();
             } else if (expect_id == 0x71F) {
                 // Exchange state frames.
                 settings->emit(yield);
@@ -143,7 +148,8 @@ class SettingsTest : public TestOnce {
                 assertSize(yield, 1);
                 assertIsCANFrame(yield.messages()[0], frame);
                 yield.clear();
-                settings->handle(*state_71F_05);
+                settings->handle(*state_71F_05, yield);
+                yield.clear();
             }
 
             // Exchange exit frames.
@@ -153,7 +159,8 @@ class SettingsTest : public TestOnce {
             assertIsCANFrame(yield.messages()[0], frame);
             yield.clear();
             fillExitResponse(&frame, responseId(expect_id));
-            settings->handle(frame);
+            settings->handle(frame, yield);
+            yield.clear();
 
             // Check resulting state frame.
             if (expect_event != nullptr) {
@@ -180,7 +187,7 @@ class SettingsTest : public TestOnce {
 
         void checkNoop(Settings* settings, Event& control) {
             FakeYield yield;
-            settings->handle(control);
+            settings->handle(control, yield);
             settings->emit(yield);
             assertSize(yield, 0);
         }
@@ -205,9 +212,10 @@ testF(SettingsTest, Init) {
 
     // Simulate response.
     fillEnterResponse(&frameE, 0x72E);
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillEnterResponse(&frameF, 0x72F);
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive next init frames.
     settings.emit(yield);
@@ -220,9 +228,10 @@ testF(SettingsTest, Init) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillFrame(&frameF, 0x72F, {0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07});
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive next init frames. Final F frame.
     settings.emit(yield);
@@ -235,9 +244,10 @@ testF(SettingsTest, Init) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x20, 0xC2, 0x6F, 0x73, 0xD3});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillExitResponse(&frameF, 0x72F);
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive next E init Frame.
     settings.emit(yield);
@@ -248,7 +258,8 @@ testF(SettingsTest, Init) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x40, 0xC2, 0xA1, 0x90, 0x01});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
+    yield.clear();
 
     // Receive next E init Frame.
     settings.emit(yield);
@@ -259,7 +270,8 @@ testF(SettingsTest, Init) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x60, 0x00, 0xFF, 0xF1, 0x70});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
+    yield.clear();
 
     // Receive final E init frame.
     settings.emit(yield);
@@ -270,7 +282,8 @@ testF(SettingsTest, Init) {
 
     // Simulate response.
     fillExitResponse(&frameE, 0x72E);
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
+    yield.clear();
 }
 
 testF(SettingsTest, RequestCurrent) {
@@ -282,7 +295,8 @@ testF(SettingsTest, RequestCurrent) {
 
     // Send control event to trigger retrieve.
     Event event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::REQUEST);
-    settings.handle(event);
+    settings.handle(event, yield);
+    yield.clear();
 
     // Receive enter request frames.
     settings.emit(yield);
@@ -295,9 +309,10 @@ testF(SettingsTest, RequestCurrent) {
 
     // Simulate response.
     fillEnterResponse(&frameE, 0x72E);
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillEnterResponse(&frameF, 0x72F);
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive initial state frames.
     settings.emit(yield);
@@ -310,9 +325,10 @@ testF(SettingsTest, RequestCurrent) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillFrame(&frameF, 0x72F, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF});
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive next E state frame and F exit frame.
     settings.emit(yield);
@@ -325,11 +341,12 @@ testF(SettingsTest, RequestCurrent) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillFrame(&frameE, 0x72E, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillExitResponse(&frameF, 0x72F);
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive E exit frame.
     settings.emit(yield);
@@ -340,7 +357,8 @@ testF(SettingsTest, RequestCurrent) {
 
     // Simulate response.
     fillExitResponse(&frameE, 0x72E);
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
+    yield.clear();
 
     // Ensure settings are at default.
     event = Event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
@@ -358,7 +376,8 @@ testF(SettingsTest, FactoryReset) {
 
     // Send control event to trigger reset.
     Event event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::FACTORY_RESET);
-    settings.handle(event);
+    settings.handle(event, yield);
+    yield.clear();
 
     // Receive enter request frames.
     settings.emit(yield);
@@ -371,9 +390,10 @@ testF(SettingsTest, FactoryReset) {
 
     // Simulate response.
     fillEnterResponse(&frameE, 0x72E);
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillEnterResponse(&frameF, 0x72F);
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Send reset all command.
     settings.emit(yield);
@@ -386,9 +406,10 @@ testF(SettingsTest, FactoryReset) {
 
     // Simulate response.
     fillResetResponse(&frameE, 0x72E);
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillResetResponse(&frameF, 0x72F);
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive initial state frames.
     settings.emit(yield);
@@ -401,9 +422,9 @@ testF(SettingsTest, FactoryReset) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillFrame(&frameF, 0x72F, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF});
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
 
     // Receive next E state frame and F exit frame.
     settings.emit(yield);
@@ -416,11 +437,12 @@ testF(SettingsTest, FactoryReset) {
 
     // Simulate response.
     fillFrame(&frameE, 0x72E, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillFrame(&frameE, 0x72E, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF});
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
     fillExitResponse(&frameF, 0x72F);
-    settings.handle(frameF);
+    settings.handle(frameF, yield);
+    yield.clear();
 
     // Receive E exit frame.
     settings.emit(yield);
@@ -431,7 +453,8 @@ testF(SettingsTest, FactoryReset) {
 
     // Simulate response.
     fillExitResponse(&frameE, 0x72E);
-    settings.handle(frameE);
+    settings.handle(frameE, yield);
+    yield.clear();
 
     // Ensure settings are at default.
     event = Event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
