@@ -92,10 +92,10 @@ class FakeConnection : public Connection {
         size_t write_len_;
 };
 
-test(J1939NodeTest, Read) {
+test(J1939GatewayTest, Read) {
     FakeYield yield;
     FakeConnection can(2, 0);
-    J1939Node node(&can);
+    J1939Gateway node(&can);
 
     J1939Message m1(0xEF00, 0x20, 0x10);
     J1939Message m2(0xEF00, 0x20, 0x20);
@@ -108,10 +108,10 @@ test(J1939NodeTest, Read) {
     assertIsJ1939Message(yield.messages()[1], m2);
 }
 
-test(J1939NodeTest, Write) {
+test(J1939GatewayTest, Write) {
     FakeYield yield;
     FakeConnection can(0, 1);
-    J1939Node node(&can);
+    J1939Gateway node(&can);
 
     J1939Message m(0xEF00, 0x20, 0x10);
     node.handle(m, yield);

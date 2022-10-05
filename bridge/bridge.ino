@@ -19,7 +19,7 @@ using ::Caster::Bus;
 using ::Caster::Node;
 using ::R51::BLE;
 using ::R51::BLENode;
-using ::R51::CANNode;
+using ::R51::CANGateway;
 using ::R51::Climate;
 using ::R51::Defog;
 using ::R51::FilteredCAN;
@@ -41,7 +41,7 @@ R51::ConsoleNode console(&SERIAL_DEVICE);
 
 // vehicle CAN connection
 FilteredCAN can_conn(&CAN);
-CANNode can_node(&can_conn);
+CANGateway can_gw(&can_conn);
 
 // control system J1939 connection
 #if defined(J1939_ENABLE)
@@ -85,7 +85,7 @@ Node<Message>* nodes[] = {
 #if defined(DEBUG_ENABLE)
     &console,
 #endif
-    &can_node,
+    &can_gw,
 #if defined(J1939_ENABLE)
     &j1939_event_node,
     &j1939_claim_node,

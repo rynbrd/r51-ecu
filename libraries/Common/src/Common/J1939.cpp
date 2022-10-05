@@ -30,7 +30,7 @@ bool isRequestAddressClaim(const J1939Message& msg, uint8_t address) {
 
 }  // namespace
 
-void J1939Node::handle(const Message& msg, const Caster::Yield<Message>&) {
+void J1939Gateway::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::J1939_MESSAGE) {
         return;
     }
@@ -40,7 +40,7 @@ void J1939Node::handle(const Message& msg, const Caster::Yield<Message>&) {
     }
 }
 
-void J1939Node::emit(const Caster::Yield<Message>& yield) {
+void J1939Gateway::emit(const Caster::Yield<Message>& yield) {
     Error err = can_->read(&msg_);
     if (err == ERR_OK) {
         yield(msg_);

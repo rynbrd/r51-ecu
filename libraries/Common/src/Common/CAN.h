@@ -10,12 +10,12 @@ namespace R51 {
 
 // Bus node for reading and writing CAN frames or J1939 messages to a CAN
 // controller.
-class CANNode : public Caster::Node<Message> {
+class CANGateway : public Caster::Node<Message> {
     public:
         // Construct a new note that transmits frames over the given
         // connection.
-        CANNode(Canny::Connection* can) : can_(can) {}
-        virtual ~CANNode() = default;
+        CANGateway(Canny::Connection* can) : can_(can) {}
+        virtual ~CANGateway() = default;
 
         // Write a frame to the CAN bus.
         void handle(const Message& msg, const Caster::Yield<Message>&) override;

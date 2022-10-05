@@ -91,19 +91,19 @@ class FakeConnection : public Connection {
         size_t write_len_;
 };
 
-test(CANNodeTest, NoReads) {
+test(CANGatewayTest, NoReads) {
     FakeYield yield;
     FakeConnection can(0, 0);
-    CANNode node(&can);
+    CANGateway node(&can);
 
     node.emit(yield);
     assertSize(yield, 0);
 }
 
-test(CANNodeTest, Read) {
+test(CANGatewayTest, Read) {
     FakeYield yield;
     FakeConnection can(1, 0);
-    CANNode node(&can);
+    CANGateway node(&can);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     can.setReadBuffer({f});
@@ -114,10 +114,10 @@ test(CANNodeTest, Read) {
     assertEqual(can.readsRemaining(), 0);
 }
 
-test(CANNodeTest, Write) {
+test(CANGatewayTest, Write) {
     FakeYield yield;
     FakeConnection can(0, 1);
-    CANNode node(&can);
+    CANGateway node(&can);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     node.handle(f, yield);

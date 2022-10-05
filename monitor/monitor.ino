@@ -9,27 +9,50 @@
 #include <Console.h>
 
 using ::Canny::Frame;
+using ::Canny::J1939Message;
 using ::Caster::Bus;
 using ::Caster::Node;
-using ::R51::CANNode;
+using ::R51::CANGateway;
 using ::R51::ConsoleNode;
 using ::R51::Message;
 
-class LoggingCANNode : public CANNode {
+// Uncomment to read frames as J1939 messages.
+#define J1939_ENABLE
+
+class LoggingCANGateway : public CANGateway {
     public:
-        LoggingCANNode(Canny::Connection* can) : CANNode(can) {}
+        LoggingCANGateway(Canny::Connection* can) : CANGateway(can) {}
 
         void onReadError(Canny::Error err) {
             DEBUG_MSG_VAL("can: read error: ", err);
         }
 
-        void onWriteError(Canny::Error err, const Canny::Frame& frame) {
+        void onWriteError(Canny::Error err, const Frame& frame) {
             DEBUG_MSG_VAL("can: write error: ", err);
             DEBUG_MSG_VAL("can: dropped frame: ", frame);
         }
 };
 
-LoggingCANNode can(&CAN);
+class LoggingJ1939Gateway : public J1939Gateway {
+    public:
+        LoggingJ1939Gateway(Canny::Connection* can) : J1939Gateway(can) {}
+
+        void onReadError(Canny::Error err) {
+            DEBUG_MSG_VAL("j1939: read error: ", err);
+        }
+
+        void onWriteError(Canny::Error err, const J1939Message& msg) {
+            DEBUG_MSG_VAL("j1939: write error: ", err);
+            DEBUG_MSG_VAL("j1939: dropped frame: ", msg);
+        }
+};
+
+#if defined(J1939_ENABLE)
+LoggingJ1939Gateway can(&CAN);
+#else
+LoggingCANGateway can(&CAN);
+#endif
+
 ConsoleNode console(&SERIAL_DEVICE);
 
 Bus<Message>* bus;

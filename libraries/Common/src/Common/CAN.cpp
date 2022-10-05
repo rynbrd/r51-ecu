@@ -7,7 +7,7 @@ using ::Canny::ERR_OK;
 using ::Canny::Error;
 using ::Canny::Frame;
 
-void CANNode::handle(const Message& msg, const Caster::Yield<Message>&) {
+void CANGateway::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::CAN_FRAME) {
         return;
     }
@@ -17,7 +17,7 @@ void CANNode::handle(const Message& msg, const Caster::Yield<Message>&) {
     }
 }
 
-void CANNode::emit(const Caster::Yield<Message>& yield) {
+void CANGateway::emit(const Caster::Yield<Message>& yield) {
     Error err = can_->read(&frame_);
     if (err == ERR_OK) {
         yield(frame_);
