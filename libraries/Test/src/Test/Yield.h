@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Common.h>
-#include "Array.h"
+#include <Foundation.h>
 
 namespace R51 {
 
@@ -82,7 +82,7 @@ class FakeYield : public Caster::Yield<Message> {
         void clear() { messages_->clear(); }
 
         // Collect a yielded message.
-        void operator()(const Message& msg) const override { messages_->push(msg); }
+        void operator()(const Message& msg) const override { messages_->push_back(msg); }
 
     private:
         Array<MessageCopy>* messages_;
