@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Canny.h>
 #include <Common.h>
+#include <Foundation.h>
 #include "Config.h"
 
 namespace R51 {

@@ -1,6 +1,7 @@
 #include <AUnit.h>
 #include <Arduino.h>
 #include <Faker.h>
+#include <Foundation.h>
 #include <Test.h>
 #include <Vehicle.h>
 
@@ -450,17 +451,17 @@ testF(SettingsTest, ToggleAutoInteriorIllumination) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(expect.data, 0, 0);
+    flipBit(expect.data, 0, 0);
     setBit(state10.data(), 4, 5, 1);
     checkUpdate(&settings, control, 0x71E, 0x10, 0x01, state10, state21, state22, expect);
 
     // Toggle setting off.
-    toggleBit(expect.data, 0, 0);
+    flipBit(expect.data, 0, 0);
     setBit(state10.data(), 4, 5, 0);
     checkUpdate(&settings, control, 0x71E, 0x10, 0x00, state10, state21, state22, expect);
 
     // Toggle setting on.
-    toggleBit(expect.data, 0, 0);
+    flipBit(expect.data, 0, 0);
     setBit(state10.data(), 4, 5, 1);
     checkUpdate(&settings, control, 0x71E, 0x10, 0x01, state10, state21, state22, expect);
 }
@@ -474,17 +475,17 @@ testF(SettingsTest, ToggleSlideDriverSeat) {
     Frame state05 = {0x72F, 8, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(expect.data, 0, 1);
+    flipBit(expect.data, 0, 1);
     setBit(state05.data(), 3, 0, 1);
     checkUpdate(&settings, control, 0x71F, 0x01, 0x01, state05, expect);
 
     // Toggle setting off.
-    toggleBit(expect.data, 0, 1);
+    flipBit(expect.data, 0, 1);
     setBit(state05.data(), 3, 0, 0);
     checkUpdate(&settings, control, 0x71F, 0x01, 0x00, state05, expect);
 
     // Toggle setting on.
-    toggleBit(expect.data, 0, 1);
+    flipBit(expect.data, 0, 1);
     setBit(state05.data(), 3, 0, 1);
     checkUpdate(&settings, control, 0x71F, 0x01, 0x01, state05, expect);
 }
@@ -500,17 +501,17 @@ testF(SettingsTest, ToggleSpeedSensingWipers) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(expect.data, 0, 2);
+    flipBit(expect.data, 0, 2);
     setBit(state22.data(), 1, 7, 0);
     checkUpdate(&settings, control, 0x71E, 0x47, 0x00, state10, state21, state22, expect);
 
     // Toggle setting off.
-    toggleBit(expect.data, 0, 2);
+    flipBit(expect.data, 0, 2);
     setBit(state22.data(), 1, 7, 1);
     checkUpdate(&settings, control, 0x71E, 0x47, 0x01, state10, state21, state22, expect);
 
     // Toggle setting on.
-    toggleBit(expect.data, 0, 2);
+    flipBit(expect.data, 0, 2);
     setBit(state22.data(), 1, 7, 0);
     checkUpdate(&settings, control, 0x71E, 0x47, 0x00, state10, state21, state22, expect);
 }
@@ -677,17 +678,17 @@ testF(SettingsTest, ToggleSelectiveDoorUnlock) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(expect.data, 2, 0);
+    flipBit(expect.data, 2, 0);
     setBit(state10.data(), 4, 7, 1);
     checkUpdate(&settings, control, 0x71E, 0x02, 0x01, state10, state21, state22, expect);
 
     // Toggle setting off.
-    toggleBit(expect.data, 2, 0);
+    flipBit(expect.data, 2, 0);
     setBit(state10.data(), 4, 7, 0);
     checkUpdate(&settings, control, 0x71E, 0x02, 0x00, state10, state21, state22, expect);
 
     // Toggle setting on.
-    toggleBit(expect.data, 2, 0);
+    flipBit(expect.data, 2, 0);
     setBit(state10.data(), 4, 7, 1);
     checkUpdate(&settings, control, 0x71E, 0x02, 0x01, state10, state21, state22, expect);
 }
@@ -746,17 +747,17 @@ testF(SettingsTest, RemoteKeyResponseHorn) {
     Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
-    toggleBit(expect.data, 3, 0);
+    flipBit(expect.data, 3, 0);
     setBit(state10.data(), 7, 3, 1);
     checkUpdate(&settings, control, 0x71E, 0x2A, 0x01, state10, state21, state22, expect);
 
     // Toggle setting off.
-    toggleBit(expect.data, 3, 0);
+    flipBit(expect.data, 3, 0);
     setBit(state10.data(), 7, 3, 0);
     checkUpdate(&settings, control, 0x71E, 0x2A, 0x00, state10, state21, state22, expect);
 
     // Toggle setting on.
-    toggleBit(expect.data, 3, 0);
+    flipBit(expect.data, 3, 0);
     setBit(state10.data(), 7, 3, 1);
     checkUpdate(&settings, control, 0x71E, 0x2A, 0x01, state10, state21, state22, expect);
 }

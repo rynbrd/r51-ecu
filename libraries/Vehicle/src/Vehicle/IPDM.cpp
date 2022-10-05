@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Common.h>
+#include <Foundation.h>
 
 namespace R51 {
 

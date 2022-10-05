@@ -7,6 +7,7 @@
 #include <Common.h>
 #include <Endian.h>
 #include <Faker.h>
+#include <Foundation.h>
 
 namespace R51 {
 

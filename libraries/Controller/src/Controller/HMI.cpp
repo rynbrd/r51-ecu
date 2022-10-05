@@ -4,6 +4,7 @@
 #include <Bluetooth.h>
 #include <Caster.h>
 #include <Common.h>
+#include <Foundation.h>
 #include <Vehicle.h>
 #include "Fusion.h"
 

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Common.h>
+#include <Foundation.h>
 #include "Units.h"
 
 namespace R51 {

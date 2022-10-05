@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <Canny.h>
-#include <Common.h>
+#include <Foundation.h>
 
 namespace R51 {
 namespace {
@@ -33,49 +33,49 @@ void ClimateSystemControlFrame::turnOff() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 6, 7);
+    flipBit(data(), 6, 7);
 }
 
 void ClimateSystemControlFrame::toggleAuto() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 6, 5);
+    flipBit(data(), 6, 5);
 }
 
 void ClimateSystemControlFrame::toggleAC() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 5, 3);
+    flipBit(data(), 5, 3);
 }
 
 void ClimateSystemControlFrame::toggleDual() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 6, 3);
+    flipBit(data(), 6, 3);
 }
 
 void ClimateSystemControlFrame::cycleMode() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 6, 0);
+    flipBit(data(), 6, 0);
 }
 
 void ClimateSystemControlFrame::toggleDefrost() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 6, 1);
+    flipBit(data(), 6, 1);
 }
 
 void ClimateSystemControlFrame::incDriverTemp() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 5, 5);
+    flipBit(data(), 5, 5);
     data()[3]++;
 }
 
@@ -83,7 +83,7 @@ void ClimateSystemControlFrame::decDriverTemp() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 5, 5);
+    flipBit(data(), 5, 5);
     data()[3]--;
 }
 
@@ -91,7 +91,7 @@ void ClimateSystemControlFrame::incPassengerTemp() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 5, 5);
+    flipBit(data(), 5, 5);
     data()[4]++;
 }
 
@@ -99,7 +99,7 @@ void ClimateSystemControlFrame::decPassengerTemp() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 5, 5);
+    flipBit(data(), 5, 5);
     data()[4]--;
 }
 
@@ -121,21 +121,21 @@ void ClimateFanControlFrame::toggleRecirculate() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 1, 6);
+    flipBit(data(), 1, 6);
 }
 
 void ClimateFanControlFrame::incFanSpeed() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 0, 5);
+    flipBit(data(), 0, 5);
 }
 
 void ClimateFanControlFrame::decFanSpeed() {
     if (isInit(this)) {
         return;
     }
-    toggleBit(data(), 0, 4);
+    flipBit(data(), 0, 4);
 }
 
 }  // namespace R51

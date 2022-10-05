@@ -3,6 +3,7 @@
 #include <Canny.h>
 #include <Common.h>
 #include <Faker.h>
+#include <Foundation.h>
 #include "Units.h"
 
 namespace R51 {
