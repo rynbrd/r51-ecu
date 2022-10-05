@@ -19,6 +19,9 @@
 [submodule "libraries/EpoxyDuino"]
 	path = libraries/EpoxyDuino
 	url = https://github.com/bxparks/EpoxyDuino.git
+[submodule "libraries/Foundation"]
+	path = libraries/Foundation
+	url = git@github.com:BlueDragonX/ArduinoFoundation.git
 [submodule "libraries/ArduinoCaster"]
 	path = libraries/Caster
 	url = git@github.com:BlueDragonX/ArduinoCaster.git
