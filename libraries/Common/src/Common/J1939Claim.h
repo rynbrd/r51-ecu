@@ -18,7 +18,7 @@ class J1939Claim : public Printable {
         uint64_t name() const { return name_; }
         void name(uint64_t name) { name_ = name; }
 
-        size_t printTo(Print& p) const override { return p.print(address_); }
+        size_t printTo(Print& p) const override;
     private:
         uint8_t address_;
         uint64_t name_;

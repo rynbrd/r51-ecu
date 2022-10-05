@@ -92,133 +92,207 @@ class FakeConnection : public Connection {
         size_t write_len_;
 };
 
-test(J1939GatewayTest, Read) {
+test(J1939GatewayTest, ReadFiltered) {
     FakeYield yield;
-    FakeConnection can(2, 0);
-    J1939Gateway node(&can);
+    FakeConnection can(3, 0);
+    J1939Gateway node(&can, 0x10, false);
 
     J1939Message m1(0xEF00, 0x20, 0x10);
-    J1939Message m2(0xEF00, 0x20, 0x20);
-    can.setReadBuffer({m1, m2});
+    J1939Message m2(0xEF00, 0x30, 0x20);
+    J1939Message m3(0xEF00, 0x40, 0xFF);
+    can.setReadBuffer({m1, m2, m3});
 
+    node.emit(yield);
     node.emit(yield);
     node.emit(yield);
     assertSize(yield, 2);
     assertIsJ1939Message(yield.messages()[0], m1);
-    assertIsJ1939Message(yield.messages()[1], m2);
+    assertIsJ1939Message(yield.messages()[1], m3);
 }
 
-test(J1939GatewayTest, Write) {
+test(J1939GatewayTest, ReadPromiscuous) {
     FakeYield yield;
-    FakeConnection can(0, 1);
-    J1939Gateway node(&can);
+    FakeConnection can(3, 0);
+    J1939Gateway node(&can, 0x10, true);
 
-    J1939Message m(0xEF00, 0x20, 0x10);
-    node.handle(m, yield);
-    assertEqual(can.writeCount(), 1);
-    assertPrintablesEqual(can.writeData()[0], m);
+    J1939Message m1(0xEF00, 0x20, 0x10);
+    J1939Message m2(0xEF00, 0x30, 0x20);
+    J1939Message m3(0xEF00, 0x40, 0xFF);
+    can.setReadBuffer({m1, m2, m3});
+
+    node.emit(yield);
+    node.emit(yield);
+    node.emit(yield);
+    assertSize(yield, 3);
+    assertIsJ1939Message(yield.messages()[0], m1);
+    assertIsJ1939Message(yield.messages()[1], m2);
+    assertIsJ1939Message(yield.messages()[2], m3);
 }
 
+test(J1939GatewayTest, WriteFiltered) {
+    FakeYield yield;
+    FakeConnection can(0, 3);
+    J1939Gateway node(&can, 0x10, false);
 
-test(J1939AddressClaimTest, Init) {
+    J1939Message m1(0xEF00, 0x10, 0x11);
+    J1939Message m2(0xEF00, 0x10, 0xFF);
+    J1939Message m3(0xEF00, 0x11, 0x13);
+    node.handle(m1, yield);
+    node.handle(m2, yield);
+    node.handle(m3, yield);
+    assertSize(yield, 0);
+    assertEqual(can.writeCount(), 2);
+    assertPrintablesEqual(can.writeData()[0], m1);
+    assertPrintablesEqual(can.writeData()[1], m2);
+}
+
+test(J1939GatewayTest, WritePromiscuous) {
+    FakeYield yield;
+    FakeConnection can(0, 3);
+    J1939Gateway node(&can, 0x10, true);
+
+    J1939Message m1(0xEF00, 0x10, 0x11);
+    J1939Message m2(0xEF00, 0x10, 0xFF);
+    J1939Message m3(0xEF00, 0x11, 0x13);
+    node.handle(m1, yield);
+    node.handle(m2, yield);
+    node.handle(m3, yield);
+    assertSize(yield, 0);
+    assertEqual(can.writeCount(), 3);
+    assertPrintablesEqual(can.writeData()[0], m1);
+    assertPrintablesEqual(can.writeData()[1], m2);
+    assertPrintablesEqual(can.writeData()[2], m3);
+}
+
+test(J1939GatewayTest, InitAnnounce) {
     // Should emit an address claim with the preferred address on first emit.
     FakeYield yield;
+    FakeConnection can(0, 3);
     uint8_t address = 0x0A;
     uint64_t name = 0x000013B000FFFAC0;
-    J1939AddressClaim node(address, name);
-
+    J1939Gateway node(&can, address, name, false);
 
     Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
     J1939Claim expect_claim(address, name);
 
     node.init(yield);
-    assertSize(yield, 2);
-    assertIsJ1939Message(yield.messages()[0], expect_frame);
-    assertIsJ1939Claim(yield.messages()[1], expect_claim);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], expect_frame);
+    assertSize(yield, 1);
+    assertIsJ1939Claim(yield.messages()[0], expect_claim);
 }
 
-test(J1939AddressClaimTest, Request) {
+test(J1939GatewayTest, InitHardCode) {
+    // Should emit only an internal message.
     FakeYield yield;
+    FakeConnection can(0, 3);
+    uint8_t address = 0x0A;
+    J1939Gateway node(&can, address, false);
+
+    J1939Claim expect_claim(address, 0);
+
+    node.init(yield);
+    assertEqual(can.writeCount(), 0);
+    assertSize(yield, 1);
+    assertIsJ1939Claim(yield.messages()[0], expect_claim);
+}
+
+test(J1939GatewayTest, RequestAddressClaim) {
+    FakeYield yield;
+    FakeConnection can(1, 1);
     uint8_t address = 0x0A;
     uint64_t name = 0x000013B000FFFAC0;
-    J1939AddressClaim node(address, name);
+    J1939Gateway node(&can, address, name, false);
 
     // send initial claim
-    node.emit(yield);
+    node.init(yield);
     yield.clear();
 
     // handle request address claim
     J1939Message msg(0xEA00, 0x21, 0xFF, 0x06);
     msg.data({0x00, 0xEE, 0x00});
-    node.handle(msg, yield);
+    can.setReadBuffer({msg});
+    node.emit(yield);
 
     // we should respond with our address
     Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
 
     node.emit(yield);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], expect_frame);
     assertSize(yield, 1);
-    assertIsJ1939Message(yield.messages()[0], expect_frame);
+    assertIsJ1939Message(yield.messages()[0], msg);
 }
 
-test(J1939AddressClaimTest, NoArbitraryAddressCannotClaim) {
+test(J1939GatewayTest, NoArbitraryAddressCannotClaim) {
     FakeYield yield;
+    FakeConnection can(1, 1);
     uint8_t address = 0x0A;
     uint64_t name = 0x000013B000FFFAC0;
-    J1939AddressClaim node(address, name);
+    J1939Gateway node(&can, address, name, false);
 
     // send initial claim
-    node.emit(yield);
+    node.init(yield);
     yield.clear();
+    can.writeReset();
 
     // handle address claim with same address and higher priority name
     J1939Message msg(0xEA00, address, 0xFF, 0x06);
     msg.data({0x00, 0x00, 0x0B, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
-    node.handle(msg, yield);
+    can.setReadBuffer({msg});
+    node.emit(yield);
 
     // we should respond with a null address
     Frame expect_frame(0x18EEFFFE, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
     J1939Claim expect_claim(Canny::NullAddress, name);
 
-    node.emit(yield);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], expect_frame);
     assertSize(yield, 2);
-    assertIsJ1939Message(yield.messages()[0], expect_frame);
-    assertIsJ1939Claim(yield.messages()[1], expect_claim);
+    assertIsJ1939Claim(yield.messages()[0], expect_claim);
+    assertIsJ1939Message(yield.messages()[1], msg);
 }
 
-test(J1939AddressClaimTest, ArbitraryAddressClaim) {
+test(J1939GatewayTest, ArbitraryAddressClaim) {
     FakeYield yield;
+    FakeConnection can(1, 1);
     uint8_t address = 0x0A;
     uint64_t name = 0x000013B000FFFAC1;
-    J1939AddressClaim node(address, name);
+    J1939Gateway node(&can, address, name, false);
 
     // send initial claim
     node.emit(yield);
     yield.clear();
+    can.writeReset();
 
     // handle address claim with same address and higher priority name
     J1939Message msg(0xEA00, address, 0xFF, 0x06);
     msg.data({0x00, 0x00, 0x0B, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
-    node.handle(msg, yield);
+    can.setReadBuffer({msg});
+    node.emit(yield);
 
-    // we should response with the next address
+    // we should respond with the next address
     Frame expect_frame(0x18EEFF0B, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
     J1939Claim expect_claim(0x0B, name);
 
-    node.emit(yield);
+    assertEqual(can.writeCount(), 1);
+    assertPrintablesEqual(can.writeData()[0], expect_frame);
     assertSize(yield, 2);
-    assertIsJ1939Message(yield.messages()[0], expect_frame);
-    assertIsJ1939Claim(yield.messages()[1], expect_claim);
+    assertIsJ1939Claim(yield.messages()[0], expect_claim);
+    assertIsJ1939Message(yield.messages()[1], msg);
 }
 
-test(J1939AddressClaimTest, ArbitraryAddressCannotClaim) {
+test(J1939GatewayTest, ArbitraryAddressCannotClaim) {
     FakeYield yield;
+    FakeConnection can(1, 1);
     uint8_t address = 0x0A;
     uint64_t name = 0x000013B000FFFAC1;
-    J1939AddressClaim node(address, name);
+    J1939Gateway node(&can, address, name, false);
 
     // send initial claim
     node.emit(yield);
     yield.clear();
+    can.writeReset();
 
     // attempt to claim all possible addresses
     for (uint8_t i = 0; i < 253; ++i) {
@@ -234,17 +308,21 @@ test(J1939AddressClaimTest, ArbitraryAddressCannotClaim) {
 
         J1939Message msg(0xEA00, address, 0xFF, 0x06);
         msg.data({0x00, 0x00, 0x0B, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
-        node.handle(msg, yield);
+        can.setReadBuffer({msg});
+        node.emit(yield);
 
         // we should response with the next address
         Frame expect_frame(0x18EEFF00 | next, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
         J1939Claim expect_claim(next, name);
 
-        node.emit(yield);
+        assertEqual(can.writeCount(), 1);
+        assertPrintablesEqual(can.writeData()[0], expect_frame);
         assertSize(yield, 2);
-        assertIsJ1939Message(yield.messages()[0], expect_frame);
-        assertIsJ1939Claim(yield.messages()[1], expect_claim);
+        assertIsJ1939Claim(yield.messages()[0], expect_claim);
+        assertIsJ1939Message(yield.messages()[1], msg);
+
         yield.clear();
+        can.writeReset();
 
         address = next;
     }

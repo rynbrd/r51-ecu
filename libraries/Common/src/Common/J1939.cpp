@@ -11,13 +11,9 @@ using ::Canny::ERR_FIFO;
 using ::Canny::ERR_OK;
 using ::Canny::Error;
 using ::Canny::J1939Message;
-
-enum class Emit : uint8_t {
-    NONE = 0x00,
-    EVENT = 0x01,
-    J1939_CLAIM = 0x02,
-    J1939_CANNOT_CLAIM = 0x03,
-}; 
+using ::Canny::NullAddress;
+using ::Canny::j1939_name_arbitrary_address;
+using ::Caster::Yield;
 
 bool isAddressClaim(const J1939Message& msg) {
     return msg.pdu_format() == 0xEA;
@@ -30,46 +26,24 @@ bool isRequestAddressClaim(const J1939Message& msg, uint8_t address) {
 
 }  // namespace
 
-void J1939Gateway::handle(const Message& msg, const Caster::Yield<Message>&) {
-    if (msg.type() != Message::J1939_MESSAGE) {
-        return;
+void J1939Gateway::init(const Caster::Yield<Message>& yield) {
+    if (name_ != 0) {
+        writeClaim();
     }
-    Error err = can_->write(msg.j1939_message());
-    if (err != ERR_OK && err != ERR_FIFO) {
-        onWriteError(err, msg.j1939_message());
-    }
-}
-
-void J1939Gateway::emit(const Caster::Yield<Message>& yield) {
-    Error err = can_->read(&msg_);
-    if (err == ERR_OK) {
-        yield(msg_);
-    } else if (err != ERR_FIFO) {
-        onReadError(err);
-    }
-}
-
-void J1939AddressClaim::init(const Caster::Yield<Message>& yield) {
-    emitClaim(yield);
     emitEvent(yield);
 }
 
-void J1939AddressClaim::handle(const Message& msg, const Caster::Yield<Message>& yield) {
-    if (msg.type() != Message::J1939_MESSAGE ||
-            (!msg.j1939_message().broadcast() &&
-             msg.j1939_message().dest_address() != address_)) {
-        return;
-    }
-    if (isAddressClaim(msg.j1939_message()) && msg.j1939_message().source_address() == address_) {
-        handleAddressClaim(msg.j1939_message(), yield);
-    } else if (isRequestAddressClaim(msg.j1939_message(), address_)) {
-        emitClaim(yield);
+void J1939Gateway::handle(const Message& msg, const Yield<Message>&) {
+    if (msg.type() == Message::J1939_MESSAGE &&
+        (promiscuous_ || (msg.j1939_message().source_address() == address_ &&
+                          address_ != NullAddress))) {
+        write(msg.j1939_message());
     }
 }
 
-void J1939AddressClaim::handleAddressClaim(const Canny::J1939Message& msg,
-        const Caster::Yield<Message>& yield) {
-    if (address_ == Canny::NullAddress || address_ != msg.source_address()) {
+void J1939Gateway::handleAddressClaim(const J1939Message& msg,
+        const Yield<Message>& yield) {
+    if (address_ == NullAddress || address_ != msg.source_address()) {
         // no negotiation needed
         return;
     }
@@ -81,36 +55,68 @@ void J1939AddressClaim::handleAddressClaim(const Canny::J1939Message& msg,
 
     if (name_ <= msg.name()) {
         // we have higher priority; emit our address claim
-        emitClaim(yield);
-    } else if (Canny::j1939_name_arbitrary_address(name_)) {
+        writeClaim();
+    } else if (j1939_name_arbitrary_address(name_)) {
         // we have lower priority and can negotiate a new address
         ++address_;
-        if (address_ >= Canny::NullAddress) {
+        if (address_ >= NullAddress) {
             address_ = 1;
         }
         if (address_ == preferred_address_) {
             // we've tried all of the addresses
-            address_ = Canny::NullAddress;
+            address_ = NullAddress;
         }
-        emitClaim(yield);
+        writeClaim();
         emitEvent(yield);
     } else {
         // we have lower priority and cannot negotiate a new address
-        address_ = Canny::NullAddress;
-        emitClaim(yield);
+        address_ = NullAddress;
+        writeClaim();
         emitEvent(yield);
     }
 }
 
-void J1939AddressClaim::emitEvent(const Caster::Yield<Message>& yield) {
-        J1939Claim claim(address_, name_);
-        yield(claim);
+void J1939Gateway::emit(const Yield<Message>& yield) {
+    // read a message off the J1939 bus
+    Error err = can_->read(&msg_);
+    if (err == ERR_FIFO)  {
+        return;
+    } else if (err != ERR_OK) {
+        onReadError(err);
+        return;
+    }
+
+    // handle address claim if configured
+    if (name_ != 0) {
+        if (isAddressClaim(msg_) && msg_.source_address() == address_) {
+            handleAddressClaim(msg_, yield);
+        } else if (isRequestAddressClaim(msg_, address_)) {
+            writeClaim();
+        }
+    }
+
+    // broadcast it on the internal bus
+    if (promiscuous_ || msg_.dest_address() == address_ || msg_.broadcast()) {
+        yield(msg_);
+    }
 }
 
-void J1939AddressClaim::emitClaim(const Caster::Yield<Message>& yield) {
-        J1939Message msg(0xEE00, address_, 0xFF,  0x06);
-        msg.name(name_);
-        yield(msg);
+void J1939Gateway::emitEvent(const Yield<Message>& yield) {
+    J1939Claim claim(address_, name_);
+    yield(claim);
+}
+
+void J1939Gateway::write(const J1939Message& msg) {
+    Error err = can_->write(msg);
+    if (err != ERR_OK && err != ERR_FIFO) {
+        onWriteError(err, msg);
+    }
+}
+
+void J1939Gateway::writeClaim() {
+    J1939Message msg(0xEE00, address_, 0xFF,  0x06);
+    msg.name(name_);
+    write(msg);
 }
 
 }  // namespace R51

@@ -6,21 +6,45 @@
 #include <Canny.h>
 #include <Caster.h>
 #include <Common.h>
+#include "Debug.h"
 
 namespace R51 {
 
-class J1939Adapter : public Caster::Node<Message> {
+// J1939 connection which that logs errors to serial.
+class J1939Connection : public Canny::BufferedConnection {
     public:
-        J1939Adapter(Canny::Connection* connection, uint8_t address);
+        J1939Connection(Canny::Connection* can) :
+                Canny::BufferedConnection(can, J1939_READ_BUFFER, J1939_WRITE_BUFFER, 8) {}
 
-        // Encode and send an Event message over the J1939 bus.
-        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+        // Log read errors to debug serial.
+        void onReadError(Canny::Error err) const override {
+            DEBUG_MSG_VAL("j1939: read error: ", err);
+        }
 
-        // Yield received Events from the J1939 bus.
-        void emit(const Caster::Yield<Message>& yield) override;
+        // Log write errors to debug serial.
+        void onWriteError(Canny::Error err, const Canny::Frame& frame) const override {
+            DEBUG_MSG_VAL("j1939: write error: ", err);
+            DEBUG_MSG_VAL("j1939: dropped frame: ", frame);
+        }
+};
+
+
+// Broadcasts Events over J1939.
+class J1939Events : public Caster::Node<Message> {
+    public:
+        J1939Events();
+
+        // Translate Events to and from J1939 messages.
+        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
+
+        // Does nothing.
+        void emit(const Caster::Yield<Message>&) override {}
     private:
-        Canny::Connection* connection_;
-        uint8_t address_;
+        void handleEvent(const Event& event,
+                const Caster::Yield<Message>& yield);
+        void handleJ1939Message(const Canny::J1939Message& msg,
+                const Caster::Yield<Message>& yield);
+
         Canny::J1939Message j1939_;
         Event event_;
 };
