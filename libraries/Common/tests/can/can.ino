@@ -13,7 +13,6 @@ using ::Canny::ERR_INTERNAL;
 using ::Canny::ERR_OK;
 using ::Canny::Error;
 using ::Canny::Frame;
-using ::Canny::J1939Message;
 
 class FakeConnection : public Connection {
     public:
@@ -95,7 +94,7 @@ class FakeConnection : public Connection {
 test(CANNodeTest, NoReads) {
     FakeYield yield;
     FakeConnection can(0, 0);
-    CANNode<Frame> node(&can);
+    CANNode node(&can);
 
     node.emit(yield);
     assertSize(yield, 0);
@@ -104,7 +103,7 @@ test(CANNodeTest, NoReads) {
 test(CANNodeTest, Read) {
     FakeYield yield;
     FakeConnection can(1, 0);
-    CANNode<Frame> node(&can);
+    CANNode node(&can);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     can.setReadBuffer({f});
@@ -118,39 +117,12 @@ test(CANNodeTest, Read) {
 test(CANNodeTest, Write) {
     FakeYield yield;
     FakeConnection can(0, 1);
-    CANNode<Frame> node(&can);
+    CANNode node(&can);
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     node.handle(f, yield);
     assertEqual(can.writeCount(), 1);
     assertPrintablesEqual(can.writeData()[0], f);
-}
-
-test(CANNodeTest, J1939Read) {
-    FakeYield yield;
-    FakeConnection can(2, 0);
-    CANNode<J1939Message> node(&can);
-
-    J1939Message m1(0xEF00, 0x20, 0x10);
-    J1939Message m2(0xEF00, 0x20, 0x20);
-    can.setReadBuffer({m1, m2});
-
-    node.emit(yield);
-    node.emit(yield);
-    assertSize(yield, 2);
-    assertIsJ1939Message(yield.messages()[0], m1);
-    assertIsJ1939Message(yield.messages()[1], m2);
-}
-
-test(CANNodeTest, J1939Write) {
-    FakeYield yield;
-    FakeConnection can(0, 1);
-    CANNode<J1939Message> node(&can);
-
-    J1939Message m(0xEF00, 0x20, 0x10);
-    node.handle(m, yield);
-    assertEqual(can.writeCount(), 1);
-    assertPrintablesEqual(can.writeData()[0], m);
 }
 
 }  // namespace R51

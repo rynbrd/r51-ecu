@@ -41,12 +41,12 @@ R51::ConsoleNode console(&SERIAL_DEVICE);
 
 // vehicle CAN connection
 FilteredCAN can_conn(&CAN);
-CANNode<Canny::Frame> can_node(&can_conn);
+CANNode can_node(&can_conn);
 
 // control system J1939 connection
 #if defined(J1939_ENABLE)
 FilteredJ1939 j1939_conn(&CAN1, J1939_ADDRESS);
-J1939Adapter j1939_event_node(&j1939_conn);
+J1939Adapter j1939_event_node(&j1939_conn, J1939_ADDRESS);
 J1939AddressClaim j1939_claim_node(J1939_ADDRESS, J1939_NAME);
 #endif
 

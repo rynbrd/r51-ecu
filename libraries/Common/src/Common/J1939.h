@@ -9,6 +9,30 @@
 
 namespace R51 {
 
+class J1939Node : public Caster::Node<Message> {
+    public:
+        // Construct a new note that transmits J1939 messages over the given
+        // connection.
+        J1939Node(Canny::Connection* can) : can_(can) {}
+        virtual ~J1939Node() = default;
+
+        // Write a J1939 message to the CAN bus.
+        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+
+        // Read a single J1939 Messages and broadcast it to the event bus.
+        void emit(const Caster::Yield<Message>& yield) override;
+
+        // Called when a J1939 message can't be read from the CAN bus.
+        virtual void onReadError(Canny::Error) {}
+
+        // Called when a J1939 message can't be written to the CAN bus.
+        virtual void onWriteError(Canny::Error, const Canny::J1939Message&) {}
+
+    private:
+        Canny::Connection* can_;
+        Canny::J1939Message msg_;
+};
+
 // Node to do address claim on J1939 networks.
 class J1939AddressClaim : public Caster::Node<Message> {
     public:

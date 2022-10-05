@@ -7,6 +7,9 @@
 namespace R51 {
 namespace {
 
+using ::Canny::ERR_FIFO;
+using ::Canny::ERR_OK;
+using ::Canny::Error;
 using ::Canny::J1939Message;
 
 enum class Emit : uint8_t {
@@ -26,6 +29,25 @@ bool isRequestAddressClaim(const J1939Message& msg, uint8_t address) {
 }
 
 }  // namespace
+
+void J1939Node::handle(const Message& msg, const Caster::Yield<Message>&) {
+    if (msg.type() != Message::J1939_MESSAGE) {
+        return;
+    }
+    Error err = can_->write(msg.j1939_message());
+    if (err != ERR_OK && err != ERR_FIFO) {
+        onWriteError(err, msg.j1939_message());
+    }
+}
+
+void J1939Node::emit(const Caster::Yield<Message>& yield) {
+    Error err = can_->read(&msg_);
+    if (err == ERR_OK) {
+        yield(msg_);
+    } else if (err != ERR_FIFO) {
+        onReadError(err);
+    }
+}
 
 void J1939AddressClaim::init(const Caster::Yield<Message>& yield) {
     emitClaim(yield);

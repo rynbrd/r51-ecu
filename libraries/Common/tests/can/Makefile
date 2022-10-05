@@ -2,7 +2,7 @@
 # Makefile to compile and run Arduino programs natively on Linux or MacOS.
 
 APP_NAME := can
-ARDUINO_LIBS := AUnit CRC32 Canny Caster Common Faker Test
+ARDUINO_LIBS := AUnit CRC32 Canny Caster Common Endian Faker Test
 EXTRA_CXXFLAGS += -g
 include ../../../EpoxyDuino/EpoxyDuino.mk
 
