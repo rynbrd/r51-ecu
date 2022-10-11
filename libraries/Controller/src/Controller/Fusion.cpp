@@ -132,6 +132,7 @@ Fusion::Fusion(Scratch* scratch, Clock* clock) :
 void Fusion::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
+            //TODO: Handle controller request command.
             if (msg.event().subsystem == (uint8_t)SubSystem::AUDIO) {
                 handleEvent(msg.event(), yield);
             }

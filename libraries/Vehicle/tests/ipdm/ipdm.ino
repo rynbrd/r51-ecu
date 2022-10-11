@@ -124,9 +124,33 @@ test(IPDMTest, ACCompressor) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(IPDMTest, Request) {
+test(IPDMTest, RequestPowerState) {
     FakeYield yield;
-    Event control((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::REQUEST);
+    RequestCommand control(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE);
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+
+    IPDM ipdm;
+    ipdm.handle(control, yield);
+    ipdm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IPDMTest, RequestSubSystem) {
+    FakeYield yield;
+    RequestCommand control(SubSystem::IPDM);
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+
+    IPDM ipdm;
+    ipdm.handle(control, yield);
+    ipdm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IPDMTest, RequestAll) {
+    FakeYield yield;
+    RequestCommand control;
     Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
 
     IPDM ipdm;

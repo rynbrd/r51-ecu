@@ -594,14 +594,15 @@ void Settings::handle(const Message& msg, const Caster::Yield<Message>&) {
 }
 
 void Settings::handleEvent(const Event& event) {
+    if (RequestCommand::match(event, SubSystem::SETTINGS,
+            (uint8_t)SettingsEvent::STATE)) {
+        requestCurrent();
+    }
     if (event.subsystem != (uint8_t)SubSystem::SETTINGS) {
         return;
     }
 
     switch ((SettingsEvent)event.id) {
-        case SettingsEvent::REQUEST:
-            requestCurrent();
-            break;
         case SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUMINATAION:
             toggleAutoInteriorIllumination();
             break;

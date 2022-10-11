@@ -33,7 +33,7 @@ Climate::Climate(uint32_t tick_ms, Faker::Clock* clock) :
     clock_(clock), startup_(0),
     state_ticker_(tick_ms, tick_ms == 0, clock),
     control_ticker_(CONTROL_INIT_TICK, false, clock),
-    state_request_(false), state_init_(0), control_init_(false) {}
+    state_init_(0), control_init_(false) {}
 
 void Climate::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     //TODO: Emit events directly.
@@ -43,7 +43,16 @@ void Climate::handle(const Message& msg, const Caster::Yield<Message>& yield) {
             handleTempFrame(msg.can_frame(), yield);
             break;
         case Message::EVENT:
-            handleEvent(msg.event(), yield);
+            switch ((SubSystem)msg.event().subsystem) {
+                case SubSystem::CONTROLLER:
+                    handleControllerEvent(msg.event(), yield);
+                    break;
+                case SubSystem::CLIMATE:
+                    handleClimateEvent(msg.event(), yield);
+                    break;
+                default:
+                    break;
+            }
             break;
         default:
             break;
@@ -136,17 +145,25 @@ void Climate::handleSystemFrame(const Canny::Frame& frame, const Caster::Yield<M
     }
 }
 
-void Climate::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
-    if (event.subsystem != (uint8_t)SubSystem::CLIMATE) {
-        return;
+void Climate::handleControllerEvent(const Event& event, const Caster::Yield<Message>& yield) {
+    if (RequestCommand::match(event, SubSystem::CLIMATE,
+            (uint8_t)ClimateEvent::TEMP_STATE)) {
+        yield(temp_state_);
     }
+    if (RequestCommand::match(event, SubSystem::CLIMATE,
+            (uint8_t)ClimateEvent::SYSTEM_STATE)) {
+        yield(system_state_);
+    }
+    if (RequestCommand::match(event, SubSystem::CLIMATE,
+            (uint8_t)ClimateEvent::AIRFLOW_STATE)) {
+        yield(airflow_state_);
+    }
+}
 
+void Climate::handleClimateEvent(const Event& event, const Caster::Yield<Message>& yield) {
     bool system_control_changed = false;
     bool fan_control_changed = false;
     switch ((ClimateEvent)event.id) {
-        case ClimateEvent::REQUEST:
-            state_request_ = true;
-            break;
         case ClimateEvent::TURN_OFF:
             system_control_.turnOff();
             system_control_changed = true;
@@ -238,12 +255,11 @@ void Climate::emit(const Caster::Yield<Message>& yield) {
         control_ticker_.reset();
     }
 
-    if (state_request_ || state_ticker_.active()) {
+    if (state_ticker_.active()) {
         yield(temp_state_);
         yield(system_state_);
         yield(airflow_state_);
         state_ticker_.reset();
-        state_request_ = false;
     }
 }
 

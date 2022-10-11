@@ -2,20 +2,29 @@
 
 namespace R51 {
 
-void BLENode::handle(const Message& msg, const Caster::Yield<Message>&) {
-    if (msg.type() != Message::EVENT ||  msg.event().subsystem != (uint8_t)SubSystem::BLUETOOTH) {
+void BLENode::handle(const Message& msg, const Caster::Yield<Message>& yield) {
+    if (msg.type() != Message::EVENT) {
         return;
     }
-
-    switch ((BluetoothEvent)msg.event().id) {
-        case BluetoothEvent::REQUEST:
-            emit_ = true;
+    switch ((SubSystem)msg.event().subsystem) {
+        case SubSystem::CONTROLLER:
+            if (RequestCommand::match(msg.event(), SubSystem::BLUETOOTH,
+                    (uint8_t)BluetoothEvent::STATE)) {
+                yield(event_);
+                emit_ = false;
+            }
             break;
-        case BluetoothEvent::DISCONNECT:
-            ble_->disconnect();
-            break;
-        case BluetoothEvent::FORGET:
-            ble_->forget();
+        case SubSystem::BLUETOOTH:
+            switch ((BluetoothEvent)msg.event().id) {
+                case BluetoothEvent::DISCONNECT:
+                    ble_->disconnect();
+                    break;
+                case BluetoothEvent::FORGET:
+                    ble_->forget();
+                    break;
+                default:
+                    break;
+            }
             break;
         default:
             break;

@@ -34,11 +34,9 @@ void EngineTempState::handleFrame(const Canny::Frame& frame, const Caster::Yield
 }
 
 void EngineTempState::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
-    if (event.subsystem != (uint8_t)SubSystem::ECM ||
-            event.id != (uint8_t)ECMEvent::REQUEST) {
-        return;
+    if (RequestCommand::match(event, SubSystem::ECM, (uint8_t)ECMEvent::ENGINE_TEMP_STATE)) {
+        yieldEvent(yield);
     }
-    yieldEvent(yield);
 }
 
 void EngineTempState::emit(const Caster::Yield<Message>& yield) {

@@ -8,10 +8,9 @@
 namespace R51 {
 
 enum class BluetoothEvent : uint8_t {
-    REQUEST = 0x00,     // Request the current connection state.
-    STATE = 0x01,       // State event. Holds the current connection state.
-    DISCONNECT = 0x02,  // Disconnect the current host device.
-    FORGET = 0x03,      // Disconnect and forget the current host device.
+    STATE = 0x00,       // State event. Holds the current connection state.
+    DISCONNECT = 0x01,  // Disconnect the current host device.
+    FORGET = 0x02,      // Disconnect and forget the current host device.
 };
 
 // Node for managing BLE connectivity.
@@ -22,7 +21,7 @@ class BLENode : public Caster::Node<Message> {
             event_((uint8_t)SubSystem::BLUETOOTH, (uint8_t)BluetoothEvent::STATE, {0x00}),
             emit_(false) {}
 
-        void handle(const Message& msg, const Caster::Yield<Message>&) override;
+        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         void emit(const Caster::Yield<Message>& yield) override;
 

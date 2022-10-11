@@ -10,7 +10,6 @@
 namespace R51 {
 
 enum class SettingsEvent : uint8_t {
-    REQUEST = 0x00,
     STATE = 0x01,
     TOGGLE_AUTO_INTERIOR_ILLUMINATAION = 0x02,
     TOGGLE_SLIDE_DRIVER_SEAT_BACK_ON_EXIT = 0x03,

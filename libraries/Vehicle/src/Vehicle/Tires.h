@@ -10,9 +10,8 @@
 namespace R51 {
 
 enum class TireEvent : uint8_t {
-    REQUEST = 0x00,
-    PRESSURE_STATE = 0x01,
-    SWAP_POSITION = 0x02,
+    PRESSURE_STATE = 0x00,
+    SWAP_POSITION = 0x01,
 };
 
 // Track tire pressure as reported in the 0x385 CAN frame.

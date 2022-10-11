@@ -9,7 +9,6 @@
 namespace R51 {
 
 enum class ClimateEvent : uint8_t {
-    REQUEST = 0x00,             // Request the current state. Responds with all three state events.
     SYSTEM_STATE = 0x01,        // State event. Holds climate system state.
     AIRFLOW_STATE = 0x02,       // State event. Holds vent and fan speed state.
     TEMP_STATE = 0x03,          // State event. Holds zone temperature settings.

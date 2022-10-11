@@ -72,12 +72,70 @@ test(EngineTempStateTest, MaxTemp) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(EngineTempStateTest, Request) {
+test(EngineTempStateTest, RequestPowerState) {
     FakeYield yield;
     Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
-    Event control(
+    RequestCommand control(
+        SubSystem::ECM,
+        (uint8_t)ECMEvent::ENGINE_TEMP_STATE);
+    Event expect(
         (uint8_t)SubSystem::ECM,
-        (uint8_t)ECMEvent::REQUEST);
+        (uint8_t)ECMEvent::ENGINE_TEMP_STATE,
+        {0x29});
+
+    // Set the temperature from frame.
+    EngineTempState ecm;
+    ecm.handle(f, yield);
+    ecm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Request current state.
+    ecm.handle(control, yield);
+    ecm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Ensure no additional events are sent.
+    ecm.emit(yield);
+    assertSize(yield, 0);
+}
+
+test(EngineTempStateTest, RequestAllSubSystem) {
+    FakeYield yield;
+    Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    RequestCommand control(SubSystem::ECM);
+    Event expect(
+        (uint8_t)SubSystem::ECM,
+        (uint8_t)ECMEvent::ENGINE_TEMP_STATE,
+        {0x29});
+
+    // Set the temperature from frame.
+    EngineTempState ecm;
+    ecm.handle(f, yield);
+    ecm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Request current state.
+    ecm.handle(control, yield);
+    ecm.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Ensure no additional events are sent.
+    ecm.emit(yield);
+    assertSize(yield, 0);
+}
+
+test(EngineTempStateTest, RequestAll) {
+    FakeYield yield;
+    Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    RequestCommand control;
     Event expect(
         (uint8_t)SubSystem::ECM,
         (uint8_t)ECMEvent::ENGINE_TEMP_STATE,

@@ -19,6 +19,7 @@ namespace R51 {
 
 // Sub-system identifier. This allows a physical to host multiple subsystems.
 enum class SubSystem : uint8_t {
+    CONTROLLER      = 0x00,
     ECM             = 0x04,
     IPDM            = 0x06,
     TIRE            = 0x08,
@@ -29,6 +30,12 @@ enum class SubSystem : uint8_t {
     HMI             = 0x0E,
     AUDIO           = 0x0F,
     KEYPAD          = 0x10,
+};
+
+enum class ControllerEvent : uint8_t {
+    REQUEST_CMD = 0x00, // Request state from the controller. Payload is the
+                        // subsystem and state ID to retrieve or 0xFFFF for
+                        // all states the controller owns.
 };
 
 struct Event : public Printable {
@@ -57,6 +64,38 @@ struct Event : public Printable {
 
     // Print the system event.
     size_t printTo(Print& p) const override;
+};
+
+// Event class for the CONTROLLER:REQUEST_CMD event.
+class RequestCommand : public Event {
+    public:
+        RequestCommand() :
+            Event(SubSystem::CONTROLLER,
+                (uint8_t)ControllerEvent::REQUEST_CMD,
+                {0xFF, 0xFF}) {}
+
+        RequestCommand(SubSystem request_subsystem) :
+            Event(SubSystem::CONTROLLER,
+                (uint8_t)ControllerEvent::REQUEST_CMD,
+                {(uint8_t)request_subsystem, 0xFF}) {}
+
+        RequestCommand(SubSystem request_subsystem, uint8_t request_id) :
+            Event(SubSystem::CONTROLLER,
+                (uint8_t)ControllerEvent::REQUEST_CMD,
+                {(uint8_t)request_subsystem, request_id}) {}
+
+        EVENT_PROPERTY(SubSystem, request_subsystem,
+                (SubSystem)data[0], data[0] = (uint8_t)value);
+        EVENT_PROPERTY(uint8_t, request_id, data[1], data[1] = value);
+
+        static bool match(const Event& event, SubSystem subsystem, uint8_t id) {
+            if (event.subsystem != (uint8_t)SubSystem::CONTROLLER ||
+                    event.id != (uint8_t)ControllerEvent::REQUEST_CMD) {
+                return false;
+            }
+            return (event.data[0] == 0xFF || event.data[0] == (uint8_t)subsystem) &&
+                (event.data[1] == 0xFF || event.data[1] == id);
+        }
 };
 
 // Return true if the two system events are equal

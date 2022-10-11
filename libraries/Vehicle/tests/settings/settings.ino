@@ -286,7 +286,7 @@ testF(SettingsTest, Init) {
     yield.clear();
 }
 
-testF(SettingsTest, RequestCurrent) {
+testF(SettingsTest, RequestState) {
     FakeYield yield;
     Settings settings(false, &clock);
 
@@ -294,8 +294,8 @@ testF(SettingsTest, RequestCurrent) {
     Frame frameF;
 
     // Send control event to trigger retrieve.
-    Event event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::REQUEST);
-    settings.handle(event, yield);
+    RequestCommand command(SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE);
+    settings.handle(command, yield);
     yield.clear();
 
     // Receive enter request frames.
@@ -361,7 +361,7 @@ testF(SettingsTest, RequestCurrent) {
     yield.clear();
 
     // Ensure settings are at default.
-    event = Event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
+    Event event(SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     settings.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], event);

@@ -59,14 +59,15 @@ void TirePressureState::handleFrame(const Canny::Frame& frame,const Caster::Yiel
 }
 
 void TirePressureState::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
+    if (RequestCommand::match(event, SubSystem::TIRE,
+            (uint8_t)TireEvent::PRESSURE_STATE)) {
+        yieldEvent(yield);
+    }
     if (event.subsystem != (uint8_t)SubSystem::TIRE) {
         return;
     }
 
     switch ((TireEvent)event.id) {
-        case TireEvent::REQUEST:
-            yieldEvent(yield);
-            break;
         case TireEvent::SWAP_POSITION:
             swapPosition(event.data[0] & 0x0F, (event.data[0] & 0xF0) >> 4, yield);
             if (config_ != nullptr) {

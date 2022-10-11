@@ -78,12 +78,94 @@ testF(ClimateTest, Init) {
     assertIsCANFrame(yield.messages()[1], ready541);
 }
 
-testF(ClimateTest, Request) {
+testF(ClimateTest, RequestSystemState) {
     Climate climate(0, &clock);
     initClimate(&climate);
     enableClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::REQUEST);
+    RequestCommand control(SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE);
+    Event expect(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::SYSTEM_STATE,
+        {0x05});
+
+    climate.handle(control, yield);
+    climate.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+}
+
+testF(ClimateTest, RequestAirflowState) {
+    Climate climate(0, &clock);
+    initClimate(&climate);
+    enableClimate(&climate);
+
+    RequestCommand control(SubSystem::CLIMATE, (uint8_t)ClimateEvent::AIRFLOW_STATE);
+    Event expect(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::AIRFLOW_STATE,
+        {0x03, 0x02});
+
+    climate.handle(control, yield);
+    climate.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+}
+
+testF(ClimateTest, RequestTempState) {
+    Climate climate(0, &clock);
+    initClimate(&climate);
+    enableClimate(&climate);
+
+    RequestCommand control(SubSystem::CLIMATE, (uint8_t)ClimateEvent::TEMP_STATE);
+    Event expect(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::TEMP_STATE,
+        {0x3C, 0x41, 0x58, 0x01});
+
+    climate.handle(control, yield);
+    climate.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+}
+
+testF(ClimateTest, RequestSubSystem) {
+    Climate climate(0, &clock);
+    initClimate(&climate);
+    enableClimate(&climate);
+
+    RequestCommand control(SubSystem::CLIMATE);
+    Event expect_temp(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::TEMP_STATE,
+        {0x3C, 0x41, 0x58, 0x01});
+    Event expect_system(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::SYSTEM_STATE,
+        {0x05});
+    Event expect_airflow(
+        (uint8_t)SubSystem::CLIMATE,
+        (uint8_t)ClimateEvent::AIRFLOW_STATE,
+        {0x03, 0x02});
+
+    climate.handle(control, yield);
+    climate.emit(yield);
+    assertSize(yield, 3);
+    assertIsEvent(yield.messages()[0], expect_temp);
+    assertIsEvent(yield.messages()[1], expect_system);
+    assertIsEvent(yield.messages()[2], expect_airflow);
+    yield.clear();
+}
+
+testF(ClimateTest, RequestAll) {
+    Climate climate(0, &clock);
+    initClimate(&climate);
+    enableClimate(&climate);
+
+    RequestCommand control;
     Event expect_temp(
         (uint8_t)SubSystem::CLIMATE,
         (uint8_t)ClimateEvent::TEMP_STATE,

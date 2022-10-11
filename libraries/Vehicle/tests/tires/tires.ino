@@ -186,14 +186,74 @@ test(TirePressureStateTest, Swap) {
     yield.clear();
 }
 
-test(TirePressureStateTest, Request) {
+test(TirePressureStateTest, RequestPressureTest) {
     FakeYield yield;
     TirePressureState tire;
     Frame f;
-    Event control = Event(
+    RequestCommand control(
+        SubSystem::TIRE,
+        (uint8_t)TireEvent::PRESSURE_STATE);
+    Event expect(
         (uint8_t)SubSystem::TIRE,
-        (uint8_t)TireEvent::REQUEST);
-    Event expect = Event(
+        (uint8_t)TireEvent::PRESSURE_STATE,
+        {0x01, 0x02, 0x03, 0x04});
+
+    // Populate initial values from frame.
+    f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    tire.handle(f, yield);
+    tire.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Request the current values.
+    tire.handle(control, yield);
+    tire.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Ensure additional events are not sent.
+    tire.emit(yield);
+    assertSize(yield, 0);
+}
+
+test(TirePressureStateTest, RequestSubSystem) {
+    FakeYield yield;
+    TirePressureState tire;
+    Frame f;
+    RequestCommand control(SubSystem::TIRE);
+    Event expect(
+        (uint8_t)SubSystem::TIRE,
+        (uint8_t)TireEvent::PRESSURE_STATE,
+        {0x01, 0x02, 0x03, 0x04});
+
+    // Populate initial values from frame.
+    f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    tire.handle(f, yield);
+    tire.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Request the current values.
+    tire.handle(control, yield);
+    tire.emit(yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    // Ensure additional events are not sent.
+    tire.emit(yield);
+    assertSize(yield, 0);
+}
+
+test(TirePressureStateTest, RequestAll) {
+    FakeYield yield;
+    TirePressureState tire;
+    Frame f;
+    RequestCommand control;
+    Event expect(
         (uint8_t)SubSystem::TIRE,
         (uint8_t)TireEvent::PRESSURE_STATE,
         {0x01, 0x02, 0x03, 0x04});

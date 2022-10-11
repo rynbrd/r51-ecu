@@ -27,13 +27,13 @@ class Climate : public Caster::Node<Message> {
     private:
         void handleTempFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
         void handleSystemFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
-        void handleEvent(const Event& event, const Caster::Yield<Message>& yield);
+        void handleControllerEvent(const Event& event, const Caster::Yield<Message>& yield);
+        void handleClimateEvent(const Event& event, const Caster::Yield<Message>& yield);
 
         Faker::Clock* clock_;
         uint32_t startup_;
         Ticker state_ticker_;
         Ticker control_ticker_;
-        bool state_request_;
         uint8_t state_init_;
         bool control_init_;
         ClimateTempStateEvent temp_state_;

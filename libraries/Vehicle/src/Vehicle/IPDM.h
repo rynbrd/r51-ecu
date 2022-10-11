@@ -11,9 +11,8 @@
 namespace R51 {
 
 enum class IPDMEvent : uint8_t {
-    REQUEST = 0x00,
-    POWER_STATE = 0x01,
-    TOGGLE_DEFOG = 0x02,
+    POWER_STATE = 0x00,
+    TOGGLE_DEFOG = 0x01,
 };
 
 // Tracks IPDM state stored in the 0x625 CAN frame.

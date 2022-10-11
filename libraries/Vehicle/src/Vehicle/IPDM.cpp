@@ -46,11 +46,10 @@ void IPDM::handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& 
 }
 
 void IPDM::handleEvent(const Event& event, const Caster::Yield<Message>& yield) {
-    if (event.subsystem != (uint8_t)SubSystem::IPDM ||
-            event.id != (uint8_t)IPDMEvent::REQUEST) {
-        return;
+    if (RequestCommand::match(event, SubSystem::IPDM,
+            (uint8_t)IPDMEvent::POWER_STATE)) {
+        yieldEvent(yield);
     }
-    yieldEvent(yield);
 }
 
 void IPDM::emit(const Caster::Yield<Message>& yield) {
