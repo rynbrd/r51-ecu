@@ -37,7 +37,7 @@ enum State : uint8_t {
     STATE_SPEED_SENS_WIPER,
     STATE_REMOTE_KEY_HORN,
     STATE_REMOTE_KEY_LIGHT,
-    STATE_AUTO_RELOCK_TIME,
+    STATE_AUTO_RELOCK_TIME_CMD,
     STATE_SELECT_DOOR_UNLOCK,
     STATE_SLIDE_DRIVER_SEAT,
     STATE_RETRIEVE_71E_10,
@@ -120,7 +120,7 @@ bool fillRequest(Canny::Frame* frame, uint32_t id, uint8_t state, uint8_t value 
             return fillRequest(frame, id, 0x03, 0x3B, 0x2A, value);
         case STATE_REMOTE_KEY_LIGHT:
             return fillRequest(frame, id, 0x03, 0x3B, 0x2E, value);
-        case STATE_AUTO_RELOCK_TIME:
+        case STATE_AUTO_RELOCK_TIME_CMD:
             return fillRequest(frame, id, 0x03, 0x3B, 0x2F, value);
         case STATE_SELECT_DOOR_UNLOCK:
             return fillRequest(frame, id, 0x03, 0x3B, 0x02, value);
@@ -178,7 +178,7 @@ bool matchState(const byte* data, uint8_t state) {
             return matchPrefix(data, 0x02, 0x7B, 0x2A);
         case STATE_REMOTE_KEY_LIGHT:
             return matchPrefix(data, 0x02, 0x7B, 0x2E);
-        case STATE_AUTO_RELOCK_TIME:
+        case STATE_AUTO_RELOCK_TIME_CMD:
             return matchPrefix(data, 0x02, 0x7B, 0x2F);
         case STATE_SELECT_DOOR_UNLOCK:
             return matchPrefix(data, 0x02, 0x7B, 0x02);
@@ -603,46 +603,46 @@ void Settings::handleEvent(const Event& event) {
     }
 
     switch ((SettingsEvent)event.id) {
-        case SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUMINATAION:
+        case SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD:
             toggleAutoInteriorIllumination();
             break;
-        case SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_BACK_ON_EXIT:
+        case SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD:
             toggleSlideDriverSeatBackOnExit();
             break;
-        case SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_INTERVAL:
+        case SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD:
             toggleSpeedSensingWiperInterval();
             break;
-        case SettingsEvent::NEXT_AUTO_HEADLIGHT_SENSITIVITY:
+        case SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD:
             nextAutoHeadlightSensitivity();
             break;
-        case SettingsEvent::PREV_AUTO_HEADLIGHT_SENSITIVITY:
+        case SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD:
             prevAutoHeadlightSensitivity();
             break;
-        case SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY:
+        case SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD:
             nextAutoHeadlightOffDelay();
             break;
-        case SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY:
+        case SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD:
             prevAutoHeadlightOffDelay();
             break;
-        case SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK:
+        case SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD:
             toggleSelectiveDoorUnlock();
             break;
-        case SettingsEvent::NEXT_AUTO_RELOCK_TIME:
+        case SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD:
             nextAutoReLockTime();
             break;
-        case SettingsEvent::PREV_AUTO_RELOCK_TIME:
+        case SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD:
             prevAutoReLockTime();
             break;
-        case SettingsEvent::TOGGLE_REMOTE_KEY_RESPONSE_HORN:
+        case SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD:
             toggleRemoteKeyResponseHorn();
             break;
-        case SettingsEvent::NEXT_REMOTE_KEY_RESPONSE_LIGHTS:
+        case SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD:
             nextRemoteKeyResponseLights();
             break;
-        case SettingsEvent::PREV_REMOTE_KEY_RESPONSE_LIGHTS:
+        case SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD:
             prevRemoteKeyResponseLights();
             break;
-        case SettingsEvent::FACTORY_RESET:
+        case SettingsEvent::FACTORY_RESET_CMD:
             resetSettingsToDefault();
             break;
         default:
@@ -968,10 +968,10 @@ bool Settings::nextAutoReLockTime() {
     }
     switch (getAutoReLockTime(event_)) {
         case RELOCK_OFF:
-            updateE_->setPayload(STATE_AUTO_RELOCK_TIME, 0x00);
+            updateE_->setPayload(STATE_AUTO_RELOCK_TIME_CMD, 0x00);
             break;
         case RELOCK_1M:
-            updateE_->setPayload(STATE_AUTO_RELOCK_TIME, 0x02);
+            updateE_->setPayload(STATE_AUTO_RELOCK_TIME_CMD, 0x02);
             break;
         case RELOCK_5M:
         default:
@@ -989,10 +989,10 @@ bool Settings::prevAutoReLockTime() {
         case RELOCK_OFF:
             return false;
         case RELOCK_1M:
-            updateE_->setPayload(STATE_AUTO_RELOCK_TIME, 0x01);
+            updateE_->setPayload(STATE_AUTO_RELOCK_TIME_CMD, 0x01);
             break;
         case RELOCK_5M:
-            updateE_->setPayload(STATE_AUTO_RELOCK_TIME, 0x00);
+            updateE_->setPayload(STATE_AUTO_RELOCK_TIME_CMD, 0x00);
             break;
     }
     return updateE_->trigger();

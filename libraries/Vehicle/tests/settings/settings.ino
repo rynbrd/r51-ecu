@@ -375,7 +375,7 @@ testF(SettingsTest, FactoryReset) {
     Frame frameF;
 
     // Send control event to trigger reset.
-    Event event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::FACTORY_RESET);
+    Event event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::FACTORY_RESET_CMD);
     settings.handle(event, yield);
     yield.clear();
 
@@ -467,7 +467,7 @@ testF(SettingsTest, ToggleAutoInteriorIllumination) {
     Settings settings(false, &clock);
 
     // Initial state.
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUMINATAION);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -493,7 +493,7 @@ testF(SettingsTest, ToggleSlideDriverSeat) {
     Settings settings(false, &clock);
 
     // Initial state.
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_BACK_ON_EXIT);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state05 = {0x72F, 8, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF}};
 
@@ -517,7 +517,7 @@ testF(SettingsTest, ToggleSpeedSensingWipers) {
     Settings settings(false, &clock);
 
     // Initial state.
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_INTERVAL);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -543,7 +543,7 @@ testF(SettingsTest, AutoHeadlightSensitivity) {
     Settings settings(false, &clock);
 
     // Initial state.
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENSITIVITY);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -568,7 +568,7 @@ testF(SettingsTest, AutoHeadlightSensitivity) {
     checkNoop(&settings, control);
 
     // Decrease setting.
-    control.id = (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_SENSITIVITY;
+    control.id = (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD;
     expect.data[1] = 2;
     state21.data()[2] = (0x01 << 2);
     checkUpdate(&settings, control, 0x71E, 0x37, 0x01, state10, state21, state22, expect);
@@ -592,7 +592,7 @@ testF(SettingsTest, AutoHeadlightOffDelay) {
 
     // Initial state.
     byte value = 0x00;
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -644,7 +644,7 @@ testF(SettingsTest, AutoHeadlightOffDelay) {
     checkNoop(&settings, control);
 
     // Decrease setting to 150s.
-    control.id = (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY;
+    control.id = (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD;
     value = 0x06;
     expect.data[1] = 0x01 | (10 << 4);
     setAutoHeadlightDelayState(&state21, value);
@@ -694,7 +694,7 @@ testF(SettingsTest, ToggleSelectiveDoorUnlock) {
     Settings settings(false, &clock);
 
     // Initial state.
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -721,7 +721,7 @@ testF(SettingsTest, AutoReLockTime) {
 
     // Initial state.
     byte value = 0x00;
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_RELOCK_TIME);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -743,7 +743,7 @@ testF(SettingsTest, AutoReLockTime) {
     checkNoop(&settings, control);
 
     // Decrease setting to 1m (default).
-    control.id = (uint8_t)SettingsEvent::PREV_AUTO_RELOCK_TIME;
+    control.id = (uint8_t)SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD;
     value = 0x00;
     expect.data[2] = 1 << 4;
     setAutoReLockTime(&state21, value);
@@ -763,7 +763,7 @@ testF(SettingsTest, RemoteKeyResponseHorn) {
     Settings settings(false, &clock);
 
     // Initial state.
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESPONSE_HORN);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -790,7 +790,7 @@ testF(SettingsTest, RemoteKeyResponseLights) {
 
     // Initial state.
     byte value = 0x00;
-    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_REMOTE_KEY_RESPONSE_LIGHTS);
+    Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
     Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
     Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
@@ -818,7 +818,7 @@ testF(SettingsTest, RemoteKeyResponseLights) {
     checkNoop(&settings, control);
 
     // Decrease setting to "lock".
-    control.id = (uint8_t)SettingsEvent::PREV_REMOTE_KEY_RESPONSE_LIGHTS;
+    control.id = (uint8_t)SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD;
     value = 0x02;
     expect.data[3] = 2 << 2;
     setRemoteKeyResponseLights(&state21, value);

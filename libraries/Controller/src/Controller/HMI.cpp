@@ -567,37 +567,37 @@ void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x05:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUMINATAION);
+                        (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
             yield(event);
             break;
         case 0x07:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_SENSITIVITY);
+                        (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
             yield(event);
             break;
         case 0x08:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENSITIVITY);
+                        (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
             yield(event);
             break;
         case 0x0B:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY);
+                        (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             yield(event);
             break;
         case 0x0C:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY);
+                        (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             yield(event);
             break;
         case 0x0F:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_INTERVAL);
+                        (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
             yield(event);
             break;
         case 0x11:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESPONSE_HORN);
+                        (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
             yield(event);
             break;
         default:
@@ -610,32 +610,32 @@ void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x0A:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_REMOTE_KEY_RESPONSE_LIGHTS);
+                        (uint8_t)SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
             yield(event);
             break;
         case 0x04:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_REMOTE_KEY_RESPONSE_LIGHTS);
+                        (uint8_t)SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
             yield(event);
             break;
         case 0x06:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_AUTO_RELOCK_TIME);
+                        (uint8_t)SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
             yield(event);
             break;
         case 0x07:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_AUTO_RELOCK_TIME);
+                        (uint8_t)SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
             yield(event);
             break;
         case 0x0B:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK);
+                        (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
             yield(event);
             break;
         case 0x0E:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_BACK_ON_EXIT);
+                        (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
             yield(event);
             break;
         case 0x10:
@@ -653,7 +653,7 @@ void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x03:
             event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::FACTORY_RESET);
+                        (uint8_t)SettingsEvent::FACTORY_RESET_CMD);
             yield(event);
             break;
         default:
