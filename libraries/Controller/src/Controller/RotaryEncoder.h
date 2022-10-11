@@ -6,7 +6,6 @@
 #include <Canny.h>
 #include <Common.h>
 #include <seesaw_neopixel.h>
-#include "Keypad.h"
 
 namespace R51 {
 
@@ -107,8 +106,8 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
         void pauseInterrupts(uint8_t n);
         void resumeInterrupts(uint8_t n);
 
-        EncoderRotateEvent encoder_event_;
-        KeyPressEvent keypress_event_;
+        EncoderState encoder_event_;
+        KeyState keypress_event_;
 
         uint8_t keypad_;
         RotaryEncoder** encoders_;

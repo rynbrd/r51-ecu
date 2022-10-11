@@ -5,7 +5,6 @@
 #include <Canny.h>
 #include <Caster.h>
 #include <Common.h>
-#include "Keypad.h"
 
 namespace R51 {
 
@@ -50,7 +49,7 @@ class BlinkKeypad : public Caster::Node<Message> {
         void setBacklightBrightness(uint8_t brightness,
                 const Caster::Yield<Message>& yield);
 
-        KeyPressEvent keypress_;
+        KeyState keypress_;
         Canny::J1939Message command_;
 
         uint8_t address_;

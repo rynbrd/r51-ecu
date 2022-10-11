@@ -6,6 +6,7 @@
 #include "Common/J1939Adapter.h"
 #include "Common/J1939Claim.h"
 #include "Common/J1939Gateway.h"
+#include "Common/Keypad.h"
 #include "Common/Message.h"
 #include "Common/Scratch.h"
 

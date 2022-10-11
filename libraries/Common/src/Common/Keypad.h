@@ -1,9 +1,9 @@
-#ifndef _R51_CONTROLLER_KEYPAD_H_
-#define _R51_CONTROLLER_KEYPAD_H_
+#ifndef _R51_COMMON_KEYPAD_H_
+#define _R51_COMMON_KEYPAD_H_
 
 #include <Arduino.h>
 #include <Canny.h>
-#include <Common.h>
+#include "Event.h"
 
 namespace R51 {
 
@@ -32,9 +32,9 @@ enum class KeypadEvent : uint8_t {
 };
 
 // Sent when a key is pressed or released.
-class KeyPressEvent : public Event {
+class KeyState : public Event {
     public:
-        KeyPressEvent(uint8_t keypad = 0x00) : Event(SubSystem::KEYPAD,
+        KeyState(uint8_t keypad = 0x00) : Event(SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::KEY_STATE,
                 {keypad, 0x00, 0x00, 0x00}) {}
 
@@ -48,9 +48,9 @@ class KeyPressEvent : public Event {
 };
 
 // Sent when a rotary encoder is turned.
-class EncoderRotateEvent : public Event {
+class EncoderState : public Event {
     public:
-        EncoderRotateEvent() : Event(SubSystem::KEYPAD,
+        EncoderState() : Event(SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::ENCODER_STATE,
                 {0x00, 0x00, 0x00}) {}
 
@@ -112,4 +112,4 @@ class BacklightCommand : public Event {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_KEYPAD_H_
+#endif  // _R51_COMMON_KEYPAD_H_
