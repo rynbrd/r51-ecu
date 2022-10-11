@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_BLINK_KEYPAD_H_
-#define _R51_CONTROLLER_BLINK_KEYPAD_H_
+#ifndef _R51_BLINK_KEYPAD_H_
+#define _R51_BLINK_KEYPAD_H_
 
 #include <Arduino.h>
 #include <Canny.h>
@@ -58,4 +58,4 @@ class BlinkKeypad : public Caster::Node<Message> {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_BLINK_KEYPAD_H_
+#endif  // _R51_BLINK_KEYPAD_H_
