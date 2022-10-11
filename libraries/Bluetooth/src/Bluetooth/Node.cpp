@@ -16,10 +16,10 @@ void BLENode::handle(const Message& msg, const Caster::Yield<Message>& yield) {
             break;
         case SubSystem::BLUETOOTH:
             switch ((BluetoothEvent)msg.event().id) {
-                case BluetoothEvent::DISCONNECT:
+                case BluetoothEvent::DISCONNECT_CMD:
                     ble_->disconnect();
                     break;
-                case BluetoothEvent::FORGET:
+                case BluetoothEvent::FORGET_CMD:
                     ble_->forget();
                     break;
                 default:

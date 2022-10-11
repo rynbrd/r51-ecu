@@ -8,9 +8,10 @@
 namespace R51 {
 
 enum class BluetoothEvent : uint8_t {
-    STATE = 0x00,       // State event. Holds the current connection state.
-    DISCONNECT = 0x01,  // Disconnect the current host device.
-    FORGET = 0x02,      // Disconnect and forget the current host device.
+    STATE   = 0x00, // State event. Holds the current connection state.
+
+    DISCONNECT_CMD  = 0x10, // Disconnect the current host device.
+    FORGET_CMD      = 0x11, // Disconnect and forget the current host device.
 };
 
 // Node for managing BLE connectivity.

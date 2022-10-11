@@ -640,7 +640,7 @@ void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
             break;
         case 0x10:
             event = Event(SubSystem::BLUETOOTH,
-                        (uint8_t)BluetoothEvent::FORGET);
+                        (uint8_t)BluetoothEvent::FORGET_CMD);
             yield(event);
             break;
         default:
