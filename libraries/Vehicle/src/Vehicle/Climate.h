@@ -36,9 +36,9 @@ class Climate : public Caster::Node<Message> {
         Ticker control_ticker_;
         uint8_t state_init_;
         bool control_init_;
-        ClimateTempStateEvent temp_state_;
-        ClimateAirflowStateEvent airflow_state_;
-        ClimateSystemStateEvent system_state_;
+        ClimateTempState temp_state_;
+        ClimateAirflowState airflow_state_;
+        ClimateSystemState system_state_;
         ClimateSystemControlFrame system_control_;
         ClimateFanControlFrame fan_control_;
 };

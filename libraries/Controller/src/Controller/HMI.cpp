@@ -35,13 +35,13 @@ void HMI::handle(const Message& msg, const Yield<Message>&) {
         case SubSystem::CLIMATE:
             switch ((ClimateEvent)event.id) {
                 case ClimateEvent::SYSTEM_STATE:
-                    handleClimateSystem((ClimateSystemStateEvent*)&event);;
+                    handleClimateSystem((ClimateSystemState*)&event);;
                     break;
                 case ClimateEvent::AIRFLOW_STATE:
-                    handleClimateAirflow((ClimateAirflowStateEvent*)&event);
+                    handleClimateAirflow((ClimateAirflowState*)&event);
                     break;
                 case ClimateEvent::TEMP_STATE:
-                    handleClimateTemp((ClimateTempStateEvent*)&event);
+                    handleClimateTemp((ClimateTempState*)&event);
                     break;
                 default:
                     break;
@@ -144,7 +144,7 @@ void HMI::handleTire(const Event& event) {
     }
 }
 
-void HMI::handleClimateSystem(const ClimateSystemStateEvent* event) {
+void HMI::handleClimateSystem(const ClimateSystemState* event) {
     climate_system_ = (uint8_t)event->mode();
     setVal("climate.system", climate_system_);
     setVal("climate.ac", event->ac());
@@ -154,7 +154,7 @@ void HMI::handleClimateSystem(const ClimateSystemStateEvent* event) {
     }
 }
 
-void HMI::handleClimateAirflow(const ClimateAirflowStateEvent* event) {
+void HMI::handleClimateAirflow(const ClimateAirflowState* event) {
     setVal("climate.fan_bar", (int32_t)(100 * event->fan_speed() / 7));
     setVal("climate.vface", event->face());
     setVal("climate.vfeet", event->feet());
@@ -165,7 +165,7 @@ void HMI::handleClimateAirflow(const ClimateAirflowStateEvent* event) {
     }
 }
 
-void HMI::handleClimateTemp(const ClimateTempStateEvent* event) {
+void HMI::handleClimateTemp(const ClimateTempState* event) {
     setTxtTemp("climate.dtemp_txt", event->driver_temp());
     setTxtTemp("climate.ptemp_txt", event->passenger_temp());
     setTxtTemp("climate.otemp_txt", event->outside_temp());
@@ -406,26 +406,26 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
         case 0x11:
             if (climate_system_ == 0x00) {
                 event = Event(SubSystem::CLIMATE,
-                            (uint8_t)ClimateEvent::TOGGLE_AUTO);
+                            (uint8_t)ClimateEvent::TOGGLE_AUTO_CMD);
             } else {
                 event = Event(SubSystem::CLIMATE,
-                            (uint8_t)ClimateEvent::TURN_OFF);
+                            (uint8_t)ClimateEvent::TURN_OFF_CMD);
             }
             yield(event);
             break;
         case 0x12:
             event = Event(SubSystem::CLIMATE,
-                        (uint8_t)ClimateEvent::TOGGLE_AC);
+                        (uint8_t)ClimateEvent::TOGGLE_AC_CMD);
             yield(event);
             break;
         case 0x13:
             event = Event(SubSystem::CLIMATE,
-                        (uint8_t)ClimateEvent::TOGGLE_RECIRCULATE);
+                        (uint8_t)ClimateEvent::TOGGLE_RECIRCULATE_CMD);
             yield(event);
             break;
         case 0x14:
             event = Event(SubSystem::CLIMATE,
-                        (uint8_t)ClimateEvent::CYCLE_AIRFLOW_MODE);
+                        (uint8_t)ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
             yield(event);
             break;
         default:

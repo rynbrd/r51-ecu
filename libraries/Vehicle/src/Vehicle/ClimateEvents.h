@@ -9,22 +9,23 @@
 namespace R51 {
 
 enum class ClimateEvent : uint8_t {
-    SYSTEM_STATE = 0x01,        // State event. Holds climate system state.
-    AIRFLOW_STATE = 0x02,       // State event. Holds vent and fan speed state.
-    TEMP_STATE = 0x03,          // State event. Holds zone temperature settings.
-    TURN_OFF = 0x04,            // Turn off climate control.
-    TOGGLE_AUTO = 0x05,         // Toggle climate auto mode.
-    TOGGLE_AC = 0x06,           // Toggle A/C compressor request on/off.
-    TOGGLE_DUAL = 0x07,         // Toggle dual zone mode.
-    TOGGLE_DEFROST = 0x08,      // Toggle defrost mode.
-    INC_FAN_SPEED = 0x09,       // Increase fan speed.
-    DEC_FAN_SPEED = 0x0A,       // Decrease fan speed.
-    TOGGLE_RECIRCULATE = 0x0B,  // Toggle airflow recirculation.
-    CYCLE_AIRFLOW_MODE = 0x0C,  // Cycle airflow mode (face, feet, etc).
-    INC_DRIVER_TEMP = 0x0D,     // Increase driver zone temperature.
-    DEC_DRIVER_TEMP = 0x0E,     // Decrease driver zone temperature.
-    INC_PASSENGER_TEMP = 0x0F,  // Increase passenger zone temperature.
-    DEC_PASSENGER_TEMP = 0x10,  // Decrease passenger zone temperature.
+    SYSTEM_STATE    = 0x01, // State event. Holds climate system state.
+    AIRFLOW_STATE   = 0x02, // State event. Holds vent and fan speed state.
+    TEMP_STATE      = 0x03, // State event. Holds zone temperature settings.
+
+    TURN_OFF_CMD            = 0x10, // Turn off climate control.
+    TOGGLE_AUTO_CMD         = 0x11, // Toggle climate auto mode.
+    TOGGLE_AC_CMD           = 0x12, // Toggle A/C compressor request on/off.
+    TOGGLE_DUAL_CMD         = 0x13, // Toggle dual zone mode.
+    TOGGLE_DEFROST_CMD      = 0x14, // Toggle defrost mode.
+    INC_FAN_SPEED_CMD       = 0x15, // Increase fan speed.
+    DEC_FAN_SPEED_CMD       = 0x16, // Decrease fan speed.
+    TOGGLE_RECIRCULATE_CMD  = 0x17, // Toggle airflow recirculation.
+    CYCLE_AIRFLOW_MODE_CMD  = 0x18, // Cycle airflow mode (face, feet, etc).
+    INC_DRIVER_TEMP_CMD     = 0x19, // Increase driver zone temperature.
+    DEC_DRIVER_TEMP_CMD     = 0x1A, // Decrease driver zone temperature.
+    INC_PASSENGER_TEMP_CMD  = 0x1B, // Increase passenger zone temperature.
+    DEC_PASSENGER_TEMP_CMD  = 0x1C, // Decrease passenger zone temperature.
 };
 
 enum ClimateSystemMode : uint8_t {
@@ -35,9 +36,9 @@ enum ClimateSystemMode : uint8_t {
 };
 
 // Climate temperature state event.
-class ClimateTempStateEvent : public Event {
+class ClimateTempState : public Event {
     public:
-        ClimateTempStateEvent() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TEMP_STATE, {0x00, 0x00, 0x00, 0x00}) {}
+        ClimateTempState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TEMP_STATE, {0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, driver_temp, data[0], data[0] = value)
         EVENT_PROPERTY(uint8_t, passenger_temp, data[1], data[1] = value)
@@ -46,9 +47,9 @@ class ClimateTempStateEvent : public Event {
 };
 
 // Climate airflow state event.
-class ClimateAirflowStateEvent : public Event {
+class ClimateAirflowState : public Event {
     public:
-        ClimateAirflowStateEvent() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::AIRFLOW_STATE, {0x00, 0x00}) {}
+        ClimateAirflowState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::AIRFLOW_STATE, {0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, fan_speed, data[0], data[0] = value)
         EVENT_PROPERTY(bool, face,
@@ -66,9 +67,9 @@ class ClimateAirflowStateEvent : public Event {
 };
 
 // Climate system state event.
-class ClimateSystemStateEvent : public Event {
+class ClimateSystemState : public Event {
     public:
-        ClimateSystemStateEvent() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, {0x00}) {}
+        ClimateSystemState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, {0x00}) {}
 
         EVENT_PROPERTY(ClimateSystemMode, mode,
                 (ClimateSystemMode)(data[0] & 0x03),

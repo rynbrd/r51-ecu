@@ -7,8 +7,8 @@ namespace R51 {
 
 using namespace aunit;
 
-test(ClimateTempStateEventTest, Getters) {
-    ClimateTempStateEvent event;
+test(ClimateTempStateTest, Getters) {
+    ClimateTempState event;
     event.data[0] = 0x40;
     event.data[1] = 0x41;
     event.data[2] = 0x49;
@@ -20,8 +20,8 @@ test(ClimateTempStateEventTest, Getters) {
     assertEqual(event.units(), UNITS_US);
 }
 
-test(ClimateTempStateEventTest, Setters) {
-    ClimateTempStateEvent event;
+test(ClimateTempStateTest, Setters) {
+    ClimateTempState event;
     event.driver_temp(0x40);
     event.passenger_temp(0x41);
     event.outside_temp(0x49);
@@ -31,8 +31,8 @@ test(ClimateTempStateEventTest, Setters) {
     assertPrintablesEqual(event, expect);
 }
 
-test(ClimateAirflowStateEventTest, Getters) {
-    ClimateAirflowStateEvent event;
+test(ClimateAirflowStateTest, Getters) {
+    ClimateAirflowState event;
     event.data[0] = 0x02;
     event.data[1] = 0x06;
 
@@ -43,8 +43,8 @@ test(ClimateAirflowStateEventTest, Getters) {
     assertEqual(event.recirculate(), false);
 }
 
-test(ClimateAirflowStateEventTest, Setters) {
-    ClimateAirflowStateEvent event;
+test(ClimateAirflowStateTest, Setters) {
+    ClimateAirflowState event;
     event.fan_speed(7);
     event.face(true);
     event.recirculate(true);
@@ -53,8 +53,8 @@ test(ClimateAirflowStateEventTest, Setters) {
     assertPrintablesEqual(event, expect);
 }
 
-test(ClimateSystemStateEventTest, GetOff) {
-    ClimateSystemStateEvent event;
+test(ClimateSystemStateTest, GetOff) {
+    ClimateSystemState event;
     event.data[0] = 0x00;
 
     assertEqual(event.mode(), CLIMATE_SYSTEM_OFF);
@@ -62,8 +62,8 @@ test(ClimateSystemStateEventTest, GetOff) {
     assertEqual(event.dual(), false);
 }
 
-test(ClimateSystemStateEventTest, GetAutoAC) {
-    ClimateSystemStateEvent event;
+test(ClimateSystemStateTest, GetAutoAC) {
+    ClimateSystemState event;
     event.data[0] = 0x05;
 
     assertEqual(event.mode(), CLIMATE_SYSTEM_AUTO);
@@ -71,8 +71,8 @@ test(ClimateSystemStateEventTest, GetAutoAC) {
     assertEqual(event.dual(), false);
 }
 
-test(ClimateSystemStateEventTest, GetManualDual) {
-    ClimateSystemStateEvent event;
+test(ClimateSystemStateTest, GetManualDual) {
+    ClimateSystemState event;
     event.data[0] = 0x0A;
 
     assertEqual(event.mode(), CLIMATE_SYSTEM_MANUAL);
@@ -80,8 +80,8 @@ test(ClimateSystemStateEventTest, GetManualDual) {
     assertEqual(event.dual(), true);
 }
 
-test(ClimateSystemStateEventTest, SetOff) {
-    ClimateSystemStateEvent event;
+test(ClimateSystemStateTest, SetOff) {
+    ClimateSystemState event;
     event.data[0] = 0x05;
     event.mode(CLIMATE_SYSTEM_OFF);
     event.ac(false);
@@ -91,8 +91,8 @@ test(ClimateSystemStateEventTest, SetOff) {
     assertPrintablesEqual(event, expect);
 }
 
-test(ClimateSystemStateEventTest, SetAutoAC) {
-    ClimateSystemStateEvent event;
+test(ClimateSystemStateTest, SetAutoAC) {
+    ClimateSystemState event;
     event.mode(CLIMATE_SYSTEM_AUTO);
     event.ac(true);
 
@@ -100,8 +100,8 @@ test(ClimateSystemStateEventTest, SetAutoAC) {
     assertPrintablesEqual(event, expect);
 }
 
-test(ClimateSystemStateEventTest, SetDefrostACDual) {
-    ClimateSystemStateEvent event;
+test(ClimateSystemStateTest, SetDefrostACDual) {
+    ClimateSystemState event;
     event.mode(CLIMATE_SYSTEM_DEFROST);
     event.ac(true);
     event.dual(true);

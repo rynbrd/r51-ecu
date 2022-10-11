@@ -193,7 +193,7 @@ testF(ClimateTest, TurnOff) {
     initClimate(&climate);
 
     Frame expect;
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TURN_OFF);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TURN_OFF_CMD);
 
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x84, 0x00});
     assertYieldFrame(control, expect);
@@ -206,7 +206,7 @@ testF(ClimateTest, ToggleAuto) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_AUTO);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_AUTO_CMD);
     Frame expect;
 
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00});
@@ -220,7 +220,7 @@ testF(ClimateTest, ToggleAc) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_AC);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_AC_CMD);
     Frame expect;
 
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00});
@@ -234,7 +234,7 @@ testF(ClimateTest, ToggleDual) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_DUAL);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_DUAL_CMD);
     Frame expect;
 
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00});
@@ -248,7 +248,7 @@ testF(ClimateTest, CycleMode) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::CYCLE_AIRFLOW_MODE);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
     Frame expect;
 
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00});
@@ -262,7 +262,7 @@ testF(ClimateTest, ToggleDefrost) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_DEFROST);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_DEFROST_CMD);
     Frame expect;
 
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00});
@@ -276,7 +276,7 @@ testF(ClimateTest, ToggleRecirculate) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_RECIRCULATE);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_RECIRCULATE_CMD);
     Frame expect;
 
     expect = Frame(0x541, 0, {0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
@@ -290,7 +290,7 @@ testF(ClimateTest, TriggerFanSpeedUp) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_FAN_SPEED);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_FAN_SPEED_CMD);
     Frame expect;
 
     expect = Frame(0x541, 0, {0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
@@ -304,7 +304,7 @@ testF(ClimateTest, TriggerFanSpeedDown) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_FAN_SPEED);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_FAN_SPEED_CMD);
     Frame expect;
 
     expect = Frame(0x541, 0, {0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
@@ -323,22 +323,22 @@ testF(ClimateTest, TriggerDriverTempWhenOn) {
     Frame expect;
 
     // decrease temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_DRIVER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_DRIVER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0xFF, 0x00, 0x20, 0x04, 0x00});
     assertYieldFrame(control, expect);
 
     // increase temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_DRIVER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_DRIVER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
     assertYieldFrame(control, expect);
 
     // increase temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_DRIVER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_DRIVER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x01, 0x00, 0x20, 0x04, 0x00});
     assertYieldFrame(control, expect);
 
     // decrease temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_DRIVER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_DRIVER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
     assertYieldFrame(control, expect);
 }
@@ -350,11 +350,11 @@ testF(ClimateTest, TriggerDriverTempWhenOff) {
     Event control;
 
     // increase temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_DRIVER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_DRIVER_TEMP_CMD);
     assertNoYield(control);
 
     // decrease temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_DRIVER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_DRIVER_TEMP_CMD);
     assertNoYield(control);
 }
 
@@ -367,22 +367,22 @@ testF(ClimateTest, TriggerPassengerTempWhenOn) {
     Frame expect;
 
     // decrease temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0xFF, 0x20, 0x04, 0x00});
     assertYieldFrame(control, expect);
 
     // increase temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_PASSENGER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_PASSENGER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
     assertYieldFrame(control, expect);
 
     // increase temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_PASSENGER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_PASSENGER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x01, 0x20, 0x04, 0x00});
     assertYieldFrame(control, expect);
 
     // decrease temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP_CMD);
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
     assertYieldFrame(control, expect);
 }
@@ -394,11 +394,11 @@ testF(ClimateTest, TriggerPassengerTempWhenOff) {
     Event control;
 
     // increase temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_PASSENGER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_PASSENGER_TEMP_CMD);
     assertNoYield(control);
 
     // decrease temp
-    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP);
+    control = Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP_CMD);
     assertNoYield(control);
 }
 
@@ -410,11 +410,11 @@ testF(ClimateTest, TickOffState) {
     Frame state54A(0x54A, 0, {0x3C, 0x3E, 0x7F, 0x80, 0x00, 0x00, 0x00, 0x2C});
     Frame state54B(0x54B, 0, {0xF2, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x02});
 
-    ClimateTempStateEvent temp;
+    ClimateTempState temp;
     temp.outside_temp(0x2C);
     temp.units(UNITS_US);
-    ClimateAirflowStateEvent airflow;
-    ClimateSystemStateEvent system;
+    ClimateAirflowState airflow;
+    ClimateSystemState system;
     system.mode(CLIMATE_SYSTEM_OFF);
 
     climate.handle(state54A, yield);

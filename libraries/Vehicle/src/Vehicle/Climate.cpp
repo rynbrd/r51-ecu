@@ -164,61 +164,61 @@ void Climate::handleClimateEvent(const Event& event, const Caster::Yield<Message
     bool system_control_changed = false;
     bool fan_control_changed = false;
     switch ((ClimateEvent)event.id) {
-        case ClimateEvent::TURN_OFF:
+        case ClimateEvent::TURN_OFF_CMD:
             system_control_.turnOff();
             system_control_changed = true;
             break;
-        case ClimateEvent::TOGGLE_AUTO:
+        case ClimateEvent::TOGGLE_AUTO_CMD:
             system_control_.toggleAuto();
             system_control_changed = true;
             break;
-        case ClimateEvent::TOGGLE_AC:
+        case ClimateEvent::TOGGLE_AC_CMD:
             system_control_.toggleAC();
             system_control_changed = true;
             break;
-        case ClimateEvent::TOGGLE_DUAL:
+        case ClimateEvent::TOGGLE_DUAL_CMD:
             system_control_.toggleDual();
             system_control_changed = true;
             break;
-        case ClimateEvent::TOGGLE_DEFROST:
+        case ClimateEvent::TOGGLE_DEFROST_CMD:
             system_control_.toggleDefrost();
             system_control_changed = true;
             break;
-        case ClimateEvent::INC_FAN_SPEED:
+        case ClimateEvent::INC_FAN_SPEED_CMD:
             fan_control_.incFanSpeed();
             fan_control_changed = true;
             break;
-        case ClimateEvent::DEC_FAN_SPEED:
+        case ClimateEvent::DEC_FAN_SPEED_CMD:
             fan_control_.decFanSpeed();
             fan_control_changed = true;
             break;
-        case ClimateEvent::TOGGLE_RECIRCULATE:
+        case ClimateEvent::TOGGLE_RECIRCULATE_CMD:
             fan_control_.toggleRecirculate();
             fan_control_changed = true;
             break;
-        case ClimateEvent::CYCLE_AIRFLOW_MODE:
+        case ClimateEvent::CYCLE_AIRFLOW_MODE_CMD:
             system_control_.cycleMode();
             system_control_changed = true;
             break;
-        case ClimateEvent::INC_DRIVER_TEMP:
+        case ClimateEvent::INC_DRIVER_TEMP_CMD:
             if (system_state_.mode() != CLIMATE_SYSTEM_OFF) {
                 system_control_.incDriverTemp();
                 system_control_changed = true;
             }
             break;
-        case ClimateEvent::DEC_DRIVER_TEMP:
+        case ClimateEvent::DEC_DRIVER_TEMP_CMD:
             if (system_state_.mode() != CLIMATE_SYSTEM_OFF) {
                 system_control_.decDriverTemp();
                 system_control_changed = true;
             }
             break;
-        case ClimateEvent::INC_PASSENGER_TEMP:
+        case ClimateEvent::INC_PASSENGER_TEMP_CMD:
             if (system_state_.mode() != CLIMATE_SYSTEM_OFF) {
                 system_control_.incPassengerTemp();
                 system_control_changed = true;
             }
             break;
-        case ClimateEvent::DEC_PASSENGER_TEMP:
+        case ClimateEvent::DEC_PASSENGER_TEMP_CMD:
             if (system_state_.mode() != CLIMATE_SYSTEM_OFF) {
                 system_control_.decPassengerTemp();
                 system_control_changed = true;

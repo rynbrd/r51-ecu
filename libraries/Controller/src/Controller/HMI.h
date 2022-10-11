@@ -103,9 +103,9 @@ class HMI : public Caster::Node<Message> {
         void handleECM(const Event& event);
         void handleIPDM(const Event& event);
         void handleTire(const Event& event);
-        void handleClimateSystem(const ClimateSystemStateEvent* event);
-        void handleClimateAirflow(const ClimateAirflowStateEvent* event);
-        void handleClimateTemp(const ClimateTempStateEvent* event);
+        void handleClimateSystem(const ClimateSystemState* event);
+        void handleClimateAirflow(const ClimateAirflowState* event);
+        void handleClimateTemp(const ClimateTempState* event);
         void handleSettings(const Event& event);
         void handleAudioSystem(const AudioSystemState* event);
         void handleAudioVolume(const AudioVolumeState* event);
