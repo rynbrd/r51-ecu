@@ -21,7 +21,7 @@ uint8_t getPressureValue(const Canny::Frame& frame, int tire) {
 TirePressureState::TirePressureState(ConfigStore* config, uint32_t tick_ms, Faker::Clock* clock) :
     config_(config), event_((uint8_t)SubSystem::TIRE,
     (uint8_t)TireEvent::PRESSURE_STATE, {0x00, 0x00, 0x00, 0x00}),
-    ticker_(tick_ms, clock), map_{0, 1, 2, 3} {
+    ticker_(tick_ms, tick_ms == 0, clock), map_{0, 1, 2, 3} {
         if (config_ != nullptr) {
             config_->loadTireMap(map_);
         }

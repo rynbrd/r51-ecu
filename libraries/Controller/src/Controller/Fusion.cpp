@@ -121,7 +121,8 @@ State detectState(const J1939Message& msg, uint8_t hu_address) {
 Fusion::Fusion(Scratch* scratch, Clock* clock) :
         clock_(clock), scratch_(scratch),
         address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
-        hb_timer_(kAvailabilityTimeout, clock), disco_timer_(kDiscoveryTick, clock),
+        hb_timer_(kAvailabilityTimeout, false, clock),
+        disco_timer_(kDiscoveryTick, false, clock),
         recent_mute_(false), state_(0xFF), state_ignore_(false), state_counter_(0xFF),
         cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress),
         secondary_source_((AudioSource)0xFF) {

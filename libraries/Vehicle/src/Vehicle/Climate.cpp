@@ -31,7 +31,8 @@ enum AirflowMode : uint8_t {
 
 Climate::Climate(uint32_t tick_ms, Faker::Clock* clock) :
     clock_(clock), startup_(0),
-    state_ticker_(tick_ms, clock), control_ticker_(CONTROL_INIT_TICK, clock),
+    state_ticker_(tick_ms, tick_ms == 0, clock),
+    control_ticker_(CONTROL_INIT_TICK, false, clock),
     state_request_(false), state_init_(0), control_init_(false) {}
 
 void Climate::handle(const Message& msg, const Caster::Yield<Message>& yield) {

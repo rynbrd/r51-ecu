@@ -6,6 +6,7 @@
 #include <Caster.h>
 #include <Common.h>
 #include <Faker.h>
+#include <Foundation.h>
 #include "ClimateEvents.h"
 #include "ClimateFrames.h"
 

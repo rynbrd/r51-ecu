@@ -16,6 +16,7 @@ test(EngineTempStateTest, IgnoreIncorrectID) {
 
     EngineTempState ecm;
     ecm.handle(f, yield);
+    assertSize(yield, 0);
     ecm.emit(yield);
     assertSize(yield, 0);
 }
