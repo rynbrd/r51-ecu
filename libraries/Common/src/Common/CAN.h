@@ -8,8 +8,7 @@
 
 namespace R51 {
 
-// Bus node for reading and writing CAN frames or J1939 messages to a CAN
-// controller.
+// Bus node for reading and writing CAN frames to a CAN controller.
 class CANGateway : public Caster::Node<Message> {
     public:
         // Construct a new note that transmits frames over the given

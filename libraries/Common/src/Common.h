@@ -3,8 +3,9 @@
 
 #include "Common/CAN.h"
 #include "Common/Event.h"
-#include "Common/J1939.h"
+#include "Common/J1939Adapter.h"
 #include "Common/J1939Claim.h"
+#include "Common/J1939Gateway.h"
 #include "Common/Message.h"
 #include "Common/Scratch.h"
 
