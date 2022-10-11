@@ -551,7 +551,7 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
                 uint8_t tires = get("vehicle.swap_tires");
                 if ((tires & 0x0F) != ((tires >> 4) & 0x0F)) {
                     Event event = Event(SubSystem::TIRE,
-                                (uint8_t)TireEvent::SWAP_POSITION,
+                                (uint8_t)TireEvent::SWAP_POSITION_CMD,
                                 {tires});
                     yield(event);
                 }

@@ -10,14 +10,14 @@
 namespace R51 {
 
 enum class TireEvent : uint8_t {
-    PRESSURE_STATE = 0x00,
-    SWAP_POSITION = 0x01,
+    PRESSURE_STATE = 0x00,      // The current tire pressures.
+    SWAP_POSITION_CMD = 0x10,   // Swaps the reported position of two tires.
 };
 
 // Track tire pressure as reported in the 0x385 CAN frame.
-class TirePressureState : public Caster::Node<Message> {
+class TirePressure : public Caster::Node<Message> {
     public:
-        TirePressureState(ConfigStore* config = nullptr,
+        TirePressure(ConfigStore* config = nullptr,
                 uint32_t tick_ms = 0, Faker::Clock* clock = Faker::Clock::real());
 
         // Handle 0x385 tire pressure state frames. Returns true if the state

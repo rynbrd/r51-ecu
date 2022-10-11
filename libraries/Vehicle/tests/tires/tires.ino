@@ -39,31 +39,31 @@ class FakeConfigStore : public ConfigStore {
         uint8_t map[4];
 };
 
-test(TirePressureStateTest, IgnoreIncorrectID) {
+test(TirePressureTest, IgnoreIncorrectID) {
     FakeYield yield;
     Frame f(0x384, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
-    TirePressureState tire;
+    TirePressure tire;
     tire.handle(f, yield);
     tire.emit(yield);
     assertSize(yield, 0);
 }
 
-test(TirePressureStateTest, IgnoreIncorrectSize) {
+test(TirePressureTest, IgnoreIncorrectSize) {
     FakeYield yield;
     Frame f(0x385, 0, {});
 
-    TirePressureState tire;
+    TirePressure tire;
     tire.handle(f, yield);
     tire.emit(yield);
     assertSize(yield, 0);
 }
 
-test(TirePressureStateTest, Tick) {
+test(TirePressureTest, Tick) {
     FakeClock clock;
     FakeYield yield;
 
-    TirePressureState tire(nullptr, 200, &clock);
+    TirePressure tire(nullptr, 200, &clock);
     tire.emit(yield);
     assertSize(yield, 0);
 
@@ -73,11 +73,11 @@ test(TirePressureStateTest, Tick) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(TirePressureStateTest, AllSet) {
+test(TirePressureTest, AllSet) {
     FakeYield yield;
     Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x84, 0x79, 0x77, 0x00, 0xF0});
 
-    TirePressureState tire;
+    TirePressure tire;
     tire.handle(f, yield);
     tire.emit(yield);
 
@@ -85,11 +85,11 @@ test(TirePressureStateTest, AllSet) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(TirePressureStateTest, Tire1Set) {
+test(TirePressureTest, Tire1Set) {
     FakeYield yield;
     Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x00, 0x00, 0x00, 0x00, 0x80});
 
-    TirePressureState tire;
+    TirePressure tire;
     tire.handle(f, yield);
     tire.emit(yield);
 
@@ -97,11 +97,11 @@ test(TirePressureStateTest, Tire1Set) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(TirePressureStateTest, Tire2Set) {
+test(TirePressureTest, Tire2Set) {
     FakeYield yield;
     Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x40});
 
-    TirePressureState tire;
+    TirePressure tire;
     tire.handle(f, yield);
     tire.emit(yield);
 
@@ -109,11 +109,11 @@ test(TirePressureStateTest, Tire2Set) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(TirePressureStateTest, Tire3Set) {
+test(TirePressureTest, Tire3Set) {
     FakeYield yield;
     Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x75, 0x00, 0x00, 0x20});
 
-    TirePressureState tire;
+    TirePressure tire;
     tire.handle(f, yield);
     tire.emit(yield);
 
@@ -121,11 +121,11 @@ test(TirePressureStateTest, Tire3Set) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(TirePressureStateTest, Tire4Set) {
+test(TirePressureTest, Tire4Set) {
     FakeYield yield;
     Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x77, 0x00, 0x10});
 
-    TirePressureState tire;
+    TirePressure tire;
     tire.handle(f, yield);
     tire.emit(yield);
 
@@ -133,9 +133,9 @@ test(TirePressureStateTest, Tire4Set) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(TirePressureStateTest, Swap) {
+test(TirePressureTest, Swap) {
     FakeYield yield;
-    TirePressureState tire;
+    TirePressure tire;
     Frame f;
     Event control;
     Event expect;
@@ -150,7 +150,7 @@ test(TirePressureStateTest, Swap) {
     yield.clear();
 
     // Send control frame to swap positions.
-    control = Event((uint8_t)SubSystem::TIRE, (uint8_t)TireEvent::SWAP_POSITION, {0x03});
+    control = Event((uint8_t)SubSystem::TIRE, (uint8_t)TireEvent::SWAP_POSITION_CMD, {0x03});
     tire.handle(control, yield);
     tire.emit(yield);
     expect = Event((uint8_t)SubSystem::TIRE, (uint8_t)TireEvent::PRESSURE_STATE, {0x04, 0x02, 0x03, 0x01});
@@ -168,7 +168,7 @@ test(TirePressureStateTest, Swap) {
     yield.clear();
 
     // Send control frame to swap positions again.
-    control = Event((uint8_t)SubSystem::TIRE, (uint8_t)TireEvent::SWAP_POSITION, {0x23});
+    control = Event((uint8_t)SubSystem::TIRE, (uint8_t)TireEvent::SWAP_POSITION_CMD, {0x23});
     tire.handle(control, yield);
     tire.emit(yield);
     expect = Event((uint8_t)SubSystem::TIRE, (uint8_t)TireEvent::PRESSURE_STATE, {0x14, 0x12, 0x11, 0x13});
@@ -186,9 +186,9 @@ test(TirePressureStateTest, Swap) {
     yield.clear();
 }
 
-test(TirePressureStateTest, RequestPressureTest) {
+test(TirePressureTest, RequestPressureTest) {
     FakeYield yield;
-    TirePressureState tire;
+    TirePressure tire;
     Frame f;
     RequestCommand control(
         SubSystem::TIRE,
@@ -218,9 +218,9 @@ test(TirePressureStateTest, RequestPressureTest) {
     assertSize(yield, 0);
 }
 
-test(TirePressureStateTest, RequestSubSystem) {
+test(TirePressureTest, RequestSubSystem) {
     FakeYield yield;
-    TirePressureState tire;
+    TirePressure tire;
     Frame f;
     RequestCommand control(SubSystem::TIRE);
     Event expect(
@@ -248,9 +248,9 @@ test(TirePressureStateTest, RequestSubSystem) {
     assertSize(yield, 0);
 }
 
-test(TirePressureStateTest, RequestAll) {
+test(TirePressureTest, RequestAll) {
     FakeYield yield;
-    TirePressureState tire;
+    TirePressure tire;
     Frame f;
     RequestCommand control;
     Event expect(
@@ -278,10 +278,10 @@ test(TirePressureStateTest, RequestAll) {
     assertSize(yield, 0);
 }
 
-test(TirePressureStateTest, LoadInitialInvalidMap) {
+test(TirePressureTest, LoadInitialInvalidMap) {
     FakeYield yield;
     FakeConfigStore config(false);
-    TirePressureState tire(&config);
+    TirePressure tire(&config);
     Frame f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect = Event(
         (uint8_t)SubSystem::TIRE,
@@ -296,10 +296,10 @@ test(TirePressureStateTest, LoadInitialInvalidMap) {
     yield.clear();
 }
 
-test(TirePressureStateTest, LoadInitialValidMap) {
+test(TirePressureTest, LoadInitialValidMap) {
     FakeYield yield;
     FakeConfigStore config(true, {0, 2, 1, 3});
-    TirePressureState tire(&config);
+    TirePressure tire(&config);
     Frame f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect = Event(
         (uint8_t)SubSystem::TIRE,
@@ -314,10 +314,10 @@ test(TirePressureStateTest, LoadInitialValidMap) {
     yield.clear();
 }
 
-test(TirePressureStateTest, SwapAndSaveMap) {
+test(TirePressureTest, SwapAndSaveMap) {
     FakeYield yield;
     FakeConfigStore config(true);
-    TirePressureState tire(&config);
+    TirePressure tire(&config);
     Frame f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect;
 
@@ -335,7 +335,7 @@ test(TirePressureStateTest, SwapAndSaveMap) {
     // Swap tire positions.
     Event control = Event(
         (uint8_t)SubSystem::TIRE,
-        (uint8_t)TireEvent::SWAP_POSITION,
+        (uint8_t)TireEvent::SWAP_POSITION_CMD,
         {0x03});
     tire.handle(control, yield);
     tire.emit(yield);
