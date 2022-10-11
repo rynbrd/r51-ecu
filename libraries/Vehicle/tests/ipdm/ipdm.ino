@@ -165,7 +165,7 @@ test(DefogTest, Trigger) {
     FakeClock clock;
     FakeGPIO gpio;
     Defog defog(1, 200, &clock, &gpio);
-    Event event((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::TOGGLE_DEFOG);
+    Event event((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::TOGGLE_DEFOG_CMD);
 
     // Ensure default state is off.
     defog.emit(yield);

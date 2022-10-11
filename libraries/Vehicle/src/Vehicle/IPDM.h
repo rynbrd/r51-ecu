@@ -12,7 +12,7 @@ namespace R51 {
 
 enum class IPDMEvent : uint8_t {
     POWER_STATE = 0x00,
-    TOGGLE_DEFOG = 0x01,
+    TOGGLE_DEFOG_CMD = 0x10,
 };
 
 // Tracks IPDM state stored in the 0x625 CAN frame.
@@ -47,7 +47,7 @@ class Defog : public Caster::Node<Message> {
                 Faker::GPIO* gpio = Faker::GPIO::real()) :
             output_(output_pin, output_ms, clock, gpio) {}
 
-        // Handles the IPDM TOGGLE_DEFOG mesage.
+        // Handles the IPDM TOGGLE_DEFOG_CMD mesage.
         void handle(const Message& message, const Caster::Yield<Message>&) override;
 
         // Does not emit any messages but required to update the GPIO status.

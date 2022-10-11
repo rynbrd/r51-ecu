@@ -66,7 +66,7 @@ void IPDM::yieldEvent(const Caster::Yield<Message>& yield) {
 void Defog::handle(const Message& message, const Caster::Yield<Message>&) {
     if (message.type() != Message::EVENT ||
             message.event().subsystem !=  (uint8_t)SubSystem::IPDM ||
-            message.event().id != (uint8_t)IPDMEvent::TOGGLE_DEFOG) {
+            message.event().id != (uint8_t)IPDMEvent::TOGGLE_DEFOG_CMD) {
         return;
     }
     output_.trigger();
