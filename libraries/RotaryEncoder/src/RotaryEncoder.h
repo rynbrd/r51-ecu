@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_ROTARY_ENCODER_H_
-#define _R51_CONTROLLER_ROTARY_ENCODER_H_
+#ifndef _R51_ROTARY_ENCODER_H_
+#define _R51_ROTARY_ENCODER_H_
 
 #include <Adafruit_seesaw.h>
 #include <Arduino.h>
@@ -121,4 +121,4 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
 
 }  // namespace R51 {
 
-#endif  // _R51_CONTROLLER_ROTARY_ENCODER_H_
+#endif  // _R51_ROTARY_ENCODER_H_
