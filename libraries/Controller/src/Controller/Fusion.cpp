@@ -153,136 +153,136 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         return;
     }
     switch ((AudioEvent)event.id) {
-        case AudioEvent::POWER_ON:
+        case AudioEvent::POWER_ON_CMD:
             sendPowerCmd(yield, true);
             break;
-        case AudioEvent::POWER_OFF:
+        case AudioEvent::POWER_OFF_CMD:
             sendPowerCmd(yield, false);
             break;
-        case AudioEvent::SOURCE_SET:
+        case AudioEvent::SOURCE_SET_CMD:
             {
-                auto* e = (AudioSourceSetEvent*)&event;
+                auto* e = (AudioSourceSetCommand*)&event;
                 sendSourceSetCmd(yield, e->source());
             }
             break;
-        case AudioEvent::TRACK_PLAY:
+        case AudioEvent::TRACK_PLAY_CMD:
             sendTrackCmd(yield, TRACK_CMD_PLAY);
             break;
-        case AudioEvent::TRACK_PAUSE:
+        case AudioEvent::TRACK_PAUSE_CMD:
             sendTrackCmd(yield, TRACK_CMD_PAUSE);
             break;
-        case AudioEvent::TRACK_NEXT:
+        case AudioEvent::TRACK_NEXT_CMD:
             sendTrackCmd(yield, TRACK_CMD_NEXT);
             break;
-        case AudioEvent::TRACK_PREV:
+        case AudioEvent::TRACK_PREV_CMD:
             sendTrackCmd(yield, TRACK_CMD_PREV);
             break;
-        case AudioEvent::RADIO_TUNE:
+        case AudioEvent::RADIO_TUNE_CMD:
             {
-                auto* e = (AudioRadioTuneEvent*)&event;
+                auto* e = (AudioRadioTuneCommand*)&event;
                 sendRadioCmd(yield, RADIO_CMD_TUNE, e->frequency());
             }
             break;
-        case AudioEvent::RADIO_NEXT_AUTO:
+        case AudioEvent::RADIO_NEXT_AUTO_CMD:
             sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, system_.frequency());
             break;
-        case AudioEvent::RADIO_PREV_AUTO:
+        case AudioEvent::RADIO_PREV_AUTO_CMD:
             sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, system_.frequency());
             break;
-        case AudioEvent::RADIO_NEXT_MANUAL:
+        case AudioEvent::RADIO_NEXT_MANUAL_CMD:
             sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
             break;
-        case AudioEvent::RADIO_PREV_MANUAL:
+        case AudioEvent::RADIO_PREV_MANUAL_CMD:
             sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, system_.frequency());
             break;
-        case AudioEvent::INPUT_GAIN_SET:
+        case AudioEvent::INPUT_GAIN_SET_CMD:
             {
-                auto* e = (AudioInputGainSetEvent*)&event;
+                auto* e = (AudioInputGainSetCommand*)&event;
                 sendInputGainSetCmd(yield, e->gain());
             }
             break;
-        case AudioEvent::INPUT_GAIN_INC:
+        case AudioEvent::INPUT_GAIN_INC_CMD:
             sendInputGainSetCmd(yield, system_.gain() + 1);
             break;
-        case AudioEvent::INPUT_GAIN_DEC:
+        case AudioEvent::INPUT_GAIN_DEC_CMD:
             sendInputGainSetCmd(yield, system_.gain() - 1);
             break;
-        case AudioEvent::VOLUME_SET:
+        case AudioEvent::VOLUME_SET_CMD:
             {
-                auto* e = (AudioVolumeSetEvent*)&event;
+                auto* e = (AudioVolumeSetCommand*)&event;
                 sendVolumeSetCmd(yield, e->volume(), volume_.fade());
             }
             break;
-        case AudioEvent::VOLUME_INC:
+        case AudioEvent::VOLUME_INC_CMD:
             sendVolumeSetCmd(yield, volume_.volume() + 1, volume_.fade());
             break;
-        case AudioEvent::VOLUME_DEC:
+        case AudioEvent::VOLUME_DEC_CMD:
             sendVolumeSetCmd(yield, volume_.volume() - 1, volume_.fade());
             break;
-        case AudioEvent::VOLUME_MUTE:
+        case AudioEvent::VOLUME_MUTE_CMD:
             sendVolumeMuteCmd(yield, true);
             break;
-        case AudioEvent::VOLUME_UNMUTE:
+        case AudioEvent::VOLUME_UNMUTE_CMD:
             sendVolumeMuteCmd(yield, false);
             break;
-        case AudioEvent::BALANCE_SET:
+        case AudioEvent::BALANCE_SET_CMD:
             {
-                auto* e = (AudioBalanceSetEvent*)&event;
+                auto* e = (AudioBalanceSetCommand*)&event;
                 sendBalanceSetCmd(yield, e->balance());
             }
             break;
-        case AudioEvent::BALANCE_LEFT:
+        case AudioEvent::BALANCE_LEFT_CMD:
             sendBalanceSetCmd(yield, volume_.balance() - 1);
             break;
-        case AudioEvent::BALANCE_RIGHT:
+        case AudioEvent::BALANCE_RIGHT_CMD:
             sendBalanceSetCmd(yield, volume_.balance() + 1);
             break;
-        case AudioEvent::FADE_SET:
+        case AudioEvent::FADE_SET_CMD:
             {
-                auto* e = (AudioFadeSetEvent*)&event;
+                auto* e = (AudioFadeSetCommand*)&event;
                 sendVolumeSetCmd(yield, volume_.volume(), e->fade());
             }
             break;
-        case AudioEvent::FADE_FRONT:
+        case AudioEvent::FADE_FRONT_CMD:
             sendVolumeSetCmd(yield, volume_.volume(), volume_.fade() + 1);
             break;
-        case AudioEvent::FADE_REAR:
+        case AudioEvent::FADE_REAR_CMD:
             sendVolumeSetCmd(yield, volume_.volume(), volume_.fade() - 1);
             break;
-        case AudioEvent::TONE_SET:
+        case AudioEvent::TONE_SET_CMD:
             {
-                auto* e = (AudioToneSetEvent*)&event;
+                auto* e = (AudioToneSetCommand*)&event;
                 sendToneSetCmd(yield, e->bass(), e->mid(), e->treble());
             }
             break;
-        case AudioEvent::TONE_BASS_INC:
+        case AudioEvent::TONE_BASS_INC_CMD:
             sendToneSetCmd(yield, tone_.bass() + 1, tone_.mid(), tone_.treble());
             break;
-        case AudioEvent::TONE_BASS_DEC:
+        case AudioEvent::TONE_BASS_DEC_CMD:
             sendToneSetCmd(yield, tone_.bass() - 1, tone_.mid(), tone_.treble());
             break;
-        case AudioEvent::TONE_MID_INC:
+        case AudioEvent::TONE_MID_INC_CMD:
             sendToneSetCmd(yield, tone_.bass(), tone_.mid() + 1, tone_.treble());
             break;
-        case AudioEvent::TONE_MID_DEC:
+        case AudioEvent::TONE_MID_DEC_CMD:
             sendToneSetCmd(yield, tone_.bass(), tone_.mid() - 1, tone_.treble());
             break;
-        case AudioEvent::TONE_TREBLE_INC:
+        case AudioEvent::TONE_TREBLE_INC_CMD:
             sendToneSetCmd(yield, tone_.bass(), tone_.mid(), tone_.treble() + 1);
             break;
-        case AudioEvent::TONE_TREBLE_DEC:
+        case AudioEvent::TONE_TREBLE_DEC_CMD:
             sendToneSetCmd(yield, tone_.bass(), tone_.mid(), tone_.treble() - 1);
             break;
-        case AudioEvent::SETTINGS_CMD_OPEN:
+        case AudioEvent::SETTINGS_OPEN_CMD:
             sendMenuSettings(yield);
             break;
-        case AudioEvent::SETTINGS_CMD_SELECT:
+        case AudioEvent::SETTINGS_SELECT_CMD:
             {
-                auto* e = (AudioSettingsSelectCmd*)&event;
+                auto* e = (AudioSettingsSelectCommand*)&event;
                 sendMenuSelectItem(yield, e->item());
             }
             break;
-        case AudioEvent::SETTINGS_CMD_BACK:
+        case AudioEvent::SETTINGS_BACK_CMD:
             if (settings_menu_.page() == 0x01)  {
                 yield(settings_exit_);
                 sendMenuExit(yield);
@@ -290,7 +290,7 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
                 sendMenuBack(yield);
             }
             break;
-        case AudioEvent::SETTINGS_CMD_EXIT:
+        case AudioEvent::SETTINGS_EXIT_CMD:
             sendMenuExit(yield);
             break;
         default:
@@ -594,7 +594,7 @@ void Fusion::handleMenuLoad(uint8_t seq, const Canny::J1939Message& msg,
                     break;
                 case 0x04:
                     {
-                        Event event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_STATE_EXIT);
+                        Event event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_EXIT_STATE);
                         yield(event);
                     }
                     break;

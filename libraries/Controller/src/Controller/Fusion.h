@@ -43,58 +43,58 @@ enum class AudioEvent {
     TRACK_ALBUM_STATE       = 0x06, // State event. Sends the album title.
 
     // System controls.
-    POWER_ON                = 0x10, // Turn on the stereo.
-    POWER_OFF               = 0x11, // Turn off the stereo.
-    SOURCE_SET              = 0x12, // Set source.
+    POWER_ON_CMD    = 0x10, // Turn on the stereo.
+    POWER_OFF_CMD   = 0x11, // Turn off the stereo.
+    SOURCE_SET_CMD  = 0x12, // Set source.
 
     // Track controls.
-    TRACK_PLAY              = 0x20, // Play current track.
-    TRACK_PAUSE             = 0x21, // Pause current track.
-    TRACK_NEXT              = 0x22, // Next track.
-    TRACK_PREV              = 0x23, // Prev track.
+    TRACK_PLAY_CMD  = 0x20, // Play current track.
+    TRACK_PAUSE_CMD = 0x21, // Pause current track.
+    TRACK_NEXT_CMD  = 0x22, // Next track.
+    TRACK_PREV_CMD  = 0x23, // Prev track.
 
     // Radio controls.
-    RADIO_TUNE              = 0x30, // Tune radio to a specific frequency.
-    RADIO_NEXT_AUTO         = 0x31, // Next radio frequency in auto seek mode.
-    RADIO_PREV_AUTO         = 0x32, // Prev radio frequency in auto seek mode.
-    RADIO_NEXT_MANUAL       = 0x33, // Next radio frequency in manual seek mode.
-    RADIO_PREV_MANUAL       = 0x34, // Prev radio frequency in manual seek mode.
+    RADIO_TUNE_CMD          = 0x30, // Tune radio to a specific frequency.
+    RADIO_NEXT_AUTO_CMD     = 0x31, // Next radio frequency in auto seek mode.
+    RADIO_PREV_AUTO_CMD     = 0x32, // Prev radio frequency in auto seek mode.
+    RADIO_NEXT_MANUAL_CMD   = 0x33, // Next radio frequency in manual seek mode.
+    RADIO_PREV_MANUAL_CMD   = 0x34, // Prev radio frequency in manual seek mode.
 
     // Input controls.
-    INPUT_GAIN_SET          = 0x40, // Set the input gain to specific value.
-    INPUT_GAIN_INC          = 0x41, // Increment the input gain value.
-    INPUT_GAIN_DEC          = 0x42, // Decrement the input gain value.
+    INPUT_GAIN_SET_CMD  = 0x40, // Set the input gain to specific value.
+    INPUT_GAIN_INC_CMD  = 0x41, // Increment the input gain value.
+    INPUT_GAIN_DEC_CMD  = 0x42, // Decrement the input gain value.
 
     // Volums controls.
-    VOLUME_SET              = 0x50, // Set volume.
-    VOLUME_INC              = 0x51, // Increment volume.
-    VOLUME_DEC              = 0x52, // Decrement volume.
-    VOLUME_MUTE             = 0x53, // Mute volume.
-    VOLUME_UNMUTE           = 0x54, // Unmute volume.
-    BALANCE_SET             = 0x55, // Set the audio balance.
-    BALANCE_LEFT            = 0x56, // Shift audio balance to the left.
-    BALANCE_RIGHT           = 0x57, // Shift audio balance to the right.
-    FADE_SET                = 0x58, // Set the audio fade.
-    FADE_FRONT              = 0x59, // Fade audio to the front.
-    FADE_REAR               = 0x5A, // Fade audio to the back.
+    VOLUME_SET_CMD      = 0x50, // Set volume.
+    VOLUME_INC_CMD      = 0x51, // Increment volume.
+    VOLUME_DEC_CMD      = 0x52, // Decrement volume.
+    VOLUME_MUTE_CMD     = 0x53, // Mute volume.
+    VOLUME_UNMUTE_CMD   = 0x54, // Unmute volume.
+    BALANCE_SET_CMD     = 0x55, // Set the audio balance.
+    BALANCE_LEFT_CMD    = 0x56, // Shift audio balance to the left.
+    BALANCE_RIGHT_CMD   = 0x57, // Shift audio balance to the right.
+    FADE_SET_CMD        = 0x58, // Set the audio fade.
+    FADE_FRONT_CMD      = 0x59, // Fade audio to the front.
+    FADE_REAR_CMD       = 0x5A, // Fade audio to the back.
 
     // EQ controls.
-    TONE_SET                = 0x60, // Set bass, mid, and treble.
-    TONE_BASS_INC           = 0x61, // Increase bass.
-    TONE_BASS_DEC           = 0x62, // Decrease bass.
-    TONE_MID_INC            = 0x63, // Increase mid.
-    TONE_MID_DEC            = 0x64, // Decrease mid.
-    TONE_TREBLE_INC         = 0x65, // Increase treble.
-    TONE_TREBLE_DEC         = 0x66, // Decrease treble.
+    TONE_SET_CMD        = 0x60, // Set bass, mid, and treble.
+    TONE_BASS_INC_CMD   = 0x61, // Increase bass.
+    TONE_BASS_DEC_CMD   = 0x62, // Decrease bass.
+    TONE_MID_INC_CMD    = 0x63, // Increase mid.
+    TONE_MID_DEC_CMD    = 0x64, // Decrease mid.
+    TONE_TREBLE_INC_CMD = 0x65, // Increase treble.
+    TONE_TREBLE_DEC_CMD = 0x66, // Decrease treble.
 
     // Settings menu events and controls.
-    SETTINGS_CMD_OPEN       = 0xF0, // Sent by the user to open the settings menu.
-    SETTINGS_CMD_BACK       = 0xF1, // Sent by the user to go the the previous settings menu.
-    SETTINGS_CMD_EXIT       = 0xF2, // Sent by the user to exit the settings menu.
-    SETTINGS_CMD_SELECT     = 0xF3, // Sent by the user to select a settings menu item.
-    SETTINGS_STATE_MENU     = 0xF4, // Sent by Fusion to display a settings menu.
-    SETTINGS_STATE_ITEM     = 0xF5, // Sent by Fusion to display an item in a settings menu.
-    SETTINGS_STATE_EXIT     = 0xF6, // Sent by Fusion to stop displaying the settings menu.
+    SETTINGS_OPEN_CMD   = 0xF0, // Sent by the user to open the settings menu.
+    SETTINGS_BACK_CMD   = 0xF1, // Sent by the user to go the the previous settings menu.
+    SETTINGS_EXIT_CMD   = 0xF2, // Sent by the user to exit the settings menu.
+    SETTINGS_SELECT_CMD = 0xF3, // Sent by the user to select a settings menu item.
+    SETTINGS_MENU_STATE = 0xF4, // Sent by Fusion to display a settings menu.
+    SETTINGS_ITEM_STATE = 0xF5, // Sent by Fusion to display an item in a settings menu.
+    SETTINGS_EXIT_STATE = 0xF6, // Sent by Fusion to stop displaying the settings menu.
 };
 
 class AudioSystemState : public Event {
@@ -163,7 +163,7 @@ class AudioTrackPlaybackState : public Event {
 class AudioSettingsMenuState : public Event {
     public:
         AudioSettingsMenuState() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_STATE_MENU,
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_MENU_STATE,
                     {0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, page, data[0], data[0] = value);
@@ -181,7 +181,7 @@ enum class AudioSettingsType : uint8_t {
 class AudioSettingsItemState : public Event {
     public:
         AudioSettingsItemState() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_STATE_ITEM,
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_ITEM_STATE,
                     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, item,
@@ -201,31 +201,31 @@ class AudioSettingsItemState : public Event {
 class AudioSettingsExitState : public Event {
     public:
         AudioSettingsExitState() :
-                Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_STATE_ITEM) {}
+                Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_ITEM_STATE) {}
 };
 
-class AudioSettingsOpenCmd : public Event {
+class AudioSettingsOpenCommand : public Event {
     public:
-        AudioSettingsOpenCmd() :
-                Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_CMD_OPEN) {}
+        AudioSettingsOpenCommand() :
+                Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_OPEN_CMD) {}
 };
 
-class AudioSettingsSelectCmd : public Event {
+class AudioSettingsSelectCommand : public Event {
     public:
-        AudioSettingsSelectCmd(uint8_t item = 0x00) :
-                Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {item}) {}
+        AudioSettingsSelectCommand(uint8_t item = 0x00) :
+                Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {item}) {}
 
         EVENT_PROPERTY(uint8_t, item, data[0], data[0] = value);
 };
 
-class AudioSettingsBackCmd : public Event {
-    AudioSettingsBackCmd() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_CMD_BACK) {}
+class AudioSettingsBackCommand : public Event {
+    AudioSettingsBackCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_BACK_CMD) {}
 };
 
-class AudioSettingsExitCmd : public Event {
-    AudioSettingsExitCmd() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_CMD_EXIT) {}
+class AudioSettingsExitCommand : public Event {
+    AudioSettingsExitCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_EXIT_CMD) {}
 };
 
 class AudioChecksumEvent : public Event {
@@ -252,20 +252,20 @@ class AudioTrackAlbumState : public AudioChecksumEvent {
         AudioTrackAlbumState() :  AudioChecksumEvent(AudioEvent::TRACK_ALBUM_STATE) {}
 };
 
-class AudioSourceSetEvent : public Event {
+class AudioSourceSetCommand : public Event {
     public:
-        AudioSourceSetEvent() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SOURCE_SET, {0x00}) {}
+        AudioSourceSetCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SOURCE_SET_CMD, {0x00}) {}
 
         EVENT_PROPERTY(AudioSource, source,
                 (AudioSource)data[0],
                 data[0] = (uint8_t)value);
 };
 
-class AudioRadioTuneEvent : public Event {
+class AudioRadioTuneCommand : public Event {
     public:
-        AudioRadioTuneEvent() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::RADIO_TUNE,
+        AudioRadioTuneCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::RADIO_TUNE_CMD,
                     {0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint32_t, frequency,
@@ -273,42 +273,42 @@ class AudioRadioTuneEvent : public Event {
                 Endian::hltonb(data, value));
 };
 
-class AudioInputGainSetEvent : public Event {
+class AudioInputGainSetCommand : public Event {
     public:
-        AudioInputGainSetEvent() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::INPUT_GAIN_SET, {0x00}) {}
+        AudioInputGainSetCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::INPUT_GAIN_SET_CMD, {0x00}) {}
 
         EVENT_PROPERTY(int8_t, gain, (int8_t)data[0], data[0] = (uint8_t)value);
 };
 
-class AudioVolumeSetEvent : public Event {
+class AudioVolumeSetCommand : public Event {
     public:
-        AudioVolumeSetEvent() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::VOLUME_SET, {0x00}) {}
+        AudioVolumeSetCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::VOLUME_SET_CMD, {0x00}) {}
 
         EVENT_PROPERTY(uint8_t, volume, data[0], data[0] = value);
 };
 
-class AudioBalanceSetEvent : public Event {
+class AudioBalanceSetCommand : public Event {
     public:
-        AudioBalanceSetEvent() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::BALANCE_SET, {0x00}) {}
+        AudioBalanceSetCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::BALANCE_SET_CMD, {0x00}) {}
 
         EVENT_PROPERTY(int8_t, balance, (int8_t)data[0], data[0] = (uint8_t)value);
 };
 
-class AudioFadeSetEvent : public Event {
+class AudioFadeSetCommand : public Event {
     public:
-        AudioFadeSetEvent() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::BALANCE_SET, {0x00}) {}
+        AudioFadeSetCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::BALANCE_SET_CMD, {0x00}) {}
 
         EVENT_PROPERTY(int8_t, fade, (int8_t)data[0], data[0] = (uint8_t)value);
 };
 
-class AudioToneSetEvent : public Event {
+class AudioToneSetCommand : public Event {
     public:
-        AudioToneSetEvent() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TONE_SET,
+        AudioToneSetCommand() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TONE_SET_CMD,
                     {0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(int8_t, bass, (int8_t)data[0], data[0] = (uint8_t)value);

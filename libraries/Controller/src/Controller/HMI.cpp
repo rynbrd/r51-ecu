@@ -74,13 +74,13 @@ void HMI::handle(const Message& msg, const Yield<Message>&) {
                 case AudioEvent::TRACK_ALBUM_STATE:
                     setTxt("audio_track.album_txt", scratch_);
                     break;
-                case AudioEvent::SETTINGS_STATE_MENU:
+                case AudioEvent::SETTINGS_MENU_STATE:
                     handleAudioSettingsMenu((AudioSettingsMenuState*)&event);
                     break;
-                case AudioEvent::SETTINGS_STATE_ITEM:
+                case AudioEvent::SETTINGS_ITEM_STATE:
                     handleAudioSettingsItem((AudioSettingsItemState*)&event);
                     break;
-                case AudioEvent::SETTINGS_STATE_EXIT:
+                case AudioEvent::SETTINGS_EXIT_STATE:
                     handleAudioSettingsExit((AudioSettingsExitState*)&event);
                     break;
                 default:
@@ -453,7 +453,7 @@ void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 14:
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_OPEN);
+                    (uint8_t)AudioEvent::SETTINGS_OPEN_CMD);
             yield(event);
             break;
     }
@@ -465,43 +465,43 @@ void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield)
         case 30:
             // on page exit
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_EXIT);
+                    (uint8_t)AudioEvent::SETTINGS_EXIT_CMD);
             yield(event);
             break;
         case 14:
             // on back button
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_BACK);
+                    (uint8_t)AudioEvent::SETTINGS_BACK_CMD);
             yield(event);
             break;
         case 1:
         case 6:
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x00});
+                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x00});
             yield(event);
             break;
         case 5:
         case 7:
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x01});
+                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x01});
             yield(event);
             break;
         case 4:
         case 8:
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x02});
+                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x02});
             yield(event);
             break;
         case 3:
         case 9:
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x03});
+                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x03});
             yield(event);
             break;
         case 2:
         case 15:
             event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_CMD_SELECT, {0x04});
+                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x04});
             yield(event);
             break;
     }
@@ -512,31 +512,31 @@ void HMI::handleAudioSourceButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x01:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET,
+                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
                         {(uint8_t)AudioSource::BLUETOOTH});
             yield(event);
             break;
         case 0x02:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET,
+                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
                         {(uint8_t)AudioSource::AM});
             yield(event);
             break;
         case 0x03:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET,
+                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
                         {(uint8_t)AudioSource::FM});
             yield(event);
             break;
         case 0x04:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET,
+                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
                         {(uint8_t)AudioSource::AUX});
             yield(event);
             break;
         case 0x0A:
             event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET,
+                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
                         {(uint8_t)AudioSource::OPTICAL});
             yield(event);
             break;
