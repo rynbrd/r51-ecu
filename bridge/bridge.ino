@@ -23,16 +23,16 @@ using ::R51::CANGateway;
 using ::R51::Climate;
 using ::R51::Defog;
 using ::R51::FilteredCAN;
-using ::R51::FilteredJ1939;
 using ::R51::IPDM;
 using ::R51::J1939Adapter;
-using ::R51::J1939AddressClaim;
+using ::R51::J1939Connection;
+using ::R51::J1939Gateway;
 using ::R51::Message;
 using ::R51::PicoConfigStore;
 using ::R51::RealDashAdapter;
 using ::R51::Settings;
 using ::R51::SteeringKeypad;
-using ::R51::TirePressureState;
+using ::R51::TirePressure;
 
 // debug console
 #if defined(DEBUG_ENABLE)
@@ -45,9 +45,9 @@ CANGateway can_gw(&can_conn);
 
 // control system J1939 connection
 #if defined(J1939_ENABLE)
-FilteredJ1939 j1939_conn(&CAN1, J1939_ADDRESS);
-J1939Adapter j1939_event_node(&j1939_conn, J1939_ADDRESS);
-J1939AddressClaim j1939_claim_node(J1939_ADDRESS, J1939_NAME);
+J1939Connection j1939_conn(&CAN1);
+J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
+J1939Adapter j1939_adapter;
 #endif
 
 // RealDash over Bluetooth
@@ -73,7 +73,7 @@ PicoConfigStore config;
 Climate climate;
 Settings settings;
 IPDM ipdm;
-TirePressureState tires_node;
+TirePressure tires_node;
 #if defined(DEFOG_HEATER_ENABLE)
 Defog defog(DEFOG_HEATER_PIN, DEFOG_HEATER_MS);
 #endif
@@ -87,8 +87,8 @@ Node<Message>* nodes[] = {
 #endif
     &can_gw,
 #if defined(J1939_ENABLE)
-    &j1939_event_node,
-    &j1939_claim_node,
+    &j1939_gateway,
+    &j1939_adapter,
 #endif
 #if defined(BLUETOOTH_ENABLE)
     &ble_monitor,

@@ -28,27 +28,6 @@ class J1939Connection : public Canny::BufferedConnection {
         }
 };
 
-
-// Broadcasts Events over J1939.
-class J1939Events : public Caster::Node<Message> {
-    public:
-        J1939Events();
-
-        // Translate Events to and from J1939 messages.
-        void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
-
-        // Does nothing.
-        void emit(const Caster::Yield<Message>&) override {}
-    private:
-        void handleEvent(const Event& event,
-                const Caster::Yield<Message>& yield);
-        void handleJ1939Message(const Canny::J1939Message& msg,
-                const Caster::Yield<Message>& yield);
-
-        Canny::J1939Message j1939_;
-        Event event_;
-};
-
 }  // namespace R51
 
 #endif  // _R51_BRIDGE_J1939_H_
