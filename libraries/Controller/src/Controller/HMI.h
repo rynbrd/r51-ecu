@@ -31,8 +31,8 @@ enum class HMIPage : uint8_t {
 };
 
 enum class HMIEvent : uint8_t {
-    PAGE_STATE = 0x01,  // State event. The current page.
-    SLEEP_STATE = 0x02, // State event. Sent when the display sleeps and wakes.
+    PAGE_STATE  = 0x00, // State event. The current page.
+    SLEEP_STATE = 0x01, // State event. Sent when the display sleeps and wakes.
 };
 
 class DisplayPageState : public Event {
