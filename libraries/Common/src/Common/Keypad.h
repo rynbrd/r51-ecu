@@ -34,17 +34,17 @@ enum class KeypadEvent : uint8_t {
 // Sent when a key is pressed or released.
 class KeyState : public Event {
     public:
-        KeyState(uint8_t keypad = 0x00, uint8_t id = 0x00, bool pressed = false) :
+        KeyState(uint8_t keypad = 0x00, uint8_t key = 0x00, bool pressed = false) :
             Event(
                 SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::KEY_STATE,
-                {keypad, id, pressed}) {}
+                {keypad, key, pressed}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
-        // The ID of the key being pressed. This is unique among keys and
-        // encoders on the keypad.
-        EVENT_PROPERTY(uint8_t, id, data[1], data[1] = value);
+        // The ID of the key being pressed. This is unique among keys on the
+        // keypad.
+        EVENT_PROPERTY(uint8_t, key, data[1], data[1] = value);
         // True if the key is being pressed. False if it is not.
         EVENT_PROPERTY(bool, pressed, (bool)data[2], data[2] = (uint8_t)value);
 };
@@ -58,9 +58,9 @@ class EncoderState : public Event {
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
-        // The ID of the encoder being rotated. This is unique among keys and
-        // encoders on the keypad.
-        EVENT_PROPERTY(uint8_t, id, data[1], data[1] = value);
+        // The ID of the encoder being rotated. This is unique among encoders
+        // on the keypad.
+        EVENT_PROPERTY(uint8_t, encoder, data[1], data[1] = value);
         // The change in position of the encoder. Positive is clockwise,
         // negative is counter-clockwise.
         EVENT_PROPERTY(int8_t, delta, (int8_t)data[2], data[2] = (uint8_t)value);
@@ -75,8 +75,10 @@ class IndicatorCommand : public Event {
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
-        // The ID of the key or encoder to set the LED value on.
-        EVENT_PROPERTY(uint8_t, id, data[1], data[1] = value);
+        // The ID of the indicator LED. This is unique among indicator LEDs on
+        // the keypad and is generally associated with a specific key or
+        // encoder.
+        EVENT_PROPERTY(uint8_t, led, data[1], data[1] = value);
         // The color of the LED. Off is a color.
         EVENT_PROPERTY(KeypadColor, color, (KeypadColor)data[2], data[2] = (uint8_t)value);
 

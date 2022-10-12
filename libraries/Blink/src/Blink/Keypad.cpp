@@ -103,7 +103,7 @@ void BlinkKeypad::handleJ1939Message(const J1939Message& msg, const Yield<Messag
             msg.data()[2] != 0x01) {
         return;
     }
-    keypress_.id(msg.data()[3] - 1);
+    keypress_.key(msg.data()[3] - 1);
     keypress_.pressed(msg.data()[4] == 0x01);
     yield(keypress_);
 }
@@ -111,11 +111,11 @@ void BlinkKeypad::handleJ1939Message(const J1939Message& msg, const Yield<Messag
 void BlinkKeypad::handleIndicatorCommand(const IndicatorCommand* cmd,
         const Yield<Message>& yield) {
     if (command_.source_address() == Canny::NullAddress ||
-            cmd->id() >= key_count_ ||
+            cmd->led() >= key_count_ ||
             cmd->keypad() != keypress_.keypad()) {
         return;
     }
-    setKeyColor(cmd->id(), cmd->color(), yield);
+    setKeyColor(cmd->led(), cmd->color(), yield);
 }
 
 void BlinkKeypad::handleBrightnessCommand(const BrightnessCommand* cmd,

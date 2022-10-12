@@ -68,11 +68,12 @@ class RotaryEncoder {
 
 // A bus node that manages a group of Adafruit rotary encoders. Encoders have
 // two inputs - the encoder knob and the press switch of the encoder. IDs are
-// sequentually assigned to each encoder knob and switch starting at 0.
-// Encoders also have a backlight that can be controlled via the
-// BACKLIGHT_LED_CMD event. A maximum of 8 encoders are supported in the group.
-// This is, without coincidence, also the maximum number of encoders that can
-// be connected to a single I2C bus.
+// sequentually assigned to each encoder breakout such that the knob, switch,
+// and LED all have the same ID. ID's are assigned starting at 0.
+//
+// A maximum of 8 encoders are supported in the group. This is, without
+// coincidence, also the maximum number of encoders that can be connected to a
+// single I2C bus.
 class RotaryEncoderGroup : public Caster::Node<Message> {
     public:
         // Construct a new group with the given keypad ID and set of encoders.

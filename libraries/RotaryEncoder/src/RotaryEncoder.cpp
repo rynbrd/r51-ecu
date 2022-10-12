@@ -114,15 +114,14 @@ void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>&) {
 }
 
 void RotaryEncoderGroup::handleIndicatorCommand(const IndicatorCommand* cmd) {
-    uint8_t n = cmd->id() / 2;
-    if (cmd->keypad() != keypress_event_.keypad() || n >= count_) {
+    if (cmd->keypad() != keypress_event_.keypad() || cmd->led() >= count_) {
         return;
     }
-    RotaryEncoder* encoder = encoders_[n];
-    pauseInterrupts(n);
+    RotaryEncoder* encoder = encoders_[cmd->led()];
+    pauseInterrupts(cmd->led());
     encoder->setColor(cmd->color());
     encoder->showPixel();
-    resumeInterrupts(n);
+    resumeInterrupts(cmd->led());
 }
 
 void RotaryEncoderGroup::handleBrightnessCommand(const BrightnessCommand* cmd) {
@@ -164,12 +163,12 @@ void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
         resumeInterrupts(i);
 
         if (sw != 0) {
-            keypress_event_.id(i * 2 + 1);
+            keypress_event_.key(i);
             keypress_event_.pressed(sw == 1);
             yield(keypress_event_);
         }
         if (encoder_event_.delta() != 0) {
-            encoder_event_.id(i * 2);
+            encoder_event_.encoder(i);
             yield(encoder_event_);
         }
     }
