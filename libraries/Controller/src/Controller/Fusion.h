@@ -32,6 +32,11 @@ enum class AudioPlayback : uint8_t {
     PAUSE = 0x02,
 };
 
+enum class AudioSeek : uint8_t {
+    AUTO = 0x00,
+    MANUAL = 0x01,
+};
+
 enum class AudioEvent {
     // State events.
     SYSTEM_STATE            = 0x00, // State event. Sends power, connectivity, gain, frequency.
@@ -43,9 +48,12 @@ enum class AudioEvent {
     TRACK_ALBUM_STATE       = 0x06, // State event. Sends the album title.
 
     // System controls.
-    POWER_ON_CMD    = 0x10, // Turn on the stereo.
-    POWER_OFF_CMD   = 0x11, // Turn off the stereo.
-    SOURCE_SET_CMD  = 0x12, // Set source.
+    POWER_ON_CMD        = 0x10, // Turn on the stereo.
+    POWER_OFF_CMD       = 0x11, // Turn off the stereo.
+    POWER_TOGGLE_CMD    = 0x12, // Toggle stereo power.
+    SOURCE_SET_CMD      = 0x13, // Set source.
+    SOURCE_NEXT_CMD     = 0x14, // Next source. Only rotates through AM, FM, and BT.
+    SOURCE_PREV_CMD     = 0x15, // Previous source. Only rotates through AM, FM, and BT.
 
     // Track controls.
     TRACK_PLAY_CMD  = 0x20, // Play current track.
@@ -59,24 +67,29 @@ enum class AudioEvent {
     RADIO_PREV_AUTO_CMD     = 0x32, // Prev radio frequency in auto seek mode.
     RADIO_NEXT_MANUAL_CMD   = 0x33, // Next radio frequency in manual seek mode.
     RADIO_PREV_MANUAL_CMD   = 0x34, // Prev radio frequency in manual seek mode.
+    RADIO_TOGGLE_SEEK_CMD   = 0x35, // Toggle seek mode.
+    RADIO_NEXT_CMD          = 0x36, // Next radio frequency in current seek mode.
+    RADIO_PREV_CMD          = 0x37, // Next radio frequency in current seek mode.
 
     // Input controls.
     INPUT_GAIN_SET_CMD  = 0x40, // Set the input gain to specific value.
     INPUT_GAIN_INC_CMD  = 0x41, // Increment the input gain value.
     INPUT_GAIN_DEC_CMD  = 0x42, // Decrement the input gain value.
 
-    // Volums controls.
-    VOLUME_SET_CMD      = 0x50, // Set volume.
-    VOLUME_INC_CMD      = 0x51, // Increment volume.
-    VOLUME_DEC_CMD      = 0x52, // Decrement volume.
-    VOLUME_MUTE_CMD     = 0x53, // Mute volume.
-    VOLUME_UNMUTE_CMD   = 0x54, // Unmute volume.
-    BALANCE_SET_CMD     = 0x55, // Set the audio balance.
-    BALANCE_LEFT_CMD    = 0x56, // Shift audio balance to the left.
-    BALANCE_RIGHT_CMD   = 0x57, // Shift audio balance to the right.
-    FADE_SET_CMD        = 0x58, // Set the audio fade.
-    FADE_FRONT_CMD      = 0x59, // Fade audio to the front.
-    FADE_REAR_CMD       = 0x5A, // Fade audio to the back.
+    // Volume controls.
+    // TODO: allow inc/dec by a provided amount
+    VOLUME_SET_CMD          = 0x50, // Set volume.
+    VOLUME_INC_CMD          = 0x51, // Increment volume.
+    VOLUME_DEC_CMD          = 0x52, // Decrement volume.
+    VOLUME_MUTE_CMD         = 0x53, // Mute volume.
+    VOLUME_UNMUTE_CMD       = 0x54, // Unmute volume.
+    VOLUME_TOGGLE_MUTE_CMD  = 0x55, // Toggle volume mute.
+    BALANCE_SET_CMD         = 0x56, // Set the audio balance.
+    BALANCE_LEFT_CMD        = 0x57, // Shift audio balance to the left.
+    BALANCE_RIGHT_CMD       = 0x58, // Shift audio balance to the right.
+    FADE_SET_CMD            = 0x59, // Set the audio fade.
+    FADE_FRONT_CMD          = 0x5A, // Fade audio to the front.
+    FADE_REAR_CMD           = 0x5B, // Fade audio to the back.
 
     // EQ controls.
     TONE_SET_CMD        = 0x60, // Set bass, mid, and treble.
@@ -86,6 +99,15 @@ enum class AudioEvent {
     TONE_MID_DEC_CMD    = 0x64, // Decrease mid.
     TONE_TREBLE_INC_CMD = 0x65, // Increase treble.
     TONE_TREBLE_DEC_CMD = 0x66, // Decrease treble.
+
+    // Stateless playback controls.
+    PLAYBACK_TOGGLE_CMD = 0xE0, // Toggles between play/pause for Bluetooth
+                                // or mute/unmute for radio, aux, or optical
+                                // sources.
+    PLAYBACK_NEXT_CMD   = 0xE1, // Advance to next track for Bluetooth or auto
+                                // seek to next station for radio.
+    PLAYBACK_PREV_CMD   = 0xE2, // Go to previous track for Bluetooth or auto
+                                // seek to next station for radio.
 
     // Settings menu events and controls.
     SETTINGS_OPEN_CMD   = 0xF0, // Sent by the user to open the settings menu.
@@ -106,6 +128,9 @@ class AudioSystemState : public Event {
         EVENT_PROPERTY(bool, available, getBit(data, 0, 4), setBit(data, 0, 4, value));
         EVENT_PROPERTY(bool, power, getBit(data, 0, 5), setBit(data, 0, 5, value));
         EVENT_PROPERTY(bool, bt_connected, getBit(data, 0, 6), setBit(data, 0, 6, value));
+        EVENT_PROPERTY(AudioSeek, seek_mode,
+                (AudioSeek)getBit(data, 0, 7),
+                setBit(data, 0, 7, (bool)value));
         EVENT_PROPERTY(AudioSource, source,
                 (AudioSource)(data[0] & 0x0F),
                 data[0] = (data[0] & 0xF0) | ((uint8_t)value & 0x0F));
@@ -113,6 +138,10 @@ class AudioSystemState : public Event {
         EVENT_PROPERTY(uint32_t, frequency,
                 Endian::nbtohl(data + 2),
                 Endian::hltonb(data + 2, value));
+
+        void toggle_seek_mode() {
+            flipBit(data, 0, 7);
+        }
 };
 
 class AudioVolumeState : public Event {
@@ -375,6 +404,13 @@ class Fusion : public Caster::Node<Message> {
         void handleBluetoothConnection(bool connected,
                 const Caster::Yield<Message>& yield);
 
+        void handleSourceNextCmd(const Caster::Yield<Message>& yield);
+        void handleSourcePrevCmd(const Caster::Yield<Message>& yield);
+
+        void handlePlaybackToggleCmd(const Caster::Yield<Message>& yield);
+        void handlePlaybackNextCmd(const Caster::Yield<Message>& yield);
+        void handlePlaybackPrevCmd(const Caster::Yield<Message>& yield);
+
         bool handleString(uint8_t seq, const Canny::J1939Message& msg, uint8_t offset);
 
         void sendStereoRequest(const Caster::Yield<Message>& yield);
@@ -404,8 +440,6 @@ class Fusion : public Caster::Node<Message> {
         void sendMenuExit(const Caster::Yield<Message>& yield);
         void sendMenuReqItemCount(const Caster::Yield<Message>& yield);
         void sendMenuReqItemList(const Caster::Yield<Message>& yield, uint8_t count);
-
-        uint8_t volume();
 
         Faker::Clock* clock_;
         Scratch* scratch_;

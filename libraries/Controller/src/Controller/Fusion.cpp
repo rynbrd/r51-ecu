@@ -159,11 +159,20 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::POWER_OFF_CMD:
             sendPowerCmd(yield, false);
             break;
+        case AudioEvent::POWER_TOGGLE_CMD:
+            sendPowerCmd(yield, !system_.power());
+            break;
         case AudioEvent::SOURCE_SET_CMD:
             {
                 auto* e = (AudioSourceSetCommand*)&event;
                 sendSourceSetCmd(yield, e->source());
             }
+            break;
+        case AudioEvent::SOURCE_NEXT_CMD:
+            handleSourceNextCmd(yield);
+            break;
+        case AudioEvent::SOURCE_PREV_CMD:
+            handleSourcePrevCmd(yield);
             break;
         case AudioEvent::TRACK_PLAY_CMD:
             sendTrackCmd(yield, TRACK_CMD_PLAY);
@@ -195,6 +204,30 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::RADIO_PREV_MANUAL_CMD:
             sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, system_.frequency());
             break;
+        case AudioEvent::RADIO_TOGGLE_SEEK_CMD:
+            system_.toggle_seek_mode();
+            yield(system_);
+            break;
+        case AudioEvent::RADIO_NEXT_CMD:
+            switch (system_.seek_mode()) {
+                case AudioSeek::AUTO:
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, system_.frequency());
+                    break;
+                case AudioSeek::MANUAL:
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+                    break;
+            }
+            break;
+        case AudioEvent::RADIO_PREV_CMD:
+            switch (system_.seek_mode()) {
+                case AudioSeek::AUTO:
+                    sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, system_.frequency());
+                    break;
+                case AudioSeek::MANUAL:
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+                    break;
+            }
+            break;
         case AudioEvent::INPUT_GAIN_SET_CMD:
             {
                 auto* e = (AudioInputGainSetCommand*)&event;
@@ -224,6 +257,9 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
             break;
         case AudioEvent::VOLUME_UNMUTE_CMD:
             sendVolumeMuteCmd(yield, false);
+            break;
+        case AudioEvent::VOLUME_TOGGLE_MUTE_CMD:
+            sendVolumeMuteCmd(yield, !volume_.mute());
             break;
         case AudioEvent::BALANCE_SET_CMD:
             {
@@ -272,6 +308,15 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
             break;
         case AudioEvent::TONE_TREBLE_DEC_CMD:
             sendToneSetCmd(yield, tone_.bass(), tone_.mid(), tone_.treble() - 1);
+            break;
+        case AudioEvent::PLAYBACK_TOGGLE_CMD:
+            handlePlaybackToggleCmd(yield);
+            break;
+        case AudioEvent::PLAYBACK_NEXT_CMD:
+            handlePlaybackNextCmd(yield);
+            break;
+        case AudioEvent::PLAYBACK_PREV_CMD:
+            handlePlaybackPrevCmd(yield);
             break;
         case AudioEvent::SETTINGS_OPEN_CMD:
             sendMenuSettings(yield);
@@ -663,6 +708,119 @@ void Fusion::handleBluetoothConnection(bool connected,
         const Yield<Message>& yield) {
     if (system_.bt_connected(connected)) {
         yield(system_);
+    }
+}
+
+void Fusion::handleSourceNextCmd(const Caster::Yield<Message>& yield) {
+    if (!system_.power()) {
+        return;
+    }
+    switch (system_.source()) {
+        case AudioSource::BLUETOOTH:
+            sendSourceSetCmd(yield, AudioSource::AM);
+            break;
+        case AudioSource::AM:
+            sendSourceSetCmd(yield, AudioSource::FM);
+            break;
+        default:
+        case AudioSource::FM:
+            sendSourceSetCmd(yield, AudioSource::BLUETOOTH);
+            break;
+    }
+}
+
+void Fusion::handleSourcePrevCmd(const Caster::Yield<Message>& yield) {
+    if (!system_.power()) {
+        return;
+    }
+    switch (system_.source()) {
+        default:
+        case AudioSource::BLUETOOTH:
+            sendSourceSetCmd(yield, AudioSource::FM);
+            break;
+        case AudioSource::AM:
+            sendSourceSetCmd(yield, AudioSource::BLUETOOTH);
+            break;
+        case AudioSource::FM:
+            sendSourceSetCmd(yield, AudioSource::AM);
+            break;
+    }
+}
+
+void Fusion::handlePlaybackToggleCmd(const Caster::Yield<Message>& yield) {
+    if (!system_.power()) {
+        return;
+    }
+    switch (system_.source()) {
+        case AudioSource::AM:
+        case AudioSource::FM:
+            sendVolumeMuteCmd(yield, !volume_.mute());
+            break;
+        case AudioSource::BLUETOOTH:
+            if (track_playback_.playback() == AudioPlayback::PAUSE) {
+                sendTrackCmd(yield, TRACK_CMD_PLAY);
+            } else {
+                sendTrackCmd(yield, TRACK_CMD_PAUSE);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void Fusion::handlePlaybackNextCmd(const Caster::Yield<Message>& yield) {
+    if (!system_.power()) {
+        return;
+    }
+    switch (system_.source()) {
+        case AudioSource::AM:
+        case AudioSource::FM:
+            switch (system_.seek_mode()) {
+                case AudioSeek::AUTO:
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, system_.frequency());
+                    break;
+                case AudioSeek::MANUAL:
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+                    break;
+            }
+            break;
+        case AudioSource::BLUETOOTH:
+            sendTrackCmd(yield, TRACK_CMD_NEXT);
+            break;
+        case AudioSource::AUX:
+        case AudioSource::OPTICAL:
+            sendInputGainSetCmd(yield, system_.gain() + 1);
+            break;
+        default:
+            break;
+    }
+}
+
+void Fusion::handlePlaybackPrevCmd(const Caster::Yield<Message>& yield) {
+    if (!system_.power()) {
+        return;
+    }
+    switch (system_.source()) {
+        case AudioSource::AM:
+        case AudioSource::FM:
+            switch (system_.seek_mode()) {
+                case AudioSeek::AUTO:
+                    sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, system_.frequency());
+                    break;
+                case AudioSeek::MANUAL:
+                    sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, system_.frequency());
+                    break;
+            }
+            break;
+        case AudioSource::BLUETOOTH:
+            sendTrackCmd(yield, TRACK_CMD_PREV);
+            break;
+        case AudioSource::AUX:
+        case AudioSource::OPTICAL:
+            sendInputGainSetCmd(yield, system_.gain() - 1);
+            break;
+        default:
+            break;
     }
 }
 

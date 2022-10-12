@@ -161,7 +161,6 @@ class HMI : public Caster::Node<Message> {
 
         // audio state
         bool mute_;
-        bool seek_mode_;
         uint8_t audio_settings_page_;
         uint8_t audio_settings_count_;
 };

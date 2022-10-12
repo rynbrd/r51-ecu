@@ -14,7 +14,7 @@ using ::Caster::Yield;
 
 HMI::HMI(Stream* stream, Scratch* scratch) :
         stream_(new HMIDebugStream(stream)), scratch_(scratch),
-        climate_system_(0), mute_(false), seek_mode_(false),
+        climate_system_(0), mute_(false),
         audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::handle(const Message& msg, const Yield<Message>&) {
@@ -204,6 +204,10 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
             page(HMIPage::AUDIO_POWER_OFF);
         }
         return;
+    }
+    setVal("audio_radio.seek_mode", (uint8_t)event->seek_mode());
+    if (isPage(HMIPage::AUDIO_RADIO)) {
+        refresh();
     }
 
     setVal("audio.source", (uint8_t)event->source());
@@ -434,14 +438,13 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
     }
 }
 
-void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>&) {
+void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
+    Event event;
     switch (button) {
         case 11:
-            seek_mode_ = !seek_mode_;
-            setVal("audio_radio.seek_mode", seek_mode_);
-            if (isPage(HMIPage::AUDIO_RADIO)) {
-                refresh();
-            }
+            event = Event(SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::RADIO_TOGGLE_SEEK_CMD);
+            yield(event);
             break;
         default:
             break;
