@@ -25,7 +25,6 @@ enum class SubSystem : uint8_t {
     TIRE            = 0x08,
     CLIMATE         = 0x0A,
     SETTINGS        = 0x0B,
-    STEERING_KEYPAD = 0x0C,
     BLUETOOTH       = 0x0D,
     HMI             = 0x0E,
     AUDIO           = 0x0F,

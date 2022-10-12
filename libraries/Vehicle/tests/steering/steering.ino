@@ -15,17 +15,18 @@ class SteeringKeypadTest : public TestOnce {
         static constexpr const int values[] = {50, 280, 640};
         static const int pin_a = 1;
         static const int pin_b = 2;
+        static const uint8_t keypad_id = 0x10;
 
-        void assertButtonPress(uint32_t pin, uint32_t value, SteeringKeypadEvent expect) {
+        void assertButtonPress(uint32_t pin, uint32_t value, SteeringKey key) {
             FakeClock clock;
             FakeGPIO gpio;
             FakeYield yield;
 
-            Event released((uint8_t)SubSystem::STEERING_KEYPAD, (uint8_t)expect, {0x00});
-            Event pressed((uint8_t)SubSystem::STEERING_KEYPAD, (uint8_t)expect, {0x01});
+            KeyState released(keypad_id, (uint8_t)key, false);
+            KeyState pressed(keypad_id, (uint8_t)key, true);
 
             // initialize keypad
-            SteeringKeypad keypad(pin_a, pin_b, &clock, &gpio);
+            SteeringKeypad keypad(keypad_id, pin_a, pin_b, &clock, &gpio);
             gpio.analogWrite(pin_a, 1023);
             gpio.analogWrite(pin_b, 1023);
 
@@ -56,27 +57,27 @@ class SteeringKeypadTest : public TestOnce {
 };
 
 testF(SteeringKeypadTest, Power) {
-    assertButtonPress(pin_a, values[0], SteeringKeypadEvent::POWER);
+    assertButtonPress(pin_a, values[0], SteeringKey::POWER);
 }
 
 testF(SteeringKeypadTest, SeekDown) {
-    assertButtonPress(pin_a, values[1], SteeringKeypadEvent::SEEK_DOWN);
+    assertButtonPress(pin_a, values[1], SteeringKey::SEEK_DOWN);
 }
 
 testF(SteeringKeypadTest, VolumeDown) {
-    assertButtonPress(pin_a, values[2], SteeringKeypadEvent::VOLUME_DOWN);
+    assertButtonPress(pin_a, values[2], SteeringKey::VOLUME_DOWN);
 }
 
 testF(SteeringKeypadTest, Mode) {
-    assertButtonPress(pin_b, values[0], SteeringKeypadEvent::MODE);
+    assertButtonPress(pin_b, values[0], SteeringKey::MODE);
 }
 
 testF(SteeringKeypadTest, SeekUp) {
-    assertButtonPress(pin_b, values[1], SteeringKeypadEvent::SEEK_UP);
+    assertButtonPress(pin_b, values[1], SteeringKey::SEEK_UP);
 }
 
 testF(SteeringKeypadTest, VolumeUp) {
-    assertButtonPress(pin_b, values[2], SteeringKeypadEvent::VOLUME_UP);
+    assertButtonPress(pin_b, values[2], SteeringKey::VOLUME_UP);
 }
 
 }  // namespace R51

@@ -78,7 +78,7 @@ TirePressure tires_node;
 Defog defog(DEFOG_HEATER_PIN, DEFOG_HEATER_MS);
 #endif
 #if defined(STEERING_KEYPAD_ENABLE)
-SteeringKeypad steering_keypad(STEERING_PIN_A, STEERING_PIN_B);
+SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_B);
 #endif
 
 Node<Message>* nodes[] = {

@@ -8,7 +8,7 @@
 
 namespace R51 {
 
-enum class SteeringKeypadEvent : uint8_t {
+enum class SteeringKey : uint8_t {
     POWER = 0x00,
     MODE = 0x01,
     SEEK_UP = 0x02,
@@ -21,9 +21,10 @@ enum class SteeringKeypadEvent : uint8_t {
 // are pressed and released.
 class SteeringKeypad : public Caster::Node<Message> {
     public:
-        // Construct a new steering switch keypad object. Switches are
+        // Construct a new steering switch keypad node. Switches are
         // connected to GPIO pins sw_a_pin and sw_b_pin.
-        SteeringKeypad(int sw_a_pin, int sw_b_pin, Faker::Clock* clock = Faker::Clock::real(),
+        SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,
+                Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
 
         // Noop. This node does not process messages.
@@ -35,6 +36,7 @@ class SteeringKeypad : public Caster::Node<Message> {
     private:
         AnalogMultiButton sw_a_;
         AnalogMultiButton sw_b_;
+        KeyState key_;
 };
 
 }  // namespace R51

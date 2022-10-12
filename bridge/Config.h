@@ -29,6 +29,7 @@
 #define DEFOG_HEATER_MS 200
 
 // Uncomment the following line to enable steering keypad.
+#define STEERING_KEYPAD_ID 0x00
 #define STEERING_KEYPAD_ENABLE
 #define STEERING_PIN_A A2
 #define STEERING_PIN_B A3

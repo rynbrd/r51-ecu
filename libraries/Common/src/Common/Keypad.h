@@ -34,9 +34,11 @@ enum class KeypadEvent : uint8_t {
 // Sent when a key is pressed or released.
 class KeyState : public Event {
     public:
-        KeyState(uint8_t keypad = 0x00) : Event(SubSystem::KEYPAD,
+        KeyState(uint8_t keypad = 0x00, uint8_t id = 0x00, bool pressed = false) :
+            Event(
+                SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::KEY_STATE,
-                {keypad, 0x00, 0x00, 0x00}) {}
+                {keypad, id, pressed}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
