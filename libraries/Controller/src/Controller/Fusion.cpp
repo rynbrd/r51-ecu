@@ -27,8 +27,9 @@ static const uint32_t kDiscoveryTick = 5000;
 static const uint8_t kVolumeMax = 24;
 static const int8_t kBalanceMin = -7;
 static const int8_t kBalanceMax = 7;
-static const int8_t kFadeMin = -24;
-static const int8_t kFadeMax = 24;
+static const int8_t kFadeMin = -8;
+static const int8_t kFadeMax = 8;
+static const int8_t kFadeMultiplier = 3;
 static const int8_t kToneMin = -15;
 static const int8_t kToneMax = 15;
 
@@ -609,7 +610,7 @@ void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
         } else {
             changed |= volume_.volume(zone2);
         }
-        changed |= volume_.fade(zone1 - zone2);
+        changed |= volume_.fade((zone1 - zone2) / kFadeMultiplier);
         if (recent_mute_) {
             changed = false;
             recent_mute_ = false;
@@ -962,6 +963,7 @@ void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_
     } else if (fade > kFadeMax) {
         fade = kFadeMax;
     }
+    fade *= kFadeMultiplier;
     int8_t zone1 = (int8_t)volume;
     int8_t zone2 = (int8_t)volume;
     if (fade < 0) {
