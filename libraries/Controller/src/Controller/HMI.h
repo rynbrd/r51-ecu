@@ -126,6 +126,12 @@ class HMI : public Caster::Node<Message> {
         void handleSettings2Button(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings3Button(uint8_t button, const Caster::Yield<Message>& yield);
 
+        template <typename Cmd>
+        void sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem, Cmd cmd);
+        template <typename Cmd, typename Payload>
+        void sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem,
+                Cmd cmd, Payload payload);
+
         void terminate();
         void refresh();
         void show(const char* obj);
@@ -136,7 +142,7 @@ class HMI : public Caster::Node<Message> {
         bool isPageWithHeader();
         void page(HMIPage value);
         void printEscaped(const char* value);
-        int32_t get(const char* key);
+        int32_t getVal(const char* key);
         void setVal(const char* key, int32_t value);
         void setTxt(const char* key, int32_t value);
         void setTxt(const char* key, double value, uint8_t precision);
@@ -152,6 +158,7 @@ class HMI : public Caster::Node<Message> {
 
         Stream* stream_;
         Scratch* scratch_;
+        Event event_;
 
         DisplayPageState page_;
         DisplaySleepState sleep_;
@@ -164,6 +171,23 @@ class HMI : public Caster::Node<Message> {
         uint8_t audio_settings_page_;
         uint8_t audio_settings_count_;
 };
+
+template <typename Cmd>
+void HMI::sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem, Cmd cmd) {
+    event_.subsystem = (uint8_t)subsystem;
+    event_.id = (uint8_t)cmd;
+    event_.data[0] = 0xFF;
+    yield(event_);
+}
+
+template <typename Cmd, typename Payload>
+void HMI::sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem,
+        Cmd cmd, Payload payload) {
+    event_.subsystem = (uint8_t)subsystem;
+    event_.id = (uint8_t)cmd;
+    event_.data[0] = (uint8_t)payload;
+    yield(event_);
+}
 
 }  // namespace R51
 

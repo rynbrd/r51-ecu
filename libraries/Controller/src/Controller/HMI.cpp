@@ -406,32 +406,27 @@ void HMI::handleSerial(const Yield<Message>& yield) {
 }
 
 void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
-    Event event;
     switch (button) {
         case 0x11:
             if (climate_system_ == 0x00) {
-                event = Event(SubSystem::CLIMATE,
-                            (uint8_t)ClimateEvent::TOGGLE_AUTO_CMD);
+                sendCmd(yield, SubSystem::CLIMATE,
+                            ClimateEvent::TOGGLE_AUTO_CMD);
             } else {
-                event = Event(SubSystem::CLIMATE,
-                            (uint8_t)ClimateEvent::TURN_OFF_CMD);
+                sendCmd(yield, SubSystem::CLIMATE,
+                            ClimateEvent::TURN_OFF_CMD);
             }
-            yield(event);
             break;
         case 0x12:
-            event = Event(SubSystem::CLIMATE,
-                        (uint8_t)ClimateEvent::TOGGLE_AC_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::CLIMATE,
+                        ClimateEvent::TOGGLE_AC_CMD);
             break;
         case 0x13:
-            event = Event(SubSystem::CLIMATE,
-                        (uint8_t)ClimateEvent::TOGGLE_RECIRCULATE_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::CLIMATE,
+                        ClimateEvent::TOGGLE_RECIRCULATE_CMD);
             break;
         case 0x14:
-            event = Event(SubSystem::CLIMATE,
-                        (uint8_t)ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::CLIMATE,
+                        ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
             break;
         default:
             break;
@@ -439,12 +434,10 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
 }
 
 void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
-    Event event;
     switch (button) {
         case 11:
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::RADIO_TOGGLE_SEEK_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::RADIO_TOGGLE_SEEK_CMD);
             break;
         default:
             break;
@@ -452,96 +445,80 @@ void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
 }
 
 void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
-    Event event;
     switch (button) {
         case 14:
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_OPEN_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_OPEN_CMD);
             break;
     }
 }
 
 void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield) {
-    Event event;
     switch (button) {
         case 30:
             // on page exit
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_EXIT_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_EXIT_CMD);
             break;
         case 14:
             // on back button
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_BACK_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_BACK_CMD);
             break;
         case 1:
         case 6:
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x00});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_SELECT_CMD, 0x00);
             break;
         case 5:
         case 7:
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x01});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_SELECT_CMD, 0x01);
             break;
         case 4:
         case 8:
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x02});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_SELECT_CMD, 0x02);
             break;
         case 3:
         case 9:
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x03});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_SELECT_CMD, 0x03);
             break;
         case 2:
         case 15:
-            event = Event(SubSystem::AUDIO,
-                    (uint8_t)AudioEvent::SETTINGS_SELECT_CMD, {0x04});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                    AudioEvent::SETTINGS_SELECT_CMD, 0x04);
             break;
     }
 }
 
 void HMI::handleAudioSourceButton(uint8_t button, const Yield<Message>& yield) {
-    Event event;
     switch (button) {
         case 0x01:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
-                        {(uint8_t)AudioSource::BLUETOOTH});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::BLUETOOTH);
             break;
         case 0x02:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
-                        {(uint8_t)AudioSource::AM});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::AM);
             break;
         case 0x03:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
-                        {(uint8_t)AudioSource::FM});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::FM);
             break;
         case 0x04:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
-                        {(uint8_t)AudioSource::AUX});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::AUX);
             break;
         case 0x0A:
-            event = Event(SubSystem::AUDIO,
-                        (uint8_t)AudioEvent::SOURCE_SET_CMD,
-                        {(uint8_t)AudioSource::OPTICAL});
-            yield(event);
+            sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::OPTICAL);
             break;
         default:
             break;
@@ -552,12 +529,9 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x17:
             {
-                uint8_t tires = get("vehicle.swap_tires");
+                uint8_t tires = getVal("vehicle.swap_tires");
                 if ((tires & 0x0F) != ((tires >> 4) & 0x0F)) {
-                    Event event = Event(SubSystem::TIRE,
-                                (uint8_t)TireEvent::SWAP_POSITION_CMD,
-                                {tires});
-                    yield(event);
+                    sendCmd(yield, SubSystem::TIRE, TireEvent::SWAP_POSITION_CMD, tires);
                 }
             }
             break;
@@ -567,42 +541,34 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
 }
 
 void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
-    Event event;
     switch (button) {
         case 0x05:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
             break;
         case 0x07:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
             break;
         case 0x08:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
             break;
         case 0x0B:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             break;
         case 0x0C:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             break;
         case 0x0F:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
             break;
         case 0x11:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
             break;
         default:
             break;
@@ -610,42 +576,34 @@ void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
 }
 
 void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
-    Event event;
     switch (button) {
         case 0x0A:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
             break;
         case 0x04:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
             break;
         case 0x06:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
             break;
         case 0x07:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
             break;
         case 0x0B:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
             break;
         case 0x0E:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
             break;
         case 0x10:
-            event = Event(SubSystem::BLUETOOTH,
-                        (uint8_t)BluetoothEvent::FORGET_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::BLUETOOTH,
+                        BluetoothEvent::FORGET_CMD);
             break;
         default:
             break;
@@ -656,9 +614,8 @@ void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x03:
-            event = Event(SubSystem::SETTINGS,
-                        (uint8_t)SettingsEvent::FACTORY_RESET_CMD);
-            yield(event);
+            sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::FACTORY_RESET_CMD);
             break;
         default:
             break;
@@ -757,7 +714,7 @@ void HMI::printEscaped(const char* value) {
     }
 }
 
-int32_t HMI::get(const char* key) {
+int32_t HMI::getVal(const char* key) {
     stream_->print("get ");
     stream_->print(key);
     stream_->print(".val");
@@ -765,9 +722,12 @@ int32_t HMI::get(const char* key) {
     if (!read(true) || scratch_->size < 5 || scratch_->bytes[0] != 0x71) {
         return 0;
     }
-    int32_t value;
-    memcpy(&value, scratch_->bytes + 1, 4);
-    return value;
+    union {
+       int32_t sl;
+       uint32_t ul;
+    } value;
+    value.ul = Endian::btohl(scratch_->bytes, Endian::BIG);
+    return value.sl;
 }
 
 void HMI::setVal(const char* key, int32_t value) {
@@ -883,4 +843,4 @@ bool HMI::read(bool block) {
     return n - 3;
 }
 
-}
+}  // namespace R51
