@@ -21,12 +21,19 @@ HMI::HMI(Stream* stream, Scratch* scratch) :
         audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::handle(const Message& msg, const Yield<Message>& yield) {
-    //TODO: Handle controller request command.
     if (msg.type() != Message::EVENT) {
         return;
     }
     const auto& event = msg.event();
     switch ((SubSystem)event.subsystem) {
+        case SubSystem::CONTROLLER:
+            if (RequestCommand::match(event, SubSystem::HMI, (uint8_t)HMIEvent::PAGE_STATE)) {
+                yield(page_);
+            }
+            if (RequestCommand::match(event, SubSystem::HMI, (uint8_t)HMIEvent::SLEEP_STATE)) {
+                yield(sleep_);
+            }
+            break;
         case SubSystem::HMI:
             if ((event.id & 0xF0) == 0x10) {
                 handleNav(event, yield);
