@@ -22,17 +22,25 @@ enum class HMIPage : uint8_t {
     AUDIO_VOLUME    = 9,
     AUDIO_SOURCE    = 10,
     AUDIO_SETTINGS  = 11,
-    VEHICLE         = 12,
-    SETTINGS        = 13,
-    SETTINGS_1      = 14,
-    SETTINGS_2      = 15,
-    SETTINGS_3      = 16,
-    SHARED          = 17,
+    AUDIO_EQ        = 12,
+    VEHICLE         = 13,
+    SETTINGS        = 14,
+    SETTINGS_1      = 15,
+    SETTINGS_2      = 16,
+    SETTINGS_3      = 17,
+    SHARED          = 18,
 };
 
 enum class HMIEvent : uint8_t {
     PAGE_STATE  = 0x00, // State event. The current page.
     SLEEP_STATE = 0x01, // State event. Sent when the display sleeps and wakes.
+
+    // Context sensitive navigation commands.
+    NAV_UP_CMD          = 0x10,
+    NAV_DOWN_CMD        = 0x11,
+    NAV_LEFT_CMD        = 0x12,
+    NAV_RIGHT_CMD       = 0x13,
+    NAV_ACTIVATE_CMD    = 0x14,
 };
 
 class DisplayPageState : public Event {
@@ -100,6 +108,7 @@ class HMI : public Caster::Node<Message> {
         // Emit input events from the HMI display.
         void emit(const Caster::Yield<Message>& yield) override;
     private:
+        void handleNav(const Event& event, const Caster::Yield<Message>& yield);
         void handleECM(const Event& event);
         void handleIPDM(const Event& event);
         void handleTire(const Event& event);
