@@ -98,30 +98,31 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
 }
 
 void HMI::handleNav(const Event& event, const Caster::Yield<Message>& yield) {
-    uint8_t selected = getVal("selected");
+    uint8_t selected = getVal("navselect");
     switch ((HMIEvent)event.id) {
         case HMIEvent::NAV_UP_CMD:
             switch (page_.page()) {
+                case HMIPage::AUDIO_SETTINGS:
                 case HMIPage::AUDIO_SOURCE:
                 case HMIPage::AUDIO_EQ:
                 case HMIPage::SETTINGS_1:
                     if (selected > 1) {
-                        setVal("selected", selected - 1);
+                        setVal("navselect", selected - 1);
                         refresh();
                     }
                     break;
                 case HMIPage::SETTINGS_2:
                     if (selected <= 1) {
-                        setVal("settings_1.selected", 5);
+                        setVal("settings_1.navselect", 5);
                         page(HMIPage::SETTINGS_1);
                     } else {
-                        setVal("selected", selected - 1);
+                        setVal("navselect", selected - 1);
                         refresh();
                     }
                     break;
                 case HMIPage::SETTINGS_3:
                     if (selected <= 1) {
-                        setVal("settings_2.selected", 5);
+                        setVal("settings_2.navselect", 5);
                         page(HMIPage::SETTINGS_1);
                     }
                     break;
@@ -131,34 +132,40 @@ void HMI::handleNav(const Event& event, const Caster::Yield<Message>& yield) {
             break;
         case HMIEvent::NAV_DOWN_CMD:
             switch (page_.page()) {
+                case HMIPage::AUDIO_SETTINGS:
+                    if (selected < audio_settings_count_) {
+                        setVal("navselect", selected + 1);
+                        refresh();
+                    }
+                    break;
                 case HMIPage::AUDIO_SOURCE:
                 case HMIPage::AUDIO_EQ:
                     if (selected < 5) {
-                        setVal("selected", selected + 1);
+                        setVal("navselect", selected + 1);
                         refresh();
                     }
                     break;
                 case HMIPage::SETTINGS_1:
                     if (selected >= 5) {
-                        setVal("settings_2.selected", 1);
+                        setVal("settings_2.navselect", 1);
                         page(HMIPage::SETTINGS_2);
                     } else {
-                        setVal("selected", selected + 1);
+                        setVal("navselect", selected + 1);
                         refresh();
                     }
                     break;
                 case HMIPage::SETTINGS_2:
                     if (selected >= 5) {
-                        setVal("settings_3.selected", 1);
+                        setVal("settings_3.navselect", 1);
                         page(HMIPage::SETTINGS_3);
                     } else {
-                        setVal("selected", selected + 1);
+                        setVal("navselect", selected + 1);
                         refresh();
                     }
                     break;
                 case HMIPage::SETTINGS_3:
                     if (selected < 1) {
-                        setVal("selected", selected + 1);
+                        setVal("navselect", selected + 1);
                         refresh();
                     }
                     break;
@@ -242,6 +249,12 @@ void HMI::handleNav(const Event& event, const Caster::Yield<Message>& yield) {
             break;
         case HMIEvent::NAV_ACTIVATE_CMD:
             switch (page_.page()) {
+                case HMIPage::AUDIO_SETTINGS:
+                    if (selected <= audio_settings_count_) {
+                        sendCmd(yield, SubSystem::AUDIO,
+                                AudioEvent::SETTINGS_SELECT_CMD, selected - 1);
+                    }
+                    break;
                 case HMIPage::AUDIO_SOURCE:
                     if (selected == 1) {
                         sendCmd(yield, SubSystem::AUDIO,
@@ -507,6 +520,8 @@ void HMI::handleAudioSettingsMenu(const AudioSettingsMenuState* event) {
     audio_settings_count_ = event->count();
     if (!isPage(HMIPage::AUDIO_SETTINGS)) {
         page(HMIPage::AUDIO_SETTINGS);
+    } else {
+        setVal("audio_settings.navselect", 0);
     }
 }
 
