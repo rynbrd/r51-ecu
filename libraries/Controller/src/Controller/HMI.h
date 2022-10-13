@@ -148,8 +148,10 @@ class HMI : public Caster::Node<Message> {
         bool isPage(HMIPage value);
         bool isAudioPage();
         bool isAudioSourcePage();
+        bool isSettingsPage();
         bool isPageWithHeader();
         void page(HMIPage value);
+        void climatePopup();
         void printEscaped(const char* value);
         int32_t getVal(const char* key);
         void setVal(const char* key, int32_t value);
@@ -173,7 +175,10 @@ class HMI : public Caster::Node<Message> {
         DisplaySleepState sleep_;
 
         // climate state
-        uint8_t climate_system_;
+        ClimateSystemMode climate_system_;
+        uint8_t climate_fan_;
+        uint8_t climate_driver_temp_;
+        uint8_t climate_pass_temp_;
 
         // audio state
         bool mute_;

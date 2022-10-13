@@ -15,7 +15,9 @@ using ::Caster::Yield;
 
 HMI::HMI(Stream* stream, Scratch* scratch) :
         stream_(new HMIDebugStream(stream)), scratch_(scratch),
-        climate_system_(0), mute_(false),
+        climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
+        climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
+        mute_(false),
         audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::handle(const Message& msg, const Yield<Message>& yield) {
@@ -26,9 +28,10 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     const auto& event = msg.event();
     switch ((SubSystem)event.subsystem) {
         case SubSystem::HMI:
-            if (event.id & 0xF0 == 0x10) {
+            if ((event.id & 0xF0) == 0x10) {
                 handleNav(event, yield);
             }
+            break;
         case SubSystem::ECM:
             handleECM(event);
             break;
@@ -369,8 +372,8 @@ void HMI::handleTire(const Event& event) {
 }
 
 void HMI::handleClimateSystem(const ClimateSystemState* event) {
-    climate_system_ = (uint8_t)event->mode();
-    setVal("climate.system", climate_system_);
+    climate_system_ = event->mode();
+    setVal("climate.system", (uint8_t)climate_system_);
     setVal("climate.ac", event->ac());
     setVal("climate.dual", event->dual());
     if (isPage(HMIPage::CLIMATE)) {
@@ -386,13 +389,23 @@ void HMI::handleClimateAirflow(const ClimateAirflowState* event) {
     setVal("climate.recirc", event->recirculate());
     if (isPage(HMIPage::CLIMATE)) {
         refresh();
+    } else if (climate_fan_ != 0xFF && climate_fan_ != event->fan_speed() &&
+            climate_system_ != CLIMATE_SYSTEM_AUTO) {
+        climatePopup();
     }
+    climate_fan_ = event->fan_speed();
 }
 
 void HMI::handleClimateTemp(const ClimateTempState* event) {
     setTxtTemp("climate.dtemp_txt", event->driver_temp());
     setTxtTemp("climate.ptemp_txt", event->passenger_temp());
     setTxtTemp("climate.otemp_txt", event->outside_temp());
+    if ((climate_driver_temp_ != 0xFF && climate_driver_temp_ != event->driver_temp()) ||
+            (climate_pass_temp_ != 0xFF && climate_pass_temp_ != event->passenger_temp())) {
+        climatePopup();
+    }
+    climate_driver_temp_ = event->driver_temp();
+    climate_pass_temp_ = event->passenger_temp();
 }
 
 void HMI::handleSettings(const Event& event) {
@@ -633,7 +646,7 @@ void HMI::handleSerial(const Yield<Message>& yield) {
 void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x11:
-            if (climate_system_ == 0x00) {
+            if (climate_system_ == CLIMATE_SYSTEM_OFF) {
                 sendCmd(yield, SubSystem::CLIMATE,
                             ClimateEvent::TOGGLE_AUTO_CMD);
             } else {
@@ -912,6 +925,16 @@ bool HMI::isAudioSourcePage() {
         isPage(HMIPage::AUDIO_SOURCE);
 }
 
+bool HMI::isSettingsPage() {
+    return isPage(HMIPage::AUDIO_SOURCE) ||
+        isPage(HMIPage::AUDIO_SETTINGS) ||
+        isPage(HMIPage::AUDIO_EQ) ||
+        isPage(HMIPage::SETTINGS) ||
+        isPage(HMIPage::SETTINGS_1) ||
+        isPage(HMIPage::SETTINGS_2) ||
+        isPage(HMIPage::SETTINGS_3);
+}
+
 bool HMI::isPageWithHeader() {
     return isPage(HMIPage::HOME) ||
         isPage(HMIPage::CLIMATE) ||
@@ -928,6 +951,13 @@ void HMI::page(HMIPage value) {
     stream_->print("page ");
     stream_->print((int32_t)value);
     terminate();
+}
+
+void HMI::climatePopup() {
+    if (!isSettingsPage() && !isPage(HMIPage::CLIMATE)) {
+        setVal("climate.popup", 1);
+        page(HMIPage::CLIMATE);
+    }
 }
 
 void HMI::printEscaped(const char* value) {
