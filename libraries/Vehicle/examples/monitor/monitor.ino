@@ -10,7 +10,7 @@ ClimateSystemState climate_system;
 ClimateTemperatureState climate_temp;
 ECMCoolantState coolant;
 IPDMState ipdm;
-TirePressureState tires;
+TirePressure tires;
 
 Canny::Error err;
 Canny::Frame frame(64);
