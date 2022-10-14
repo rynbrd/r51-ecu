@@ -28,7 +28,8 @@ enum class SubSystem : uint8_t {
     BLUETOOTH       = 0x0D,
     HMI             = 0x0E,
     AUDIO           = 0x0F,
-    KEYPAD          = 0x10,
+    POWER           = 0x10,
+    KEYPAD          = 0x11,
 };
 
 enum class ControllerEvent : uint8_t {
