@@ -5,20 +5,29 @@
 #include <Caster.h>
 #include <Common.h>
 #include <Endian.h>
+#include <Faker.h>
 #include <Foundation.h>
 #include <Vehicle.h>
 #include "Fusion.h"
 
 namespace R51 {
+namespace {
 
 using ::Caster::Yield;
 
-HMI::HMI(Stream* stream, Scratch* scratch) :
-        stream_(new HMIDebugStream(stream)), scratch_(scratch),
-        climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
-        climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
-        mute_(false),
-        audio_settings_page_(0), audio_settings_count_(0) {}
+static const uint32_t kPowerLongPressTimeout = 3000;
+
+}  // namespace
+
+HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id,
+        Faker::Clock* clock) :
+    stream_(new HMIDebugStream(stream)), scratch_(scratch),
+    encoder_keypad_id_(encoder_keypad_id),
+    climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
+    climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
+    mute_(false),
+    audio_settings_page_(0), audio_settings_count_(0),
+    power_(kPowerLongPressTimeout, clock) {}
 
 void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
@@ -35,8 +44,29 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
             }
             break;
         case SubSystem::HMI:
-            if ((event.id & 0xF0) == 0x10) {
-                handleNav(event, yield);
+            switch ((HMIEvent)event.id) {
+                case HMIEvent::NAV_UP_CMD:
+                    navUp(yield);
+                    break;
+                case HMIEvent::NAV_DOWN_CMD:
+                    navDown(yield);
+                    break;
+                case HMIEvent::NAV_LEFT_CMD:
+                    navLeft(yield);
+                    break;
+                case HMIEvent::NAV_RIGHT_CMD:
+                    navRight(yield);
+                    break;
+                case HMIEvent::NAV_ACTIVATE_CMD:
+                    navActivate(yield);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case SubSystem::KEYPAD:
+            if (event.data[0] == encoder_keypad_id_) {
+                handleEncoder(event, yield);
             }
             break;
         case SubSystem::ECM:
@@ -107,221 +137,86 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     }
 }
 
-void HMI::handleNav(const Event& event, const Caster::Yield<Message>& yield) {
-    uint8_t selected = getVal("navselect");
-    switch ((HMIEvent)event.id) {
-        case HMIEvent::NAV_UP_CMD:
-            switch (page_.page()) {
-                case HMIPage::AUDIO_SETTINGS:
-                case HMIPage::AUDIO_SOURCE:
-                case HMIPage::AUDIO_EQ:
-                case HMIPage::SETTINGS_1:
-                    if (selected > 1) {
-                        setVal("navselect", selected - 1);
-                        refresh();
-                    }
-                    break;
-                case HMIPage::SETTINGS_2:
-                    if (selected <= 1) {
-                        setVal("settings_1.navselect", 5);
-                        page(HMIPage::SETTINGS_1);
-                    } else {
-                        setVal("navselect", selected - 1);
-                        refresh();
-                    }
-                    break;
-                case HMIPage::SETTINGS_3:
-                    if (selected <= 1) {
-                        setVal("settings_2.navselect", 5);
-                        page(HMIPage::SETTINGS_1);
-                    }
-                    break;
-                default:
-                    break;
+void HMI::handleEncoder(const Event& event, const Yield<Message>& yield) {
+}
+
+void HMI::handleEncoderClimate(const Event& event, const Yield<Message>& yield) {
+    if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
+        const auto* key = (KeyState*)&event;
+        if (key->key() == 0 && !key->pressed()) {
+            sendCmd(yield, SubSystem::CLIMATE,  ClimateEvent::TOGGLE_AUTO_CMD);
+        } else if (key->key() == 1 && !key->pressed()) {
+            sendCmd(yield, SubSystem::CLIMATE,  ClimateEvent::TOGGLE_DUAL_CMD);
+        }
+    } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
+        const auto* encoder = (EncoderState*)&event;
+        if (encoder->encoder() == 0) {
+            if (encoder->delta() > 0) {
+                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::INC_DRIVER_TEMP_CMD);
+            } else {
+                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::DEC_DRIVER_TEMP_CMD);
             }
-            break;
-        case HMIEvent::NAV_DOWN_CMD:
-            switch (page_.page()) {
-                case HMIPage::AUDIO_SETTINGS:
-                    if (selected < audio_settings_count_) {
-                        setVal("navselect", selected + 1);
-                        refresh();
-                    }
-                    break;
-                case HMIPage::AUDIO_SOURCE:
-                case HMIPage::AUDIO_EQ:
-                    if (selected < 5) {
-                        setVal("navselect", selected + 1);
-                        refresh();
-                    }
-                    break;
-                case HMIPage::SETTINGS_1:
-                    if (selected >= 5) {
-                        setVal("settings_2.navselect", 1);
-                        page(HMIPage::SETTINGS_2);
-                    } else {
-                        setVal("navselect", selected + 1);
-                        refresh();
-                    }
-                    break;
-                case HMIPage::SETTINGS_2:
-                    if (selected >= 5) {
-                        setVal("settings_3.navselect", 1);
-                        page(HMIPage::SETTINGS_3);
-                    } else {
-                        setVal("navselect", selected + 1);
-                        refresh();
-                    }
-                    break;
-                case HMIPage::SETTINGS_3:
-                    if (selected < 1) {
-                        setVal("navselect", selected + 1);
-                        refresh();
-                    }
-                    break;
-                default:
-                    break;
+        } else if (encoder->encoder() == 1) {
+            if (encoder->delta() > 0) {
+                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::INC_PASSENGER_TEMP_CMD);
+            } else {
+                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::DEC_PASSENGER_TEMP_CMD);
             }
-            break;
-        case HMIEvent::NAV_LEFT_CMD:
-            switch (page_.page()) {
-                case HMIPage::AUDIO_EQ:
-                    if (selected == 1) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_BASS_DEC_CMD);
-                    } else if (selected == 2) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_MID_DEC_CMD);
-                    } else if (selected == 3) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_TREBLE_DEC_CMD);
-                    } else if (selected == 4) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::FADE_REAR_CMD);
-                    } else if (selected == 5) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::BALANCE_LEFT_CMD);
-                    }
-                    break;
-                case HMIPage::SETTINGS_1:
-                    if (selected == 2) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
-                    } else if (selected == 3) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
-                    }
-                    break;
-                case HMIPage::SETTINGS_2:
-                    if (selected == 1) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
-                    } else if (selected == 2) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
-                    }
-                    break;
-                default:
-                    break;
+        }
+    }
+}
+
+void HMI::handleEncoderAudio(const Event& event, const Yield<Message>& yield) {
+    if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
+        const auto* key = (KeyState*)&event;
+        if (key->key() == 0 && !key->pressed()) {
+            sendCmd(yield, SubSystem::AUDIO, AudioEvent::VOLUME_TOGGLE_MUTE_CMD);
+        } else if (key->key() == 1) {
+            if (key->pressed()) {
+                power_.press();
+            } else if (power_.release()) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::PLAYBACK_TOGGLE_CMD);
             }
-            break;
-        case HMIEvent::NAV_RIGHT_CMD:
-            switch (page_.page()) {
-                case HMIPage::AUDIO_EQ:
-                    if (selected == 1) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_BASS_INC_CMD);
-                    } else if (selected == 2) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_MID_INC_CMD);
-                    } else if (selected == 3) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_TREBLE_INC_CMD);
-                    } else if (selected == 4) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::FADE_FRONT_CMD);
-                    } else if (selected == 5) {
-                        sendCmd(yield, SubSystem::AUDIO, AudioEvent::BALANCE_RIGHT_CMD);
-                    }
-                    break;
-                case HMIPage::SETTINGS_1:
-                    if (selected == 2) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
-                    } else if (selected == 3) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
-                    }
-                    break;
-                case HMIPage::SETTINGS_2:
-                    if (selected == 1) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
-                    } else if (selected == 2) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
-                    }
-                    break;
-                default:
-                    break;
+        }
+    } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
+        const auto* encoder = (EncoderState*)&event;
+        if (encoder->encoder() == 0) {
+            if (encoder->delta() > 0) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::VOLUME_INC_CMD);
+            } else {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::VOLUME_DEC_CMD);
             }
-            break;
-        case HMIEvent::NAV_ACTIVATE_CMD:
-            switch (page_.page()) {
-                case HMIPage::AUDIO_SETTINGS:
-                    if (selected <= audio_settings_count_) {
-                        sendCmd(yield, SubSystem::AUDIO,
-                                AudioEvent::SETTINGS_SELECT_CMD, selected - 1);
-                    }
-                    break;
-                case HMIPage::AUDIO_SOURCE:
-                    if (selected == 1) {
-                        sendCmd(yield, SubSystem::AUDIO,
-                                AudioEvent::SOURCE_SET_CMD,
-                                AudioSource::BLUETOOTH);
-                    } else if (selected == 2) {
-                        sendCmd(yield, SubSystem::AUDIO,
-                                AudioEvent::SOURCE_SET_CMD,
-                                AudioSource::AM);
-                    } else if (selected == 3) {
-                        sendCmd(yield, SubSystem::AUDIO,
-                                AudioEvent::SOURCE_SET_CMD,
-                                AudioSource::FM);
-                    } else if (selected == 4) {
-                        sendCmd(yield, SubSystem::AUDIO,
-                                AudioEvent::SOURCE_SET_CMD,
-                                AudioSource::AUX);
-                    } else if (selected == 5) {
-                        sendCmd(yield, SubSystem::AUDIO,
-                                AudioEvent::SOURCE_SET_CMD,
-                                AudioSource::OPTICAL);
-                    }
-                    break;
-                case HMIPage::SETTINGS_1:
-                    if (selected == 1) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
-                    } else if (selected == 4) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
-                    } else if (selected == 5) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
-                    }
-                    break;
-                case HMIPage::SETTINGS_2:
-                    if (selected == 3) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
-                    } else if (selected == 4) {
-                        sendCmd(yield, SubSystem::SETTINGS,
-                                SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
-                    } else if (selected == 5) {
-                        sendCmd(yield, SubSystem::BLUETOOTH, BluetoothEvent::FORGET_CMD);
-                    }
-                    break;
-                case HMIPage::SETTINGS_3:
-                    if (selected == 1) {
-                        sendCmd(yield, SubSystem::SETTINGS, SettingsEvent::FACTORY_RESET_CMD);
-                    }
-                    break;
-                default:
-                    break;
+        } else if (encoder->encoder() == 1) {
+            if (encoder->delta() > 0) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::PLAYBACK_NEXT_CMD);
+            } else {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::PLAYBACK_PREV_CMD);
             }
-            break;
-        default:
-            break;
+        }
+    }
+}
+
+void HMI::handleEncoderNav(const Event& event, const Yield<Message>& yield) {
+    if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
+        const auto* key = (KeyState*)&event;
+        if (key->key() == 0 && !key->pressed()) {
+            navActivate(yield);
+        }
+    } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
+        const auto* encoder = (EncoderState*)&event;
+        if (encoder->encoder() == 0) {
+            if (encoder->delta() > 0) {
+                navUp(yield);
+            } else {
+                navDown(yield);
+            }
+        } else if (encoder->encoder() == 1) {
+            if (encoder->delta() > 0) {
+                navRight(yield);
+            } else {
+                navLeft(yield);
+            }
+        }
     }
 }
 
@@ -861,6 +756,226 @@ void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
         case 0x03:
             sendCmd(yield, SubSystem::SETTINGS,
                         SettingsEvent::FACTORY_RESET_CMD);
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::navUp(const Yield<Message>& yield) {
+    uint8_t selected = getVal("navselect");
+    switch (page_.page()) {
+        case HMIPage::AUDIO_SETTINGS:
+        case HMIPage::AUDIO_SOURCE:
+        case HMIPage::AUDIO_EQ:
+        case HMIPage::SETTINGS_1:
+            if (selected > 1) {
+                setVal("navselect", selected - 1);
+                refresh();
+            }
+            break;
+        case HMIPage::SETTINGS_2:
+            if (selected <= 1) {
+                setVal("settings_1.navselect", 5);
+                page(HMIPage::SETTINGS_1);
+            } else {
+                setVal("navselect", selected - 1);
+                refresh();
+            }
+            break;
+        case HMIPage::SETTINGS_3:
+            if (selected <= 1) {
+                setVal("settings_2.navselect", 5);
+                page(HMIPage::SETTINGS_1);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::navDown(const Yield<Message>& yield) {
+    uint8_t selected = getVal("navselect");
+    switch (page_.page()) {
+        case HMIPage::AUDIO_SETTINGS:
+            if (selected < audio_settings_count_) {
+                setVal("navselect", selected + 1);
+                refresh();
+            }
+            break;
+        case HMIPage::AUDIO_SOURCE:
+        case HMIPage::AUDIO_EQ:
+            if (selected < 5) {
+                setVal("navselect", selected + 1);
+                refresh();
+            }
+            break;
+        case HMIPage::SETTINGS_1:
+            if (selected >= 5) {
+                setVal("settings_2.navselect", 1);
+                page(HMIPage::SETTINGS_2);
+            } else {
+                setVal("navselect", selected + 1);
+                refresh();
+            }
+            break;
+        case HMIPage::SETTINGS_2:
+            if (selected >= 5) {
+                setVal("settings_3.navselect", 1);
+                page(HMIPage::SETTINGS_3);
+            } else {
+                setVal("navselect", selected + 1);
+                refresh();
+            }
+            break;
+        case HMIPage::SETTINGS_3:
+            if (selected < 1) {
+                setVal("navselect", selected + 1);
+                refresh();
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::navLeft(const Yield<Message>& yield) {
+    uint8_t selected = getVal("navselect");
+    switch (page_.page()) {
+        case HMIPage::AUDIO_EQ:
+            if (selected == 1) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_BASS_DEC_CMD);
+            } else if (selected == 2) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_MID_DEC_CMD);
+            } else if (selected == 3) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_TREBLE_DEC_CMD);
+            } else if (selected == 4) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::FADE_REAR_CMD);
+            } else if (selected == 5) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::BALANCE_LEFT_CMD);
+            }
+            break;
+        case HMIPage::SETTINGS_1:
+            if (selected == 2) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
+            } else if (selected == 3) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
+            }
+            break;
+        case HMIPage::SETTINGS_2:
+            if (selected == 1) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
+            } else if (selected == 2) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::navRight(const Yield<Message>& yield) {
+    uint8_t selected = getVal("navselect");
+    switch (page_.page()) {
+        case HMIPage::AUDIO_EQ:
+            if (selected == 1) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_BASS_INC_CMD);
+            } else if (selected == 2) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_MID_INC_CMD);
+            } else if (selected == 3) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_TREBLE_INC_CMD);
+            } else if (selected == 4) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::FADE_FRONT_CMD);
+            } else if (selected == 5) {
+                sendCmd(yield, SubSystem::AUDIO, AudioEvent::BALANCE_RIGHT_CMD);
+            }
+            break;
+        case HMIPage::SETTINGS_1:
+            if (selected == 2) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
+            } else if (selected == 3) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
+            }
+            break;
+        case HMIPage::SETTINGS_2:
+            if (selected == 1) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
+            } else if (selected == 2) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::navActivate(const Yield<Message>& yield) {
+    uint8_t selected = getVal("navselect");
+    switch (page_.page()) {
+        case HMIPage::AUDIO_SETTINGS:
+            if (selected <= audio_settings_count_) {
+                sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SETTINGS_SELECT_CMD, selected - 1);
+            }
+            break;
+        case HMIPage::AUDIO_SOURCE:
+            if (selected == 1) {
+                sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::BLUETOOTH);
+            } else if (selected == 2) {
+                sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::AM);
+            } else if (selected == 3) {
+                sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::FM);
+            } else if (selected == 4) {
+                sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::AUX);
+            } else if (selected == 5) {
+                sendCmd(yield, SubSystem::AUDIO,
+                        AudioEvent::SOURCE_SET_CMD,
+                        AudioSource::OPTICAL);
+            }
+            break;
+        case HMIPage::SETTINGS_1:
+            if (selected == 1) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
+            } else if (selected == 4) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
+            } else if (selected == 5) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
+            }
+            break;
+        case HMIPage::SETTINGS_2:
+            if (selected == 3) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
+            } else if (selected == 4) {
+                sendCmd(yield, SubSystem::SETTINGS,
+                        SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
+            } else if (selected == 5) {
+                sendCmd(yield, SubSystem::BLUETOOTH, BluetoothEvent::FORGET_CMD);
+            }
+            break;
+        case HMIPage::SETTINGS_3:
+            if (selected == 1) {
+                sendCmd(yield, SubSystem::SETTINGS, SettingsEvent::FACTORY_RESET_CMD);
+            }
             break;
         default:
             break;

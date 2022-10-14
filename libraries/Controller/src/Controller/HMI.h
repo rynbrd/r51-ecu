@@ -4,7 +4,9 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Common.h>
+#include <Faker.h>
 #include <Vehicle.h>
+#include "Buttons.h"
 #include "Fusion.h"
 
 namespace R51 {
@@ -100,7 +102,8 @@ class HMI : public Caster::Node<Message> {
         // Construct a new HMI node that communicates with a device over the
         // given stream. The scratch space is used to provide string data to
         // the display for events which include a string payload. 
-        HMI(Stream* stream, Scratch* scratch);
+        HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id = 0xFF,
+                Faker::Clock* clock = Faker::Clock::real());
 
         // Updates the HMI display with received broadcast events.
         void handle(const Message& msg, const Caster::Yield<Message>&) override;
@@ -108,7 +111,11 @@ class HMI : public Caster::Node<Message> {
         // Emit input events from the HMI display.
         void emit(const Caster::Yield<Message>& yield) override;
     private:
-        void handleNav(const Event& event, const Caster::Yield<Message>& yield);
+        void handleEncoder(const Event& event, const Caster::Yield<Message>& yield);
+        void handleEncoderClimate(const Event& event, const Caster::Yield<Message>& yield);
+        void handleEncoderAudio(const Event& event, const Caster::Yield<Message>& yield);
+        void handleEncoderNav(const Event& event, const Caster::Yield<Message>& yield);
+
         void handleECM(const Event& event);
         void handleIPDM(const Event& event);
         void handleTire(const Event& event);
@@ -134,6 +141,12 @@ class HMI : public Caster::Node<Message> {
         void handleSettings1Button(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings2Button(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings3Button(uint8_t button, const Caster::Yield<Message>& yield);
+
+        void navUp(const Caster::Yield<Message>& yield);
+        void navDown(const Caster::Yield<Message>& yield);
+        void navLeft(const Caster::Yield<Message>& yield);
+        void navRight(const Caster::Yield<Message>& yield);
+        void navActivate(const Caster::Yield<Message>& yield);
 
         template <typename Cmd>
         void sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem, Cmd cmd);
@@ -169,6 +182,7 @@ class HMI : public Caster::Node<Message> {
 
         Stream* stream_;
         Scratch* scratch_;
+        uint8_t encoder_keypad_id_;
         Event event_;
 
         DisplayPageState page_;
@@ -184,6 +198,9 @@ class HMI : public Caster::Node<Message> {
         bool mute_;
         uint8_t audio_settings_page_;
         uint8_t audio_settings_count_;
+
+        // buttons
+        LongPressButton power_;
 };
 
 template <typename Cmd>
