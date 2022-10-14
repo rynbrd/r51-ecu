@@ -100,9 +100,9 @@ test(ClimateSystemStateTest, SetAutoAC) {
     assertPrintablesEqual(event, expect);
 }
 
-test(ClimateSystemStateTest, SetDefrostACDual) {
+test(ClimateSystemStateTest, SetDefogACDual) {
     ClimateSystemState event;
-    event.mode(CLIMATE_SYSTEM_DEFROST);
+    event.mode(CLIMATE_SYSTEM_DEFOG);
     event.ac(true);
     event.dual(true);
 

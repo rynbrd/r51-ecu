@@ -62,7 +62,7 @@ void printClimate() {
         case CLIMATE_SYSTEM_MANUAL:
             Serial.print("man");
             break;
-        case CLIMATE_SYSTEM_DEFROST:
+        case CLIMATE_SYSTEM_DEFOG:
             Serial.print("def");
             break;
     }
@@ -149,7 +149,7 @@ void printIpdm() {
     Serial.print(" running=");
     printOnOff(ipdm.running_lights());
     Serial.print(" defrost=");
-    printOnOff(ipdm.defog());
+    printOnOff(ipdm.defrost());
     Serial.print(" ac=");
     printOnOff(ipdm.ac_compressor());
     Serial.println();

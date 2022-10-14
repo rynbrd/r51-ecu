@@ -258,11 +258,11 @@ testF(ClimateTest, CycleMode) {
     assertYieldFrame(control, expect);
 }
 
-testF(ClimateTest, ToggleDefrost) {
+testF(ClimateTest, ToggleDefog) {
     Climate climate(0, &clock);
     initClimate(&climate);
 
-    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_DEFROST_CMD);
+    Event control((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TOGGLE_DEFOG_CMD);
     Frame expect;
 
     expect = Frame(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00});

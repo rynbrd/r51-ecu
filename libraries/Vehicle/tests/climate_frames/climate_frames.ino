@@ -102,14 +102,14 @@ test(ClimateSystemControlFrameTest, CycleMode) {
     assertTrue(checkFrame(c, expect));
 }
 
-test(ClimateSystemControlFrameTest, ToggleDefrost) {
+test(ClimateSystemControlFrameTest, ToggleDefog) {
     ClimateSystemControlFrame c(true);
 
-    c.toggleDefrost();
+    c.toggleDefog();
     Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00});
     assertTrue(checkFrame(c, expect));
 
-    c.toggleDefrost();
+    c.toggleDefog();
     expect.data({0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
     assertTrue(checkFrame(c, expect));
 }

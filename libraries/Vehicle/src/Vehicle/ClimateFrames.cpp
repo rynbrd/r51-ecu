@@ -64,7 +64,7 @@ void ClimateSystemControlFrame::cycleMode() {
     flipBit(data(), 6, 0);
 }
 
-void ClimateSystemControlFrame::toggleDefrost() {
+void ClimateSystemControlFrame::toggleDefog() {
     if (isInit(this)) {
         return;
     }

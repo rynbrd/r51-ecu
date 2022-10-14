@@ -46,7 +46,7 @@ test(IPDMTest, Tick) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(IPDMTest, Defog) {
+test(IPDMTest, Defrost) {
     FakeYield yield;
     Frame f(0x625, 0, {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
@@ -160,57 +160,57 @@ test(IPDMTest, RequestAll) {
     assertIsEvent(yield.messages()[0], expect);
 }
 
-test(DefogTest, Trigger) {
+test(DefrostTest, Trigger) {
     FakeYield yield;
     FakeClock clock;
     FakeGPIO gpio;
-    Defog defog(1, 200, &clock, &gpio);
-    Event event((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::TOGGLE_DEFOG_CMD);
+    Defrost defrost(1, 200, &clock, &gpio);
+    Event event((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::TOGGLE_DEFROST_CMD);
 
     // Ensure default state is off.
-    defog.emit(yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 0);
 
-    // Toggle the defog heater.
+    // Toggle the defrost heater.
     clock.set(1);
-    defog.handle(event, yield);
-    defog.emit(yield);
+    defrost.handle(event, yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 1);
 
     // Ensure state is on after only part of the time elapses.
     clock.set(200);
-    defog.emit(yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 1);
 
     // Ensure state is off after the entire time elapses.
     clock.set(201);
-    defog.emit(yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 0);
 
     // State stays the same.
     clock.set(1000);
-    defog.emit(yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 0);
 
     // Trigger it again.
     clock.set(1001);
-    defog.handle(event, yield);
-    defog.emit(yield);
+    defrost.handle(event, yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 1);
 
     clock.set(1200);
-    defog.emit(yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 1);
 
     clock.set(1201);
-    defog.emit(yield);
+    defrost.emit(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 0);
 }

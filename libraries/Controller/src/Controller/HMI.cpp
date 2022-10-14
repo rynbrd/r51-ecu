@@ -509,10 +509,10 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
             sendCmd(yield, ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
             break;
         case 0x27:
-            sendCmd(yield, ClimateEvent::TOGGLE_DEFROST_CMD);
+            sendCmd(yield, ClimateEvent::TOGGLE_DEFOG_CMD);
             break;
         case 0x28:
-            sendCmd(yield, IPDMEvent::TOGGLE_DEFOG_CMD);
+            sendCmd(yield, IPDMEvent::TOGGLE_DEFROST_CMD);
             break;
         default:
             break;

@@ -23,10 +23,10 @@
 #define J1939_READ_BUFFER 32
 #define J1939_WRITE_BUFFER 2
 
-// Uncomment the following line to enable defog heater control.
-#define DEFOG_HEATER_ENABLE
-#define DEFOG_HEATER_PIN 6
-#define DEFOG_HEATER_MS 200
+// Uncomment the following line to enable rear defrost control.
+#define DEFEROST_HEATER_ENABLE
+#define DEFEROST_HEATER_PIN 6
+#define DEFEROST_HEATER_MS 200
 
 // Uncomment the following line to enable steering keypad.
 #define STEERING_KEYPAD_ID 0x00

@@ -21,7 +21,7 @@ using ::R51::BLE;
 using ::R51::BLENode;
 using ::R51::CANGateway;
 using ::R51::Climate;
-using ::R51::Defog;
+using ::R51::Defrost;
 using ::R51::FilteredCAN;
 using ::R51::IPDM;
 using ::R51::J1939Adapter;
@@ -74,8 +74,8 @@ Climate climate;
 Settings settings;
 IPDM ipdm;
 TirePressure tires_node;
-#if defined(DEFOG_HEATER_ENABLE)
-Defog defog(DEFOG_HEATER_PIN, DEFOG_HEATER_MS);
+#if defined(DEFROST_HEATER_ENABLE)
+Defrost defrost(DEFROST_HEATER_PIN, DEFROST_HEATER_MS);
 #endif
 #if defined(STEERING_KEYPAD_ENABLE)
 SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_B);
@@ -98,7 +98,7 @@ Node<Message>* nodes[] = {
 #endif
     &ipdm,
 #if defined(DEFOG_HEATER_ENABLE)
-    &defog,
+    &defrost,
 #endif
 #if defined(STEERING_KEYPAD_ENABLE)
     &steering_keypad,

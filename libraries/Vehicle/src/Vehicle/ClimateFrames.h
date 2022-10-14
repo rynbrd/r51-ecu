@@ -43,9 +43,9 @@ class ClimateSystemControlFrame : public Canny::Frame {
         // This is a noop until ready() is called.
         void cycleMode();
 
-        // Toggle defrost mode.
+        // Toggle defog mode.
         // This is a noop until ready() is called.
-        void toggleDefrost();
+        void toggleDefog();
 
         // Increase driver zone temperature. Temperature changes should not be
         // sent while the climate control system is in the off state. 

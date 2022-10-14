@@ -17,7 +17,7 @@ enum class ClimateEvent : uint8_t {
     TOGGLE_AUTO_CMD         = 0x11, // Toggle climate auto mode.
     TOGGLE_AC_CMD           = 0x12, // Toggle A/C compressor request on/off.
     TOGGLE_DUAL_CMD         = 0x13, // Toggle dual zone mode.
-    TOGGLE_DEFROST_CMD      = 0x14, // Toggle defrost mode.
+    TOGGLE_DEFOG_CMD        = 0x14, // Toggle defog mode.
     INC_FAN_SPEED_CMD       = 0x15, // Increase fan speed.
     DEC_FAN_SPEED_CMD       = 0x16, // Decrease fan speed.
     TOGGLE_RECIRCULATE_CMD  = 0x17, // Toggle airflow recirculation.
@@ -32,7 +32,7 @@ enum ClimateSystemMode : uint8_t {
     CLIMATE_SYSTEM_OFF = 0,
     CLIMATE_SYSTEM_AUTO = 1,
     CLIMATE_SYSTEM_MANUAL = 2,
-    CLIMATE_SYSTEM_DEFROST = 3,
+    CLIMATE_SYSTEM_DEFOG = 3,
 };
 
 // Climate temperature state event.

@@ -128,7 +128,7 @@ void Climate::handleSystemFrame(const Canny::Frame& frame, const Caster::Yield<M
         system_state_.dual(getBit(frame.data(), 3, 7)));
 
     if (airflow_state_.windshield()) {
-        system_state_changed |= system_state_.mode(CLIMATE_SYSTEM_DEFROST);
+        system_state_changed |= system_state_.mode(CLIMATE_SYSTEM_DEFOG);
     } else if (getBit(frame.data(), 0, 7)) {
         system_state_changed |= system_state_.mode(CLIMATE_SYSTEM_OFF);
     } else if (getBit(frame.data(), 0, 0)) {
@@ -180,8 +180,8 @@ void Climate::handleClimateEvent(const Event& event, const Caster::Yield<Message
             system_control_.toggleDual();
             system_control_changed = true;
             break;
-        case ClimateEvent::TOGGLE_DEFROST_CMD:
-            system_control_.toggleDefrost();
+        case ClimateEvent::TOGGLE_DEFOG_CMD:
+            system_control_.toggleDefog();
             system_control_changed = true;
             break;
         case ClimateEvent::INC_FAN_SPEED_CMD:

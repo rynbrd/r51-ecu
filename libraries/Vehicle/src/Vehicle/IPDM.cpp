@@ -34,7 +34,7 @@ void IPDM::handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& 
     setBit(&state, 0, 2, getBit(frame.data(), 1, 6));
     // fog lights
     setBit(&state, 0, 3, getBit(frame.data(), 1, 3));
-    // defog heaters
+    // defrost heaters
     setBit(&state, 0, 6, getBit(frame.data(), 0, 0));
     // a/c compressor
     setBit(&state, 0, 7, getBit(frame.data(), 1, 7));
@@ -63,16 +63,16 @@ void IPDM::yieldEvent(const Caster::Yield<Message>& yield) {
     yield(event_);
 }
 
-void Defog::handle(const Message& message, const Caster::Yield<Message>&) {
+void Defrost::handle(const Message& message, const Caster::Yield<Message>&) {
     if (message.type() != Message::EVENT ||
             message.event().subsystem !=  (uint8_t)SubSystem::IPDM ||
-            message.event().id != (uint8_t)IPDMEvent::TOGGLE_DEFOG_CMD) {
+            message.event().id != (uint8_t)IPDMEvent::TOGGLE_DEFROST_CMD) {
         return;
     }
     output_.trigger();
 }
 
-void Defog::emit(const Caster::Yield<Message>&) {
+void Defrost::emit(const Caster::Yield<Message>&) {
     output_.update();
 }
 
