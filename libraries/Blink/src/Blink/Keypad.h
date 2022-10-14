@@ -49,7 +49,6 @@ class BlinkKeypad : public Caster::Node<Message> {
         KeyState keypress_;
         Canny::J1939Message command_;
 
-        uint8_t address_;
         uint8_t key_count_;
 };
 
