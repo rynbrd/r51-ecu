@@ -6,8 +6,8 @@
 #include <Common.h>
 #include <Faker.h>
 #include <Vehicle.h>
-#include "Buttons.h"
-#include "Fusion.h"
+#include "Audio.h"
+#include "Controls.h"
 
 namespace R51 {
 
@@ -97,7 +97,7 @@ class HMIDebugStream : public Stream {
 };
 
 // Node for interacting with an attached HMI LED display.
-class HMI : public Caster::Node<Message> {
+class HMI : public Controls {
     public:
         // Construct a new HMI node that communicates with a device over the
         // given stream. The scratch space is used to provide string data to
@@ -148,12 +148,6 @@ class HMI : public Caster::Node<Message> {
         void navRight(const Caster::Yield<Message>& yield);
         void navActivate(const Caster::Yield<Message>& yield);
 
-        template <typename Cmd>
-        void sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem, Cmd cmd);
-        template <typename Cmd, typename Payload>
-        void sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem,
-                Cmd cmd, Payload payload);
-
         void terminate();
         void refresh();
         void show(const char* obj);
@@ -183,7 +177,6 @@ class HMI : public Caster::Node<Message> {
         Stream* stream_;
         Scratch* scratch_;
         uint8_t encoder_keypad_id_;
-        Event event_;
 
         DisplayPageState page_;
         DisplaySleepState sleep_;
@@ -202,23 +195,6 @@ class HMI : public Caster::Node<Message> {
         // buttons
         LongPressButton power_;
 };
-
-template <typename Cmd>
-void HMI::sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem, Cmd cmd) {
-    event_.subsystem = (uint8_t)subsystem;
-    event_.id = (uint8_t)cmd;
-    event_.data[0] = 0xFF;
-    yield(event_);
-}
-
-template <typename Cmd, typename Payload>
-void HMI::sendCmd(const Caster::Yield<Message>& yield, SubSystem subsystem,
-        Cmd cmd, Payload payload) {
-    event_.subsystem = (uint8_t)subsystem;
-    event_.id = (uint8_t)cmd;
-    event_.data[0] = (uint8_t)payload;
-    yield(event_);
-}
 
 }  // namespace R51
 

@@ -3,7 +3,7 @@
 #include <Caster.h>
 #include <Common.h>
 #include <Vehicle.h>
-#include "Fusion.h"
+#include "Audio.h"
 
 namespace R51 {
 namespace {
@@ -94,12 +94,6 @@ void SteeringControls::emit(const Yield<Message>& yield) {
     if (volume_down_.trigger()) {
         sendCmd(yield, AudioEvent::VOLUME_DEC_CMD);
     }
-}
-
-void SteeringControls::sendCmd(const Yield<Message>& yield, AudioEvent cmd) {
-    event_.subsystem = (uint8_t)SubSystem::AUDIO;
-    event_.id = (uint8_t)cmd;
-    yield(event_);
 }
 
 }  // namespace R51

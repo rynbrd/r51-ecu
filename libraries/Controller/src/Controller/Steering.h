@@ -5,12 +5,12 @@
 #include <Caster.h>
 #include <Common.h>
 #include <Faker.h>
-#include "Buttons.h"
-#include "Fusion.h"
+#include "Audio.h"
+#include "Controls.h"
 
 namespace R51 {
 
-class SteeringControls : public Caster::Node<Message> {
+class SteeringControls : public Controls {
     public:
         SteeringControls(uint8_t steering_keypad_id,
                 Faker::Clock* clock = Faker::Clock::real());
@@ -22,15 +22,12 @@ class SteeringControls : public Caster::Node<Message> {
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
-        void sendCmd(const Caster::Yield<Message>& yield, AudioEvent cmd);
-
         uint8_t keypad_id_;
         LongPressButton power_;
         RepeatButton seek_up_;
         RepeatButton seek_down_;
         RepeatButton volume_up_;
         RepeatButton volume_down_;
-        Event event_;
 };
 
 }  // namespace R51

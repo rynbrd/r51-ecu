@@ -5,6 +5,7 @@
 #include <Common.h>
 #include <Endian.h>
 #include <Faker.h>
+#include "Audio.h"
 
 namespace R51 {
 namespace {

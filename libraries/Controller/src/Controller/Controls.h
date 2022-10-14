@@ -1,11 +1,33 @@
-#ifndef _R51_CONTROLLER_BUTTONS_H_
-#define _R51_CONTROLLER_BUTTONS_H_
+#ifndef _R51_CONTROLLER_CONTROLS_H_
+#define _R51_CONTROLLER_CONTROLS_H_
 
 #include <Arduino.h>
+#include <Bluetooth.h>
+#include <Caster.h>
+#include <Common.h>
 #include <Faker.h>
 #include <Foundation.h>
+#include <Vehicle.h>
+#include "Audio.h"
 
 namespace R51 {
+
+class Controls : public Caster::Node<Message> {
+    public:
+        Controls() = default;
+        virtual ~Controls() = default;
+
+    protected:
+        void sendCmd(const Caster::Yield<Message>& yield, AudioEvent cmd);
+        void sendCmd(const Caster::Yield<Message>& yield, AudioEvent cmd, uint8_t payload);
+        void sendCmd(const Caster::Yield<Message>& yield, AudioEvent cmd, AudioSource payload);
+        void sendCmd(const Caster::Yield<Message>& yield, ClimateEvent cmd);
+        void sendCmd(const Caster::Yield<Message>& yield, SettingsEvent cmd);
+        void sendCmd(const Caster::Yield<Message>& yield, TireEvent cmd, uint8_t payload);
+        void sendCmd(const Caster::Yield<Message>& yield, BluetoothEvent cmd);
+
+        Event event_;
+};
 
 // A button that repeats while it's held.
 class RepeatButton {
@@ -52,4 +74,4 @@ class LongPressButton {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_BUTTONS_H_
+#endif  // _R51_CONTROLLER_CONTROLS_H_

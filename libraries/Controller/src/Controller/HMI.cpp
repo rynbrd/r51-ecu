@@ -8,7 +8,7 @@
 #include <Faker.h>
 #include <Foundation.h>
 #include <Vehicle.h>
-#include "Fusion.h"
+#include "Audio.h"
 
 namespace R51 {
 namespace {
@@ -144,23 +144,23 @@ void HMI::handleEncoderClimate(const Event& event, const Yield<Message>& yield) 
     if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
         const auto* key = (KeyState*)&event;
         if (key->key() == 0 && !key->pressed()) {
-            sendCmd(yield, SubSystem::CLIMATE,  ClimateEvent::TOGGLE_AUTO_CMD);
+            sendCmd(yield, ClimateEvent::TOGGLE_AUTO_CMD);
         } else if (key->key() == 1 && !key->pressed()) {
-            sendCmd(yield, SubSystem::CLIMATE,  ClimateEvent::TOGGLE_DUAL_CMD);
+            sendCmd(yield, ClimateEvent::TOGGLE_DUAL_CMD);
         }
     } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
         const auto* encoder = (EncoderState*)&event;
         if (encoder->encoder() == 0) {
             if (encoder->delta() > 0) {
-                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::INC_DRIVER_TEMP_CMD);
+                sendCmd(yield, ClimateEvent::INC_DRIVER_TEMP_CMD);
             } else {
-                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::DEC_DRIVER_TEMP_CMD);
+                sendCmd(yield, ClimateEvent::DEC_DRIVER_TEMP_CMD);
             }
         } else if (encoder->encoder() == 1) {
             if (encoder->delta() > 0) {
-                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::INC_PASSENGER_TEMP_CMD);
+                sendCmd(yield, ClimateEvent::INC_PASSENGER_TEMP_CMD);
             } else {
-                sendCmd(yield, SubSystem::CLIMATE, ClimateEvent::DEC_PASSENGER_TEMP_CMD);
+                sendCmd(yield, ClimateEvent::DEC_PASSENGER_TEMP_CMD);
             }
         }
     }
@@ -170,27 +170,27 @@ void HMI::handleEncoderAudio(const Event& event, const Yield<Message>& yield) {
     if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
         const auto* key = (KeyState*)&event;
         if (key->key() == 0 && !key->pressed()) {
-            sendCmd(yield, SubSystem::AUDIO, AudioEvent::VOLUME_TOGGLE_MUTE_CMD);
+            sendCmd(yield, AudioEvent::VOLUME_TOGGLE_MUTE_CMD);
         } else if (key->key() == 1) {
             if (key->pressed()) {
                 power_.press();
             } else if (power_.release()) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::PLAYBACK_TOGGLE_CMD);
+                sendCmd(yield, AudioEvent::PLAYBACK_TOGGLE_CMD);
             }
         }
     } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
         const auto* encoder = (EncoderState*)&event;
         if (encoder->encoder() == 0) {
             if (encoder->delta() > 0) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::VOLUME_INC_CMD);
+                sendCmd(yield, AudioEvent::VOLUME_INC_CMD);
             } else {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::VOLUME_DEC_CMD);
+                sendCmd(yield, AudioEvent::VOLUME_DEC_CMD);
             }
         } else if (encoder->encoder() == 1) {
             if (encoder->delta() > 0) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::PLAYBACK_NEXT_CMD);
+                sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
             } else {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::PLAYBACK_PREV_CMD);
+                sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
             }
         }
     }
@@ -549,24 +549,19 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x11:
             if (climate_system_ == CLIMATE_SYSTEM_OFF) {
-                sendCmd(yield, SubSystem::CLIMATE,
-                            ClimateEvent::TOGGLE_AUTO_CMD);
+                sendCmd(yield, ClimateEvent::TOGGLE_AUTO_CMD);
             } else {
-                sendCmd(yield, SubSystem::CLIMATE,
-                            ClimateEvent::TURN_OFF_CMD);
+                sendCmd(yield, ClimateEvent::TURN_OFF_CMD);
             }
             break;
         case 0x12:
-            sendCmd(yield, SubSystem::CLIMATE,
-                        ClimateEvent::TOGGLE_AC_CMD);
+            sendCmd(yield, ClimateEvent::TOGGLE_AC_CMD);
             break;
         case 0x13:
-            sendCmd(yield, SubSystem::CLIMATE,
-                        ClimateEvent::TOGGLE_RECIRCULATE_CMD);
+            sendCmd(yield, ClimateEvent::TOGGLE_RECIRCULATE_CMD);
             break;
         case 0x14:
-            sendCmd(yield, SubSystem::CLIMATE,
-                        ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
+            sendCmd(yield, ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
             break;
         default:
             break;
@@ -576,8 +571,7 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
 void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 11:
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::RADIO_TOGGLE_SEEK_CMD);
+            sendCmd(yield, AudioEvent::RADIO_TOGGLE_SEEK_CMD);
             break;
         default:
             break;
@@ -587,8 +581,7 @@ void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
 void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 14:
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_OPEN_CMD);
+            sendCmd(yield, AudioEvent::SETTINGS_OPEN_CMD);
             break;
     }
 }
@@ -597,38 +590,31 @@ void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield)
     switch (button) {
         case 30:
             // on page exit
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_EXIT_CMD);
+            sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
             break;
         case 14:
             // on back button
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_BACK_CMD);
+            sendCmd(yield, AudioEvent::SETTINGS_BACK_CMD);
             break;
         case 1:
         case 6:
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_SELECT_CMD, 0x00);
+            sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x00);
             break;
         case 5:
         case 7:
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_SELECT_CMD, 0x01);
+            sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x01);
             break;
         case 4:
         case 8:
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_SELECT_CMD, 0x02);
+            sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x02);
             break;
         case 3:
         case 9:
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_SELECT_CMD, 0x03);
+            sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x03);
             break;
         case 2:
         case 15:
-            sendCmd(yield, SubSystem::AUDIO,
-                    AudioEvent::SETTINGS_SELECT_CMD, 0x04);
+            sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x04);
             break;
     }
 }
@@ -636,29 +622,19 @@ void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield)
 void HMI::handleAudioSourceButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x01:
-            sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::BLUETOOTH);
+            sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::BLUETOOTH);
             break;
         case 0x02:
-            sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::AM);
+            sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::AM);
             break;
         case 0x03:
-            sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::FM);
+            sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::FM);
             break;
         case 0x04:
-            sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::AUX);
+            sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::AUX);
             break;
         case 0x0A:
-            sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::OPTICAL);
+            sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::OPTICAL);
             break;
         default:
             break;
@@ -671,7 +647,7 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
             {
                 uint8_t tires = getVal("vehicle.swap_tires");
                 if ((tires & 0x0F) != ((tires >> 4) & 0x0F)) {
-                    sendCmd(yield, SubSystem::TIRE, TireEvent::SWAP_POSITION_CMD, tires);
+                    sendCmd(yield, TireEvent::SWAP_POSITION_CMD, tires);
                 }
             }
             break;
@@ -683,32 +659,25 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
 void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x05:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
+            sendCmd(yield, SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
             break;
         case 0x07:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
+            sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
             break;
         case 0x08:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
+            sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
             break;
         case 0x0B:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
+            sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             break;
         case 0x0C:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
+            sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             break;
         case 0x0F:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
+            sendCmd(yield, SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
             break;
         case 0x11:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
+            sendCmd(yield, SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
             break;
         default:
             break;
@@ -718,32 +687,25 @@ void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
 void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
         case 0x0A:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
+            sendCmd(yield, SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
             break;
         case 0x04:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
+            sendCmd(yield, SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
             break;
         case 0x06:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
+            sendCmd(yield, SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
             break;
         case 0x07:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
+            sendCmd(yield, SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
             break;
         case 0x0B:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
+            sendCmd(yield, SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
             break;
         case 0x0E:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
+            sendCmd(yield, SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
             break;
         case 0x10:
-            sendCmd(yield, SubSystem::BLUETOOTH,
-                        BluetoothEvent::FORGET_CMD);
+            sendCmd(yield, BluetoothEvent::FORGET_CMD);
             break;
         default:
             break;
@@ -754,8 +716,7 @@ void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
         case 0x03:
-            sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::FACTORY_RESET_CMD);
+            sendCmd(yield, SettingsEvent::FACTORY_RESET_CMD);
             break;
         default:
             break;
@@ -844,33 +805,29 @@ void HMI::navLeft(const Yield<Message>& yield) {
     switch (page_.page()) {
         case HMIPage::AUDIO_EQ:
             if (selected == 1) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_BASS_DEC_CMD);
+                sendCmd(yield, AudioEvent::TONE_BASS_DEC_CMD);
             } else if (selected == 2) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_MID_DEC_CMD);
+                sendCmd(yield, AudioEvent::TONE_MID_DEC_CMD);
             } else if (selected == 3) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_TREBLE_DEC_CMD);
+                sendCmd(yield, AudioEvent::TONE_TREBLE_DEC_CMD);
             } else if (selected == 4) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::FADE_REAR_CMD);
+                sendCmd(yield, AudioEvent::FADE_REAR_CMD);
             } else if (selected == 5) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::BALANCE_LEFT_CMD);
+                sendCmd(yield, AudioEvent::BALANCE_LEFT_CMD);
             }
             break;
         case HMIPage::SETTINGS_1:
             if (selected == 2) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
+                sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
             } else if (selected == 3) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
+                sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             }
             break;
         case HMIPage::SETTINGS_2:
             if (selected == 1) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
+                sendCmd(yield, SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
             } else if (selected == 2) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
+                sendCmd(yield, SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
             }
             break;
         default:
@@ -883,33 +840,29 @@ void HMI::navRight(const Yield<Message>& yield) {
     switch (page_.page()) {
         case HMIPage::AUDIO_EQ:
             if (selected == 1) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_BASS_INC_CMD);
+                sendCmd(yield, AudioEvent::TONE_BASS_INC_CMD);
             } else if (selected == 2) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_MID_INC_CMD);
+                sendCmd(yield, AudioEvent::TONE_MID_INC_CMD);
             } else if (selected == 3) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::TONE_TREBLE_INC_CMD);
+                sendCmd(yield, AudioEvent::TONE_TREBLE_INC_CMD);
             } else if (selected == 4) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::FADE_FRONT_CMD);
+                sendCmd(yield, AudioEvent::FADE_FRONT_CMD);
             } else if (selected == 5) {
-                sendCmd(yield, SubSystem::AUDIO, AudioEvent::BALANCE_RIGHT_CMD);
+                sendCmd(yield, AudioEvent::BALANCE_RIGHT_CMD);
             }
             break;
         case HMIPage::SETTINGS_1:
             if (selected == 2) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
+                sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
             } else if (selected == 3) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
+                sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             }
             break;
         case HMIPage::SETTINGS_2:
             if (selected == 1) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
+                sendCmd(yield, SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
             } else if (selected == 2) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
+                sendCmd(yield, SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
             }
             break;
         default:
@@ -922,59 +875,43 @@ void HMI::navActivate(const Yield<Message>& yield) {
     switch (page_.page()) {
         case HMIPage::AUDIO_SETTINGS:
             if (selected <= audio_settings_count_) {
-                sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SETTINGS_SELECT_CMD, selected - 1);
+                sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, selected - 1);
             }
             break;
         case HMIPage::AUDIO_SOURCE:
             if (selected == 1) {
-                sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::BLUETOOTH);
+                sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::BLUETOOTH);
             } else if (selected == 2) {
-                sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::AM);
+                sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::AM);
             } else if (selected == 3) {
-                sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::FM);
+                sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::FM);
             } else if (selected == 4) {
-                sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::AUX);
+                sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::AUX);
             } else if (selected == 5) {
-                sendCmd(yield, SubSystem::AUDIO,
-                        AudioEvent::SOURCE_SET_CMD,
-                        AudioSource::OPTICAL);
+                sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::OPTICAL);
             }
             break;
         case HMIPage::SETTINGS_1:
             if (selected == 1) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
+                sendCmd(yield, SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
             } else if (selected == 4) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
+                sendCmd(yield, SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
             } else if (selected == 5) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
+                sendCmd(yield, SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
             }
             break;
         case HMIPage::SETTINGS_2:
             if (selected == 3) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
+                sendCmd(yield, SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
             } else if (selected == 4) {
-                sendCmd(yield, SubSystem::SETTINGS,
-                        SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
+                sendCmd(yield, SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
             } else if (selected == 5) {
-                sendCmd(yield, SubSystem::BLUETOOTH, BluetoothEvent::FORGET_CMD);
+                sendCmd(yield, BluetoothEvent::FORGET_CMD);
             }
             break;
         case HMIPage::SETTINGS_3:
             if (selected == 1) {
-                sendCmd(yield, SubSystem::SETTINGS, SettingsEvent::FACTORY_RESET_CMD);
+                sendCmd(yield, SettingsEvent::FACTORY_RESET_CMD);
             }
             break;
         default:
