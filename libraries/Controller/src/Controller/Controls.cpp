@@ -60,6 +60,13 @@ void Controls::sendCmd(const Yield<Message>& yield, BluetoothEvent cmd) {
     yield(event_);
 }
 
+void Controls::sendCmd(const Yield<Message>& yield, HMIEvent cmd) {
+    event_.subsystem = (uint8_t)SubSystem::HMI;
+    event_.id = (uint8_t)cmd;
+    event_.data[0] = 0xFF;
+    yield(event_);
+}
+
 void RepeatButton::press() {
     ticker_.resume();
 }

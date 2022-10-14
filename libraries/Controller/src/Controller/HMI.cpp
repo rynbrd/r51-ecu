@@ -9,13 +9,48 @@
 #include <Foundation.h>
 #include <Vehicle.h>
 #include "Audio.h"
+#include "HMIEvent.h"
 
 namespace R51 {
 namespace {
 
 using ::Caster::Yield;
 
-static const uint32_t kPowerLongPressTimeout = 3000;
+class HMIDebugStream : public Stream {
+    public:
+        HMIDebugStream(Stream* child) : child_(child), n_(0) {}
+
+        int available() override {
+            return child_->available();
+        }
+
+        int read() override {
+            return child_->read();
+        }
+
+        int peek() override {
+            return child_->peek();
+        }
+
+        size_t write(uint8_t b) override {
+            if (b == 0xFF && n_ > 0) {
+                Serial.println();
+                n_ = 0;
+            } else if (b != 0xFF) {
+                if (n_ == 0) {
+                    Serial.print("hmi send: ");
+                }
+                Serial.write(b);
+                ++n_;
+            }
+            return child_->write(b);
+        }
+
+    private:
+        Stream* child_;
+        int n_;
+};
+
 
 }  // namespace
 
@@ -25,9 +60,7 @@ HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id,
     encoder_keypad_id_(encoder_keypad_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
-    mute_(false),
-    audio_settings_page_(0), audio_settings_count_(0),
-    power_(kPowerLongPressTimeout, clock) {}
+    mute_(false), audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
@@ -62,11 +95,6 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
                     break;
                 default:
                     break;
-            }
-            break;
-        case SubSystem::KEYPAD:
-            if (event.data[0] == encoder_keypad_id_) {
-                handleEncoder(event, yield);
             }
             break;
         case SubSystem::ECM:
@@ -134,89 +162,6 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
             break;
         default:
             break;
-    }
-}
-
-void HMI::handleEncoder(const Event& event, const Yield<Message>& yield) {
-}
-
-void HMI::handleEncoderClimate(const Event& event, const Yield<Message>& yield) {
-    if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
-        const auto* key = (KeyState*)&event;
-        if (key->key() == 0 && !key->pressed()) {
-            sendCmd(yield, ClimateEvent::TOGGLE_AUTO_CMD);
-        } else if (key->key() == 1 && !key->pressed()) {
-            sendCmd(yield, ClimateEvent::TOGGLE_DUAL_CMD);
-        }
-    } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
-        const auto* encoder = (EncoderState*)&event;
-        if (encoder->encoder() == 0) {
-            if (encoder->delta() > 0) {
-                sendCmd(yield, ClimateEvent::INC_DRIVER_TEMP_CMD);
-            } else {
-                sendCmd(yield, ClimateEvent::DEC_DRIVER_TEMP_CMD);
-            }
-        } else if (encoder->encoder() == 1) {
-            if (encoder->delta() > 0) {
-                sendCmd(yield, ClimateEvent::INC_PASSENGER_TEMP_CMD);
-            } else {
-                sendCmd(yield, ClimateEvent::DEC_PASSENGER_TEMP_CMD);
-            }
-        }
-    }
-}
-
-void HMI::handleEncoderAudio(const Event& event, const Yield<Message>& yield) {
-    if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
-        const auto* key = (KeyState*)&event;
-        if (key->key() == 0 && !key->pressed()) {
-            sendCmd(yield, AudioEvent::VOLUME_TOGGLE_MUTE_CMD);
-        } else if (key->key() == 1) {
-            if (key->pressed()) {
-                power_.press();
-            } else if (power_.release()) {
-                sendCmd(yield, AudioEvent::PLAYBACK_TOGGLE_CMD);
-            }
-        }
-    } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
-        const auto* encoder = (EncoderState*)&event;
-        if (encoder->encoder() == 0) {
-            if (encoder->delta() > 0) {
-                sendCmd(yield, AudioEvent::VOLUME_INC_CMD);
-            } else {
-                sendCmd(yield, AudioEvent::VOLUME_DEC_CMD);
-            }
-        } else if (encoder->encoder() == 1) {
-            if (encoder->delta() > 0) {
-                sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
-            } else {
-                sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
-            }
-        }
-    }
-}
-
-void HMI::handleEncoderNav(const Event& event, const Yield<Message>& yield) {
-    if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
-        const auto* key = (KeyState*)&event;
-        if (key->key() == 0 && !key->pressed()) {
-            navActivate(yield);
-        }
-    } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
-        const auto* encoder = (EncoderState*)&event;
-        if (encoder->encoder() == 0) {
-            if (encoder->delta() > 0) {
-                navUp(yield);
-            } else {
-                navDown(yield);
-            }
-        } else if (encoder->encoder() == 1) {
-            if (encoder->delta() > 0) {
-                navRight(yield);
-            } else {
-                navLeft(yield);
-            }
-        }
     }
 }
 

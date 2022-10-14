@@ -9,6 +9,7 @@
 #include <Foundation.h>
 #include <Vehicle.h>
 #include "Audio.h"
+#include "HMIEvent.h"
 
 namespace R51 {
 
@@ -25,6 +26,7 @@ class Controls : public Caster::Node<Message> {
         void sendCmd(const Caster::Yield<Message>& yield, SettingsEvent cmd);
         void sendCmd(const Caster::Yield<Message>& yield, TireEvent cmd, uint8_t payload);
         void sendCmd(const Caster::Yield<Message>& yield, BluetoothEvent cmd);
+        void sendCmd(const Caster::Yield<Message>& yield, HMIEvent cmd);
 
         Event event_;
 };
