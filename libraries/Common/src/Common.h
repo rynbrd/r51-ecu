@@ -8,6 +8,7 @@
 #include "Common/J1939Gateway.h"
 #include "Common/Keypad.h"
 #include "Common/Message.h"
+#include "Common/Power.h"
 #include "Common/Scratch.h"
 
 #endif  // _R51_COMMON_H_

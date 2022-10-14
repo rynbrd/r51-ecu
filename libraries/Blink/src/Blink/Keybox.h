@@ -29,15 +29,17 @@ class BlinkKeybox : public Caster::Node<Message> {
         void handleJ1939Message(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
 
-        void setPinOutput(uint8_t pin, bool on, const Yield<Message>& yield);
-        void setPinPWM(uint8_t pin, bool duty_cycle, const Yield<Message>& yield);
+        void setOutput(uint8_t pin, bool value, const Caster::Yield<Message>& yield);
+        void setPWM(uint8_t pin, uint8_t duty_cycle, const Caster::Yield<Message>& yield);
+        void reset(uint8_t pin, const Caster::Yield<Message>& yield);
 
-        uint8_t pdm_;
         Ticker hb_tick_;
         Canny::J1939Message hb_msg_;
         Canny::J1939Message pin_cmd_;
         Canny::J1939Message pwm_cmd_;
-        uint8_t state[2];
+        uint16_t pin_state_;
+        uint16_t pin_fault_;
+        PowerState power_;
 };
 
 }  // namespace R51

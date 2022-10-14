@@ -17,29 +17,37 @@ enum class PowerEvent : uint8_t {
 enum class PowerMode : uint8_t {
     OFF     = 0,    // Pin is off.
     ON      = 1,    // Pin is on.
-    PWM     = 3,    // Pin is in PWM mode.
-    FAULT   = 4,    // Pin is in fault state.
+    PWM     = 2,    // Pin is in PWM mode.
+    FAULT   = 3,    // Pin is in fault state.
+};
+
+enum class PowerCmd : uint8_t {
+    OFF     = 0,    // Turn pin on.
+    ON      = 1,    // Turn pin off.
+    TOGGLE  = 2,    // Toggle pin on/off.
+    PWM     = 3,    // Enable PWM mode.
+    RESET   = 4,    // Reset pin fault.
 };
 
 // Transmitted by a PDM to indicate the power state of its connected devices.
-enum class PowerState : public Event {
+class PowerState : public Event {
     public:
-        PowerState() : Event(
+        PowerState(uint8_t pdm = 0xFF, uint8_t pin = 0xFF) : Event(
                 SubSystem::POWER, (uint8_t)PowerEvent::POWER_STATE,
-                {0xFF, 0x00, 0x00, 0x00, 0x00});
+                {pdm, pin}) {}
 
         EVENT_PROPERTY(uint8_t, pdm, data[0], data[0] = value);
         EVENT_PROPERTY(uint8_t, pin, data[1], data[1] = value);
-        EVENT_PROPERTY(PowerMode, mode, (Powermode)data[2], data[2] = (uint8_t)value);
+        EVENT_PROPERTY(PowerMode, mode, (PowerMode)data[2], data[2] = (uint8_t)value);
         EVENT_PROPERTY(uint8_t, duty_cycle, data[3], data[3] = value);
 };
 
 // Transmitted by a PDM to indicate the state of input pins.
-enum class InputState : public Event {
+class InputState : public Event {
     public:
-        PowerState() : Event(
+        InputState(uint8_t pdm = 0xFF, uint8_t pin = 0xFF) : Event(
                 SubSystem::POWER, (uint8_t)PowerEvent::INPUT_STATE,
-                {0xFF, 0x00, 0x00, 0x00, 0x00});
+                {pdm, pin}) {}
 
         EVENT_PROPERTY(uint8_t, pdm, data[0], data[0] = value);
         EVENT_PROPERTY(uint8_t, pin, data[1], data[1] = value);
@@ -47,17 +55,15 @@ enum class InputState : public Event {
 };
 
 // Sent to the PDM to set the output of a device.
-enum class PowerCommand : public Event {
+class PowerCommand : public Event {
     public:
-        PowerCmd(uint8_t n = 0xFF) : Event(
-                SubSystem::POWER, (uint8_t)PowerEvent::POWER_CMD, {n, 0xFF, 0x00, 0x00});
-
-        PowerCmd(uint8_t n, bool value) : Event(
-                SubSystem::POWER, (uint8_t)PowerEvent::POWER_CMD, {n, value});
+        PowerCommand(uint8_t pdm = 0xFF, uint8_t pin = 0xFF) : Event(
+                SubSystem::POWER, (uint8_t)PowerEvent::POWER_CMD,
+                {pdm, pin}) {}
 
         EVENT_PROPERTY(uint8_t, pdm, data[0], data[0] = value);
         EVENT_PROPERTY(uint8_t, pin, data[1], data[1] = value);
-        EVENT_PROPERTY(PowerMode, mode, (PowerMode)data[2], data[2] = (uint8_t)value);
+        EVENT_PROPERTY(PowerCmd, cmd, (PowerCmd)data[2], data[2] = (uint8_t)value);
         EVENT_PROPERTY(uint8_t, duty_cycle, data[3], data[3] = value);
 };
 
