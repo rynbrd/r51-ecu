@@ -26,9 +26,6 @@ class BlinkKeypad : public Caster::Node<Message> {
         // are yield'd in response to J1939 keypad messages.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
-        // Does nothing.
-        void emit(const Caster::Yield<Message>&) override {}
-
     private:
         void handleJ1939Claim(const J1939Claim& claim);
         void handleJ1939Message(const Canny::J1939Message& msg,

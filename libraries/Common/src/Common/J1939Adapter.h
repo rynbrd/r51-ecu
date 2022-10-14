@@ -21,9 +21,6 @@ class J1939Adapter : public Caster::Node<Message> {
         // Translate Events to and from J1939 messages.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
-        // Does nothing.
-        void emit(const Caster::Yield<Message>&) override {}
-
         // Implemented by child classes to filter events read from the J1939
         // bus. Return false if an event read from the J1939 bus should be
         // broadcast to the internal bus.
