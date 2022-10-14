@@ -46,6 +46,13 @@ void Controls::sendCmd(const Yield<Message>& yield, SettingsEvent cmd) {
     yield(event_);
 }
 
+void Controls::sendCmd(const Yield<Message>& yield, IPDMEvent cmd) {
+    event_.subsystem = (uint8_t)SubSystem::IPDM;
+    event_.id = (uint8_t)cmd;
+    event_.data[0] = 0xFF;
+    yield(event_);
+}
+
 void Controls::sendCmd(const Yield<Message>& yield, TireEvent cmd, uint8_t payload) {
     event_.subsystem = (uint8_t)SubSystem::TIRE;
     event_.id = (uint8_t)cmd;

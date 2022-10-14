@@ -674,7 +674,7 @@ void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
     }
 }
 
-void HMI::navUp(const Yield<Message>& yield) {
+void HMI::navUp(const Yield<Message>&) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
         case HMIPage::AUDIO_SETTINGS:
@@ -706,7 +706,7 @@ void HMI::navUp(const Yield<Message>& yield) {
     }
 }
 
-void HMI::navDown(const Yield<Message>& yield) {
+void HMI::navDown(const Yield<Message>&) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
         case HMIPage::AUDIO_SETTINGS:
