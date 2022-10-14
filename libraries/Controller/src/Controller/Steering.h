@@ -10,9 +10,9 @@
 
 namespace R51 {
 
-class SteeringAudioControls : public Caster::Node<Message> {
+class SteeringControls : public Caster::Node<Message> {
     public:
-        SteeringAudioControls(uint8_t steering_keypad_id,
+        SteeringControls(uint8_t steering_keypad_id,
                 Faker::Clock* clock = Faker::Clock::real());
 
         // Handle steering keypad events.

@@ -15,7 +15,7 @@ static const uint32_t kKeyRepeatInterval = 500;
 
 }  // namespace
 
-SteeringAudioControls::SteeringAudioControls(uint8_t steering_keypad_id, Faker::Clock* clock) :
+SteeringControls::SteeringControls(uint8_t steering_keypad_id, Faker::Clock* clock) :
     keypad_id_(steering_keypad_id),
     power_(kPowerLongPressTimeout, clock),
     seek_up_(kKeyRepeatInterval, clock),
@@ -23,7 +23,7 @@ SteeringAudioControls::SteeringAudioControls(uint8_t steering_keypad_id, Faker::
     volume_up_(kKeyRepeatInterval, clock),
     volume_down_(kKeyRepeatInterval, clock) {}
 
-void SteeringAudioControls::handle(const Message& msg, const Yield<Message>& yield) {
+void SteeringControls::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT ||
             msg.event().subsystem != (uint8_t)SubSystem::KEYPAD) {
         return;
@@ -78,7 +78,7 @@ void SteeringAudioControls::handle(const Message& msg, const Yield<Message>& yie
     }
 }
 
-void SteeringAudioControls::emit(const Yield<Message>& yield) {
+void SteeringControls::emit(const Yield<Message>& yield) {
     if (power_.trigger()) {
         sendCmd(yield, AudioEvent::POWER_TOGGLE_CMD);
     }
@@ -96,7 +96,7 @@ void SteeringAudioControls::emit(const Yield<Message>& yield) {
     }
 }
 
-void SteeringAudioControls::sendCmd(const Yield<Message>& yield, AudioEvent cmd) {
+void SteeringControls::sendCmd(const Yield<Message>& yield, AudioEvent cmd) {
     event_.subsystem = (uint8_t)SubSystem::AUDIO;
     event_.id = (uint8_t)cmd;
     yield(event_);
