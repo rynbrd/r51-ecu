@@ -2,7 +2,6 @@
 #define _R51_COMMON_KEYPAD_H_
 
 #include <Arduino.h>
-#include <Canny.h>
 #include "Event.h"
 
 namespace R51 {
