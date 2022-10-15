@@ -25,7 +25,8 @@ class PowerControls : public Controls {
     private:
         void handleKey(const KeyState* key, const Caster::Yield<Message>& yield);
         void handlePower(const PowerState* power, const Caster::Yield<Message>& yield);
-        void sendIndicatorCmd(const Caster::Yield<Message>& yield, uint8_t led, bool value);
+        void sendIndicatorCmd(const Caster::Yield<Message>& yield, uint8_t led,
+                PowerMode mode, uint8_t duty_cycle);
         void sendPowerCmd(const Caster::Yield<Message>& yield, PDMDevice device, PowerCmd cmd); 
 
         uint8_t keypad_id_;

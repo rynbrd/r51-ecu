@@ -64,30 +64,45 @@ void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) 
 }
 
 void PowerControls::handlePower(const PowerState* power, const Yield<Message>& yield) {
-    // TODO: Support blinking to indicate fault.
     switch ((PDMDevice)power->pin()) {
         case PDMDevice::FRONT_LOCKER:
-            sendIndicatorCmd(yield, 3, power->mode() == PowerMode::ON);
+            sendIndicatorCmd(yield, 3, power->mode(), power->duty_cycle());
             break;
         case PDMDevice::REAR_LOCKER:
-            sendIndicatorCmd(yield, 4, power->mode() == PowerMode::ON);
+            sendIndicatorCmd(yield, 4, power->mode(), power->duty_cycle());
             break;
         case PDMDevice::AIR_COMP:
-            sendIndicatorCmd(yield, 5, power->mode() == PowerMode::ON);
+            sendIndicatorCmd(yield, 5, power->mode(), power->duty_cycle());
             break;
         case PDMDevice::LIGHT_BAR:
-            sendIndicatorCmd(yield, 0, power->mode() == PowerMode::ON);
+            sendIndicatorCmd(yield, 0, power->mode(), power->duty_cycle());
             break;
     }
 }
 
-void PowerControls::sendIndicatorCmd(const Yield<Message>& yield, uint8_t led, bool value) {
+void PowerControls::sendIndicatorCmd(const Yield<Message>& yield, uint8_t led,
+        PowerMode mode, uint8_t duty_cycle) {
     indicator_cmd_.led(led);
-    if (value) {
-        indicator_cmd_.mode(LEDMode::ON);
-        indicator_cmd_.color(kIndicatorColor);
-    } else {
-        indicator_cmd_.mode(LEDMode::OFF);
+    switch (mode) {
+        case PowerMode::OFF:
+            indicator_cmd_.mode(LEDMode::OFF);
+            break;
+        case PowerMode::ON:
+            indicator_cmd_.mode(LEDMode::ON);
+            indicator_cmd_.color(kIndicatorColor);
+            break;
+        case PowerMode::PWM:
+            if (duty_cycle > 0x00) {
+                indicator_cmd_.mode(LEDMode::ON);
+                indicator_cmd_.color(kIndicatorColor);
+            } else {
+                indicator_cmd_.mode(LEDMode::OFF);
+            }
+            break;
+        case PowerMode::FAULT:
+            indicator_cmd_.mode(LEDMode::BLINK);
+            indicator_cmd_.color(kIndicatorColor);
+            break;
     }
     yield(indicator_cmd_);
 }
