@@ -28,6 +28,7 @@ class HMI : public Controls {
         void handleECM(const Event& event);
         void handleIPDM(const Event& event);
         void handleTire(const Event& event);
+        void handlePowerState(const PowerState* power);
         void handleClimateSystem(const ClimateSystemState* event);
         void handleClimateAirflow(const ClimateAirflowState* event);
         void handleClimateTemp(const ClimateTempState* event);

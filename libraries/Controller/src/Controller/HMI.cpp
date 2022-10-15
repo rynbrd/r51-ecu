@@ -9,6 +9,7 @@
 #include <Vehicle.h>
 #include "Audio.h"
 #include "HMIEvent.h"
+#include "Power.h"
 
 namespace R51 {
 namespace {
@@ -109,6 +110,11 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
             break;
         case SubSystem::TIRE:
             handleTire(event);
+            break;
+        case SubSystem::POWER:
+            if (event.id == (uint8_t)PowerEvent::POWER_STATE) {
+                handlePowerState((PowerState*)&event);
+            }
             break;
         case SubSystem::CLIMATE:
             switch ((ClimateEvent)event.id) {
@@ -219,6 +225,23 @@ void HMI::handleTire(const Event& event) {
         setTxt("vehicle.tire_rr_txt", "");
     } else {
         setTxt("vehicle.tire_rr_txt", event.data[3]);
+    }
+}
+
+void HMI::handlePowerState(const PowerState* power) {
+    switch ((PDMDevice)power->pin()) {
+        case PDMDevice::FRONT_LOCKER:
+            setVal("shared.front_locker", (uint8_t)(power->mode() == PowerMode::ON));
+            break;
+        case PDMDevice::REAR_LOCKER:
+            setVal("shared.rear_locker", (uint8_t)(power->mode() == PowerMode::ON));
+            break;
+        case PDMDevice::AIR_COMP:
+            setVal("shared.air_comp", (uint8_t)(power->mode() == PowerMode::ON));
+            break;
+        case PDMDevice::LIGHT_BAR:
+            setVal("shared.light_bar", (uint8_t)(power->mode() == PowerMode::ON));
+            break;
     }
 }
 
