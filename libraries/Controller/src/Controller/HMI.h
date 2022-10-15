@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Common.h>
-#include <Faker.h>
 #include <Vehicle.h>
 #include "Audio.h"
 #include "Controls.h"
@@ -18,8 +17,7 @@ class HMI : public Controls {
         // Construct a new HMI node that communicates with a device over the
         // given stream. The scratch space is used to provide string data to
         // the display for events which include a string payload. 
-        HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id = 0xFF,
-                Faker::Clock* clock = Faker::Clock::real());
+        HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id = 0xFF);
 
         // Updates the HMI display with received broadcast events.
         void handle(const Message& msg, const Caster::Yield<Message>&) override;
@@ -58,9 +56,12 @@ class HMI : public Controls {
         void navLeft(const Caster::Yield<Message>& yield);
         void navRight(const Caster::Yield<Message>& yield);
         void navActivate(const Caster::Yield<Message>& yield);
+        void navPageNext(const Caster::Yield<Message>& yield);
+        void navPagePrev(const Caster::Yield<Message>& yield);
 
         void terminate();
         void refresh();
+        void back();
         void show(const char* obj);
         void hide(const char* obj); 
         bool isPage(HMIPage value);
@@ -100,6 +101,7 @@ class HMI : public Controls {
 
         // audio state
         bool mute_;
+        bool audio_available_;
         uint8_t audio_settings_page_;
         uint8_t audio_settings_count_;
 };

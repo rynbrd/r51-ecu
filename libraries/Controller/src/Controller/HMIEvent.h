@@ -35,6 +35,10 @@ enum class HMIEvent : uint8_t {
     NAV_LEFT_CMD        = 0x12,
     NAV_RIGHT_CMD       = 0x13,
     NAV_ACTIVATE_CMD    = 0x14,
+    NAV_PAGE_NEXT_CMD   = 0x15, // Move to the next page. Rotates between
+                                // climate, audio, and vehicle
+    NAV_PAGE_PREV_CMD   = 0x16, // Move to the previous page. Rotates between
+                                // vehicle, audio, and climate.
 };
 
 class DisplayPageState : public Event {

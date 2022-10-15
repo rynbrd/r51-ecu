@@ -5,7 +5,6 @@
 #include <Caster.h>
 #include <Common.h>
 #include <Endian.h>
-#include <Faker.h>
 #include <Foundation.h>
 #include <Vehicle.h>
 #include "Audio.h"
@@ -54,13 +53,12 @@ class HMIDebugStream : public Stream {
 
 }  // namespace
 
-HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id,
-        Faker::Clock* clock) :
+HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id) :
     stream_(new HMIDebugStream(stream)), scratch_(scratch),
     encoder_keypad_id_(encoder_keypad_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
-    climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
-    mute_(false), audio_settings_page_(0), audio_settings_count_(0) {}
+    climate_driver_temp_(0xFF), climate_pass_temp_(0xFF), mute_(false),
+    audio_available_(false), audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
@@ -92,6 +90,12 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
                     break;
                 case HMIEvent::NAV_ACTIVATE_CMD:
                     navActivate(yield);
+                    break;
+                case HMIEvent::NAV_PAGE_NEXT_CMD:
+                    navPageNext(yield);
+                    break;
+                case HMIEvent::NAV_PAGE_PREV_CMD:
+                    navPagePrev(yield);
                     break;
                 default:
                     break;
@@ -274,6 +278,7 @@ void HMI::handleSettings(const Event& event) {
 }
 
 void HMI::handleAudioSystem(const AudioSystemState* event) {
+    audio_available_ = event->available();
     setVal("audio.available", event->available());
     if (!event->available()) {
         if (isAudioPage() && !isPage(HMIPage::AUDIO_NO_STEREO)) {
@@ -870,6 +875,80 @@ void HMI::navActivate(const Yield<Message>& yield) {
     }
 }
 
+void HMI::navPageNext(const Caster::Yield<Message>& yield) {
+    switch (page_.page()) {
+        case HMIPage::HOME:
+        case HMIPage::SETTINGS_1:
+        case HMIPage::SETTINGS_2:
+        case HMIPage::SETTINGS_3:
+        case HMIPage::AUDIO_VOLUME:
+        case HMIPage::AUDIO_SOURCE:
+            back();
+            break;
+        case HMIPage::AUDIO_SETTINGS:
+            sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
+            break;
+        case HMIPage::CLIMATE:
+            if (audio_available_) {
+                page(HMIPage::AUDIO);
+            } else {
+                page(HMIPage::VEHICLE);
+            }
+            break;
+        case HMIPage::AUDIO:
+        case HMIPage::AUDIO_TRACK:
+        case HMIPage::AUDIO_RADIO:
+        case HMIPage::AUDIO_AUX:
+        case HMIPage::AUDIO_POWER_OFF:
+        case HMIPage::AUDIO_NO_STEREO:
+        case HMIPage::AUDIO_EQ:
+            page(HMIPage::VEHICLE);
+            break;
+        case HMIPage::VEHICLE:
+            page(HMIPage::CLIMATE);
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::navPagePrev(const Caster::Yield<Message>& yield) {
+    switch (page_.page()) {
+        case HMIPage::HOME:
+        case HMIPage::SETTINGS_1:
+        case HMIPage::SETTINGS_2:
+        case HMIPage::SETTINGS_3:
+        case HMIPage::AUDIO_VOLUME:
+        case HMIPage::AUDIO_AUX:
+        case HMIPage::AUDIO_SOURCE:
+            back();
+            break;
+        case HMIPage::AUDIO_SETTINGS:
+            sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
+            break;
+        case HMIPage::CLIMATE:
+            page(HMIPage::VEHICLE);
+            break;
+        case HMIPage::AUDIO:
+        case HMIPage::AUDIO_TRACK:
+        case HMIPage::AUDIO_RADIO:
+        case HMIPage::AUDIO_POWER_OFF:
+        case HMIPage::AUDIO_NO_STEREO:
+        case HMIPage::AUDIO_EQ:
+            page(HMIPage::CLIMATE);
+            break;
+        case HMIPage::VEHICLE:
+            if (audio_available_) {
+                page(HMIPage::AUDIO);
+            } else {
+                page(HMIPage::CLIMATE);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 void HMI::emit(const Yield<Message>& yield) {
     if (read(false)) {
         Serial.print("hmi recv: ");
@@ -892,6 +971,11 @@ void HMI::terminate() {
 
 void HMI::refresh() {
     stream_->print("click refresh,1");
+    terminate();
+}
+
+void HMI::back() {
+    stream_->print("click back,1");
     terminate();
 }
 
