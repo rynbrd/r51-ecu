@@ -68,9 +68,9 @@ class EncoderState : public Event {
 // Command to change the color of a key's indicator LED.
 class IndicatorCommand : public Event {
     public:
-        IndicatorCommand() :
+        IndicatorCommand(uint8_t keypad = 0x00) :
                 Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::INDICATOR_CMD,
-                        {0x00, 0x00, 0x00}) {}
+                        {keypad, 0x00, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
