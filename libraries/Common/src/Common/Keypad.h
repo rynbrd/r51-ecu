@@ -6,16 +6,22 @@
 
 namespace R51 {
 
-enum class KeypadColor : uint8_t {
-    OFF     = 0,
-    WHITE   = 1,
-    RED     = 2,
-    GREEN   = 3,
-    BLUE    = 4,
-    CYAN    = 5,
-    YELLOW  = 6,
-    MAGENTA = 7,
-    AMBER   = 8,
+enum class LEDMode : uint8_t {
+    OFF         = 0,
+    ON          = 1,
+    BLINK       = 2,
+    ALT_BLINK   = 3,
+};
+
+enum class LEDColor : uint8_t {
+    WHITE   = 0,
+    RED     = 1,
+    GREEN   = 2,
+    BLUE    = 3,
+    CYAN    = 4,
+    YELLOW  = 5,
+    MAGENTA = 6,
+    AMBER   = 7,
 };
 
 enum class KeypadEvent : uint8_t {
@@ -68,9 +74,9 @@ class EncoderState : public Event {
 // Command to change the color of a key's indicator LED.
 class IndicatorCommand : public Event {
     public:
-        IndicatorCommand(uint8_t keypad = 0x00) :
+        IndicatorCommand(uint8_t keypad = 0xFF) :
                 Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::INDICATOR_CMD,
-                        {keypad, 0x00, 0x00}) {}
+                        {keypad, 0xFF, 0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -78,17 +84,22 @@ class IndicatorCommand : public Event {
         // the keypad and is generally associated with a specific key or
         // encoder.
         EVENT_PROPERTY(uint8_t, led, data[1], data[1] = value);
-        // The color of the LED. Off is a color.
-        EVENT_PROPERTY(KeypadColor, color, (KeypadColor)data[2], data[2] = (uint8_t)value);
-
+        // The power mode of the LED.
+        EVENT_PROPERTY(LEDMode, mode, (LEDMode)data[2], data[2] = (uint8_t)value);
+        // The color of the LED.
+        EVENT_PROPERTY(LEDColor, color,
+                (LEDColor)data[3], data[3] = (uint8_t)value);
+        // The alternate color of the LEd in alt blink mode.
+        EVENT_PROPERTY(LEDColor, alt_color,
+                (LEDColor)data[3], data[3] = (uint8_t)value);
 };
 
 // Command to change the brightness of the indicator LEDs.
 class BrightnessCommand : public Event {
     public:
-        BrightnessCommand() :
+        BrightnessCommand(uint8_t keypad = 0xFF) :
                 Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::BRIGHTNESS_CMD,
-                        {0x00, 0x00}) {}
+                        {keypad, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -101,16 +112,16 @@ class BrightnessCommand : public Event {
 // not illuminated.
 class BacklightCommand : public Event {
     public:
-        BacklightCommand() :
+        BacklightCommand(uint8_t keypad = 0xFF) :
                 Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::BACKLIGHT_CMD,
-                        {0x00, 0x00}) {}
+                        {keypad, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
-        // The color of the backlight.
-        EVENT_PROPERTY(KeypadColor, color, (KeypadColor)data[1], data[1] = (uint8_t)value);
         // The brightness for the backlight from 0 to 256. 0 turns off the LED.
-        EVENT_PROPERTY(uint8_t, brightness, data[2], data[2] = value);
+        EVENT_PROPERTY(uint8_t, brightness, data[1], data[1] = value);
+        // The color of the backlight.
+        EVENT_PROPERTY(LEDColor, color, (LEDColor)data[2], data[2] = (uint8_t)value);
 };
 
 }  // namespace R51

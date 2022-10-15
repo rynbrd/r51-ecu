@@ -9,23 +9,23 @@ namespace {
 
 using ::Caster::Yield;
 
-uint32_t toNeopixelColor(KeypadColor color) {
+uint32_t toNeopixelColor(LEDColor color) {
     switch (color) {
-        case KeypadColor::WHITE:
+        case LEDColor::WHITE:
             return 0xFFFFFF;
-        case KeypadColor::RED:
+        case LEDColor::RED:
             return 0xFF0000;
-        case KeypadColor::GREEN:
+        case LEDColor::GREEN:
             return 0x00FF00;
-        case KeypadColor::BLUE:
+        case LEDColor::BLUE:
             return 0x0000FF;
-        case KeypadColor::CYAN:
+        case LEDColor::CYAN:
             return 0x00FFFF;
-        case KeypadColor::YELLOW:
+        case LEDColor::YELLOW:
             return 0xFFFF00;
-        case KeypadColor::MAGENTA:
+        case LEDColor::MAGENTA:
             return 0xFF00FF;
-        case KeypadColor::AMBER:
+        case LEDColor::AMBER:
             return 0xFFBF00;
         default:
             return 0x000000;
@@ -61,15 +61,23 @@ int8_t RotaryEncoder::getSwitch() {
     return 0;
 }
 
-void RotaryEncoder::setColor(KeypadColor color) {
-    color_ = toNeopixelColor(color);
+void RotaryEncoder::setColor(LEDMode mode, LEDColor color) {
+    switch (mode) {
+        case LEDMode::ON:
+            color_ = toNeopixelColor(color);
+            break;
+        default:
+        case LEDMode::OFF:
+            color_ = 0x000000;
+            break;
+    }
 }
 
 void RotaryEncoder::setBrightness(uint8_t value) {
     brightness_ = value;
 }
 
-void RotaryEncoder::setBacklight(KeypadColor color, uint8_t brightness) {
+void RotaryEncoder::setBacklight(LEDColor color, uint8_t brightness) {
     backlight_color_ = toNeopixelColor(color);
     backlight_brightness_ = brightness;
 }
@@ -119,7 +127,7 @@ void RotaryEncoderGroup::handleIndicatorCommand(const IndicatorCommand* cmd) {
     }
     RotaryEncoder* encoder = encoders_[cmd->led()];
     pauseInterrupts(cmd->led());
-    encoder->setColor(cmd->color());
+    encoder->setColor(cmd->mode(), cmd->color());
     encoder->showPixel();
     resumeInterrupts(cmd->led());
 }

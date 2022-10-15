@@ -8,7 +8,7 @@ namespace {
 
 using ::Caster::Yield;
 
-static const KeypadColor kIndicatorColor = KeypadColor::RED;
+static const LEDColor kIndicatorColor = LEDColor::RED;
 
 }  // namespace
 
@@ -84,9 +84,10 @@ void PowerControls::handlePower(const PowerState* power, const Yield<Message>& y
 void PowerControls::sendIndicatorCmd(const Yield<Message>& yield, uint8_t led, bool value) {
     indicator_cmd_.led(led);
     if (value) {
+        indicator_cmd_.mode(LEDMode::ON);
         indicator_cmd_.color(kIndicatorColor);
     } else {
-        indicator_cmd_.color(KeypadColor::OFF);
+        indicator_cmd_.mode(LEDMode::OFF);
     }
     yield(indicator_cmd_);
 }

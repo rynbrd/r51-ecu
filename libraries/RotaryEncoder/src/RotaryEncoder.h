@@ -33,7 +33,7 @@ class RotaryEncoder {
 
         // Set the color of the encoder's neopixel. Must call showPixel for the
         // changes to take effect.
-        void setColor(KeypadColor color);
+        void setColor(LEDMode mode, LEDColor color);
 
         // Set the brightness of the encoder's neopixel. Must call showPixel
         // for the changes to take effect.
@@ -43,7 +43,7 @@ class RotaryEncoder {
         // is simulated by turning on the neopixel with this color and
         // brightness when setColor or setBrightness are turned "off". Must
         // call showPixel for the changes to take effect.
-        void setBacklight(KeypadColor color, uint8_t brightness);
+        void setBacklight(LEDColor color, uint8_t brightness);
 
         // Update the neopixel with the new color and brightness.
         void showPixel();
