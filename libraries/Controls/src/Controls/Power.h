@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_POWER_H_
-#define _R51_CONTROLLER_POWER_H_
+#ifndef _R51_CONTROLS_POWER_H_
+#define _R51_CONTROLS_POWER_H_
 
 #include <Arduino.h>
 #include <Common.h>
@@ -38,4 +38,4 @@ class PowerControls : public Controls {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_POWER_H_
+#endif  // _R51_CONTROLS_POWER_H_

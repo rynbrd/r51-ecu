@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_NAV_H_
-#define _R51_CONTROLLER_NAV_H_
+#ifndef _R51_CONTROLS_NAV_H_
+#define _R51_CONTROLS_NAV_H_
 
 #include <Arduino.h>
 #include <Caster.h>
@@ -43,4 +43,4 @@ class NavControls : public Controls {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_NAV_H_
+#endif  // _R51_CONTROLS_NAV_H_

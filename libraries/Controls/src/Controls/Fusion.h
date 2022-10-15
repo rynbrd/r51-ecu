@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_FUSION_H_
-#define _R51_CONTROLLER_FUSION_H_
+#ifndef _R51_CONTROLS_FUSION_H_
+#define _R51_CONTROLS_FUSION_H_
 
 #include <Arduino.h>
 #include <CRC32.h>
@@ -152,4 +152,4 @@ void Fusion::sendCmdPayload(const Caster::Yield<Message>& yield, const uint8_t (
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_FUSION_H_
+#endif  // _R51_CONTROLS_FUSION_H_

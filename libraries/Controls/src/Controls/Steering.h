@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_STEERING_H_
-#define _R51_CONTROLLER_STEERING_H_
+#ifndef _R51_CONTROLS_STEERING_H_
+#define _R51_CONTROLS_STEERING_H_
 
 #include <Arduino.h>
 #include <Caster.h>
@@ -32,4 +32,4 @@ class SteeringControls : public Controls {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_STEERING_H_
+#endif  // _R51_CONTROLS_STEERING_H_

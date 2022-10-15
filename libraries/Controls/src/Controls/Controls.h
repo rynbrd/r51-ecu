@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_CONTROLS_H_
-#define _R51_CONTROLLER_CONTROLS_H_
+#ifndef _R51_CONTROLS_CONTROLS_H_
+#define _R51_CONTROLS_CONTROLS_H_
 
 #include <Arduino.h>
 #include <Bluetooth.h>
@@ -77,4 +77,4 @@ class LongPressButton {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_CONTROLS_H_
+#endif  // _R51_CONTROLS_CONTROLS_H_

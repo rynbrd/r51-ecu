@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_HMI_EVENT_H_
-#define _R51_CONTROLLER_HMI_EVENT_H_
+#ifndef _R51_CONTROLS_HMI_EVENT_H_
+#define _R51_CONTROLS_HMI_EVENT_H_
 
 namespace R51 {
 
@@ -59,4 +59,4 @@ class DisplaySleepState : public Event {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_HMI_EVENT_H_
+#endif  // _R51_CONTROLS_HMI_EVENT_H_

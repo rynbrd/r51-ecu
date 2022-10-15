@@ -1,5 +1,5 @@
-#ifndef _R51_CONTROLLER_HMI_H_
-#define _R51_CONTROLLER_HMI_H_
+#ifndef _R51_CONTROLS_HMI_H_
+#define _R51_CONTROLS_HMI_H_
 
 #include <Arduino.h>
 #include <Caster.h>
@@ -109,4 +109,4 @@ class HMI : public Controls {
 
 }  // namespace R51
 
-#endif  // _R51_CONTROLLER_HMI_H_
+#endif  // _R51_CONTROLS_HMI_H_
