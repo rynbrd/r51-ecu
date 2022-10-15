@@ -97,7 +97,7 @@ Node<Message>* nodes[] = {
     &settings,
 #endif
     &ipdm,
-#if defined(DEFOG_HEATER_ENABLE)
+#if defined(DEFROST_HEATER_ENABLE)
     &defrost,
 #endif
 #if defined(STEERING_KEYPAD_ENABLE)
