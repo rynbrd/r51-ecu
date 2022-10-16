@@ -65,6 +65,8 @@ class HMI : public Controls {
         void back();
         void show(const char* obj);
         void hide(const char* obj); 
+        void sleep(bool sleep);
+        void brightness(uint8_t brightness);
         bool isPage(HMIPage value);
         bool isAudioPage();
         bool isAudioSourcePage();

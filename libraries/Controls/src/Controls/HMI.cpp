@@ -77,6 +77,12 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
             break;
         case SubSystem::HMI:
             switch ((HMIEvent)event.id) {
+                case HMIEvent::SLEEP_CMD:
+                    sleep(event.data[0] == 0x01);
+                    break;
+                case HMIEvent::BRIGHTNESS_CMD:
+                    brightness(event.data[0]);
+                    break;
                 case HMIEvent::NAV_UP_CMD:
                     navUp(yield);
                     break;
@@ -899,6 +905,10 @@ void HMI::navActivate(const Yield<Message>& yield) {
 }
 
 void HMI::navPageNext(const Caster::Yield<Message>& yield) {
+    if (sleep_.sleep()) {
+        sleep(false);
+        return;
+    }
     switch (page_.page()) {
         case HMIPage::HOME:
         case HMIPage::SETTINGS_1:
@@ -1013,6 +1023,18 @@ void HMI::hide(const char* obj) {
     stream_->print("vis ");
     stream_->print(obj);
     stream_->print(",0");
+    terminate();
+}
+
+void HMI::sleep(bool sleep) {
+    stream_->print("sleep=");
+    stream_->print((uint8_t)sleep);
+    terminate();
+}
+
+void HMI::brightness(uint8_t brightness) {
+    stream_->print("dim=");
+    stream_->print((uint8_t)(brightness / 255));
     terminate();
 }
 

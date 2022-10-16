@@ -29,15 +29,19 @@ enum class HMIEvent : uint8_t {
     PAGE_STATE  = 0x00, // State event. The current page.
     SLEEP_STATE = 0x01, // State event. Sent when the display sleeps and wakes.
 
+    // Display power controls.
+    SLEEP_CMD       = 0x10, // Put the display in and out of sleep.
+    BRIGHTNESS_CMD  = 0x11, // Set the brightness of the display.
+
     // Context sensitive navigation commands.
-    NAV_UP_CMD          = 0x10,
-    NAV_DOWN_CMD        = 0x11,
-    NAV_LEFT_CMD        = 0x12,
-    NAV_RIGHT_CMD       = 0x13,
-    NAV_ACTIVATE_CMD    = 0x14,
-    NAV_PAGE_NEXT_CMD   = 0x15, // Move to the next page. Rotates between
+    NAV_UP_CMD          = 0x20,
+    NAV_DOWN_CMD        = 0x21,
+    NAV_LEFT_CMD        = 0x22,
+    NAV_RIGHT_CMD       = 0x23,
+    NAV_ACTIVATE_CMD    = 0x24,
+    NAV_PAGE_NEXT_CMD   = 0x25, // Move to the next page. Rotates between
                                 // climate, audio, and vehicle
-    NAV_PAGE_PREV_CMD   = 0x16, // Move to the previous page. Rotates between
+    NAV_PAGE_PREV_CMD   = 0x26, // Move to the previous page. Rotates between
                                 // vehicle, audio, and climate.
 };
 
