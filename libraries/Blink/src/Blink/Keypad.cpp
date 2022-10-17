@@ -44,7 +44,7 @@ uint8_t toBlinkBrightness(uint8_t brightness) {
 
 }  // namespace
 
-BlinkKeypad::BlinkKeypad(uint8_t keypad, uint8_t address, uint8_t key_count) :
+BlinkKeypad::BlinkKeypad(uint8_t address, uint8_t keypad, uint8_t key_count) :
         keypress_(KeyState(keypad)), command_(0xEF00, Canny::NullAddress, address, 0x06),
         key_count_(key_count) {
     command_.resize(8);

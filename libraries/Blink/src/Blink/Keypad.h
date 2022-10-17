@@ -17,7 +17,7 @@ class BlinkKeypad : public Caster::Node<Message> {
         // The keypad value identifies the keypad on the system and must be
         // unique to this specific keypad. The key count is the number of
         // buttons on the PKP.
-        BlinkKeypad(uint8_t keypad, uint8_t address, uint8_t key_count);
+        BlinkKeypad(uint8_t address, uint8_t keypad, uint8_t key_count);
 
         // Initialize the button LED state.
         void init(const Caster::Yield<Message>& yield) override;

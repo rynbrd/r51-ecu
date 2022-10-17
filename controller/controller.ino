@@ -33,7 +33,6 @@ using ::R51::SteeringControls;
 
 Scratch scratch;
 
-//TODO: broadcast filtered events over J1939
 J1939Connection j1939_conn(&CAN);
 J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
 J1939ControllerAdapter j1939_adapter;
@@ -49,8 +48,8 @@ RotaryEncoder* rotary_encoders[] = {
 RotaryEncoderGroup rotary_encoder_group(ROTARY_ENCODER_ID, rotary_encoders,
         sizeof(rotary_encoders)/sizeof(rotary_encoders[0]));
 
-BlinkKeypad blink_keypad(BLINK_KEYPAD_ID, BLINK_KEYPAD_ADDR, BLINK_KEYPAD_KEYS);
-BlinkKeybox blink_keybox(BLINK_KEYBOX_ID, BLINK_KEYBOX_ADDR);
+BlinkKeypad blink_keypad(BLINK_KEYPAD_ADDR, BLINK_KEYPAD_ID, BLINK_KEYPAD_KEYS);
+BlinkKeybox blink_keybox(BLINK_KEYBOX_ADDR, BLINK_KEYBOX_ID);
 
 NavControls nav_controls(ROTARY_ENCODER_ID);
 PowerControls power_controls(BLINK_KEYPAD_ID, BLINK_KEYBOX_ID);
