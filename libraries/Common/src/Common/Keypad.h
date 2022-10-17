@@ -91,7 +91,7 @@ class IndicatorCommand : public Event {
                 (LEDColor)data[3], data[3] = (uint8_t)value);
         // The alternate color of the LEd in alt blink mode.
         EVENT_PROPERTY(LEDColor, alt_color,
-                (LEDColor)data[3], data[3] = (uint8_t)value);
+                (LEDColor)data[4], data[4] = (uint8_t)value);
 };
 
 // Command to change the brightness of the indicator LEDs.

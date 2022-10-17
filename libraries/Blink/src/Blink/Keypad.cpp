@@ -23,7 +23,7 @@ uint8_t toBlinkColor(LEDColor color) {
         case LEDColor::CYAN:
             return 0x05;
         case LEDColor::YELLOW:
-            return 0x04;
+            return 0x09;
         case LEDColor::MAGENTA:
             return 0x06;
         case LEDColor::AMBER:
@@ -161,7 +161,7 @@ void BlinkKeypad::setKeyLED(const Yield<Message>& yield, uint8_t key, LEDMode mo
             break;
         case LEDMode::ALT_BLINK:
             command_.data()[4] = toBlinkColor(color);
-            command_.data()[5] = 0x02;
+            command_.data()[5] = 0x03;
             command_.data()[6] = toBlinkColor(alt_color);
             break;
     }
