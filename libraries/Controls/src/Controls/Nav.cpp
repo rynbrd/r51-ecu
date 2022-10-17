@@ -86,13 +86,6 @@ void NavControls::emit(const Yield<Message>& yield) {
 
 void NavControls::handlePage(const ScreenPageState* event) {
     switch (event->page()) {
-        case ScreenPage::SPLASH:
-        case ScreenPage::HOME:
-        case ScreenPage::VEHICLE:
-        case ScreenPage::SHARED:
-        case ScreenPage::AUDIO_NO_STEREO:
-            setPage(NavPage::NONE);
-            break;
         case ScreenPage::CLIMATE:
             setPage(NavPage::CLIMATE);
             break;
@@ -112,6 +105,9 @@ void NavControls::handlePage(const ScreenPageState* event) {
         case ScreenPage::SETTINGS_2:
         case ScreenPage::SETTINGS_3:
             setPage(NavPage::SETTINGS);
+            break;
+        default:
+            setPage(NavPage::NONE);
             break;
     }
 }

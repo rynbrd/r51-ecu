@@ -23,14 +23,16 @@ enum class ScreenPage : uint8_t {
     SETTINGS_2      = 16,
     SETTINGS_3      = 17,
     SHARED          = 18,
+    BLANK           = 19,
 };
 
 enum class ScreenEvent : uint8_t {
-    PAGE_STATE  = 0x00, // State event. The current page.
-    SLEEP_STATE = 0x01, // State event. Sent when the display sleeps and wakes.
+    POWER_STATE = 0x00, // State event. Sent when the display powers
+                        // on/off or changes brightness.
+    PAGE_STATE  = 0x01, // State event. The current page.
 
     // Display power controls.
-    SLEEP_CMD       = 0x10, // Put the display in and out of sleep.
+    POWER_CMD       = 0x10, // Turn the display on/off.
     BRIGHTNESS_CMD  = 0x11, // Set the brightness of the display.
 
     // Context sensitive navigation commands.
@@ -53,12 +55,13 @@ class ScreenPageState : public Event {
         EVENT_PROPERTY(ScreenPage, page, (ScreenPage)data[0], data[0] = (uint8_t)value);
 };
 
-class ScreenSleepState : public Event {
+class ScreenPowerState : public Event {
     public:
-        ScreenSleepState() :
-            Event(SubSystem::SCREEN, (uint8_t)ScreenEvent::PAGE_STATE, {0x00}) {}
+        ScreenPowerState() :
+            Event(SubSystem::SCREEN, (uint8_t)ScreenEvent::POWER_STATE, {0x01, 0xFF}) {}
 
-        EVENT_PROPERTY(bool, sleep, data[0] == 0x01, data[0] = (uint8_t)value);
+        EVENT_PROPERTY(bool, power, data[0] != 0x00, data[0] = (bool)value);
+        EVENT_PROPERTY(uint8_t, brightness, data[1], data[1] = value);
 };
 
 }  // namespace R51

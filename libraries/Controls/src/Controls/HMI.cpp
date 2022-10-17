@@ -64,6 +64,11 @@ HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id, uint8_t pd
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF), mute_(false),
     audio_available_(false), audio_settings_page_(0), audio_settings_count_(0) {}
 
+void HMI::init(const Caster::Yield<Message>& yield) {
+    page(ScreenPage::SPLASH);
+    brightness(yield, kBrightnessHigh);
+}
+
 void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
         return;
@@ -71,20 +76,22 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     const auto& event = msg.event();
     switch ((SubSystem)event.subsystem) {
         case SubSystem::CONTROLLER:
-            if (RequestCommand::match(event, SubSystem::SCREEN, (uint8_t)ScreenEvent::PAGE_STATE)) {
+            if (RequestCommand::match(event, SubSystem::SCREEN,
+                        (uint8_t)ScreenEvent::PAGE_STATE)) {
                 yield(page_);
             }
-            if (RequestCommand::match(event, SubSystem::SCREEN, (uint8_t)ScreenEvent::SLEEP_STATE)) {
-                yield(sleep_);
+            if (RequestCommand::match(event, SubSystem::SCREEN,
+                        (uint8_t)ScreenEvent::POWER_STATE)) {
+                yield(power_);
             }
             break;
         case SubSystem::SCREEN:
             switch ((ScreenEvent)event.id) {
-                case ScreenEvent::SLEEP_CMD:
-                    sleep(event.data[0] == 0x01);
+                case ScreenEvent::POWER_CMD:
+                    power(event.data[0] != 0x00);
                     break;
                 case ScreenEvent::BRIGHTNESS_CMD:
-                    brightness(event.data[0]);
+                    brightness(yield, event.data[0]);
                     break;
                 case ScreenEvent::NAV_UP_CMD:
                     navUp(yield);
@@ -118,7 +125,16 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
             handleIPDM(event);
             break;
         case SubSystem::BCM:
-            handleTire(event);
+            switch ((BCMEvent)event.id) {
+                case BCMEvent::ILLUM_STATE:
+                    handleIllum(yield, event);
+                    break;
+                case BCMEvent::TIRE_PRESSURE_STATE:
+                    handleTire(event);
+                    break;
+                default:
+                    break;
+            }
             break;
         case SubSystem::POWER:
             if (event.id == (uint8_t)PowerEvent::POWER_STATE) {
@@ -211,11 +227,11 @@ void HMI::handleIPDM(const Event& event) {
     refresh();
 }
 
-void HMI::handleIllum(const Event& event) {
+void HMI::handleIllum(const Caster::Yield<Message>& yield, const Event& event) {
     if (event.data[0] == 0x00) {
-        brightness(kBrightnessHigh);
+        brightness(yield, kBrightnessHigh);
     } else {
-        brightness(kBrightnessLow);
+        brightness(yield, kBrightnessLow);
     }
 }
 
@@ -521,17 +537,10 @@ void HMI::handleSerial(const Yield<Message>& yield) {
             if (scratch_->size >= 2) {
                 if (page_.page((ScreenPage)scratch_->bytes[1])) {
                     yield(page_);
+                    if (power_.power(page_.page() != ScreenPage::BLANK)) {
+                        yield(power_);
+                    }
                 }
-            }
-            break;
-        case 0x86:
-            if (sleep_.sleep(true)) {
-                yield(sleep_);
-            }
-            break;
-        case 0x87:
-            if (sleep_.sleep(false)) {
-                yield(sleep_);
             }
             break;
         default:
@@ -916,10 +925,6 @@ void HMI::navActivate(const Yield<Message>& yield) {
 }
 
 void HMI::navPageNext(const Caster::Yield<Message>& yield) {
-    if (sleep_.sleep()) {
-        sleep(false);
-        return;
-    }
     switch (page_.page()) {
         case ScreenPage::HOME:
         case ScreenPage::SETTINGS_1:
@@ -927,6 +932,7 @@ void HMI::navPageNext(const Caster::Yield<Message>& yield) {
         case ScreenPage::SETTINGS_3:
         case ScreenPage::AUDIO_VOLUME:
         case ScreenPage::AUDIO_SOURCE:
+        case ScreenPage::BLANK:
             back();
             break;
         case ScreenPage::AUDIO_SETTINGS:
@@ -965,6 +971,7 @@ void HMI::navPagePrev(const Caster::Yield<Message>& yield) {
         case ScreenPage::AUDIO_VOLUME:
         case ScreenPage::AUDIO_AUX:
         case ScreenPage::AUDIO_SOURCE:
+        case ScreenPage::BLANK:
             back();
             break;
         case ScreenPage::AUDIO_SETTINGS:
@@ -1037,16 +1044,21 @@ void HMI::hide(const char* obj) {
     terminate();
 }
 
-void HMI::sleep(bool sleep) {
-    stream_->print("sleep=");
-    stream_->print((uint8_t)sleep);
-    terminate();
+void HMI::power(bool power) {
+    if (power && isPage(ScreenPage::BLANK)) {
+        back();
+    } else if (!power && !isPage(ScreenPage::BLANK)) {
+        page(ScreenPage::BLANK);
+    }
 }
 
-void HMI::brightness(uint8_t brightness) {
+void HMI::brightness(const Yield<Message>& yield, uint8_t brightness) {
     stream_->print("dim=");
     stream_->print(brightness * 100 / 255);
     terminate();
+    if (power_.brightness(brightness)) {
+        yield(power_);
+    }
 }
 
 bool HMI::isPage(ScreenPage value) {

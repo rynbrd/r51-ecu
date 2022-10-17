@@ -20,6 +20,9 @@ class HMI : public Controls {
         HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id = 0xFF,
                 uint8_t pdm_id = 0xFF);
 
+        // Initialize display state. 
+        void init(const Caster::Yield<Message>&) override;
+
         // Updates the HMI display with received broadcast events.
         void handle(const Message& msg, const Caster::Yield<Message>&) override;
 
@@ -28,7 +31,7 @@ class HMI : public Controls {
     private:
         void handleECM(const Event& event);
         void handleIPDM(const Event& event);
-        void handleIllum(const Event& event);
+        void handleIllum(const Caster::Yield<Message>& yield, const Event& event);
         void handleTire(const Event& event);
         void handlePowerState(const PowerState* power);
         void handleClimateSystem(const ClimateSystemState* event);
@@ -67,8 +70,8 @@ class HMI : public Controls {
         void back();
         void show(const char* obj);
         void hide(const char* obj); 
-        void sleep(bool sleep);
-        void brightness(uint8_t brightness);
+        void power(bool power);
+        void brightness(const Caster::Yield<Message>& yield, uint8_t brightness);
         bool isPage(ScreenPage value);
         bool isAudioPage();
         bool isAudioSourcePage();
@@ -97,7 +100,7 @@ class HMI : public Controls {
         uint8_t pdm_id_;
 
         ScreenPageState page_;
-        ScreenSleepState sleep_;
+        ScreenPowerState power_;
 
         // climate state
         ClimateSystemMode climate_system_;
