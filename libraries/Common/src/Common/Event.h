@@ -19,17 +19,24 @@ namespace R51 {
 
 // Sub-system identifier. This allows a physical to host multiple subsystems.
 enum class SubSystem : uint8_t {
+    // Common system functionality.
     CONTROLLER      = 0x00, // Common ECU functionality.
-    ECM             = 0x04, // Events relating to engine control.
-    IPDM            = 0x06, // Under hood and exterior power control.
-    BCM             = 0x07, // Interior lightings, tire pressures, etc.
-    CLIMATE         = 0x0A, // Climate control.
-    SETTINGS        = 0x0B, // Vehicle settings management.
-    BLUETOOTH       = 0x0D, // vehicle bluetooth connectivity.
-    SCREEN          = 0x0E, // Vehicle infotainment screen.
-    AUDIO           = 0x0F, // Audio controls.
-    POWER           = 0x10, // Generic power control.
-    KEYPAD          = 0x11, // Generic keypad control.
+
+    // Vehicle specific systems.
+    ECM             = 0x14, // Events relating to engine control.
+    IPDM            = 0x16, // Under hood and exterior power control.
+    BCM             = 0x18, // Interior lightings, tire pressures, etc.
+    CLIMATE         = 0x1A, // Climate control.
+    SETTINGS        = 0x1B, // Vehicle settings management.
+
+    // Add-on systems.
+    BLUETOOTH       = 0x20, // Bluetooth serial connectivity.
+    AUDIO           = 0x21, // Audio playback and controls.
+    SCREEN          = 0x22, // Infotainment screen and controls.
+
+    // Low-level or generic systems.
+    POWER           = 0x30, // Generic power control.
+    KEYPAD          = 0x31, // Generic keypad control.
 };
 
 enum class ControllerEvent : uint8_t {
