@@ -24,6 +24,7 @@ using ::R51::Climate;
 using ::R51::Defrost;
 using ::R51::FilteredCAN;
 using ::R51::IPDM;
+using ::R51::Illum;
 using ::R51::J1939Adapter;
 using ::R51::J1939Connection;
 using ::R51::J1939Gateway;
@@ -73,7 +74,8 @@ PicoConfigStore config;
 Climate climate;
 Settings settings;
 IPDM ipdm;
-TirePressure tires_node;
+Illum illum;
+TirePressure tire_pressure;
 #if defined(DEFROST_HEATER_ENABLE)
 Defrost defrost(DEFROST_HEATER_PIN, DEFROST_HEATER_MS);
 #endif
@@ -97,6 +99,8 @@ Node<Message>* nodes[] = {
     &settings,
 #endif
     &ipdm,
+    &illum,
+    &tire_pressure,
 #if defined(DEFROST_HEATER_ENABLE)
     &defrost,
 #endif
