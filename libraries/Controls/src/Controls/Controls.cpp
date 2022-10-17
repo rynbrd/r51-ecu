@@ -16,6 +16,8 @@ void Controls::sendCmd(const Yield<Message>& yield, AudioEvent cmd) {
     event_.subsystem = (uint8_t)SubSystem::AUDIO;
     event_.id = (uint8_t)cmd;
     event_.data[0] = 0xFF;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -23,6 +25,8 @@ void Controls::sendCmd(const Yield<Message>& yield, AudioEvent cmd, uint8_t payl
     event_.subsystem = (uint8_t)SubSystem::AUDIO;
     event_.id = (uint8_t)cmd;
     event_.data[0] = payload;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -30,6 +34,8 @@ void Controls::sendCmd(const Yield<Message>& yield, AudioEvent cmd, AudioSource 
     event_.subsystem = (uint8_t)SubSystem::AUDIO;
     event_.id = (uint8_t)cmd;
     event_.data[0] = (uint8_t)payload;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -37,6 +43,8 @@ void Controls::sendCmd(const Yield<Message>& yield, ClimateEvent cmd) {
     event_.subsystem = (uint8_t)SubSystem::CLIMATE;
     event_.id = (uint8_t)cmd;
     event_.data[0] = 0xFF;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -44,6 +52,8 @@ void Controls::sendCmd(const Yield<Message>& yield, SettingsEvent cmd) {
     event_.subsystem = (uint8_t)SubSystem::SETTINGS;
     event_.id = (uint8_t)cmd;
     event_.data[0] = 0xFF;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -51,6 +61,8 @@ void Controls::sendCmd(const Yield<Message>& yield, IPDMEvent cmd) {
     event_.subsystem = (uint8_t)SubSystem::IPDM;
     event_.id = (uint8_t)cmd;
     event_.data[0] = 0xFF;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -58,6 +70,8 @@ void Controls::sendCmd(const Yield<Message>& yield, TireEvent cmd, uint8_t paylo
     event_.subsystem = (uint8_t)SubSystem::TIRE;
     event_.id = (uint8_t)cmd;
     event_.data[0] = payload;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -65,6 +79,8 @@ void Controls::sendCmd(const Yield<Message>& yield, BluetoothEvent cmd) {
     event_.subsystem = (uint8_t)SubSystem::BLUETOOTH;
     event_.id = (uint8_t)cmd;
     event_.data[0] = 0xFF;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
@@ -72,6 +88,17 @@ void Controls::sendCmd(const Yield<Message>& yield, ScreenEvent cmd) {
     event_.subsystem = (uint8_t)SubSystem::SCREEN;
     event_.id = (uint8_t)cmd;
     event_.data[0] = 0xFF;
+    event_.data[1] = 0xFF;
+    event_.data[2] = 0xFF;
+    yield(event_);
+}
+
+void Controls::request(const Caster::Yield<Message>& yield, SubSystem subsystem, uint8_t id) {
+    event_.subsystem = (uint8_t)SubSystem::CONTROLLER;
+    event_.id = (uint8_t)ControllerEvent::REQUEST_CMD;
+    event_.data[0] = (uint8_t)subsystem;
+    event_.data[1] = (uint8_t)id;
+    event_.data[2] = 0xFF;
     yield(event_);
 }
 
