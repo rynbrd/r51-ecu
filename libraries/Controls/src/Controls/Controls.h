@@ -25,7 +25,7 @@ class Controls : public Caster::Node<Message> {
         void sendCmd(const Caster::Yield<Message>& yield, ClimateEvent cmd);
         void sendCmd(const Caster::Yield<Message>& yield, SettingsEvent cmd);
         void sendCmd(const Caster::Yield<Message>& yield, BCMEvent cmd);
-        void sendCmd(const Caster::Yield<Message>& yield, TireEvent cmd, uint8_t payload);
+        void sendCmd(const Caster::Yield<Message>& yield, BCMEvent cmd, uint8_t payload);
         void sendCmd(const Caster::Yield<Message>& yield, BluetoothEvent cmd);
         void sendCmd(const Caster::Yield<Message>& yield, ScreenEvent cmd);
         void request(const Caster::Yield<Message>& yield, SubSystem subsystem, uint8_t id);

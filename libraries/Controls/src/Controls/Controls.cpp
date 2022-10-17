@@ -66,8 +66,8 @@ void Controls::sendCmd(const Yield<Message>& yield, BCMEvent cmd) {
     yield(event_);
 }
 
-void Controls::sendCmd(const Yield<Message>& yield, TireEvent cmd, uint8_t payload) {
-    event_.subsystem = (uint8_t)SubSystem::TIRE;
+void Controls::sendCmd(const Yield<Message>& yield, BCMEvent cmd, uint8_t payload) {
+    event_.subsystem = (uint8_t)SubSystem::BCM;
     event_.id = (uint8_t)cmd;
     event_.data[0] = payload;
     event_.data[1] = 0xFF;

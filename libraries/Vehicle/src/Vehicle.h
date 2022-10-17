@@ -10,7 +10,6 @@
 #include "Vehicle/IPDM.h"
 #include "Vehicle/Settings.h"
 #include "Vehicle/Steering.h"
-#include "Vehicle/Tires.h"
 #include "Vehicle/Units.h"
 
 #endif  // _R51_VEHICLE_H_

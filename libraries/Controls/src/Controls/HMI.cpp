@@ -114,7 +114,7 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
         case SubSystem::IPDM:
             handleIPDM(event);
             break;
-        case SubSystem::TIRE:
+        case SubSystem::BCM:
             handleTire(event);
             break;
         case SubSystem::POWER:
@@ -209,7 +209,7 @@ void HMI::handleIPDM(const Event& event) {
 }
 
 void HMI::handleTire(const Event& event) {
-    if (event.id != (uint8_t)TireEvent::PRESSURE_STATE) {
+    if (event.id != (uint8_t)BCMEvent::TIRE_PRESSURE_STATE) {
         return;
     }
     if (event.data[0] == 0) {
@@ -632,7 +632,7 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
             {
                 uint8_t tires = getVal("vehicle.swap_tires");
                 if ((tires & 0x0F) != ((tires >> 4) & 0x0F)) {
-                    sendCmd(yield, TireEvent::SWAP_POSITION_CMD, tires);
+                    sendCmd(yield, BCMEvent::TIRE_SWAP_CMD, tires);
                 }
             }
             break;
