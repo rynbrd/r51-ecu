@@ -40,6 +40,9 @@ void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
 //   4: left arrow down
 //   5: power/circle
 void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) {
+    if (key->pressed()) {
+        return;
+    }
     switch (key->key()) {
         case 0:
             sendPowerCmd(yield, PDMDevice::LIGHT_BAR, PowerCmd::TOGGLE);
