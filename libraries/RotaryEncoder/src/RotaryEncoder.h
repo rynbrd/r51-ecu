@@ -18,7 +18,7 @@ class RotaryEncoder {
         RotaryEncoder(TwoWire* wire) : encoder_(wire),
                 neopixel_(1, 6, NEO_GRB + NEO_KHZ800, wire),
                 color_(0x000000), brightness_(0xFF),
-                backlight_color_(0xFFFFFF), backlight_brightness_(0),
+                backlight_color_(0x000000), backlight_brightness_(0xFF),
                 pos_(0), new_pos_(0), sw_(false), new_sw_(false) {}
 
         // Connect to the encoder on the given I2C address.
@@ -49,6 +49,8 @@ class RotaryEncoder {
         void showPixel();
 
     private:
+        void setPixelColor(uint32_t color);
+
         Adafruit_seesaw encoder_;
         seesaw_NeoPixel neopixel_;
 

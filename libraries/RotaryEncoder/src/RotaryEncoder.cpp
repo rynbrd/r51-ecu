@@ -83,17 +83,29 @@ void RotaryEncoder::setBacklight(LEDColor color, uint8_t brightness) {
 }
 
 void RotaryEncoder::showPixel() {
-    if (brightness_ == 0) {
-        // a brightness of 0 is 100% according to Adafruit
-        neopixel_.setPixelColor(0, neopixel_.Color(0x00, 0x00, 0x00));
+    if (brightness_ == 0 || color_ == 0x000000) {
+        if (backlight_brightness_ == 0) {
+            Serial.print("backlight off");
+            neopixel_.setBrightness(backlight_brightness_);
+            setPixelColor(0x000000);
+        } else {
+            Serial.print("backlight on");
+            neopixel_.setBrightness(backlight_brightness_);
+            setPixelColor(backlight_color_);
+        }
     } else {
+        Serial.print("indicator on");
         neopixel_.setBrightness(brightness_);
-        neopixel_.setPixelColor(0, neopixel_.Color(
-                    (color_ & 0xFF0000) >> 16,
-                    (color_ & 0x00FF00) >> 8,
-                    (color_ & 0x0000FF)));
+        setPixelColor(color_);
     }
     neopixel_.show();
+}
+
+void RotaryEncoder::setPixelColor(uint32_t color) {
+    neopixel_.setPixelColor(0, neopixel_.Color(
+                (color & 0xFF0000) >> 16,
+                (color & 0x00FF00) >> 8,
+                (color & 0x0000FF)));
 }
 
 RotaryEncoderGroup::RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders, uint8_t count) :
@@ -115,6 +127,9 @@ void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>&) {
             break;
         case KeypadEvent::BRIGHTNESS_CMD:
             handleBrightnessCommand((BrightnessCommand*)&msg.event());
+            break;
+        case KeypadEvent::BACKLIGHT_CMD:
+            handleBacklightCommand((BacklightCommand*)&msg.event());
             break;
         default:
             break;
