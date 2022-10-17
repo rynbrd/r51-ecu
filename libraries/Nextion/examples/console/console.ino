@@ -7,7 +7,7 @@ Nextion::Protocol hmi(&Serial1);
 
 void setup() {
     Serial.begin(115200);
-    Serial1.begin(512000);
+    Serial1.begin(115200);
 }
 
 void loop() {
