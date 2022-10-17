@@ -29,6 +29,9 @@ class Controls : public Caster::Node<Message> {
         void sendCmd(const Caster::Yield<Message>& yield, BluetoothEvent cmd);
         void sendCmd(const Caster::Yield<Message>& yield, ScreenEvent cmd);
         void request(const Caster::Yield<Message>& yield, SubSystem subsystem, uint8_t id);
+        void setBrightness(const Caster::Yield<Message>& yield, uint8_t keypad, uint8_t value);
+        void setBacklight(const Caster::Yield<Message>& yield, uint8_t keypad,
+                uint8_t brightness, LEDColor color = (LEDColor)0xFF);
 
         Event event_;
 };

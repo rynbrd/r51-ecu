@@ -102,6 +102,25 @@ void Controls::request(const Caster::Yield<Message>& yield, SubSystem subsystem,
     yield(event_);
 }
 
+void Controls::setBrightness(const Yield<Message>& yield, uint8_t keypad, uint8_t value) {
+    event_.subsystem = (uint8_t)SubSystem::KEYPAD;
+    event_.id = (uint8_t)KeypadEvent::BRIGHTNESS_CMD;
+    event_.data[0] = keypad;
+    event_.data[1] = value;
+    event_.data[2] = 0xFF;
+    yield(event_);
+}
+
+void Controls::setBacklight(const Yield<Message>& yield, uint8_t keypad,
+        uint8_t brightness, LEDColor color) {
+    event_.subsystem = (uint8_t)SubSystem::KEYPAD;
+    event_.id = (uint8_t)KeypadEvent::BACKLIGHT_CMD;
+    event_.data[0] = keypad;
+    event_.data[1] = brightness;
+    event_.data[2] = (uint8_t)color;
+    yield(event_);
+}
+
 void RepeatButton::press() {
     ticker_.resume();
 }
