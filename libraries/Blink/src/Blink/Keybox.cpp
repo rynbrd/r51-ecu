@@ -18,10 +18,11 @@ static const uint32_t kBlinkInterval = 666; // 90 times per minute
 
 BlinkKeybox::BlinkKeybox(uint8_t address, uint8_t pdm_id, Faker::Clock* clock) :
         hb_tick_(kHeartbeatInterval, false, clock),
-        hb_msg_(0xEE00, Canny::NullAddress, address, 0x05),
+        hb_msg_(0xEE00, Canny::NullAddress, address, 0x06),
         pin_cmd_(0xEF00, Canny::NullAddress, address, 0x06),
         pwm_cmd_(0xEF00, Canny::NullAddress, address, 0x06),
         pin_state_(0), pin_fault_(0), power_(pdm_id) {
+    hb_msg_.resize(4);
     pin_cmd_.resize(8);
     pin_cmd_.data()[0] = 0x04;
     pin_cmd_.data()[1] = 0x1B;
