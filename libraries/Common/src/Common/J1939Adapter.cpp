@@ -32,11 +32,16 @@ void J1939Adapter::handle(const Message& msg, const Yield<Message>& yield) {
 }
 
 void J1939Adapter::handleEvent(const Event& event, const Yield<Message>& yield) {
-    if (j1939_.source_address() == Canny::NullAddress || !writeFilter(event)) {
+    if (j1939_.source_address() == Canny::NullAddress) {
         return;
     }
-    j1939_.resize(8);
+
     uint8_t dest = route(event);
+    if (dest == Canny::NullAddress) {
+        return;
+    }
+
+    j1939_.resize(8);
     if (dest == 0xFF) {
         j1939_.pgn(0xFF00);
     } else {

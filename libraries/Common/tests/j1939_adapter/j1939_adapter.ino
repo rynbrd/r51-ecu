@@ -14,15 +14,13 @@ class J1939FilteredAdapter : public J1939Adapter {
         uint8_t route(const Event& event) override {
             if (event.subsystem == 0xEE) {
                 return 0xEE;
+            } else if (event.subsystem == 0xEF) {
+                return Canny::NullAddress;
             }
             return 0xFF;
         }
 
         bool readFilter(const Event& event) override {
-            return event.id != 0x10;
-        }
-
-        bool writeFilter(const Event& event) override {
             return event.id != 0x10;
         }
 };
@@ -40,18 +38,6 @@ test(J1939AdapterTest, WriteEvent) {
     adapter.handle(event, yield);
     assertSize(yield, 1);
     assertIsJ1939Message(yield.messages()[0], expect);
-}
-
-test(J1939AdapterTest, WriteFilteredEvent) {
-    FakeYield yield;
-    J1939FilteredAdapter adapter;
-    J1939Claim claim(0xAA, 0);
-
-    Event event(0x01, 0x10, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
-
-    adapter.handle(claim, yield);
-    adapter.handle(event, yield);
-    assertSize(yield, 0);
 }
 
 test(J1939AdapterTest, ReadBroadcastEvent) {
@@ -123,6 +109,18 @@ test(J1939AdapterTest, RouteEvent) {
     adapter.handle(event, yield);
     assertSize(yield, 1);
     assertIsJ1939Message(yield.messages()[0], expect);
+}
+
+test(J1939AdapterTest, RouteNullEvent) {
+    FakeYield yield;
+    J1939FilteredAdapter adapter;
+    J1939Claim claim(0xAA, 0);
+
+    Event event(0xEF, 0x01, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+
+    adapter.handle(claim, yield);
+    adapter.handle(event, yield);
+    assertSize(yield, 0);
 }
 
 }  // namespace R51
