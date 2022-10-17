@@ -2,6 +2,7 @@
 
 #include <Caster.h>
 #include <Common.h>
+#include <Vehicle.h>
 #include "Screen.h"
 
 namespace R51 {
@@ -9,6 +10,10 @@ namespace {
 
 using ::Caster::Yield;
 
+static const uint8_t kBrightnessLow = 0x01;
+static const uint8_t kBrightnessHigh = 0xC0;
+static const uint8_t kBacklight = 0x01;
+static const LEDColor kBacklightColor = LEDColor::AMBER;
 static const LEDColor kLockerColor = LEDColor::RED;
 static const LEDColor kAirColor = LEDColor::CYAN;
 static const LEDColor kLightColor = LEDColor::YELLOW;
@@ -31,6 +36,17 @@ void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
             msg.event().id == (uint8_t)PowerEvent::POWER_STATE &&
             msg.event().data[0] == pdm_id_) {
         handlePower((PowerState*)&msg.event(), yield);
+    } else if (msg.event().subsystem == (uint8_t)SubSystem::BCM &&
+            msg.event().id == (uint8_t)BCMEvent::ILLUM_STATE) {
+        if (msg.event().data[0] == 0x00) {
+            // daytime: no backlight, high brightness indicators
+            setBrightness(yield, keypad_id_, kBrightnessHigh);
+            setBacklight(yield, keypad_id_, 0);
+        } else {
+            // nighttime: backlight, low brightness indicators
+            setBrightness(yield, keypad_id_, kBrightnessLow);
+            setBacklight(yield, keypad_id_, kBacklight, kBacklightColor);
+        }
     }
 }
 

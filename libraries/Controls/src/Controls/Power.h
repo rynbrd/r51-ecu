@@ -19,7 +19,7 @@ class PowerControls : public Controls {
     public:
         PowerControls(uint8_t keypad_id, uint8_t pdm_id);
 
-        // Handle keypad and PDM events.
+        // Handle keypad, PDM, and illum events.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
     private:
