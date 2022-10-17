@@ -22,6 +22,7 @@ enum class SubSystem : uint8_t {
     CONTROLLER      = 0x00, // Common ECU functionality.
     ECM             = 0x04, // Events relating to engine control.
     IPDM            = 0x06, // Under hood and exterior power control.
+    BCM             = 0x07, // Interior lightings, etc.
     TIRE            = 0x08, // Tire monitoring.
     CLIMATE         = 0x0A, // Climate control.
     SETTINGS        = 0x0B, // Vehicle settings management.

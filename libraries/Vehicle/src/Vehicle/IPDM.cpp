@@ -63,17 +63,4 @@ void IPDM::yieldEvent(const Caster::Yield<Message>& yield) {
     yield(event_);
 }
 
-void Defrost::handle(const Message& message, const Caster::Yield<Message>&) {
-    if (message.type() != Message::EVENT ||
-            message.event().subsystem !=  (uint8_t)SubSystem::IPDM ||
-            message.event().id != (uint8_t)IPDMEvent::TOGGLE_DEFROST_CMD) {
-        return;
-    }
-    output_.trigger();
-}
-
-void Defrost::emit(const Caster::Yield<Message>&) {
-    output_.update();
-}
-
 }  // namespace R51

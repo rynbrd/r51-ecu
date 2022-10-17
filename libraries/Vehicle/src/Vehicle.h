@@ -1,6 +1,7 @@
 #ifndef _R51_VEHICLE_H_
 #define _R51_VEHICLE_H_
 
+#include "Vehicle/BCM.h"
 #include "Vehicle/Climate.h"
 #include "Vehicle/ClimateEvents.h"
 #include "Vehicle/ClimateFrames.h"

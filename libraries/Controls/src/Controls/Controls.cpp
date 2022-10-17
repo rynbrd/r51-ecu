@@ -57,8 +57,8 @@ void Controls::sendCmd(const Yield<Message>& yield, SettingsEvent cmd) {
     yield(event_);
 }
 
-void Controls::sendCmd(const Yield<Message>& yield, IPDMEvent cmd) {
-    event_.subsystem = (uint8_t)SubSystem::IPDM;
+void Controls::sendCmd(const Yield<Message>& yield, BCMEvent cmd) {
+    event_.subsystem = (uint8_t)SubSystem::BCM;
     event_.id = (uint8_t)cmd;
     event_.data[0] = 0xFF;
     event_.data[1] = 0xFF;
