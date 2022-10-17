@@ -16,7 +16,7 @@
 
 // Uncomment to enable J1939 on boards that support it.
 #define J1939_ENABLE
-#define J1939_ADDRESS 0x19
+#define J1939_ADDRESS 0x18
 #define J1939_NAME 0x000013B000FFFAC0
 #define J1939_PROMISCUOUS true
 #define J1939_CAN_MODE Canny::CAN20_250K

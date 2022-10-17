@@ -21,6 +21,7 @@ using ::R51::BlinkKeypad;
 using ::R51::Fusion;
 using ::R51::HMI;
 using ::R51::J1939Connection;
+using ::R51::J1939ControllerAdapter ;
 using ::R51::J1939Gateway;
 using ::R51::Message;
 using ::R51::NavControls;
@@ -35,6 +36,7 @@ Scratch scratch;
 //TODO: broadcast filtered events over J1939
 J1939Connection j1939_conn(&CAN);
 J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
+J1939ControllerAdapter j1939_adapter;
 HMI hmi(&HMI_DEVICE, &scratch);
 Fusion fusion(&scratch);
 
@@ -63,6 +65,7 @@ Node<Message>* nodes[] = {
     &console,
 #endif
     &j1939_gateway,
+    &j1939_adapter,
     &rotary_encoder_group,
     &blink_keypad,
     &blink_keybox,
