@@ -21,6 +21,12 @@ class J1939Adapter : public Caster::Node<Message> {
         // Translate Events to and from J1939 messages.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
+        // Implemented by child classes to route events specific destinations.
+        // Should return the J1939 address of the destination to route the
+        // event to or 0xFF for broadcast. Broadcast events are sent with PGN
+        // 0xFF00. Addressed events are sent with PGN 0xEF00.
+        virtual uint8_t route(const Event&) { return 0xFF; }
+
         // Implemented by child classes to filter events read from the J1939
         // bus. Return false if an event read from the J1939 bus should be
         // broadcast to the internal bus.

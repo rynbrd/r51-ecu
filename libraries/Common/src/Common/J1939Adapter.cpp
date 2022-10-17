@@ -36,6 +36,13 @@ void J1939Adapter::handleEvent(const Event& event, const Yield<Message>& yield) 
         return;
     }
     j1939_.resize(8);
+    uint8_t dest = route(event);
+    if (dest == 0xFF) {
+        j1939_.pgn(0xFF00);
+    } else {
+        j1939_.pgn(0xEF00);
+        j1939_.dest_address(dest);
+    }
     j1939_.data()[0] = event.subsystem;
     j1939_.data()[1] = event.id;
     memcpy(j1939_.data()+2, event.data, 6);
@@ -43,8 +50,8 @@ void J1939Adapter::handleEvent(const Event& event, const Yield<Message>& yield) 
 }
 
 void J1939Adapter::handleJ1939Message(const J1939Message& msg, const Yield<Message>& yield) {
-    if (msg.dest_address() != j1939_.source_address() ||
-            msg.size() < 8 || msg.broadcast() || msg.pgn() != 0xEF00) {
+    if (msg.size() < 8 || (msg.pgn() != 0xFF00 && (msg.pgn() != 0xEF00 ||
+            msg.dest_address() != j1939_.source_address()))) {
         // ignore messages that don't have events in them
         return;
     }
