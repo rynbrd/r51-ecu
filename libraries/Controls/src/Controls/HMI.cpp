@@ -1034,7 +1034,7 @@ void HMI::sleep(bool sleep) {
 
 void HMI::brightness(uint8_t brightness) {
     stream_->print("dim=");
-    stream_->print((uint8_t)(brightness / 255));
+    stream_->print(brightness * 100 / 255);
     terminate();
 }
 
