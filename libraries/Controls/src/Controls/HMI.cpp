@@ -541,27 +541,23 @@ void HMI::handleSerial(const Yield<Message>& yield) {
 
 void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x11:
-            if (climate_system_ == CLIMATE_SYSTEM_OFF) {
-                sendCmd(yield, ClimateEvent::TOGGLE_AUTO_CMD);
-            } else {
-                sendCmd(yield, ClimateEvent::TURN_OFF_CMD);
-            }
-            break;
-        case 0x12:
-            sendCmd(yield, ClimateEvent::TOGGLE_AC_CMD);
+        case 0x02:
+            sendCmd(yield, ClimateEvent::TURN_OFF_CMD);
             break;
         case 0x13:
-            sendCmd(yield, ClimateEvent::TOGGLE_RECIRCULATE_CMD);
-            break;
-        case 0x14:
-            sendCmd(yield, ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
+            sendCmd(yield, ClimateEvent::TOGGLE_AC_CMD);
             break;
         case 0x27:
             sendCmd(yield, ClimateEvent::TOGGLE_DEFOG_CMD);
             break;
         case 0x28:
             sendCmd(yield, BCMEvent::TOGGLE_DEFROST_CMD);
+            break;
+        case 0x14:
+            sendCmd(yield, ClimateEvent::TOGGLE_RECIRCULATE_CMD);
+            break;
+        case 0x15:
+            sendCmd(yield, ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
             break;
         default:
             break;
