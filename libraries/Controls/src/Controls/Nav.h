@@ -23,7 +23,7 @@ class NavControls : public Controls {
         NavControls(uint8_t encoder_keypad_id,
                 Faker::Clock* clock = Faker::Clock::real());
 
-        // Handle rotary encoder keypad events.
+        // Handle rotary encoder keypad and illum events.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
         // Emit timed key events.

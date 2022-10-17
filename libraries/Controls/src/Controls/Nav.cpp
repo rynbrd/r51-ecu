@@ -13,6 +13,11 @@ using ::Caster::Yield;
 
 static const uint32_t kPowerLongPressTimeout = 3000;
 
+static const uint8_t kBrightnessLow = 0x10;
+static const uint8_t kBrightnessHigh = 0x40;
+static const uint8_t kBacklight = 0x10;
+static const LEDColor kBacklightColor = LEDColor::AMBER;
+
 }
 
 NavControls::NavControls(uint8_t encoder_keypad_id, Faker::Clock* clock) :
@@ -47,6 +52,18 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
                 }
             }
             break;
+        case SubSystem::BCM:
+            if (msg.event().id == (uint8_t)BCMEvent::ILLUM_STATE) {
+                if (msg.event().data[0] == 0x00) {
+                    // daytime: no backlight, high brightness indicators
+                    setBrightness(yield, keypad_id_, kBrightnessHigh);
+                    setBacklight(yield, keypad_id_, 0);
+                } else {
+                    // nighttime: backlight, low brightness indicators
+                    setBrightness(yield, keypad_id_, kBrightnessLow);
+                    setBacklight(yield, keypad_id_, kBacklight, kBacklightColor);
+                }
+            }
         default:
             break;
     }
