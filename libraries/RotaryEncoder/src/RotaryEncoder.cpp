@@ -85,16 +85,13 @@ void RotaryEncoder::setBacklight(LEDColor color, uint8_t brightness) {
 void RotaryEncoder::showPixel() {
     if (brightness_ == 0 || color_ == 0x000000) {
         if (backlight_brightness_ == 0) {
-            Serial.print("backlight off");
             neopixel_.setBrightness(backlight_brightness_);
             setPixelColor(0x000000);
         } else {
-            Serial.print("backlight on");
             neopixel_.setBrightness(backlight_brightness_);
             setPixelColor(backlight_color_);
         }
     } else {
-        Serial.print("indicator on");
         neopixel_.setBrightness(brightness_);
         setPixelColor(color_);
     }
