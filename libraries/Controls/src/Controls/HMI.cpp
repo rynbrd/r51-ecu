@@ -54,9 +54,9 @@ class HMIDebugStream : public Stream {
 
 }  // namespace
 
-HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id) :
+HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id, uint8_t pdm_id) :
     stream_(new HMIDebugStream(stream)), scratch_(scratch),
-    encoder_keypad_id_(encoder_keypad_id),
+    encoder_keypad_id_(encoder_keypad_id), pdm_id_(pdm_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF), mute_(false),
     audio_available_(false), audio_settings_page_(0), audio_settings_count_(0) {}
@@ -235,18 +235,25 @@ void HMI::handleTire(const Event& event) {
 }
 
 void HMI::handlePowerState(const PowerState* power) {
+    if (power->pdm() != pdm_id_) {
+        return;
+    }
     switch ((PDMDevice)power->pin()) {
         case PDMDevice::FRONT_LOCKER:
             setVal("shared.front_locker", (uint8_t)(power->mode() == PowerMode::ON));
+            refresh();
             break;
         case PDMDevice::REAR_LOCKER:
             setVal("shared.rear_locker", (uint8_t)(power->mode() == PowerMode::ON));
+            refresh();
             break;
         case PDMDevice::AIR_COMP:
             setVal("shared.air_comp", (uint8_t)(power->mode() == PowerMode::ON));
+            refresh();
             break;
         case PDMDevice::LIGHT_BAR:
             setVal("shared.light_bar", (uint8_t)(power->mode() == PowerMode::ON));
+            refresh();
             break;
     }
 }

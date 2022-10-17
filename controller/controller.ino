@@ -36,7 +36,7 @@ Scratch scratch;
 J1939Connection j1939_conn(&CAN);
 J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
 J1939ControllerAdapter j1939_adapter;
-HMI hmi(&HMI_DEVICE, &scratch);
+HMI hmi(&HMI_DEVICE, &scratch, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
 Fusion fusion(&scratch);
 
 RotaryEncoder rotary_encoder0(&Wire);

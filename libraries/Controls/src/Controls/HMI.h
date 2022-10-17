@@ -17,7 +17,8 @@ class HMI : public Controls {
         // Construct a new HMI node that communicates with a device over the
         // given stream. The scratch space is used to provide string data to
         // the display for events which include a string payload. 
-        HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id = 0xFF);
+        HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id = 0xFF,
+                uint8_t pdm_id = 0xFF);
 
         // Updates the HMI display with received broadcast events.
         void handle(const Message& msg, const Caster::Yield<Message>&) override;
@@ -92,6 +93,7 @@ class HMI : public Controls {
         Stream* stream_;
         Scratch* scratch_;
         uint8_t encoder_keypad_id_;
+        uint8_t pdm_id_;
 
         ScreenPageState page_;
         ScreenSleepState sleep_;
