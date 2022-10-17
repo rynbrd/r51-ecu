@@ -53,7 +53,7 @@ BlinkKeypad::BlinkKeypad(uint8_t keypad, uint8_t address, uint8_t key_count) :
 }
 
 void BlinkKeypad::init(const Caster::Yield<Message>& yield) {
-    setKeyBrightness(yield, 0);
+    setKeyBrightness(yield, 0xFF);
     for (uint8_t i = 0; i < key_count_; ++i) {
         setKeyLED(yield, i, LEDMode::OFF);
     }

@@ -17,7 +17,7 @@ class RotaryEncoder {
     public:
         RotaryEncoder(TwoWire* wire) : encoder_(wire),
                 neopixel_(1, 6, NEO_GRB + NEO_KHZ800, wire),
-                color_(0xFFFFFF), brightness_(0),
+                color_(0x000000), brightness_(0xFF),
                 backlight_color_(0xFFFFFF), backlight_brightness_(0),
                 pos_(0), new_pos_(0), sw_(false), new_sw_(false) {}
 
