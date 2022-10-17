@@ -6,7 +6,7 @@
 #include <Common.h>
 #include <Faker.h>
 #include "Controls.h"
-#include "HMIEvent.h"
+#include "Screen.h"
 
 namespace R51 {
 
@@ -30,7 +30,7 @@ class NavControls : public Controls {
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
-        void handlePage(const DisplayPageState* event);
+        void handlePage(const ScreenPageState* event);
         void handleAudio(const Event& event, const Caster::Yield<Message>& yield);
         void handleClimate(const Event& event, const Caster::Yield<Message>& yield);
         void handleSettings(const Event& event, const Caster::Yield<Message>& yield);

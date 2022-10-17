@@ -3,7 +3,7 @@
 
 namespace R51 {
 
-enum class HMIPage : uint8_t {
+enum class ScreenPage : uint8_t {
     SPLASH          = 0,
     HOME            = 1,
     CLIMATE         = 2,
@@ -25,7 +25,7 @@ enum class HMIPage : uint8_t {
     SHARED          = 18,
 };
 
-enum class HMIEvent : uint8_t {
+enum class ScreenEvent : uint8_t {
     PAGE_STATE  = 0x00, // State event. The current page.
     SLEEP_STATE = 0x01, // State event. Sent when the display sleeps and wakes.
 
@@ -45,18 +45,18 @@ enum class HMIEvent : uint8_t {
                                 // vehicle, audio, and climate.
 };
 
-class DisplayPageState : public Event {
+class ScreenPageState : public Event {
     public:
-        DisplayPageState() :
-            Event(SubSystem::HMI, (uint8_t)HMIEvent::PAGE_STATE, {0x00}) {}
+        ScreenPageState() :
+            Event(SubSystem::SCREEN, (uint8_t)ScreenEvent::PAGE_STATE, {0x00}) {}
 
-        EVENT_PROPERTY(HMIPage, page, (HMIPage)data[0], data[0] = (uint8_t)value);
+        EVENT_PROPERTY(ScreenPage, page, (ScreenPage)data[0], data[0] = (uint8_t)value);
 };
 
-class DisplaySleepState : public Event {
+class ScreenSleepState : public Event {
     public:
-        DisplaySleepState() :
-            Event(SubSystem::HMI, (uint8_t)HMIEvent::PAGE_STATE, {0x00}) {}
+        ScreenSleepState() :
+            Event(SubSystem::SCREEN, (uint8_t)ScreenEvent::PAGE_STATE, {0x00}) {}
 
         EVENT_PROPERTY(bool, sleep, data[0] == 0x01, data[0] = (uint8_t)value);
 };

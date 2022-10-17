@@ -9,7 +9,7 @@
 #include <Foundation.h>
 #include <Vehicle.h>
 #include "Audio.h"
-#include "HMIEvent.h"
+#include "Screen.h"
 
 namespace R51 {
 
@@ -27,7 +27,7 @@ class Controls : public Caster::Node<Message> {
         void sendCmd(const Caster::Yield<Message>& yield, IPDMEvent cmd);
         void sendCmd(const Caster::Yield<Message>& yield, TireEvent cmd, uint8_t payload);
         void sendCmd(const Caster::Yield<Message>& yield, BluetoothEvent cmd);
-        void sendCmd(const Caster::Yield<Message>& yield, HMIEvent cmd);
+        void sendCmd(const Caster::Yield<Message>& yield, ScreenEvent cmd);
 
         Event event_;
 };

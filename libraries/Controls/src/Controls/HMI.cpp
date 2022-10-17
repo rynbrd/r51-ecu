@@ -8,7 +8,7 @@
 #include <Foundation.h>
 #include <Vehicle.h>
 #include "Audio.h"
-#include "HMIEvent.h"
+#include "Screen.h"
 #include "Power.h"
 
 namespace R51 {
@@ -68,40 +68,40 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     const auto& event = msg.event();
     switch ((SubSystem)event.subsystem) {
         case SubSystem::CONTROLLER:
-            if (RequestCommand::match(event, SubSystem::HMI, (uint8_t)HMIEvent::PAGE_STATE)) {
+            if (RequestCommand::match(event, SubSystem::SCREEN, (uint8_t)ScreenEvent::PAGE_STATE)) {
                 yield(page_);
             }
-            if (RequestCommand::match(event, SubSystem::HMI, (uint8_t)HMIEvent::SLEEP_STATE)) {
+            if (RequestCommand::match(event, SubSystem::SCREEN, (uint8_t)ScreenEvent::SLEEP_STATE)) {
                 yield(sleep_);
             }
             break;
-        case SubSystem::HMI:
-            switch ((HMIEvent)event.id) {
-                case HMIEvent::SLEEP_CMD:
+        case SubSystem::SCREEN:
+            switch ((ScreenEvent)event.id) {
+                case ScreenEvent::SLEEP_CMD:
                     sleep(event.data[0] == 0x01);
                     break;
-                case HMIEvent::BRIGHTNESS_CMD:
+                case ScreenEvent::BRIGHTNESS_CMD:
                     brightness(event.data[0]);
                     break;
-                case HMIEvent::NAV_UP_CMD:
+                case ScreenEvent::NAV_UP_CMD:
                     navUp(yield);
                     break;
-                case HMIEvent::NAV_DOWN_CMD:
+                case ScreenEvent::NAV_DOWN_CMD:
                     navDown(yield);
                     break;
-                case HMIEvent::NAV_LEFT_CMD:
+                case ScreenEvent::NAV_LEFT_CMD:
                     navLeft(yield);
                     break;
-                case HMIEvent::NAV_RIGHT_CMD:
+                case ScreenEvent::NAV_RIGHT_CMD:
                     navRight(yield);
                     break;
-                case HMIEvent::NAV_ACTIVATE_CMD:
+                case ScreenEvent::NAV_ACTIVATE_CMD:
                     navActivate(yield);
                     break;
-                case HMIEvent::NAV_PAGE_NEXT_CMD:
+                case ScreenEvent::NAV_PAGE_NEXT_CMD:
                     navPageNext(yield);
                     break;
-                case HMIEvent::NAV_PAGE_PREV_CMD:
+                case ScreenEvent::NAV_PAGE_PREV_CMD:
                     navPagePrev(yield);
                     break;
                 default:
@@ -188,12 +188,12 @@ void HMI::handleECM(const Event& event) {
     int32_t value = event.data[0] - 40;
     if (value == 0) {
         setTxt("vehicle.etemp_txt", "");
-        if (isPage(HMIPage::VEHICLE)) {
+        if (isPage(ScreenPage::VEHICLE)) {
             hide("vehicle.etemp_label");
         }
     } else {
         setTxtTemp("vehicle.etemp_txt.txt=", value);
-        if (isPage(HMIPage::VEHICLE)) {
+        if (isPage(ScreenPage::VEHICLE)) {
             show("vehicle.etemp_label");
         }
     }
@@ -256,7 +256,7 @@ void HMI::handleClimateSystem(const ClimateSystemState* event) {
     setVal("climate.system", (uint8_t)climate_system_);
     setVal("climate.ac", event->ac());
     setVal("climate.dual", event->dual());
-    if (isPage(HMIPage::CLIMATE)) {
+    if (isPage(ScreenPage::CLIMATE)) {
         refresh();
     }
 }
@@ -267,7 +267,7 @@ void HMI::handleClimateAirflow(const ClimateAirflowState* event) {
     setVal("climate.vfeet", event->feet());
     setVal("climate.vdefog", event->windshield());
     setVal("climate.recirc", event->recirculate());
-    if (isPage(HMIPage::CLIMATE)) {
+    if (isPage(ScreenPage::CLIMATE)) {
         refresh();
     } else if (climate_fan_ != 0xFF && climate_fan_ != event->fan_speed() &&
             climate_system_ != CLIMATE_SYSTEM_AUTO) {
@@ -301,7 +301,7 @@ void HMI::handleSettings(const Event& event) {
     setVal("settings.relock", (event.data[2] >> 4) & 0x0F);
     setVal("settings.keyhorn", getBit(event.data, 3, 0));
     setVal("settings.keylights", (event.data[3] >> 2) & 0x03);
-    if (isPage(HMIPage::SETTINGS_1) || isPage(HMIPage::SETTINGS_2)) {
+    if (isPage(ScreenPage::SETTINGS_1) || isPage(ScreenPage::SETTINGS_2)) {
         refresh();
     }
 }
@@ -310,20 +310,20 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
     audio_available_ = event->available();
     setVal("audio.available", event->available());
     if (!event->available()) {
-        if (isAudioPage() && !isPage(HMIPage::AUDIO_NO_STEREO)) {
-            page(HMIPage::AUDIO_NO_STEREO);
+        if (isAudioPage() && !isPage(ScreenPage::AUDIO_NO_STEREO)) {
+            page(ScreenPage::AUDIO_NO_STEREO);
         }
         return;
     }
     setVal("audio.power", event->power());
     if (!event->power()) {
-        if (isAudioSourcePage() && !isPage(HMIPage::AUDIO_POWER_OFF)) {
-            page(HMIPage::AUDIO_POWER_OFF);
+        if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_POWER_OFF)) {
+            page(ScreenPage::AUDIO_POWER_OFF);
         }
         return;
     }
     setVal("audio_radio.seek_mode", (uint8_t)event->seek_mode());
-    if (isPage(HMIPage::AUDIO_RADIO)) {
+    if (isPage(ScreenPage::AUDIO_RADIO)) {
         refresh();
     }
 
@@ -332,34 +332,34 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
         case AudioSource::AM:
             setTxt("audio_radio.freq_txt", (int32_t)(event->frequency() / 1000));
             setTxt("audio_radio.freq_label", "KHz");
-            if (isAudioSourcePage() && !isPage(HMIPage::AUDIO_RADIO)) {
-                page(HMIPage::AUDIO_RADIO);
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_RADIO)) {
+                page(ScreenPage::AUDIO_RADIO);
             }
             break;
         case AudioSource::FM:
             setTxt("audio_radio.freq_txt", ((double)event->frequency() / 1000000.0), 1);
             setTxt("audio_radio.freq_label", "MHz");
-            if (isAudioSourcePage() && !isPage(HMIPage::AUDIO_RADIO)) {
-                page(HMIPage::AUDIO_RADIO);
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_RADIO)) {
+                page(ScreenPage::AUDIO_RADIO);
             }
             break;
         case AudioSource::AUX:
             setTxt("audio_aux.input_txt", "Aux Input");
             setGain(event->gain());
-            if (isAudioSourcePage() && !isPage(HMIPage::AUDIO_AUX)) {
-                page(HMIPage::AUDIO_AUX);
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
+                page(ScreenPage::AUDIO_AUX);
             }
             break;
         case AudioSource::OPTICAL:
             setTxt("audio_aux.input_txt", "Optical Input");
             setGain(event->gain());
-            if (isAudioSourcePage() && !isPage(HMIPage::AUDIO_AUX)) {
-                page(HMIPage::AUDIO_AUX);
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
+                page(ScreenPage::AUDIO_AUX);
             }
             break;
         default:
             setVal("audio.device", event->bt_connected());
-            if (isPageWithHeader() || isPage(HMIPage::AUDIO_TRACK)) {
+            if (isPageWithHeader() || isPage(ScreenPage::AUDIO_TRACK)) {
                 refresh();
             }
             break;
@@ -369,8 +369,8 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
 void HMI::handleAudioVolume(const AudioVolumeState* event) {
     setVal("audio.mute", event->mute());
     setVolume(event->volume());
-    if (!mute_ && !event->mute() && !isPage(HMIPage::SPLASH)) {
-        page(HMIPage::AUDIO_VOLUME);
+    if (!mute_ && !event->mute() && !isPage(ScreenPage::SPLASH)) {
+        page(ScreenPage::AUDIO_VOLUME);
     }
     mute_ = event->mute();
     refresh();
@@ -404,7 +404,7 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
                     (int32_t)(100 * event->time_elapsed() / event->time_total()));
         }
     }
-    if (isPageWithHeader() || isPage(HMIPage::AUDIO_TRACK)) {
+    if (isPageWithHeader() || isPage(ScreenPage::AUDIO_TRACK)) {
         refresh();
     }
 }
@@ -412,8 +412,8 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
 void HMI::handleAudioSettingsMenu(const AudioSettingsMenuState* event) {
     audio_settings_page_ = event->page();
     audio_settings_count_ = event->count();
-    if (!isPage(HMIPage::AUDIO_SETTINGS)) {
-        page(HMIPage::AUDIO_SETTINGS);
+    if (!isPage(ScreenPage::AUDIO_SETTINGS)) {
+        page(ScreenPage::AUDIO_SETTINGS);
     } else {
         setVal("audio_settings.navselect", 0);
     }
@@ -456,7 +456,7 @@ void HMI::handleAudioSettingsItem(const AudioSettingsItemState* event) {
 }
 
 void HMI::handleAudioSettingsExit(const AudioSettingsExitState*) {
-    page(HMIPage::AUDIO);
+    page(ScreenPage::AUDIO);
 }
 
 void HMI::handleSerial(const Yield<Message>& yield) {
@@ -469,32 +469,32 @@ void HMI::handleSerial(const Yield<Message>& yield) {
             // Buttons are triggered on release. 
             if (scratch_->size >= 4 && scratch_->bytes[3] == 0) {
                 uint8_t button = scratch_->bytes[2];
-                switch ((HMIPage)scratch_->bytes[1]) {
-                    case HMIPage::CLIMATE:
+                switch ((ScreenPage)scratch_->bytes[1]) {
+                    case ScreenPage::CLIMATE:
                         handleClimateButton(button, yield);
                         break;
-                    case HMIPage::AUDIO_RADIO:
+                    case ScreenPage::AUDIO_RADIO:
                         handleAudioRadioButton(button, yield);
                         break;
-                    case HMIPage::AUDIO_TRACK:
+                    case ScreenPage::AUDIO_TRACK:
                         handleAudioTrackButton(button, yield);
                         break;
-                    case HMIPage::AUDIO_SOURCE:
+                    case ScreenPage::AUDIO_SOURCE:
                         handleAudioSourceButton(button, yield);
                         break;
-                    case HMIPage::AUDIO_SETTINGS:
+                    case ScreenPage::AUDIO_SETTINGS:
                         handleAudioSettingsButton(button, yield);
                         break;
-                    case HMIPage::VEHICLE:
+                    case ScreenPage::VEHICLE:
                         handleVehicleButton(button, yield);
                         break;
-                    case HMIPage::SETTINGS_1:
+                    case ScreenPage::SETTINGS_1:
                         handleSettings1Button(button, yield);
                         break;
-                    case HMIPage::SETTINGS_2:
+                    case ScreenPage::SETTINGS_2:
                         handleSettings2Button(button, yield);
                         break;
-                    case HMIPage::SETTINGS_3:
+                    case ScreenPage::SETTINGS_3:
                         handleSettings3Button(button, yield);
                         break;
                     default:
@@ -504,7 +504,7 @@ void HMI::handleSerial(const Yield<Message>& yield) {
             break;
         case 0x66:
             if (scratch_->size >= 2) {
-                if (page_.page((HMIPage)scratch_->bytes[1])) {
+                if (page_.page((ScreenPage)scratch_->bytes[1])) {
                     yield(page_);
                 }
             }
@@ -711,28 +711,28 @@ void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
 void HMI::navUp(const Yield<Message>&) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
-        case HMIPage::AUDIO_SETTINGS:
-        case HMIPage::AUDIO_SOURCE:
-        case HMIPage::AUDIO_EQ:
-        case HMIPage::SETTINGS_1:
+        case ScreenPage::AUDIO_SETTINGS:
+        case ScreenPage::AUDIO_SOURCE:
+        case ScreenPage::AUDIO_EQ:
+        case ScreenPage::SETTINGS_1:
             if (selected > 1) {
                 setVal("navselect", selected - 1);
                 refresh();
             }
             break;
-        case HMIPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_2:
             if (selected <= 1) {
                 setVal("settings_1.navselect", 5);
-                page(HMIPage::SETTINGS_1);
+                page(ScreenPage::SETTINGS_1);
             } else {
                 setVal("navselect", selected - 1);
                 refresh();
             }
             break;
-        case HMIPage::SETTINGS_3:
+        case ScreenPage::SETTINGS_3:
             if (selected <= 1) {
                 setVal("settings_2.navselect", 5);
-                page(HMIPage::SETTINGS_1);
+                page(ScreenPage::SETTINGS_1);
             }
             break;
         default:
@@ -743,38 +743,38 @@ void HMI::navUp(const Yield<Message>&) {
 void HMI::navDown(const Yield<Message>&) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
-        case HMIPage::AUDIO_SETTINGS:
+        case ScreenPage::AUDIO_SETTINGS:
             if (selected < audio_settings_count_) {
                 setVal("navselect", selected + 1);
                 refresh();
             }
             break;
-        case HMIPage::AUDIO_SOURCE:
-        case HMIPage::AUDIO_EQ:
+        case ScreenPage::AUDIO_SOURCE:
+        case ScreenPage::AUDIO_EQ:
             if (selected < 5) {
                 setVal("navselect", selected + 1);
                 refresh();
             }
             break;
-        case HMIPage::SETTINGS_1:
+        case ScreenPage::SETTINGS_1:
             if (selected >= 5) {
                 setVal("settings_2.navselect", 1);
-                page(HMIPage::SETTINGS_2);
+                page(ScreenPage::SETTINGS_2);
             } else {
                 setVal("navselect", selected + 1);
                 refresh();
             }
             break;
-        case HMIPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_2:
             if (selected >= 5) {
                 setVal("settings_3.navselect", 1);
-                page(HMIPage::SETTINGS_3);
+                page(ScreenPage::SETTINGS_3);
             } else {
                 setVal("navselect", selected + 1);
                 refresh();
             }
             break;
-        case HMIPage::SETTINGS_3:
+        case ScreenPage::SETTINGS_3:
             if (selected < 1) {
                 setVal("navselect", selected + 1);
                 refresh();
@@ -788,7 +788,7 @@ void HMI::navDown(const Yield<Message>&) {
 void HMI::navLeft(const Yield<Message>& yield) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
-        case HMIPage::AUDIO_EQ:
+        case ScreenPage::AUDIO_EQ:
             if (selected == 1) {
                 sendCmd(yield, AudioEvent::TONE_BASS_DEC_CMD);
             } else if (selected == 2) {
@@ -801,14 +801,14 @@ void HMI::navLeft(const Yield<Message>& yield) {
                 sendCmd(yield, AudioEvent::BALANCE_LEFT_CMD);
             }
             break;
-        case HMIPage::SETTINGS_1:
+        case ScreenPage::SETTINGS_1:
             if (selected == 2) {
                 sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
             } else if (selected == 3) {
                 sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             }
             break;
-        case HMIPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_2:
             if (selected == 1) {
                 sendCmd(yield, SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
             } else if (selected == 2) {
@@ -823,7 +823,7 @@ void HMI::navLeft(const Yield<Message>& yield) {
 void HMI::navRight(const Yield<Message>& yield) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
-        case HMIPage::AUDIO_EQ:
+        case ScreenPage::AUDIO_EQ:
             if (selected == 1) {
                 sendCmd(yield, AudioEvent::TONE_BASS_INC_CMD);
             } else if (selected == 2) {
@@ -836,14 +836,14 @@ void HMI::navRight(const Yield<Message>& yield) {
                 sendCmd(yield, AudioEvent::BALANCE_RIGHT_CMD);
             }
             break;
-        case HMIPage::SETTINGS_1:
+        case ScreenPage::SETTINGS_1:
             if (selected == 2) {
                 sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
             } else if (selected == 3) {
                 sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             }
             break;
-        case HMIPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_2:
             if (selected == 1) {
                 sendCmd(yield, SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
             } else if (selected == 2) {
@@ -858,12 +858,12 @@ void HMI::navRight(const Yield<Message>& yield) {
 void HMI::navActivate(const Yield<Message>& yield) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
-        case HMIPage::AUDIO_SETTINGS:
+        case ScreenPage::AUDIO_SETTINGS:
             if (selected <= audio_settings_count_) {
                 sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, selected - 1);
             }
             break;
-        case HMIPage::AUDIO_SOURCE:
+        case ScreenPage::AUDIO_SOURCE:
             if (selected == 1) {
                 sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::BLUETOOTH);
             } else if (selected == 2) {
@@ -876,7 +876,7 @@ void HMI::navActivate(const Yield<Message>& yield) {
                 sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::OPTICAL);
             }
             break;
-        case HMIPage::SETTINGS_1:
+        case ScreenPage::SETTINGS_1:
             if (selected == 1) {
                 sendCmd(yield, SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
             } else if (selected == 4) {
@@ -885,7 +885,7 @@ void HMI::navActivate(const Yield<Message>& yield) {
                 sendCmd(yield, SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
             }
             break;
-        case HMIPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_2:
             if (selected == 3) {
                 sendCmd(yield, SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
             } else if (selected == 4) {
@@ -894,7 +894,7 @@ void HMI::navActivate(const Yield<Message>& yield) {
                 sendCmd(yield, BluetoothEvent::FORGET_CMD);
             }
             break;
-        case HMIPage::SETTINGS_3:
+        case ScreenPage::SETTINGS_3:
             if (selected == 1) {
                 sendCmd(yield, SettingsEvent::FACTORY_RESET_CMD);
             }
@@ -910,35 +910,35 @@ void HMI::navPageNext(const Caster::Yield<Message>& yield) {
         return;
     }
     switch (page_.page()) {
-        case HMIPage::HOME:
-        case HMIPage::SETTINGS_1:
-        case HMIPage::SETTINGS_2:
-        case HMIPage::SETTINGS_3:
-        case HMIPage::AUDIO_VOLUME:
-        case HMIPage::AUDIO_SOURCE:
+        case ScreenPage::HOME:
+        case ScreenPage::SETTINGS_1:
+        case ScreenPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_3:
+        case ScreenPage::AUDIO_VOLUME:
+        case ScreenPage::AUDIO_SOURCE:
             back();
             break;
-        case HMIPage::AUDIO_SETTINGS:
+        case ScreenPage::AUDIO_SETTINGS:
             sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
             break;
-        case HMIPage::CLIMATE:
+        case ScreenPage::CLIMATE:
             if (audio_available_) {
-                page(HMIPage::AUDIO);
+                page(ScreenPage::AUDIO);
             } else {
-                page(HMIPage::VEHICLE);
+                page(ScreenPage::VEHICLE);
             }
             break;
-        case HMIPage::AUDIO:
-        case HMIPage::AUDIO_TRACK:
-        case HMIPage::AUDIO_RADIO:
-        case HMIPage::AUDIO_AUX:
-        case HMIPage::AUDIO_POWER_OFF:
-        case HMIPage::AUDIO_NO_STEREO:
-        case HMIPage::AUDIO_EQ:
-            page(HMIPage::VEHICLE);
+        case ScreenPage::AUDIO:
+        case ScreenPage::AUDIO_TRACK:
+        case ScreenPage::AUDIO_RADIO:
+        case ScreenPage::AUDIO_AUX:
+        case ScreenPage::AUDIO_POWER_OFF:
+        case ScreenPage::AUDIO_NO_STEREO:
+        case ScreenPage::AUDIO_EQ:
+            page(ScreenPage::VEHICLE);
             break;
-        case HMIPage::VEHICLE:
-            page(HMIPage::CLIMATE);
+        case ScreenPage::VEHICLE:
+            page(ScreenPage::CLIMATE);
             break;
         default:
             break;
@@ -947,34 +947,34 @@ void HMI::navPageNext(const Caster::Yield<Message>& yield) {
 
 void HMI::navPagePrev(const Caster::Yield<Message>& yield) {
     switch (page_.page()) {
-        case HMIPage::HOME:
-        case HMIPage::SETTINGS_1:
-        case HMIPage::SETTINGS_2:
-        case HMIPage::SETTINGS_3:
-        case HMIPage::AUDIO_VOLUME:
-        case HMIPage::AUDIO_AUX:
-        case HMIPage::AUDIO_SOURCE:
+        case ScreenPage::HOME:
+        case ScreenPage::SETTINGS_1:
+        case ScreenPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_3:
+        case ScreenPage::AUDIO_VOLUME:
+        case ScreenPage::AUDIO_AUX:
+        case ScreenPage::AUDIO_SOURCE:
             back();
             break;
-        case HMIPage::AUDIO_SETTINGS:
+        case ScreenPage::AUDIO_SETTINGS:
             sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
             break;
-        case HMIPage::CLIMATE:
-            page(HMIPage::VEHICLE);
+        case ScreenPage::CLIMATE:
+            page(ScreenPage::VEHICLE);
             break;
-        case HMIPage::AUDIO:
-        case HMIPage::AUDIO_TRACK:
-        case HMIPage::AUDIO_RADIO:
-        case HMIPage::AUDIO_POWER_OFF:
-        case HMIPage::AUDIO_NO_STEREO:
-        case HMIPage::AUDIO_EQ:
-            page(HMIPage::CLIMATE);
+        case ScreenPage::AUDIO:
+        case ScreenPage::AUDIO_TRACK:
+        case ScreenPage::AUDIO_RADIO:
+        case ScreenPage::AUDIO_POWER_OFF:
+        case ScreenPage::AUDIO_NO_STEREO:
+        case ScreenPage::AUDIO_EQ:
+            page(ScreenPage::CLIMATE);
             break;
-        case HMIPage::VEHICLE:
+        case ScreenPage::VEHICLE:
             if (audio_available_) {
-                page(HMIPage::AUDIO);
+                page(ScreenPage::AUDIO);
             } else {
-                page(HMIPage::CLIMATE);
+                page(ScreenPage::CLIMATE);
             }
             break;
         default:
@@ -1038,64 +1038,64 @@ void HMI::brightness(uint8_t brightness) {
     terminate();
 }
 
-bool HMI::isPage(HMIPage value) {
+bool HMI::isPage(ScreenPage value) {
     return page_.page() == value;
 }
 
 bool HMI::isAudioPage() {
-    return isPage(HMIPage::AUDIO) ||
-        isPage(HMIPage::AUDIO_TRACK) ||
-        isPage(HMIPage::AUDIO_RADIO) ||
-        isPage(HMIPage::AUDIO_AUX) ||
-        isPage(HMIPage::AUDIO_POWER_OFF) ||
-        isPage(HMIPage::AUDIO_NO_STEREO) ||
-        isPage(HMIPage::AUDIO_VOLUME) ||
-        isPage(HMIPage::AUDIO_SOURCE) ||
-        isPage(HMIPage::AUDIO_SETTINGS);
+    return isPage(ScreenPage::AUDIO) ||
+        isPage(ScreenPage::AUDIO_TRACK) ||
+        isPage(ScreenPage::AUDIO_RADIO) ||
+        isPage(ScreenPage::AUDIO_AUX) ||
+        isPage(ScreenPage::AUDIO_POWER_OFF) ||
+        isPage(ScreenPage::AUDIO_NO_STEREO) ||
+        isPage(ScreenPage::AUDIO_VOLUME) ||
+        isPage(ScreenPage::AUDIO_SOURCE) ||
+        isPage(ScreenPage::AUDIO_SETTINGS);
 }
 
 bool HMI::isAudioSourcePage() {
-    return isPage(HMIPage::AUDIO_TRACK) ||
-        isPage(HMIPage::AUDIO_RADIO) ||
-        isPage(HMIPage::AUDIO_AUX) ||
-        isPage(HMIPage::AUDIO_POWER_OFF) ||
-        isPage(HMIPage::AUDIO_NO_STEREO) ||
-        isPage(HMIPage::AUDIO_VOLUME) ||
-        isPage(HMIPage::AUDIO_SOURCE);
+    return isPage(ScreenPage::AUDIO_TRACK) ||
+        isPage(ScreenPage::AUDIO_RADIO) ||
+        isPage(ScreenPage::AUDIO_AUX) ||
+        isPage(ScreenPage::AUDIO_POWER_OFF) ||
+        isPage(ScreenPage::AUDIO_NO_STEREO) ||
+        isPage(ScreenPage::AUDIO_VOLUME) ||
+        isPage(ScreenPage::AUDIO_SOURCE);
 }
 
 bool HMI::isSettingsPage() {
-    return isPage(HMIPage::AUDIO_SOURCE) ||
-        isPage(HMIPage::AUDIO_SETTINGS) ||
-        isPage(HMIPage::AUDIO_EQ) ||
-        isPage(HMIPage::SETTINGS) ||
-        isPage(HMIPage::SETTINGS_1) ||
-        isPage(HMIPage::SETTINGS_2) ||
-        isPage(HMIPage::SETTINGS_3);
+    return isPage(ScreenPage::AUDIO_SOURCE) ||
+        isPage(ScreenPage::AUDIO_SETTINGS) ||
+        isPage(ScreenPage::AUDIO_EQ) ||
+        isPage(ScreenPage::SETTINGS) ||
+        isPage(ScreenPage::SETTINGS_1) ||
+        isPage(ScreenPage::SETTINGS_2) ||
+        isPage(ScreenPage::SETTINGS_3);
 }
 
 bool HMI::isPageWithHeader() {
-    return isPage(HMIPage::HOME) ||
-        isPage(HMIPage::CLIMATE) ||
-        isPage(HMIPage::AUDIO_TRACK) ||
-        isPage(HMIPage::AUDIO_RADIO) ||
-        isPage(HMIPage::AUDIO_AUX) ||
-        isPage(HMIPage::AUDIO_POWER_OFF) ||
-        isPage(HMIPage::AUDIO_NO_STEREO) ||
-        isPage(HMIPage::AUDIO_VOLUME) ||
-        isPage(HMIPage::VEHICLE);
+    return isPage(ScreenPage::HOME) ||
+        isPage(ScreenPage::CLIMATE) ||
+        isPage(ScreenPage::AUDIO_TRACK) ||
+        isPage(ScreenPage::AUDIO_RADIO) ||
+        isPage(ScreenPage::AUDIO_AUX) ||
+        isPage(ScreenPage::AUDIO_POWER_OFF) ||
+        isPage(ScreenPage::AUDIO_NO_STEREO) ||
+        isPage(ScreenPage::AUDIO_VOLUME) ||
+        isPage(ScreenPage::VEHICLE);
 }
 
-void HMI::page(HMIPage value) {
+void HMI::page(ScreenPage value) {
     stream_->print("page ");
     stream_->print((int32_t)value);
     terminate();
 }
 
 void HMI::climatePopup() {
-    if (!isSettingsPage() && !isPage(HMIPage::CLIMATE)) {
+    if (!isSettingsPage() && !isPage(ScreenPage::CLIMATE)) {
         setVal("climate.popup", 1);
-        page(HMIPage::CLIMATE);
+        page(ScreenPage::CLIMATE);
     }
 }
 

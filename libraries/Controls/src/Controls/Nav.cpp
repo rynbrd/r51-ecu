@@ -4,7 +4,7 @@
 #include <Caster.h>
 #include <Common.h>
 #include <Faker.h>
-#include "HMIEvent.h"
+#include "Screen.h"
 
 namespace R51 {
 namespace {
@@ -25,9 +25,9 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
         return;
     }
     switch ((SubSystem)msg.event().subsystem) {
-        case SubSystem::HMI:
-            if (msg.event().id == (uint8_t)HMIEvent::PAGE_STATE) {
-                handlePage((DisplayPageState*)&msg.event());
+        case SubSystem::SCREEN:
+            if (msg.event().id == (uint8_t)ScreenEvent::PAGE_STATE) {
+                handlePage((ScreenPageState*)&msg.event());
             }
             break;
         case SubSystem::KEYPAD:
@@ -67,33 +67,33 @@ void NavControls::emit(const Yield<Message>& yield) {
     }
 }
 
-void NavControls::handlePage(const DisplayPageState* event) {
+void NavControls::handlePage(const ScreenPageState* event) {
     switch (event->page()) {
-        case HMIPage::SPLASH:
-        case HMIPage::HOME:
-        case HMIPage::VEHICLE:
-        case HMIPage::SHARED:
-        case HMIPage::AUDIO_NO_STEREO:
+        case ScreenPage::SPLASH:
+        case ScreenPage::HOME:
+        case ScreenPage::VEHICLE:
+        case ScreenPage::SHARED:
+        case ScreenPage::AUDIO_NO_STEREO:
             setPage(NavPage::NONE);
             break;
-        case HMIPage::CLIMATE:
+        case ScreenPage::CLIMATE:
             setPage(NavPage::CLIMATE);
             break;
-        case HMIPage::AUDIO:
-        case HMIPage::AUDIO_TRACK:
-        case HMIPage::AUDIO_RADIO:
-        case HMIPage::AUDIO_AUX:
-        case HMIPage::AUDIO_POWER_OFF:
-        case HMIPage::AUDIO_VOLUME:
+        case ScreenPage::AUDIO:
+        case ScreenPage::AUDIO_TRACK:
+        case ScreenPage::AUDIO_RADIO:
+        case ScreenPage::AUDIO_AUX:
+        case ScreenPage::AUDIO_POWER_OFF:
+        case ScreenPage::AUDIO_VOLUME:
             setPage(NavPage::AUDIO);
             break;
-        case HMIPage::AUDIO_SOURCE:
-        case HMIPage::AUDIO_SETTINGS:
-        case HMIPage::AUDIO_EQ:
-        case HMIPage::SETTINGS:
-        case HMIPage::SETTINGS_1:
-        case HMIPage::SETTINGS_2:
-        case HMIPage::SETTINGS_3:
+        case ScreenPage::AUDIO_SOURCE:
+        case ScreenPage::AUDIO_SETTINGS:
+        case ScreenPage::AUDIO_EQ:
+        case ScreenPage::SETTINGS:
+        case ScreenPage::SETTINGS_1:
+        case ScreenPage::SETTINGS_2:
+        case ScreenPage::SETTINGS_3:
             setPage(NavPage::SETTINGS);
             break;
     }
@@ -159,21 +159,21 @@ void NavControls::handleSettings(const Event& event, const Yield<Message>& yield
     if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
         const auto* key = (KeyState*)&event;
         if (key->key() == 0 && !key->pressed()) {
-            sendCmd(yield, HMIEvent::NAV_ACTIVATE_CMD);
+            sendCmd(yield, ScreenEvent::NAV_ACTIVATE_CMD);
         }
     } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
         const auto* encoder = (EncoderState*)&event;
         if (encoder->encoder() == 0) {
             if (encoder->delta() > 0) {
-                sendCmd(yield, HMIEvent::NAV_UP_CMD);
+                sendCmd(yield, ScreenEvent::NAV_UP_CMD);
             } else {
-                sendCmd(yield, HMIEvent::NAV_DOWN_CMD);
+                sendCmd(yield, ScreenEvent::NAV_DOWN_CMD);
             }
         } else if (encoder->encoder() == 1) {
             if (encoder->delta() > 0) {
-                sendCmd(yield, HMIEvent::NAV_RIGHT_CMD);
+                sendCmd(yield, ScreenEvent::NAV_RIGHT_CMD);
             } else {
-                sendCmd(yield, HMIEvent::NAV_LEFT_CMD);
+                sendCmd(yield, ScreenEvent::NAV_LEFT_CMD);
             }
         }
     }

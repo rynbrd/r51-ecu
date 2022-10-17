@@ -2,6 +2,7 @@
 
 #include <Caster.h>
 #include <Common.h>
+#include "Screen.h"
 
 namespace R51 {
 namespace {
@@ -47,7 +48,7 @@ void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) 
             // noop
             break;
         case 2:
-            sendCmd(yield, HMIEvent::NAV_PAGE_NEXT_CMD);
+            sendCmd(yield, ScreenEvent::NAV_PAGE_NEXT_CMD);
             break;
         case 3:
             sendPowerCmd(yield, PDMDevice::FRONT_LOCKER, PowerCmd::TOGGLE);

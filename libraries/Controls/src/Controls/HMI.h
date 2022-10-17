@@ -7,7 +7,7 @@
 #include <Vehicle.h>
 #include "Audio.h"
 #include "Controls.h"
-#include "HMIEvent.h"
+#include "Screen.h"
 
 namespace R51 {
 
@@ -67,12 +67,12 @@ class HMI : public Controls {
         void hide(const char* obj); 
         void sleep(bool sleep);
         void brightness(uint8_t brightness);
-        bool isPage(HMIPage value);
+        bool isPage(ScreenPage value);
         bool isAudioPage();
         bool isAudioSourcePage();
         bool isSettingsPage();
         bool isPageWithHeader();
-        void page(HMIPage value);
+        void page(ScreenPage value);
         void climatePopup();
         void printEscaped(const char* value);
         int32_t getVal(const char* key);
@@ -93,8 +93,8 @@ class HMI : public Controls {
         Scratch* scratch_;
         uint8_t encoder_keypad_id_;
 
-        DisplayPageState page_;
-        DisplaySleepState sleep_;
+        ScreenPageState page_;
+        ScreenSleepState sleep_;
 
         // climate state
         ClimateSystemMode climate_system_;
