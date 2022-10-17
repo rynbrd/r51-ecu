@@ -114,7 +114,7 @@ void J1939Gateway::write(const J1939Message& msg) {
 }
 
 void J1939Gateway::writeClaim() {
-    J1939Message msg(0xEE00, address_, 0xFF,  0x06);
+    J1939Message msg(0xEE00, address_, 0xFF, 0x06);
     msg.name(name_);
     write(msg);
 }
