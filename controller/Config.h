@@ -30,7 +30,7 @@
 #define BLINK_KEYPAD_KEYS 6
 
 #define BLINK_KEYBOX_ID 0x01
-#define BLINK_KEYBOX_ADDR 0x21
+#define BLINK_KEYBOX_ADDR 0x23
 
 // Uncomment the following line to enable debug output.
 #define DEBUG_ENABLE
