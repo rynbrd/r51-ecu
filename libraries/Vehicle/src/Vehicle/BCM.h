@@ -12,11 +12,32 @@
 namespace R51 {
 
 enum class BCMEvent : uint8_t {
-    LIGHTING_STATE      = 0x00, // Interior lighting status.
+    ILLUM_STATE         = 0x00, // Dash illumination state.
     TIRE_PRESSURE_STATE = 0x01, // The current tire pressures.
 
     TOGGLE_DEFROST_CMD  = 0x10, // Toggle defrost on/off.
     TIRE_SWAP_CMD       = 0x11, // Swaps the reported position of two tires.
+};
+
+class IllumState : public Event {
+    public:
+        IllumState() : Event(SubSystem::BCM, (uint8_t)BCMEvent::ILLUM_STATE, {0x00}) {}
+
+        EVENT_PROPERTY(bool, illum, data[0] != 0x00, data[0] = (uint8_t)value);
+};
+
+// Emit BCM illumination state. Normally this is output via 12v from the BCM
+// directly to the dash. We simulate this by reading headlamp state from the
+// IPDM to determine whether dash lights should be illuminated. This avoids the
+// need to connect the ECM to the BCM illum+ wire.
+class Illum : public Caster::Node<Message> {
+    public:
+        Illum() {}
+
+        // Handles IPDM power events to determine illumation state.
+        void handle(const Message& message, const Caster::Yield<Message>& yield) override;
+    private:
+        IllumState state_;
 };
 
 // Controls the defrost heater via a GPIO pin connected to the BCM. The pin is

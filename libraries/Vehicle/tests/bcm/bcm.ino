@@ -40,6 +40,127 @@ class FakeConfigStore : public ConfigStore {
         uint8_t map[4];
 };
 
+test(IllumTest, RequestAll) {
+    FakeYield yield;
+    Illum illum;
+
+    RequestCommand request;
+    IllumState expect;
+    expect.illum(false);
+
+    illum.handle(request, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IllumTest, RequestBCM) {
+    FakeYield yield;
+    Illum illum;
+
+    RequestCommand request(SubSystem::BCM);
+    IllumState expect;
+    expect.illum(false);
+
+    illum.handle(request, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IllumTest, RequestIllum) {
+    FakeYield yield;
+    Illum illum;
+
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0xFF});
+    illum.handle(event, yield);
+    yield.clear();
+
+    RequestCommand request(SubSystem::BCM, (uint8_t)BCMEvent::ILLUM_STATE);
+    IllumState expect;
+    expect.illum(true);
+
+    illum.handle(request, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IllumTest, OnWhenLowBeam) {
+    FakeYield yield;
+    Illum illum;
+
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x02});
+    IllumState expect;
+    expect.illum(true);
+
+    illum.handle(event, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IllumTest, OnWhenHighBeam) {
+    FakeYield yield;
+    Illum illum;
+
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x01});
+    IllumState expect;
+    expect.illum(true);
+
+    illum.handle(event, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IllumTest, RemainOnWhenHighBeamToggle) {
+    FakeYield yield;
+    Illum illum;
+
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x02});
+    IllumState expect;
+    expect.illum(true);
+
+    illum.handle(event, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    event = Event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x01});
+    illum.handle(event, yield);
+    assertSize(yield, 0);
+}
+
+test(IllumTest, OnWhenBothBeamsOn) {
+    FakeYield yield;
+    Illum illum;
+
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x03});
+    IllumState expect;
+    expect.illum(true);
+
+    illum.handle(event, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
+test(IllumTest, OffWhenBeamsOff) {
+    FakeYield yield;
+    Illum illum;
+
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x02});
+    IllumState expect;
+    expect.illum(true);
+
+    illum.handle(event, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+    yield.clear();
+
+    event = Event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+    expect.illum(false);
+
+    illum.handle(event, yield);
+    assertSize(yield, 1);
+    assertIsEvent(yield.messages()[0], expect);
+}
+
 test(DefrostTest, Trigger) {
     FakeYield yield;
     FakeClock clock;

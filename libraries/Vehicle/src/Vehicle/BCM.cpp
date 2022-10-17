@@ -6,6 +6,7 @@
 #include <Common.h>
 #include <Foundation.h>
 #include "Config.h"
+#include "IPDM.h"
 
 namespace R51 {
 namespace {
@@ -19,9 +20,22 @@ uint8_t getPressureValue(const Canny::Frame& frame, int tire) {
 
 }  // namespace
 
+void Illum::handle(const Message& msg, const Caster::Yield<Message>& yield) {
+    if (msg.type() != Message::EVENT) {
+        return;
+    }
+    if ((RequestCommand::match(msg.event(), SubSystem::BCM,
+            (uint8_t)BCMEvent::ILLUM_STATE)) ||
+            (msg.event().subsystem == (uint8_t)SubSystem::IPDM &&
+            msg.event().id == (uint8_t)IPDMEvent::POWER_STATE &&
+            state_.illum(getBit(msg.event().data, 0, 0) || getBit(msg.event().data, 0, 1)))) {
+        yield(state_);
+    }
+}
+
 void Defrost::handle(const Message& message, const Caster::Yield<Message>&) {
     if (message.type() != Message::EVENT ||
-            message.event().subsystem !=  (uint8_t)SubSystem::BCM ||
+            message.event().subsystem != (uint8_t)SubSystem::BCM ||
             message.event().id != (uint8_t)BCMEvent::TOGGLE_DEFROST_CMD) {
         return;
     }
