@@ -16,6 +16,9 @@ namespace {
 
 using ::Caster::Yield;
 
+static const uint8_t kBrightnessLow = 0x40;
+static const uint8_t kBrightnessHigh = 0xFF;
+
 class HMIDebugStream : public Stream {
     public:
         HMIDebugStream(Stream* child) : child_(child), n_(0) {}
@@ -208,10 +211,15 @@ void HMI::handleIPDM(const Event& event) {
     refresh();
 }
 
-void HMI::handleTire(const Event& event) {
-    if (event.id != (uint8_t)BCMEvent::TIRE_PRESSURE_STATE) {
-        return;
+void HMI::handleIllum(const Event& event) {
+    if (event.data[0] == 0x00) {
+        brightness(kBrightnessHigh);
+    } else {
+        brightness(kBrightnessLow);
     }
+}
+
+void HMI::handleTire(const Event& event) {
     if (event.data[0] == 0) {
         setTxt("vehicle.tire_fl_txt", "");
     } else {
