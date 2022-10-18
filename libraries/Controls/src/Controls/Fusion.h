@@ -116,6 +116,7 @@ class Fusion : public Caster::Node<Message> {
         uint8_t hu_address_;
         Ticker hb_timer_;
         Ticker disco_timer_;
+        Ticker power_timer_;
 
         Scratch track_title_scratch_;
         Scratch track_artist_scratch_;

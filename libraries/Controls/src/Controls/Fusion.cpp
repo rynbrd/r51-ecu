@@ -10,6 +10,8 @@
 namespace R51 {
 namespace {
 
+static const uint32_t kPowerOnTimeout = 5000;
+
 template <typename T>
 void clamp(T* var, T min, T max) {
     if (*var < min) {
@@ -128,6 +130,7 @@ Fusion::Fusion(Clock* clock) :
         clock_(clock), address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, false, clock),
         disco_timer_(kDiscoveryTick, false, clock),
+        power_timer_(kPowerOnTimeout, true, clock),
         recent_mute_(false), state_(0xFF), state_ignore_(false), state_counter_(0xFF),
         cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress),
         secondary_source_((AudioSource)0xFF) {
@@ -215,7 +218,9 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
             break;
         case AudioEvent::RADIO_TOGGLE_SEEK_CMD:
             system_.toggle_seek_mode();
-            yield(system_);
+            if (power_timer_.paused()) {
+                yield(system_);
+            }
             break;
         case AudioEvent::RADIO_NEXT_CMD:
             switch (system_.seek_mode()) {
@@ -449,9 +454,10 @@ void Fusion::handleAnnounce(uint8_t seq, const Canny::J1939Message& msg,
     cmd_.dest_address(hu_address_);
     hb_timer_.reset();
     disco_timer_.reset();
-    if (system_.available(true) || system_.power(false)) {
-        yield(system_);
-    }
+    power_timer_.resume();
+    system_.available(true);
+    system_.power(false);
+    yield(system_);
     sendStereoRequest(yield);
 }
 
@@ -461,7 +467,9 @@ void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
         return;
     }
     if (system_.power(msg.data()[6] != 0x00)) {
-        yield(system_);
+        if (power_timer_.paused()) {
+            power_timer_.resume();
+        }
     }
 }
 
@@ -472,7 +480,11 @@ void Fusion::handleHeartbeat(uint8_t seq, const Canny::J1939Message& msg,
     }
     hb_timer_.reset();
     if (system_.power(msg.data()[6] == 0x01)) {
-        yield(system_);
+        if (system_.power()) {
+            power_timer_.resume();
+        } else {
+            yield(system_);
+        }
     }
 }
 
@@ -481,7 +493,9 @@ void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
     switch (seq) {
         case 0:
             secondary_source_ = (AudioSource)msg.data()[6];
-            if (msg.data()[6] == msg.data()[7] && system_.source((AudioSource)msg.data()[7])) {
+            if (msg.data()[6] == msg.data()[7] &&
+                    system_.source((AudioSource)msg.data()[7]) &&
+                    power_timer_.paused()) {
                 yield(system_);
             }
             break;
@@ -512,7 +526,8 @@ void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
             if (msg.data()[7] > 0x02) {
                 msg.data()[7] = 0x00;
             }
-            if (track_playback_.playback((AudioPlayback)msg.data()[7])) {
+            if (track_playback_.playback((AudioPlayback)msg.data()[7]) &&
+                    power_timer_.paused()) {
                 yield(track_playback_);
             }
             break;
@@ -520,7 +535,8 @@ void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
             time = msg.data()[3];
             time |= (msg.data()[4] << 8);
             time |= (msg.data()[5] << 16);
-            if (track_playback_.time_total(time / 1000)) {
+            if (track_playback_.time_total(time / 1000) &&
+                    power_timer_.paused()) {
                 yield(track_playback_);
             }
             break;
@@ -542,7 +558,8 @@ void Fusion::handleTimeElapsed(uint8_t seq, const J1939Message& msg,
         uint32_t time = msg.data()[1];
         time |= (msg.data()[2] << 8);
         time |= (msg.data()[3] << 16);
-        if (track_playback_.time_elapsed(time / 4)) {
+        if (track_playback_.time_elapsed(time / 4) &&
+                power_timer_.paused()) {
             yield(track_playback_);
         }
     }
@@ -555,7 +572,8 @@ void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
         frequency |= (msg.data()[2] << 8);
         frequency |= (msg.data()[3] << 16);
         frequency |= (msg.data()[4] << 24);
-        if (system_.frequency(frequency))  {
+        if (system_.frequency(frequency) &&
+                power_timer_.paused()) {
             yield(system_);
         }
     }
@@ -563,7 +581,8 @@ void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
 
 void Fusion::handleInputGain(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (seq == 0 && system_.gain((int8_t)msg.data()[7]))  {
+    if (seq == 0 && system_.gain((int8_t)msg.data()[7]) &&
+            power_timer_.paused())  {
         yield(system_);
     }
 }
@@ -588,14 +607,14 @@ void Fusion::handleTone(uint8_t seq, const J1939Message& msg,
         default:
             break;
     }
-    if (changed) {
+    if (changed && power_timer_.paused()) {
         yield(tone_);
     }
 }
 
 void Fusion::handleMute(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (seq == 0 && volume_.mute(msg.data()[6] == 0x01))  {
+    if (seq == 0 && volume_.mute(msg.data()[6] == 0x01) && power_timer_.paused())  {
         yield(volume_);
     }
 }
@@ -604,7 +623,9 @@ void Fusion::handleBalance(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     // We balance all zones together so we only need to read
     // balance from zone 1.
-    if (seq == 0 && msg.data()[6] == 0x00 && volume_.balance(msg.data()[7])) {
+    if (seq == 0 && msg.data()[6] == 0x00 &&
+            volume_.balance(msg.data()[7]) &&
+            power_timer_.paused()) {
         yield(volume_);
     }
 }
@@ -628,7 +649,7 @@ void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
             changed = false;
             recent_mute_ = false;
         }
-        if (changed) {
+        if (changed && power_timer_.paused()) {
             yield(volume_);
         }
     }
@@ -720,7 +741,7 @@ void Fusion::handleMenuItemList(uint8_t seq, const Canny::J1939Message& msg,
 
 void Fusion::handleBluetoothConnection(bool connected,
         const Yield<Message>& yield) {
-    if (system_.bt_connected(connected)) {
+    if (system_.bt_connected(connected) && power_timer_.paused()) {
         yield(system_);
     }
 }
@@ -769,7 +790,9 @@ void Fusion::handlePlaybackToggleCmd(const Caster::Yield<Message>& yield) {
         case AudioSource::AM:
         case AudioSource::FM:
             system_.toggle_seek_mode();
-            yield(system_);
+            if (power_timer_.paused()) {
+                yield(system_);
+            }
             break;
         case AudioSource::BLUETOOTH:
             if (track_playback_.playback() == AudioPlayback::PAUSE) {
@@ -885,8 +908,20 @@ void Fusion::emit(const Yield<Message>& yield) {
         hu_address_ = Canny::NullAddress;
         cmd_.dest_address(Canny::NullAddress);
         if (system_.available(false) || system_.power(false))  {
+            power_timer_.pause();
             yield(system_);
         }
+    } else if (power_timer_.active()) {
+        power_timer_.pause();
+        yield(volume_);
+        yield(tone_);
+        yield(track_playback_);
+        if (system_.source() == AudioSource::BLUETOOTH) {
+            yield(track_title_);
+            yield(track_artist_);
+            yield(track_album_);
+        }
+        yield(system_);
     }
 }
 
@@ -923,6 +958,11 @@ void Fusion::sendCmdPayload(const Yield<Message>& yield, uint32_t payload) {
 void Fusion::sendPowerCmd(const Yield<Message>& yield, bool power) {
     // on:  1DEF0A21#C0:05:A3:99:1C:00:01:FF
     // off: 1DEF0A21#40:05:A3:99:1C:00:02:FF
+    if (power) {
+        power_timer_.resume();
+    } else {
+        power_timer_.pause();
+    }
     uint8_t power_byte = power ? 0x01 : 0x02;
     sendCmd(yield, 0x05, 0x1C, power_byte);
 }
