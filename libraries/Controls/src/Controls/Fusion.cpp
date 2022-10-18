@@ -462,12 +462,15 @@ void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
     }
 }
 
-void Fusion::handleHeartbeat(uint8_t seq, const Canny::J1939Message&,
-        const Yield<Message>&) {
+void Fusion::handleHeartbeat(uint8_t seq, const Canny::J1939Message& msg,
+        const Yield<Message>& yield) {
     if (seq != 0) {
         return;
     }
     hb_timer_.reset();
+    if (system_.power(msg.data()[6] == 0x01)) {
+        yield(system_);
+    }
 }
 
 void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
