@@ -113,6 +113,7 @@ class HMI : public Controls {
         // audio state
         bool mute_;
         bool audio_available_;
+        bool audio_power_;
         uint8_t audio_settings_page_;
         uint8_t audio_settings_count_;
 };
