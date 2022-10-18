@@ -99,8 +99,7 @@ enum class AudioEvent {
 
     // Stateless playback controls.
     PLAYBACK_TOGGLE_CMD = 0xE0, // Toggles between play/pause for Bluetooth
-                                // or mute/unmute for radio, aux, or optical
-                                // sources.
+                                // or seek mode for radio.
     PLAYBACK_NEXT_CMD   = 0xE1, // Advance to next track for Bluetooth or auto
                                 // seek to next station for radio.
     PLAYBACK_PREV_CMD   = 0xE2, // Go to previous track for Bluetooth or auto

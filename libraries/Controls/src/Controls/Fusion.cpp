@@ -756,7 +756,8 @@ void Fusion::handlePlaybackToggleCmd(const Caster::Yield<Message>& yield) {
     switch (system_.source()) {
         case AudioSource::AM:
         case AudioSource::FM:
-            sendVolumeMuteCmd(yield, !volume_.mute());
+            system_.toggle_seek_mode();
+            yield(system_);
             break;
         case AudioSource::BLUETOOTH:
             if (track_playback_.playback() == AudioPlayback::PAUSE) {
