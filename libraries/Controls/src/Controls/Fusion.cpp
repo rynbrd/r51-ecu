@@ -35,6 +35,9 @@ static const int8_t kToneMin = -15;
 static const int8_t kToneMax = 15;
 
 enum State : uint8_t {
+    // Unsupported state, reset counters.
+    UNSUPPORTED = 0x00,
+
     // 4th byte of A3:99:XX:80 state frames.
     // 1DFF040A#C0:19:A3:99:11:80:07:00
     SOURCE = 0x02,
@@ -55,9 +58,11 @@ enum State : uint8_t {
     HEARTBEAT = 0x20,
     POWER = 0x39,
 
-    // Other state frames.
-    INFO14 = 0xF0,
-    INFO16 = 0xF1,
+    // PGN 1F014 announcement
+    ANNOUNCE = 0xF0,
+
+    // Message is ignored.
+    IGNORE = 0xFF,
 };
 
 enum TrackCmd : uint8_t {
@@ -107,15 +112,14 @@ bool match(const uint8_t* data, const uint8_t (&match)[N]) {
 
 State detectState(const J1939Message& msg, uint8_t hu_address) {
     if (msg.pgn() == 0x1F014) {
-        return State::INFO14;
-    } else if (msg.pgn() == 0x1F016) {
-        return State::INFO16;
+        return State::ANNOUNCE;
     } else if (msg.pgn() == 0x1FF04 && msg.source_address() == hu_address) {
         if (match(msg.data() + 2, {0xA3, 0x99, 0xFF, 0x80})) {
             return (State)msg.data()[4];
         }
+        return State::UNSUPPORTED;
     }
-    return (State)0xFF;
+    return State::IGNORE;
 }
 
 }  // namespace
@@ -359,7 +363,11 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
     }
 
     if (counter_id(msg) != counter_id(state_counter_)) {
-        state_ = detectState(msg, hu_address_);
+        State next_state = detectState(msg, hu_address_);
+        if (next_state == IGNORE) {
+           return;
+        } 
+        state_ = next_state;
         state_ignore_ = false;
     }
     state_counter_ = counter(msg);
@@ -422,10 +430,8 @@ void Fusion::handleState(uint8_t seq, const J1939Message& msg, const Yield<Messa
         case MENU_ITEM_LIST:
             handleMenuItemList(seq, msg, yield);
             break;
-        case INFO14:
+        case ANNOUNCE:
             handleAnnounce(seq, msg, yield);
-            break;
-        case INFO16:
             break;
     }
 }
