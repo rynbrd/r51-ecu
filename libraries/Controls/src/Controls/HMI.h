@@ -50,8 +50,10 @@ class HMI : public Controls {
         void handleClimateButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioRadioButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioTrackButton(uint8_t button, const Caster::Yield<Message>& yield);
+        void handleAudioAuxButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioSourceButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioSettingsButton(uint8_t button, const Caster::Yield<Message>& yield);
+        void handleAudioPowerOffButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleVehicleButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings1Button(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings2Button(uint8_t button, const Caster::Yield<Message>& yield);

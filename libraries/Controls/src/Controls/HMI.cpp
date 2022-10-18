@@ -510,11 +510,17 @@ void HMI::handleSerial(const Yield<Message>& yield) {
                     case ScreenPage::AUDIO_TRACK:
                         handleAudioTrackButton(button, yield);
                         break;
+                    case ScreenPage::AUDIO_AUX:
+                        handleAudioAuxButton(button, yield);
+                        break;
                     case ScreenPage::AUDIO_SOURCE:
                         handleAudioSourceButton(button, yield);
                         break;
                     case ScreenPage::AUDIO_SETTINGS:
                         handleAudioSettingsButton(button, yield);
+                        break;
+                    case ScreenPage::AUDIO_POWER_OFF:
+                        handleAudioPowerOffButton(button, yield);
                         break;
                     case ScreenPage::VEHICLE:
                         handleVehicleButton(button, yield);
@@ -575,7 +581,10 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 11:
+        case 0x0E:
+            sendCmd(yield, AudioEvent::POWER_OFF_CMD);
+            break;
+        case 0x0A:
             sendCmd(yield, AudioEvent::RADIO_TOGGLE_SEEK_CMD);
             break;
         default:
@@ -585,41 +594,62 @@ void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 14:
+        case 0x13:
+            sendCmd(yield, AudioEvent::POWER_OFF_CMD);
+            break;
+        case 0x0D:
             sendCmd(yield, AudioEvent::SETTINGS_OPEN_CMD);
+            break;
+    }
+}
+
+void HMI::handleAudioAuxButton(uint8_t button, const Yield<Message>& yield) {
+    switch (button) {
+        case 0x0C:
+            sendCmd(yield, AudioEvent::POWER_OFF_CMD);
             break;
     }
 }
 
 void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 30:
+        case 0x1E:
             // on page exit
             sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
             break;
-        case 14:
+        case 0x0E:
             // on back button
             sendCmd(yield, AudioEvent::SETTINGS_BACK_CMD);
             break;
-        case 1:
-        case 6:
+        case 0x01:
+        case 0x06:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x00);
             break;
-        case 5:
-        case 7:
+        case 0x05:
+        case 0x07:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x01);
             break;
-        case 4:
-        case 8:
+        case 0x04:
+        case 0x08:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x02);
             break;
-        case 3:
-        case 9:
+        case 0x03:
+        case 0x09:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x03);
             break;
-        case 2:
-        case 15:
+        case 0x02:
+        case 0x0F:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x04);
+            break;
+    }
+}
+
+void HMI::handleAudioPowerOffButton(uint8_t button, const Yield<Message>& yield) {
+    switch (button) {
+        case 0x03:
+            sendCmd(yield, AudioEvent::POWER_ON_CMD);
+            break;
+        default:
             break;
     }
 }
