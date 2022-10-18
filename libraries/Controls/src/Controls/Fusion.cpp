@@ -124,15 +124,18 @@ State detectState(const J1939Message& msg, uint8_t hu_address) {
 
 }  // namespace
 
-Fusion::Fusion(Scratch* scratch, Clock* clock) :
-        clock_(clock), scratch_(scratch),
-        address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
+Fusion::Fusion(Clock* clock) :
+        clock_(clock), address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, false, clock),
         disco_timer_(kDiscoveryTick, false, clock),
         recent_mute_(false), state_(0xFF), state_ignore_(false), state_counter_(0xFF),
         cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress),
         secondary_source_((AudioSource)0xFF) {
     cmd_.resize(8);
+    track_title_.scratch = &track_title_scratch_;
+    track_artist_.scratch = &track_artist_scratch_;
+    track_album_.scratch = &track_album_scratch_;
+    settings_item_.scratch = &settings_item_scratch_;
 }
 
 void Fusion::handle(const Message& msg, const Yield<Message>& yield) {
@@ -386,13 +389,13 @@ void Fusion::handleState(uint8_t seq, const J1939Message& msg, const Yield<Messa
             handleTrackPlayback(seq, msg, yield);
             break;
         case TRACK_TITLE:
-            handleTrackString(seq, msg, &track_title_, yield);
+            handleTrackString(&track_title_scratch_, seq, msg, &track_title_, yield);
             break;
         case TRACK_ARTIST:
-            handleTrackString(seq, msg, &track_artist_, yield);
+            handleTrackString(&track_artist_scratch_, seq, msg, &track_artist_, yield);
             break;
         case TRACK_ALBUM:
-            handleTrackString(seq, msg, &track_album_, yield);
+            handleTrackString(&track_album_scratch_, seq, msg, &track_album_, yield);
             break;
         case TRACK_ELAPSED:
             handleTimeElapsed(seq, msg, yield);
@@ -526,9 +529,9 @@ void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
     }
 }
 
-void Fusion::handleTrackString(uint8_t seq, const J1939Message& msg,
+void Fusion::handleTrackString(Scratch* scratch, uint8_t seq, const J1939Message& msg,
         AudioChecksumEvent* event, const Yield<Message>& yield) {
-    if (handleString(seq, msg, 4) && event->checksum(checksum_.value())) {
+    if (handleString(scratch, seq, msg, 4) && event->checksum(checksum_.value())) {
         yield(*event);
     }
 }
@@ -710,7 +713,7 @@ void Fusion::handleMenuItemList(uint8_t seq, const Canny::J1939Message& msg,
             }
             break;
     }
-    if (handleString(seq, msg, 6)) {
+    if (handleString(&settings_item_scratch_, seq, msg, 6)) {
         yield(settings_item_);
     }
 }
@@ -836,10 +839,10 @@ void Fusion::handlePlaybackPrevCmd(const Caster::Yield<Message>& yield) {
     }
 }
 
-bool Fusion::handleString(uint8_t seq, const J1939Message& msg, uint8_t offset) {
+bool Fusion::handleString(Scratch* scratch, uint8_t seq, const J1939Message& msg, uint8_t offset) {
     if (seq == 0) {
-        scratch_->bytes[0] = 0;
-        scratch_->size = 0;
+        scratch->bytes[0] = 0;
+        scratch->size = 0;
         checksum_.reset();
         return false;
     }
@@ -850,18 +853,18 @@ bool Fusion::handleString(uint8_t seq, const J1939Message& msg, uint8_t offset) 
         i = offset;
     }
     for (; i < 7; i++) {
-        if (scratch_->size >= 256) {
+        if (scratch->size >= 256) {
             // buffer overflow
             return false;
         }
 
-        scratch_->bytes[scratch_->size] = msg.data()[i + 1];
+        scratch->bytes[scratch->size] = msg.data()[i + 1];
         checksum_.update(msg.data()[i + 1]);
-        if (scratch_->bytes[scratch_->size] == 0) {
+        if (scratch->bytes[scratch->size] == 0) {
             // end of string
             return true;
         }
-        ++(scratch_->size);
+        ++(scratch->size);
     }
     return false;
 }

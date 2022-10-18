@@ -15,9 +15,8 @@ namespace R51 {
 class HMI : public Controls {
     public:
         // Construct a new HMI node that communicates with a device over the
-        // given stream. The scratch space is used to provide string data to
-        // the display for events which include a string payload. 
-        HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id = 0xFF,
+        // given stream.
+        HMI(Stream* stream, uint8_t encoder_keypad_id = 0xFF,
                 uint8_t pdm_id = 0xFF);
 
         // Initialize display state. 
@@ -92,12 +91,12 @@ class HMI : public Controls {
         void setTxtTime(const char* key, uint16_t seconds);
         void setVolume(uint8_t value);
         void setGain(int8_t db);
-        void setAudioSettingsItem(uint8_t item, uint8_t type);
+        void setAudioSettingsItem(uint8_t item, uint8_t type, Scratch* scratch);
 
         bool read(bool block);
 
         Stream* stream_;
-        Scratch* scratch_;
+        Scratch scratch_;
         uint8_t encoder_keypad_id_;
         uint8_t pdm_id_;
 

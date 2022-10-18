@@ -15,8 +15,7 @@ namespace R51::internal {
 // Root command.
 class RootCommand : public Command {
     public:
-        RootCommand(Scratch* scratch) :
-                scratch_(scratch), scratch_enable_(scratch != nullptr) {}
+        RootCommand() {}
 
         Command* next(char* arg) override {
             if (strcmp(arg, "can") == 0) {
@@ -25,8 +24,6 @@ class RootCommand : public Command {
                 return &event_;
             } else if (strcmp(arg, "j1939") == 0) {
                 return &j1939_;
-            } else if (scratch_enable_ && strcmp(arg, "scratch") == 0) {
-                return &scratch_;
             }
             return NotFoundCommand::get();
         }
@@ -41,8 +38,6 @@ class RootCommand : public Command {
         CANCommand can_;
         EventCommand event_;
         J1939Command j1939_;
-        ScratchCommand scratch_;
-        bool scratch_enable_;
 };
 
 }  // namespace R51::internal

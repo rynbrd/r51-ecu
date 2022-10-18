@@ -14,6 +14,7 @@
 
 #include <Arduino.h>
 #include <Canny.h>
+#include "Scratch.h"
 
 namespace R51 {
 
@@ -52,6 +53,7 @@ struct Event : public Printable {
     uint8_t id;
     // Event data. Empty bytes are padded with 0xFF.
     uint8_t data[6];
+    Scratch* scratch;
 
     // Construct an empty system event. SubSystem and ID are set to 0x00.
     Event();

@@ -15,9 +15,8 @@ namespace R51 {
 // Node for interacting with Garming Fusion head units over J1939/NMEA2000.
 class Fusion : public Caster::Node<Message> {
     public:
-        // Construct a fusion node. Events with string contents write their
-        // payloads to scratch.
-        Fusion(Scratch* scratch, Faker::Clock* clock = Faker::Clock::real());
+        // Construct a fusion node.
+        Fusion(Faker::Clock* clock = Faker::Clock::real());
 
         // Handle J1939 state messages from the head unit and control Events
         // from other devices.
@@ -46,8 +45,9 @@ class Fusion : public Caster::Node<Message> {
                 const Caster::Yield<Message>& yield);
         void handleTrackPlayback(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleTrackString(uint8_t seq, const Canny::J1939Message& msg,
-                AudioChecksumEvent* event, const Caster::Yield<Message>& yield);
+        void handleTrackString(Scratch* scratch, uint8_t seq,
+                const Canny::J1939Message& msg, AudioChecksumEvent* event,
+                const Caster::Yield<Message>& yield);
         void handleTimeElapsed(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handleRadioFrequency(uint8_t seq, const Canny::J1939Message& msg,
@@ -78,7 +78,8 @@ class Fusion : public Caster::Node<Message> {
         void handlePlaybackNextCmd(const Caster::Yield<Message>& yield);
         void handlePlaybackPrevCmd(const Caster::Yield<Message>& yield);
 
-        bool handleString(uint8_t seq, const Canny::J1939Message& msg, uint8_t offset);
+        bool handleString(Scratch* scratch, uint8_t seq,
+                const Canny::J1939Message& msg, uint8_t offset);
 
         void sendStereoRequest(const Caster::Yield<Message>& yield);
         void sendStereoDiscovery(const Caster::Yield<Message>& yield);
@@ -109,13 +110,17 @@ class Fusion : public Caster::Node<Message> {
         void sendMenuReqItemList(const Caster::Yield<Message>& yield, uint8_t count);
 
         Faker::Clock* clock_;
-        Scratch* scratch_;
         CRC32::Checksum checksum_;
 
         uint8_t address_;
         uint8_t hu_address_;
         Ticker hb_timer_;
         Ticker disco_timer_;
+
+        Scratch track_title_scratch_;
+        Scratch track_artist_scratch_;
+        Scratch track_album_scratch_;
+        Scratch settings_item_scratch_;
 
         AudioSystemState system_;
         AudioVolumeState volume_;

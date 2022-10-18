@@ -57,8 +57,8 @@ class HMIDebugStream : public Stream {
 
 }  // namespace
 
-HMI::HMI(Stream* stream, Scratch* scratch, uint8_t encoder_keypad_id, uint8_t pdm_id) :
-    stream_(new HMIDebugStream(stream)), scratch_(scratch),
+HMI::HMI(Stream* stream, uint8_t encoder_keypad_id, uint8_t pdm_id) :
+    stream_(new HMIDebugStream(stream)),
     encoder_keypad_id_(encoder_keypad_id), pdm_id_(pdm_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF), mute_(false),
@@ -175,13 +175,13 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
                     handleAudioPlayback((AudioTrackPlaybackState*)&event);
                     break;
                 case AudioEvent::TRACK_TITLE_STATE:
-                    setTxt("audio_track.title_txt", scratch_);
+                    setTxt("audio_track.title_txt", event.scratch);
                     break;
                 case AudioEvent::TRACK_ARTIST_STATE:
-                    setTxt("audio_track.artist_txt", scratch_);
+                    setTxt("audio_track.artist_txt", event.scratch);
                     break;
                 case AudioEvent::TRACK_ALBUM_STATE:
-                    setTxt("audio_track.album_txt", scratch_);
+                    setTxt("audio_track.album_txt", event.scratch);
                     break;
                 case AudioEvent::SETTINGS_MENU_STATE:
                     handleAudioSettingsMenu((AudioSettingsMenuState*)&event);
@@ -391,7 +391,7 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
             break;
         default:
             setVal("audio.device", event->bt_connected());
-            if (event->power() && isPageWithHeader() || isPage(ScreenPage::AUDIO_TRACK)) {
+            if (event->power() && (isPageWithHeader() || isPage(ScreenPage::AUDIO_TRACK))) {
                 refresh();
             }
             break;
@@ -451,7 +451,7 @@ void HMI::handleAudioSettingsMenu(const AudioSettingsMenuState* event) {
     }
 }
 
-void HMI::setAudioSettingsItem(uint8_t item, uint8_t type) {
+void HMI::setAudioSettingsItem(uint8_t item, uint8_t type, Scratch* scratch) {
     // set item type
     stream_->print("m");
     stream_->print(item);
@@ -463,8 +463,8 @@ void HMI::setAudioSettingsItem(uint8_t item, uint8_t type) {
     stream_->print("m");
     stream_->print(item);
     stream_->print("_txt.txt=\"");
-    if (type != 0) {
-        printEscaped((char*)scratch_->bytes);
+    if (type != 0 && scratch != nullptr) {
+        printEscaped((char*)scratch->bytes);
     }
     stream_->print("\"");
     terminate();
@@ -475,13 +475,13 @@ void HMI::handleAudioSettingsItem(const AudioSettingsItemState* event) {
         return;
     }
 
-    setAudioSettingsItem(event->item(), (uint8_t)event->type());
+    setAudioSettingsItem(event->item(), (uint8_t)event->type(), event->scratch);
 
     if (event->reload()) {
         refresh();
     } else if (event->item() == audio_settings_count_ - 1) {
         for (uint8_t i = audio_settings_count_; i < 5; ++i) {
-            setAudioSettingsItem(i, 0);
+            setAudioSettingsItem(i, 0, nullptr);
         }
         refresh();
     }
@@ -492,16 +492,16 @@ void HMI::handleAudioSettingsExit(const AudioSettingsExitState*) {
 }
 
 void HMI::handleSerial(const Yield<Message>& yield) {
-    if (scratch_->size == 0) {
+    if (scratch_.size == 0) {
         return;
     }
 
-    switch (scratch_->bytes[0]) {
+    switch (scratch_.bytes[0]) {
         case 0x65:
             // Buttons are triggered on release. 
-            if (scratch_->size >= 4 && scratch_->bytes[3] == 0) {
-                uint8_t button = scratch_->bytes[2];
-                switch ((ScreenPage)scratch_->bytes[1]) {
+            if (scratch_.size >= 4 && scratch_.bytes[3] == 0) {
+                uint8_t button = scratch_.bytes[2];
+                switch ((ScreenPage)scratch_.bytes[1]) {
                     case ScreenPage::CLIMATE:
                         handleClimateButton(button, yield);
                         break;
@@ -541,8 +541,8 @@ void HMI::handleSerial(const Yield<Message>& yield) {
             }
             break;
         case 0x66:
-            if (scratch_->size >= 2) {
-                if (page_.page((ScreenPage)scratch_->bytes[1])) {
+            if (scratch_.size >= 2) {
+                if (page_.page((ScreenPage)scratch_.bytes[1])) {
                     yield(page_);
                     if (power_.power(page_.page() != ScreenPage::BLANK)) {
                         yield(power_);
@@ -1043,11 +1043,11 @@ void HMI::navPagePrev(const Caster::Yield<Message>& yield) {
 void HMI::emit(const Yield<Message>& yield) {
     if (read(false)) {
         Serial.print("hmi recv: ");
-        for (size_t i = 0; i < scratch_->size; ++i) {
-            if (scratch_->bytes[i] < 0x0F) {
+        for (size_t i = 0; i < scratch_.size; ++i) {
+            if (scratch_.bytes[i] < 0x0F) {
                 Serial.print("0");
             }
-            Serial.print(scratch_->bytes[i], HEX);
+            Serial.print(scratch_.bytes[i], HEX);
         }
         Serial.println();
         handleSerial(yield);
@@ -1176,14 +1176,14 @@ int32_t HMI::getVal(const char* key) {
     stream_->print(key);
     stream_->print(".val");
     terminate();
-    if (!read(true) || scratch_->size < 5 || scratch_->bytes[0] != 0x71) {
+    if (!read(true) || scratch_.size < 5 || scratch_.bytes[0] != 0x71) {
         return 0;
     }
     union {
        int32_t sl;
        uint32_t ul;
     } value;
-    value.ul = Endian::btohl(scratch_->bytes + 1, Endian::LITTLE);
+    value.ul = Endian::btohl(scratch_.bytes + 1, Endian::LITTLE);
     return value.sl;
 }
 
@@ -1285,7 +1285,7 @@ bool HMI::read(bool block) {
         if ((size_t)n >= kScratchCapacity) {
             n = -1;
         } else if (n >= 0) {
-            scratch_->bytes[n++] = (uint8_t)b;
+            scratch_.bytes[n++] = (uint8_t)b;
         }
         if (b == 0xFF) {
             ++terminate;
@@ -1296,7 +1296,7 @@ bool HMI::read(bool block) {
     if (n == -1) {
         return 0;
     }
-    scratch_->size = n - 3;
+    scratch_.size = n - 3;
     return n - 3;
 }
 

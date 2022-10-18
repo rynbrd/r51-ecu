@@ -31,13 +31,11 @@ using ::R51::RotaryEncoderGroup;
 using ::R51::Scratch;
 using ::R51::SteeringControls;
 
-Scratch scratch;
-
 J1939Connection j1939_conn(&CAN);
 J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
 J1939ControllerAdapter j1939_adapter;
-HMI hmi(&HMI_DEVICE, &scratch, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
-Fusion fusion(&scratch);
+HMI hmi(&HMI_DEVICE, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
+Fusion fusion;
 
 RotaryEncoder rotary_encoder0(&Wire);
 RotaryEncoder rotary_encoder1(&Wire);
@@ -56,7 +54,7 @@ PowerControls power_controls(BLINK_KEYPAD_ID, BLINK_KEYBOX_ID);
 SteeringControls steering_controls(STEERING_KEYPAD_ID);
 
 #if defined(DEBUG_ENABLE)
-R51::ConsoleNode console(&SERIAL_DEVICE, &scratch);
+R51::ConsoleNode console(&SERIAL_DEVICE);
 #endif
 
 Node<Message>* nodes[] = {

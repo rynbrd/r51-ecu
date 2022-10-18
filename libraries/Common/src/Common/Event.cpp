@@ -13,12 +13,12 @@ size_t printHexByte(Print& p, uint8_t b) {
 
 }
 
-Event::Event() : subsystem(0), id(0) {
+Event::Event() : subsystem(0), id(0), scratch(nullptr) {
     memset(data, 0xFF, 6);
 }
 
 Event::Event(uint8_t subsystem, uint8_t id) :
-        subsystem(subsystem), id(id) {
+        subsystem(subsystem), id(id), scratch(nullptr) {
     memset(data, 0xFF, 6);
 }
 

@@ -25,10 +25,9 @@ namespace R51 {
 // Each message printed is terminated with a CR+LF.
 class ConsoleNode : public Caster::Node<R51::Message> {
     public:
-        ConsoleNode(Stream* stream, Scratch* scratch = nullptr) :
+        ConsoleNode(Stream* stream) :
             console_(stream),
             reader_(stream, buffer_, 256),
-            root_(scratch),
             command_(&root_) {}
 
         // Write a message to serial.
