@@ -30,14 +30,17 @@ class NavControls : public Controls {
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
-        void handlePage(const ScreenPageState* event);
-        void handleAudio(const Event& event, const Caster::Yield<Message>& yield);
-        void handleClimate(const Event& event, const Caster::Yield<Message>& yield);
-        void handleSettings(const Event& event, const Caster::Yield<Message>& yield);
+        void handlePowerState(const ScreenPowerState* event);
+        void handlePageState(const ScreenPageState* event);
+        void handleAudioInput(const Event& event, const Caster::Yield<Message>& yield);
+        void handleClimateInput(const Event& event, const Caster::Yield<Message>& yield);
+        void handleSettingsInput(const Event& event, const Caster::Yield<Message>& yield);
+        void handlePowerInput(const Event& event, const Caster::Yield<Message>& yield);
         void setPage(NavPage page);
 
         uint8_t keypad_id_;
-        LongPressButton power_;
+        bool power_;
+        LongPressButton power_btn_;
         NavPage page_;
 };
 

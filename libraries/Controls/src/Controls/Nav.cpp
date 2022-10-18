@@ -21,8 +21,8 @@ static const LEDColor kBacklightColor = LEDColor::AMBER;
 }
 
 NavControls::NavControls(uint8_t encoder_keypad_id, Faker::Clock* clock) :
-    keypad_id_(encoder_keypad_id),
-    power_(kPowerLongPressTimeout, clock),
+    keypad_id_(encoder_keypad_id), power_(true),
+    power_btn_(kPowerLongPressTimeout, clock),
     page_(NavPage::NONE) {}
 
 void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
@@ -31,24 +31,35 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
     }
     switch ((SubSystem)msg.event().subsystem) {
         case SubSystem::SCREEN:
-            if (msg.event().id == (uint8_t)ScreenEvent::PAGE_STATE) {
-                handlePage((ScreenPageState*)&msg.event());
+            switch ((ScreenEvent)msg.event().id)  {
+                case ScreenEvent::POWER_STATE:
+                    handlePowerState((ScreenPowerState*)&msg.event());
+                    break;
+                case ScreenEvent::PAGE_STATE:
+                    handlePageState((ScreenPageState*)&msg.event());
+                    break;
+                default:
+                    break;
             }
             break;
         case SubSystem::KEYPAD:
             if (msg.event().data[0] == keypad_id_) {
-                switch (page_) {
-                    case NavPage::AUDIO:
-                        handleAudio(msg.event(), yield);
-                        break;
-                    case NavPage::CLIMATE:
-                        handleClimate(msg.event(), yield);
-                        break;
-                    case NavPage::SETTINGS:
-                        handleSettings(msg.event(), yield);
-                        break;
-                    default:
-                        break;
+                if (!power_) {
+                    handlePowerInput(msg.event(), yield);
+                } else {
+                    switch (page_) {
+                        case NavPage::AUDIO:
+                            handleAudioInput(msg.event(), yield);
+                            break;
+                        case NavPage::CLIMATE:
+                            handleClimateInput(msg.event(), yield);
+                            break;
+                        case NavPage::SETTINGS:
+                            handleSettingsInput(msg.event(), yield);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             break;
@@ -70,7 +81,7 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
 }
 
 void NavControls::emit(const Yield<Message>& yield) {
-    if (power_.trigger()) {
+    if (power_btn_.trigger()) {
         switch (page_) {
             case NavPage::AUDIO:
                 sendCmd(yield, AudioEvent::POWER_TOGGLE_CMD);
@@ -84,7 +95,11 @@ void NavControls::emit(const Yield<Message>& yield) {
     }
 }
 
-void NavControls::handlePage(const ScreenPageState* event) {
+void NavControls::handlePowerState(const ScreenPowerState* event) {
+    power_ = event->power();
+}
+
+void NavControls::handlePageState(const ScreenPageState* event) {
     switch (event->page()) {
         case ScreenPage::CLIMATE:
             setPage(NavPage::CLIMATE);
@@ -112,15 +127,15 @@ void NavControls::handlePage(const ScreenPageState* event) {
     }
 }
 
-void NavControls::handleAudio(const Event& event, const Yield<Message>& yield) {
+void NavControls::handleAudioInput(const Event& event, const Yield<Message>& yield) {
     if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
         const auto* key = (KeyState*)&event;
         if (key->key() == 0 && !key->pressed()) {
             sendCmd(yield, AudioEvent::VOLUME_TOGGLE_MUTE_CMD);
         } else if (key->key() == 1) {
             if (key->pressed()) {
-                power_.press();
-            } else if (power_.release()) {
+                power_btn_.press();
+            } else if (power_btn_.release()) {
                 sendCmd(yield, AudioEvent::PLAYBACK_TOGGLE_CMD);
             }
         }
@@ -142,7 +157,7 @@ void NavControls::handleAudio(const Event& event, const Yield<Message>& yield) {
     }
 }
 
-void NavControls::handleClimate(const Event& event, const Yield<Message>& yield) {
+void NavControls::handleClimateInput(const Event& event, const Yield<Message>& yield) {
     if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
         const auto* key = (KeyState*)&event;
         if (key->key() == 0 && !key->pressed()) {
@@ -168,7 +183,7 @@ void NavControls::handleClimate(const Event& event, const Yield<Message>& yield)
     }
 }
 
-void NavControls::handleSettings(const Event& event, const Yield<Message>& yield) {
+void NavControls::handleSettingsInput(const Event& event, const Yield<Message>& yield) {
     if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
         const auto* key = (KeyState*)&event;
         if (key->key() == 0 && !key->pressed()) {
@@ -192,9 +207,23 @@ void NavControls::handleSettings(const Event& event, const Yield<Message>& yield
     }
 }
 
+void NavControls::handlePowerInput(const Event& event, const Caster::Yield<Message>& yield) {
+    if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
+        const auto* key = (KeyState*)&event;
+        if (!key->pressed()) {
+            sendCmd(yield, ScreenEvent::NAV_PAGE_NEXT_CMD);
+        }
+    } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
+        const auto* encoder = (EncoderState*)&event;
+        if (encoder->delta() != 0) {
+            sendCmd(yield, ScreenEvent::NAV_PAGE_NEXT_CMD);
+        }
+    }
+}
+
 void NavControls::setPage(NavPage page) {
     if (page == NavPage::NONE || page != page_) {
-        power_.release();
+        power_btn_.release();
     }
     page_ = page;
 }
