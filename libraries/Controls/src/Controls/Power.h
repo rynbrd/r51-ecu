@@ -27,13 +27,12 @@ class PowerControls : public Controls {
         void handlePower(const PowerState* power, const Caster::Yield<Message>& yield);
         void sendIndicatorCmd(const Caster::Yield<Message>& yield, uint8_t led,
                 PowerMode mode, uint8_t duty_cycle, LEDColor color);
-        void sendPowerCmd(const Caster::Yield<Message>& yield, PDMDevice device, PowerCmd cmd); 
+        void sendPowerCmd(const Caster::Yield<Message>& yield, PDMDevice device, PowerCmd cmd);
 
         uint8_t keypad_id_;
         uint8_t pdm_id_;
 
         IndicatorCommand indicator_cmd_;
-        PowerCommand power_cmd_;
 };
 
 }  // namespace R51

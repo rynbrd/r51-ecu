@@ -22,7 +22,7 @@ static const LEDColor kLightColor = LEDColor::YELLOW;
 
 PowerControls::PowerControls(uint8_t keypad_id, uint8_t pdm_id) :
     keypad_id_(keypad_id), pdm_id_(pdm_id),
-    indicator_cmd_(keypad_id_), power_cmd_(pdm_id) {}
+    indicator_cmd_(keypad_id_) {}
 
 void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
@@ -130,10 +130,7 @@ void PowerControls::sendIndicatorCmd(const Yield<Message>& yield, uint8_t led,
 }
 
 void PowerControls::sendPowerCmd(const Yield<Message>& yield, PDMDevice device, PowerCmd cmd) {
-    power_cmd_.pin((uint8_t)device);
-    power_cmd_.cmd(cmd);
-    yield(power_cmd_);
+    Controls::sendPowerCmd(yield, pdm_id_, (uint8_t)device, cmd);
 }
-
 
 }  // namespace R51

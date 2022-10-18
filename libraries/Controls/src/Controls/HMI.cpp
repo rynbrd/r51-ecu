@@ -656,6 +656,15 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
                 }
             }
             break;
+        case 0x1E:
+            sendPowerCmd(yield, pdm_id_, (uint8_t)PDMDevice::AIR_COMP, PowerCmd::TOGGLE);
+            break;
+        case 0x1F:
+            sendPowerCmd(yield, pdm_id_, (uint8_t)PDMDevice::FRONT_LOCKER, PowerCmd::TOGGLE);
+            break;
+        case 0x20:
+            sendPowerCmd(yield, pdm_id_, (uint8_t)PDMDevice::REAR_LOCKER, PowerCmd::TOGGLE);
+            break;
         default:
             break;
     }

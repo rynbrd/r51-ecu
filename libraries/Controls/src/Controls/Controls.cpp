@@ -93,6 +93,15 @@ void Controls::sendCmd(const Yield<Message>& yield, ScreenEvent cmd) {
     yield(event_);
 }
 
+void Controls::sendPowerCmd(const Yield<Message>& yield, uint8_t pdm, uint8_t pin, PowerCmd cmd) {
+    event_.subsystem = (uint8_t)SubSystem::POWER;
+    event_.id = (uint8_t)PowerEvent::POWER_CMD;
+    event_.data[0] = pdm;
+    event_.data[1] = pin;
+    event_.data[2] = (uint8_t)cmd;
+    yield(event_);
+}
+
 void Controls::request(const Caster::Yield<Message>& yield, SubSystem subsystem, uint8_t id) {
     event_.subsystem = (uint8_t)SubSystem::CONTROLLER;
     event_.id = (uint8_t)ControllerEvent::REQUEST_CMD;
