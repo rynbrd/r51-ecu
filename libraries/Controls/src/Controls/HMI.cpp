@@ -1152,7 +1152,7 @@ int32_t HMI::getVal(const char* key) {
        int32_t sl;
        uint32_t ul;
     } value;
-    value.ul = Endian::btohl(scratch_->bytes, Endian::BIG);
+    value.ul = Endian::btohl(scratch_->bytes + 1, Endian::LITTLE);
     return value.sl;
 }
 
