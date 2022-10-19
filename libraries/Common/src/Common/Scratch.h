@@ -16,6 +16,12 @@ struct Scratch {
     Scratch() : size(0) {
         memset(bytes, 0, kScratchCapacity);
     }
+
+    // Clear the buffer.
+    void clear() {
+        size = 0;
+        bytes[0] = 0;
+    }
 };
 
 }  // namespace R51
