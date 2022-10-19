@@ -8,6 +8,15 @@
 
 namespace R51 {
 
+// System state of the audio device.
+enum class AudioSystem : uint8_t {
+    UNAVAILABLE = 0x00, // No audio system is connected.
+    OFF         = 0x01, // System is connected but powered down.
+    BOOT        = 0x02, // Audio system is powering on.
+    ON          = 0x03, // System is on.
+};
+
+// Audio source.
 enum class AudioSource : uint8_t {
     AM = 0x00,
     FM = 0x01,
@@ -23,12 +32,14 @@ enum class AudioSource : uint8_t {
     //UPNP,
 };
 
+// Playback state for Bluetooth.
 enum class AudioPlayback : uint8_t {
     NO_TRACK = 0x00,
     PLAY = 0x01,
     PAUSE = 0x02,
 };
 
+// Seek mode for broadcast radio.
 enum class AudioSeek : uint8_t {
     AUTO = 0x00,
     MANUAL = 0x01,
@@ -36,13 +47,16 @@ enum class AudioSeek : uint8_t {
 
 enum class AudioEvent {
     // State events.
-    SYSTEM_STATE            = 0x00, // State event. Sends power, connectivity, gain, frequency.
-    VOLUME_STATE            = 0x01, // State event. Sends current volume, fade, and balance.
-    TONE_STATE              = 0x02, // State event. Sends equalizer high/mid/low values.
-    TRACK_PLAYBACK_STATE    = 0x03, // State event. Sends the playback status and track times.
-    TRACK_TITLE_STATE       = 0x04, // State event. Sends the track title.
-    TRACK_ARTIST_STATE      = 0x05, // State event. Sends the artist name.
-    TRACK_ALBUM_STATE       = 0x06, // State event. Sends the album title.
+    SYSTEM_STATE            = 0x00, // System availability and power status.
+    VOLUME_STATE            = 0x01, // Volume, fade, and balance.
+    TONE_STATE              = 0x02, // Equalizer high/mid/low settings.
+    SOURCE_STATE            = 0x03, // Current source and bluetooth connectivity.
+    TRACK_PLAYBACK_STATE    = 0x04, // Playback status and track times.
+    TRACK_TITLE_STATE       = 0x05, // Track title. Shared via scratch pointer.
+    TRACK_ARTIST_STATE      = 0x06, // Artist name. Shared via scratch pointer.
+    TRACK_ALBUM_STATE       = 0x07, // Album title. Shared via scratch pointer.
+    RADIO_STATE             = 0x08, // Seek mode and frequency.
+    INPUT_STATE             = 0x09, // Aux/Optical gain.
 
     // System controls.
     POWER_ON_CMD        = 0x10, // Turn on the stereo.
@@ -118,38 +132,21 @@ enum class AudioEvent {
 class AudioSystemState : public Event {
     public:
         AudioSystemState() :
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SYSTEM_STATE,
-                    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) {}
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SYSTEM_STATE, {0x00}) {}
 
-        EVENT_PROPERTY(bool, available, getBit(data, 0, 4), setBit(data, 0, 4, value));
-        EVENT_PROPERTY(bool, power, getBit(data, 0, 5), setBit(data, 0, 5, value));
-        EVENT_PROPERTY(bool, bt_connected, getBit(data, 0, 6), setBit(data, 0, 6, value));
-        EVENT_PROPERTY(AudioSeek, seek_mode,
-                (AudioSeek)getBit(data, 0, 7),
-                setBit(data, 0, 7, (bool)value));
-        EVENT_PROPERTY(AudioSource, source,
-                (AudioSource)(data[0] & 0x0F),
-                data[0] = (data[0] & 0xF0) | ((uint8_t)value & 0x0F));
-        EVENT_PROPERTY(int8_t, gain, (int8_t)data[1], data[1] = (uint8_t)value);
-        EVENT_PROPERTY(uint32_t, frequency,
-                Endian::nbtohl(data + 2),
-                Endian::hltonb(data + 2, value));
-
-        void toggle_seek_mode() {
-            flipBit(data, 0, 7);
-        }
+        EVENT_PROPERTY(AudioSystem, state, (AudioSystem)data[0], data[0] = (uint8_t)value);
 };
 
 class AudioVolumeState : public Event {
     public:
         AudioVolumeState() :
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::VOLUME_STATE,
-                    {0x00, 0x00, 0x00}) {}
+                    {0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, volume, data[0], data[0] = value);
         EVENT_PROPERTY(int8_t, fade, (int8_t)data[1], data[1] = (uint8_t)value);
         EVENT_PROPERTY(int8_t, balance, (int8_t)data[2], data[2] = (uint8_t)value);
-        EVENT_PROPERTY(bool, mute, data[3] != 0, data[3] = (uint8_t)value);
+        EVENT_PROPERTY(bool, mute, data[3] != 0x00, data[3] = (uint8_t)value);
 };
 
 class AudioToneState : public Event {
@@ -163,6 +160,15 @@ class AudioToneState : public Event {
         EVENT_PROPERTY(int8_t, treble, (int8_t)data[2], data[2] = (uint8_t)value);
 };
 
+class AudioSourceState : public Event {
+    public:
+        AudioSourceState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SOURCE_STATE, {0x00}) {}
+
+        EVENT_PROPERTY(AudioSource, source, (AudioSource)data[0], data[0] = (uint8_t)value);
+        EVENT_PROPERTY(bool, bt_connected, data[1] != 0x00, data[1] = (uint8_t)value);
+};
+
 class AudioTrackPlaybackState : public Event {
     public:
         AudioTrackPlaybackState() :
@@ -170,19 +176,12 @@ class AudioTrackPlaybackState : public Event {
                     {0x00, 0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(AudioPlayback, playback, (AudioPlayback)data[0], data[0] = (uint8_t)value);
-        EVENT_PROPERTY(uint16_t, time_elapsed, getTime(data + 1), setTime(data + 1, value));
-        EVENT_PROPERTY(uint16_t, time_total, getTime(data + 3), setTime(data + 3, value));
-
-    private:
-        uint16_t getTime(const uint8_t* data) const {
-            uint16_t value = 0;
-            memcpy(&value, data, 2);
-            return value;
-        }
-
-        void setTime(uint8_t* data, uint16_t value) {
-            memcpy(data, &value, 2);
-        }
+        EVENT_PROPERTY(uint16_t, time_elapsed,
+                Endian::nbtohs(data + 1),
+                Endian::hstonb(data + 1, value));
+        EVENT_PROPERTY(uint16_t, time_total,
+                Endian::nbtohs(data + 3),
+                Endian::hstonb(data + 3, value));
 };
 
 class AudioSettingsMenuState : public Event {
@@ -221,6 +220,11 @@ class AudioSettingsItemState : public Event {
         EVENT_PROPERTY(uint32_t, checksum,
                 Endian::nbtohl(data + 2),
                 Endian::hltonb(data + 2, value));
+
+        void clear() {
+            checksum(0);
+            scratch->clear();
+        }
 };
 
 class AudioSettingsExitState : public Event {
@@ -260,21 +264,53 @@ class AudioChecksumEvent : public Event {
         EVENT_PROPERTY(uint32_t, checksum,
                 Endian::nbtohl(data),
                 Endian::hltonb(data, value));
+
+        void clear() {
+            checksum(0);
+            scratch->clear();
+        }
 };
 
 class AudioTrackTitleState : public AudioChecksumEvent {
     public:
-        AudioTrackTitleState() :  AudioChecksumEvent(AudioEvent::TRACK_TITLE_STATE) {}
+        AudioTrackTitleState() : AudioChecksumEvent(AudioEvent::TRACK_TITLE_STATE) {}
 };
 
 class AudioTrackArtistState : public AudioChecksumEvent {
     public:
-        AudioTrackArtistState() :  AudioChecksumEvent(AudioEvent::TRACK_ARTIST_STATE) {}
+        AudioTrackArtistState() : AudioChecksumEvent(AudioEvent::TRACK_ARTIST_STATE) {}
 };
 
 class AudioTrackAlbumState : public AudioChecksumEvent {
     public:
-        AudioTrackAlbumState() :  AudioChecksumEvent(AudioEvent::TRACK_ALBUM_STATE) {}
+        AudioTrackAlbumState() : AudioChecksumEvent(AudioEvent::TRACK_ALBUM_STATE) {}
+};
+
+class AudioRadioState : public Event {
+    public:
+        AudioRadioState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::RADIO_STATE,
+                {0x00, 0x00, 0x00, 0x00, 0x00}) {}
+
+        EVENT_PROPERTY(AudioSeek, seek_mode,
+                (AudioSeek)getBit(data, 0, 0),
+                setBit(data, 0, 0, (bool)value));
+        EVENT_PROPERTY(uint32_t, frequency,
+                Endian::nbtohl(data + 1),
+                Endian::hltonb(data + 1, value));
+
+        void toggle_seek_mode() {
+            flipBit(data, 0, 0);
+        }
+};
+
+
+class AudioInputState : public Event {
+    public:
+        AudioInputState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::INPUT_STATE, {0x00}) {}
+
+        EVENT_PROPERTY(int8_t, gain, (int8_t)data[0], data[0] = (uint8_t)value);
 };
 
 class AudioSourceSetCommand : public Event {

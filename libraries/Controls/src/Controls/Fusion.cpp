@@ -10,7 +10,7 @@
 namespace R51 {
 namespace {
 
-static const uint32_t kPowerOnTimeout = 5000;
+static const uint32_t kBootTimeout = 5000;
 
 template <typename T>
 void clamp(T* var, T min, T max) {
@@ -36,7 +36,8 @@ static const int8_t kFadeMultiplier = 3;
 static const int8_t kToneMin = -15;
 static const int8_t kToneMax = 15;
 
-enum State : uint8_t {
+// Mappiing of Fusion state identifiers.
+enum FusionState : uint8_t {
     // Unsupported state, reset counters.
     UNSUPPORTED = 0x00,
 
@@ -112,16 +113,16 @@ bool match(const uint8_t* data, const uint8_t (&match)[N]) {
     return true;
 }
 
-State detectState(const J1939Message& msg, uint8_t hu_address) {
+FusionState detectState(const J1939Message& msg, uint8_t hu_address) {
     if (msg.pgn() == 0x1F014) {
-        return State::ANNOUNCE;
+        return FusionState::ANNOUNCE;
     } else if (msg.pgn() == 0x1FF04 && msg.source_address() == hu_address) {
         if (match(msg.data() + 2, {0xA3, 0x99, 0xFF, 0x80})) {
-            return (State)msg.data()[4];
+            return (FusionState)msg.data()[4];
         }
-        return State::UNSUPPORTED;
+        return FusionState::UNSUPPORTED;
     }
-    return State::IGNORE;
+    return FusionState::IGNORE;
 }
 
 }  // namespace
@@ -130,8 +131,8 @@ Fusion::Fusion(Clock* clock) :
         clock_(clock), address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
         hb_timer_(kAvailabilityTimeout, false, clock),
         disco_timer_(kDiscoveryTick, false, clock),
-        power_timer_(kPowerOnTimeout, true, clock),
-        recent_mute_(false), state_(0xFF), state_ignore_(false), state_counter_(0xFF),
+        boot_timer_(kBootTimeout, true, clock),
+        state_(0xFF), state_ignore_(false), state_counter_(0xFF),
         cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress),
         secondary_source_((AudioSource)0xFF) {
     cmd_.resize(8);
@@ -146,7 +147,7 @@ void Fusion::handle(const Message& msg, const Yield<Message>& yield) {
         case Message::EVENT:
             //TODO: Handle controller request command.
             if (msg.event().subsystem == (uint8_t)SubSystem::AUDIO) {
-                handleEvent(msg.event(), yield);
+                handleCommand(msg.event(), yield);
             }
             break;
         case Message::J1939_CLAIM:
@@ -160,20 +161,31 @@ void Fusion::handle(const Message& msg, const Yield<Message>& yield) {
     }
 }
 
-void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
-    if (address_ == Canny::NullAddress) {
+void Fusion::handleCommand(const Event& event, const Yield<Message>& yield) {
+    if (system_.state() == AudioSystem::OFF) {
+        if (event.id == (uint8_t)AudioEvent::POWER_ON_CMD ||
+                event.id == (uint8_t)AudioEvent::POWER_TOGGLE_CMD) {
+            boot(yield);
+        }
+        return;
+    } else if (system_.state() == AudioSystem::BOOT) {
+        if (event.id == (uint8_t)AudioEvent::POWER_OFF_CMD ||
+                event.id == (uint8_t)AudioEvent::POWER_TOGGLE_CMD) {
+            sendPowerCmd(yield, false);
+        }
+        return;
+    } else if (system_.state() != AudioSystem::ON) {
         return;
     }
+
     switch ((AudioEvent)event.id) {
-        case AudioEvent::POWER_ON_CMD:
-            sendPowerCmd(yield, true);
-            break;
+        // Power commands.
         case AudioEvent::POWER_OFF_CMD:
+        case AudioEvent::POWER_TOGGLE_CMD:
             sendPowerCmd(yield, false);
             break;
-        case AudioEvent::POWER_TOGGLE_CMD:
-            sendPowerCmd(yield, !system_.power());
-            break;
+
+        // Source commands.
         case AudioEvent::SOURCE_SET_CMD:
             {
                 auto* e = (AudioSourceSetCommand*)&event;
@@ -186,6 +198,8 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::SOURCE_PREV_CMD:
             handleSourcePrevCmd(yield);
             break;
+
+        // Bluetooth source commands.
         case AudioEvent::TRACK_PLAY_CMD:
             sendTrackCmd(yield, TRACK_CMD_PLAY);
             break;
@@ -198,6 +212,8 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::TRACK_PREV_CMD:
             sendTrackCmd(yield, TRACK_CMD_PREV);
             break;
+
+        // Radio source commands.
         case AudioEvent::RADIO_TUNE_CMD:
             {
                 auto* e = (AudioRadioTuneCommand*)&event;
@@ -205,43 +221,43 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
             }
             break;
         case AudioEvent::RADIO_NEXT_AUTO_CMD:
-            sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, system_.frequency());
+            sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, radio_.frequency());
             break;
         case AudioEvent::RADIO_PREV_AUTO_CMD:
-            sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, system_.frequency());
+            sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, radio_.frequency());
             break;
         case AudioEvent::RADIO_NEXT_MANUAL_CMD:
-            sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+            sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, radio_.frequency());
             break;
         case AudioEvent::RADIO_PREV_MANUAL_CMD:
-            sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, system_.frequency());
+            sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, radio_.frequency());
             break;
         case AudioEvent::RADIO_TOGGLE_SEEK_CMD:
-            system_.toggle_seek_mode();
-            if (power_timer_.paused()) {
-                yield(system_);
-            }
+            radio_.toggle_seek_mode();
+            yield(radio_);
             break;
         case AudioEvent::RADIO_NEXT_CMD:
-            switch (system_.seek_mode()) {
+            switch (radio_.seek_mode()) {
                 case AudioSeek::AUTO:
-                    sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, radio_.frequency());
                     break;
                 case AudioSeek::MANUAL:
-                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, radio_.frequency());
                     break;
             }
             break;
         case AudioEvent::RADIO_PREV_CMD:
-            switch (system_.seek_mode()) {
+            switch (radio_.seek_mode()) {
                 case AudioSeek::AUTO:
-                    sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, radio_.frequency());
                     break;
                 case AudioSeek::MANUAL:
-                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, radio_.frequency());
                     break;
             }
             break;
+
+        // Aux and Optical input source commands.
         case AudioEvent::INPUT_GAIN_SET_CMD:
             {
                 auto* e = (AudioInputGainSetCommand*)&event;
@@ -249,11 +265,13 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
             }
             break;
         case AudioEvent::INPUT_GAIN_INC_CMD:
-            sendInputGainSetCmd(yield, system_.gain() + 1);
+            sendInputGainSetCmd(yield, input_.gain() + 1);
             break;
         case AudioEvent::INPUT_GAIN_DEC_CMD:
-            sendInputGainSetCmd(yield, system_.gain() - 1);
+            sendInputGainSetCmd(yield, input_.gain() - 1);
             break;
+
+        // Volume commands.
         case AudioEvent::VOLUME_SET_CMD:
             {
                 auto* e = (AudioVolumeSetCommand*)&event;
@@ -275,6 +293,8 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::VOLUME_TOGGLE_MUTE_CMD:
             sendVolumeMuteCmd(yield, !volume_.mute());
             break;
+
+        // Balance commands.
         case AudioEvent::BALANCE_SET_CMD:
             {
                 auto* e = (AudioBalanceSetCommand*)&event;
@@ -287,6 +307,8 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::BALANCE_RIGHT_CMD:
             sendBalanceSetCmd(yield, volume_.balance() + 1);
             break;
+
+        // Fade commands.
         case AudioEvent::FADE_SET_CMD:
             {
                 auto* e = (AudioFadeSetCommand*)&event;
@@ -299,6 +321,8 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::FADE_REAR_CMD:
             sendVolumeSetCmd(yield, volume_.volume(), volume_.fade() - 1);
             break;
+
+        // Equalizer commands.
         case AudioEvent::TONE_SET_CMD:
             {
                 auto* e = (AudioToneSetCommand*)&event;
@@ -323,6 +347,8 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::TONE_TREBLE_DEC_CMD:
             sendToneSetCmd(yield, tone_.bass(), tone_.mid(), tone_.treble() - 1);
             break;
+
+        // Stateless playback commands.
         case AudioEvent::PLAYBACK_TOGGLE_CMD:
             handlePlaybackToggleCmd(yield);
             break;
@@ -332,6 +358,8 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::PLAYBACK_PREV_CMD:
             handlePlaybackPrevCmd(yield);
             break;
+
+        // Settings commands.
         case AudioEvent::SETTINGS_OPEN_CMD:
             sendMenuSettings(yield);
             break;
@@ -352,6 +380,7 @@ void Fusion::handleEvent(const Event& event, const Yield<Message>& yield) {
         case AudioEvent::SETTINGS_EXIT_CMD:
             sendMenuExit(yield);
             break;
+
         default:
             break;
     }
@@ -370,8 +399,9 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
         return;
     }
 
+    // Detect current state and update counters.
     if (counter_id(msg) != counter_id(state_counter_)) {
-        State next_state = detectState(msg, hu_address_);
+        FusionState next_state = detectState(msg, hu_address_);
         if (next_state == IGNORE) {
            return;
         } 
@@ -382,11 +412,37 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
     if (state_ignore_) {
         return;
     }
-    handleState(counter_seq(msg), msg, yield);
-}
+    hb_timer_.reset();
 
-void Fusion::handleState(uint8_t seq, const J1939Message& msg, const Yield<Message>& yield) {
+    // Handle state message.
+    uint8_t seq = counter_seq(msg);
     switch (state_) {
+        // System state messages.
+        case ANNOUNCE:
+            handleAnnounce(seq, msg, yield);
+            break;
+        case POWER:
+            handlePower(seq, msg, yield);
+            break;
+        case HEARTBEAT:
+            handleHeartbeat(seq, msg, yield);
+            break;
+
+        // Volume and equalizer messages.
+        case VOLUME:
+            handleVolume(seq, msg, yield);
+            break;
+        case MUTE:
+            handleMute(seq, msg, yield);
+            break;
+        case BALANCE:
+            handleBalance(seq, msg, yield);
+            break;
+        case TONE:
+            handleTone(seq, msg, yield);
+            break;
+
+        // Source messages.
         case SOURCE:
             handleSource(seq, msg, yield);
             break;
@@ -403,7 +459,7 @@ void Fusion::handleState(uint8_t seq, const J1939Message& msg, const Yield<Messa
             handleTrackString(&track_album_scratch_, seq, msg, &track_album_, yield);
             break;
         case TRACK_ELAPSED:
-            handleTimeElapsed(seq, msg, yield);
+            handleTrackTimeElapsed(seq, msg, yield);
             break;
         case RADIO_FREQUENCY:
             handleRadioFrequency(seq, msg, yield);
@@ -411,24 +467,8 @@ void Fusion::handleState(uint8_t seq, const J1939Message& msg, const Yield<Messa
         case INPUT_GAIN:
             handleInputGain(seq, msg, yield);
             break;
-        case TONE:
-            handleTone(seq, msg, yield);
-            break;
-        case MUTE:
-            handleMute(seq, msg, yield);
-            break;
-        case BALANCE:
-            handleBalance(seq, msg, yield);
-            break;
-        case VOLUME:
-            handleVolume(seq, msg, yield);
-            break;
-        case HEARTBEAT:
-            handleHeartbeat(seq, msg, yield);
-            break;
-        case POWER:
-            handlePower(seq, msg, yield);
-            break;
+
+        // Settings menu messages.
         case MENU_LOAD:
             handleMenuLoad(seq, msg, yield);
             break;
@@ -437,9 +477,6 @@ void Fusion::handleState(uint8_t seq, const J1939Message& msg, const Yield<Messa
             break;
         case MENU_ITEM_LIST:
             handleMenuItemList(seq, msg, yield);
-            break;
-        case ANNOUNCE:
-            handleAnnounce(seq, msg, yield);
             break;
     }
 }
@@ -452,13 +489,13 @@ void Fusion::handleAnnounce(uint8_t seq, const Canny::J1939Message& msg,
     }
     hu_address_ = msg.source_address();
     cmd_.dest_address(hu_address_);
-    hb_timer_.reset();
-    disco_timer_.reset();
-    power_timer_.resume();
-    system_.available(true);
-    system_.power(false);
-    yield(system_);
-    sendStereoRequest(yield);
+
+    // configure timers
+    disco_timer_.pause();   // disable periodic discovery
+    hb_timer_.resume();     // listen for heartbeats
+
+    // start the boot process
+    boot(yield);
 }
 
 void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
@@ -466,10 +503,28 @@ void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
     if (seq != 0) {
         return;
     }
-    if (system_.power(msg.data()[6] != 0x00)) {
-        if (power_timer_.paused()) {
-            power_timer_.resume();
-        }
+    bool power = msg.data()[6] != 0x00;
+    switch (system_.state()) {
+        case AudioSystem::BOOT:
+            if (power) {
+                system_.state(AudioSystem::ON);
+            }
+            // fall through
+        case AudioSystem::ON:
+            if (!power) {
+                // cancel boot
+                boot_timer_.pause();
+
+                // tell our followers that we're signing off
+                system_.state(AudioSystem::OFF);
+                yield(system_);
+            }
+            break;
+        case AudioSystem::UNAVAILABLE:
+            // this shouldn't happen, we should rely on the discovery timer to
+            // find the unit if it's connected
+        default:
+            break;
     }
 }
 
@@ -479,111 +534,50 @@ void Fusion::handleHeartbeat(uint8_t seq, const Canny::J1939Message& msg,
         return;
     }
     hb_timer_.reset();
-    if (system_.power(msg.data()[6] == 0x01)) {
-        if (system_.power()) {
-            power_timer_.resume();
+    bool power = msg.data()[6] != 0x02;
+    if (power && system_.state() == AudioSystem::OFF) {
+        // we're out of sync with the head unit or
+        // something else turned it on
+        boot(yield);
+    }
+}
+
+void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
+        const Yield<Message>& yield) {
+    // The second message contains the volume for zone 3. We don't use zone 3
+    // because we're mimicing a car stereo with front/rear. So we only parse
+    // the first message.
+    if (seq == 0) {
+        uint8_t zone1 = msg.data()[6];
+        uint8_t zone2 = msg.data()[7];
+        bool changed = false;
+        if (zone1 > zone2) {
+            changed |= volume_.volume(zone1);
         } else {
-            yield(system_);
+            changed |= volume_.volume(zone2);
+        }
+        changed |= volume_.fade((zone1 - zone2) / kFadeMultiplier);
+        if (changed && system_.state() == AudioSystem::ON) {
+            yield(volume_);
         }
     }
 }
 
-void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
+void Fusion::handleMute(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    switch (seq) {
-        case 0:
-            secondary_source_ = (AudioSource)msg.data()[6];
-            if (msg.data()[6] == msg.data()[7] &&
-                    system_.source((AudioSource)msg.data()[7]) &&
-                    power_timer_.paused()) {
-                yield(system_);
-            }
-            break;
-        case 1:
-            if (secondary_source_ == AudioSource::BLUETOOTH) {
-                switch (msg.data()[2]) {
-                    case 0xA5:
-                        handleBluetoothConnection(true, yield);
-                        break;
-                    case 0x85:
-                        handleBluetoothConnection(false, yield);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            break;
-        default:
-            break;
+    if (seq == 0 && volume_.mute(msg.data()[6] == 0x01) && system_.state() == AudioSystem::ON)  {
+        yield(volume_);
     }
 }
 
-void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
+void Fusion::handleBalance(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    uint32_t time;
-    switch (seq) {
-        case 0:
-            if (msg.data()[7] > 0x02) {
-                msg.data()[7] = 0x00;
-            }
-            if (track_playback_.playback((AudioPlayback)msg.data()[7]) &&
-                    power_timer_.paused()) {
-                yield(track_playback_);
-            }
-            break;
-        case 2:
-            time = msg.data()[3];
-            time |= (msg.data()[4] << 8);
-            time |= (msg.data()[5] << 16);
-            if (track_playback_.time_total(time / 1000) &&
-                    power_timer_.paused()) {
-                yield(track_playback_);
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-void Fusion::handleTrackString(Scratch* scratch, uint8_t seq, const J1939Message& msg,
-        AudioChecksumEvent* event, const Yield<Message>& yield) {
-    if (handleString(scratch, seq, msg, 4) && event->checksum(checksum_.value())) {
-        yield(*event);
-    }
-}
-
-void Fusion::handleTimeElapsed(uint8_t seq, const J1939Message& msg,
-        const Yield<Message>& yield) {
-    if (seq == 1) {
-        uint32_t time = msg.data()[1];
-        time |= (msg.data()[2] << 8);
-        time |= (msg.data()[3] << 16);
-        if (track_playback_.time_elapsed(time / 4) &&
-                power_timer_.paused()) {
-            yield(track_playback_);
-        }
-    }
-}
-
-void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
-        const Yield<Message>& yield) {
-    if (seq == 1) {
-        uint32_t frequency = msg.data()[1];
-        frequency |= (msg.data()[2] << 8);
-        frequency |= (msg.data()[3] << 16);
-        frequency |= (msg.data()[4] << 24);
-        if (system_.frequency(frequency) &&
-                power_timer_.paused()) {
-            yield(system_);
-        }
-    }
-}
-
-void Fusion::handleInputGain(uint8_t seq, const J1939Message& msg,
-        const Yield<Message>& yield) {
-    if (seq == 0 && system_.gain((int8_t)msg.data()[7]) &&
-            power_timer_.paused())  {
-        yield(system_);
+    // We balance all zones together so we only need to read
+    // balance from zone 1.
+    if (seq == 0 && msg.data()[6] == 0x00 &&
+            volume_.balance(msg.data()[7]) &&
+            system_.state() == AudioSystem::ON) {
+        yield(volume_);
     }
 }
 
@@ -607,50 +601,106 @@ void Fusion::handleTone(uint8_t seq, const J1939Message& msg,
         default:
             break;
     }
-    if (changed && power_timer_.paused()) {
+    if (changed && system_.state() == AudioSystem::ON) {
         yield(tone_);
     }
 }
 
-void Fusion::handleMute(uint8_t seq, const J1939Message& msg,
+void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    if (seq == 0 && volume_.mute(msg.data()[6] == 0x01) && power_timer_.paused())  {
-        yield(volume_);
+    switch (seq) {
+        case 0:
+            secondary_source_ = (AudioSource)msg.data()[6];
+            if (msg.data()[6] == msg.data()[7]) {
+                source_.source((AudioSource)msg.data()[7]);
+            }
+            break;
+        case 1:
+            if (source_.source() == secondary_source_) {
+                if (source_.source() == AudioSource::BLUETOOTH) {
+                    switch (msg.data()[2]) {
+                        case 0xA5:
+                            source_.bt_connected(true);
+                            break;
+                        case 0x85:
+                            source_.bt_connected(false);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                if (system_.state() == AudioSystem::ON) {
+                    yield(source_);
+                }
+            }
+            break;
+        default:
+            break;
     }
 }
 
-void Fusion::handleBalance(uint8_t seq, const J1939Message& msg,
+void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    // We balance all zones together so we only need to read
-    // balance from zone 1.
-    if (seq == 0 && msg.data()[6] == 0x00 &&
-            volume_.balance(msg.data()[7]) &&
-            power_timer_.paused()) {
-        yield(volume_);
+    uint32_t time;
+    switch (seq) {
+        case 0:
+            if (msg.data()[7] > 0x02) {
+                msg.data()[7] = 0x00;
+            }
+            track_playback_.playback((AudioPlayback)msg.data()[7]);
+            break;
+        case 2:
+            memcpy(buffer_, msg.data() + 3, 3);
+            buffer_[3] = 0x00;
+            time = btohl(buffer_, Endian::LITTLE);
+            track_playback_.time_total(time / 1000);
+            if (system_.state() == AudioSystem::ON) {
+                yield(track_playback_);
+            }
+            break;
+        default:
+            break;
     }
 }
 
-void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
+void Fusion::handleTrackString(Scratch* scratch, uint8_t seq, const J1939Message& msg,
+        AudioChecksumEvent* event, const Yield<Message>& yield) {
+    if (handleString(scratch, seq, msg, 4)) {
+        event->checksum(checksum_.value());
+        yield(*event);
+    }
+}
+
+void Fusion::handleTrackTimeElapsed(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
-    // The second message contains the volume for zone 3. We don't use zone 3
-    // because we're mimicing a car stereo with front/rear. So we only parse
-    // the first message.
+    if (seq == 1) {
+        memcpy(buffer_, msg.data() + 1, 3);
+        buffer_[3] = 0x00;
+        uint32_t time = btohl(buffer_, Endian::LITTLE);
+        track_playback_.time_elapsed(time / 4);
+        if (system_.state() == AudioSystem::ON) {
+            yield(track_playback_);
+        }
+    }
+}
+
+void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
+        const Yield<Message>& yield) {
+    if (seq == 1) {
+        uint32_t frequency = btohl(msg.data(), Endian::LITTLE);
+        radio_.frequency(frequency);
+        if (system_.state() == AudioSystem::ON) {
+            yield(radio_);
+        }
+    }
+}
+
+void Fusion::handleInputGain(uint8_t seq, const J1939Message& msg,
+        const Yield<Message>& yield) {
     if (seq == 0) {
-        uint8_t zone1 = msg.data()[6];
-        uint8_t zone2 = msg.data()[7];
-        bool changed = false;
-        if (zone1 > zone2) {
-            changed |= volume_.volume(zone1);
-        } else {
-            changed |= volume_.volume(zone2);
-        }
-        changed |= volume_.fade((zone1 - zone2) / kFadeMultiplier);
-        if (recent_mute_) {
-            changed = false;
-            recent_mute_ = false;
-        }
-        if (changed && power_timer_.paused()) {
-            yield(volume_);
+        input_.gain((int8_t)msg.data()[7]);
+        if (system_.state() == AudioSystem::ON) {
+            yield(input_);
         }
     }
 }
@@ -739,18 +789,8 @@ void Fusion::handleMenuItemList(uint8_t seq, const Canny::J1939Message& msg,
     }
 }
 
-void Fusion::handleBluetoothConnection(bool connected,
-        const Yield<Message>& yield) {
-    if (system_.bt_connected(connected) && power_timer_.paused()) {
-        yield(system_);
-    }
-}
-
 void Fusion::handleSourceNextCmd(const Caster::Yield<Message>& yield) {
-    if (!system_.power()) {
-        return;
-    }
-    switch (system_.source()) {
+    switch (source_.source()) {
         case AudioSource::BLUETOOTH:
             sendSourceSetCmd(yield, AudioSource::AM);
             break;
@@ -765,10 +805,7 @@ void Fusion::handleSourceNextCmd(const Caster::Yield<Message>& yield) {
 }
 
 void Fusion::handleSourcePrevCmd(const Caster::Yield<Message>& yield) {
-    if (!system_.power()) {
-        return;
-    }
-    switch (system_.source()) {
+    switch (source_.source()) {
         default:
         case AudioSource::BLUETOOTH:
             sendSourceSetCmd(yield, AudioSource::FM);
@@ -783,16 +820,10 @@ void Fusion::handleSourcePrevCmd(const Caster::Yield<Message>& yield) {
 }
 
 void Fusion::handlePlaybackToggleCmd(const Caster::Yield<Message>& yield) {
-    if (!system_.power()) {
-        return;
-    }
-    switch (system_.source()) {
+    switch (source_.source()) {
         case AudioSource::AM:
         case AudioSource::FM:
-            system_.toggle_seek_mode();
-            if (power_timer_.paused()) {
-                yield(system_);
-            }
+            radio_.toggle_seek_mode();
             break;
         case AudioSource::BLUETOOTH:
             if (track_playback_.playback() == AudioPlayback::PAUSE) {
@@ -807,18 +838,15 @@ void Fusion::handlePlaybackToggleCmd(const Caster::Yield<Message>& yield) {
 }
 
 void Fusion::handlePlaybackNextCmd(const Caster::Yield<Message>& yield) {
-    if (!system_.power()) {
-        return;
-    }
-    switch (system_.source()) {
+    switch (source_.source()) {
         case AudioSource::AM:
         case AudioSource::FM:
-            switch (system_.seek_mode()) {
+            switch (radio_.seek_mode()) {
                 case AudioSeek::AUTO:
-                    sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_AUTO, radio_.frequency());
                     break;
                 case AudioSeek::MANUAL:
-                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_NEXT_MANUAL, radio_.frequency());
                     break;
             }
             break;
@@ -827,7 +855,7 @@ void Fusion::handlePlaybackNextCmd(const Caster::Yield<Message>& yield) {
             break;
         case AudioSource::AUX:
         case AudioSource::OPTICAL:
-            sendInputGainSetCmd(yield, system_.gain() + 1);
+            sendInputGainSetCmd(yield, input_.gain() + 1);
             break;
         default:
             break;
@@ -835,18 +863,15 @@ void Fusion::handlePlaybackNextCmd(const Caster::Yield<Message>& yield) {
 }
 
 void Fusion::handlePlaybackPrevCmd(const Caster::Yield<Message>& yield) {
-    if (!system_.power()) {
-        return;
-    }
-    switch (system_.source()) {
+    switch (source_.source()) {
         case AudioSource::AM:
         case AudioSource::FM:
-            switch (system_.seek_mode()) {
+            switch (radio_.seek_mode()) {
                 case AudioSeek::AUTO:
-                    sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_PREV_AUTO, radio_.frequency());
                     break;
                 case AudioSeek::MANUAL:
-                    sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, system_.frequency());
+                    sendRadioCmd(yield, RADIO_CMD_PREV_MANUAL, radio_.frequency());
                     break;
             }
             break;
@@ -855,7 +880,7 @@ void Fusion::handlePlaybackPrevCmd(const Caster::Yield<Message>& yield) {
             break;
         case AudioSource::AUX:
         case AudioSource::OPTICAL:
-            sendInputGainSetCmd(yield, system_.gain() - 1);
+            sendInputGainSetCmd(yield, input_.gain() - 1);
             break;
         default:
             break;
@@ -902,33 +927,51 @@ void Fusion::emit(const Yield<Message>& yield) {
         if (disco_timer_.active()) {
             sendStereoDiscovery(yield);
         }
-    } else if (hb_timer_.active()) {
-        // otherwise trigger loss of connectivity if no heartbeat has been received
-        hb_timer_.reset();
+        return;
+    }
+
+    if (hb_timer_.active()) {
+        // trigger loss of connectivity if no heartbeat has been received
+        hb_timer_.pause();
+        boot_timer_.pause();
         hu_address_ = Canny::NullAddress;
         cmd_.dest_address(Canny::NullAddress);
-        if (system_.available(false) || system_.power(false))  {
-            power_timer_.pause();
-            yield(system_);
-        }
-    } else if (power_timer_.active()) {
-        power_timer_.pause();
+        system_.state(AudioSystem::UNAVAILABLE);
+        yield(system_);
+        return;
+    }
+
+    if (boot_timer_.active()) {
+        // if we're online, send initial state when boot completes
+        boot_timer_.pause();
+        system_.state(AudioSystem::ON);
         yield(volume_);
         yield(tone_);
-        yield(track_playback_);
-        if (system_.source() == AudioSource::BLUETOOTH) {
-            yield(track_title_);
-            yield(track_artist_);
-            yield(track_album_);
+        yield(source_);
+        switch (source_.source()) {
+            case AudioSource::AM:
+            case AudioSource::FM:
+                yield(radio_);
+                break;
+            case AudioSource::AUX:
+            case AudioSource::OPTICAL:
+                yield(input_);
+                break;
+            case AudioSource::BLUETOOTH:
+                yield(track_playback_);
+                yield(track_title_);
+                yield(track_artist_);
+                yield(track_album_);
+                break;
+            default:
+                break;
         }
         yield(system_);
     }
 }
 
 void Fusion::sendStereoRequest(const Yield<Message>& yield) {
-    // 1DEF0A10#00:05:A3:99:1C:00:01:FF
     // 1DEF0A10#A0:04:A3:99:01:00:FF:FF
-    sendCmd(yield, 0x05, 0x1C, 0x01);
     sendCmd(yield, 0x04, 0x01);
 }
 
@@ -958,11 +1001,6 @@ void Fusion::sendCmdPayload(const Yield<Message>& yield, uint32_t payload) {
 void Fusion::sendPowerCmd(const Yield<Message>& yield, bool power) {
     // on:  1DEF0A21#C0:05:A3:99:1C:00:01:FF
     // off: 1DEF0A21#40:05:A3:99:1C:00:02:FF
-    if (power) {
-        power_timer_.resume();
-    } else {
-        power_timer_.pause();
-    }
     uint8_t power_byte = power ? 0x01 : 0x02;
     sendCmd(yield, 0x05, 0x1C, power_byte);
 }
@@ -991,7 +1029,7 @@ void Fusion::sendRadioCmd(const Yield<Message>& yield, uint8_t cmd, uint32_t fre
     //                             |
     //                             +---- source: am/fm
     // 1DEF0A21#41:50:16:08:00:FF:FF:FF current or desired freq
-    sendCmd(yield, 0x0A, 0x05, (uint8_t)system_.source(), cmd);
+    sendCmd(yield, 0x0A, 0x05, (uint8_t)source_.source(), cmd);
     sendCmdPayload(yield, freq);
 }
 
@@ -1000,7 +1038,7 @@ void Fusion::sendInputGainSetCmd(const Yield<Message>& yield, int8_t gain) {
     //                             |  |
     //                             |  +- gain (signed)
     //                             +---- source
-    sendCmd(yield, 0x06, 0x0D, (uint8_t)system_.source(), gain);
+    sendCmd(yield, 0x06, 0x0D, (uint8_t)source_.source(), gain);
 }
 
 void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_t fade) {
@@ -1072,7 +1110,7 @@ void Fusion::sendToneSetCmd(const Caster::Yield<Message>& yield,
 }
 
 void Fusion::sendMenu(const Yield<Message>& yield, uint8_t page, uint8_t item) {
-    sendCmd(yield, 0x0B, 0x09, (uint8_t)system_.source(), item);
+    sendCmd(yield, 0x0B, 0x09, (uint8_t)source_.source(), item);
     sendCmdPayload(yield, {0x00, 0x00, 0x00, page, 0x03});
 }
 
@@ -1102,7 +1140,7 @@ void Fusion::sendMenuExit(const Yield<Message>& yield) {
 
 void Fusion::sendMenuReqItemCount(const Yield<Message>& yield) {
     // 1DEF0A21#40:06:A3:99:0A:00:07:03
-    sendCmd(yield, 0x06, 0x0A, (uint8_t)system_.source(), 0x03);
+    sendCmd(yield, 0x06, 0x0A, (uint8_t)source_.source(), 0x03);
 }
 
 void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
@@ -1111,9 +1149,43 @@ void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
     //                       |
     //                       +---------- item count
     // 1DEF0A21#82:03:FF:FF:FF:FF:FF:FF
-    sendCmd(yield, 0x0E, 0x0B, (uint8_t)system_.source(), 0x00);
+    sendCmd(yield, 0x0E, 0x0B, (uint8_t)source_.source(), 0x00);
     sendCmdPayload(yield, {0x00, 0x00, 0x00, count, 0x00, 0x00, 0x00});
     sendCmdPayload(yield, {0x03});
+}
+
+// Starts the boot process. The boot process is simply a 5s timer that triggers
+// a full "power on" event, broadcasting the initial state to any listeners.
+// This gives the head unit time to transmit all of its state messages and
+// enter a steady operating state.
+void Fusion::boot(const Yield<Message>& yield) {
+    // reset some state to default
+    source_.source(AudioSource::AM);
+    source_.bt_connected(false);
+    volume_.balance(0);
+    volume_.mute(false);
+    tone_.bass(0);
+    tone_.mid(0);
+    tone_.treble(0);
+    input_.gain(0);
+    track_playback_.playback(AudioPlayback::NO_TRACK);
+    track_playback_.time_elapsed(0);
+    track_playback_.time_total(0);
+    track_title_.clear();
+    track_artist_.clear();
+    track_album_.clear();
+    settings_menu_.page(0);
+
+    // start boot countdown
+    boot_timer_.resume();
+
+    // inform listeners that we're booting
+    system_.state(AudioSystem::BOOT);
+    yield(system_);
+
+    // power on and request initial state from unit
+    sendPowerCmd(yield, true);
+    sendStereoRequest(yield);
 }
 
 }  // namespace R51

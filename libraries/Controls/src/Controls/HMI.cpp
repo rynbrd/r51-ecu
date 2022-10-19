@@ -62,8 +62,8 @@ HMI::HMI(Stream* stream, uint8_t encoder_keypad_id, uint8_t pdm_id) :
     encoder_keypad_id_(encoder_keypad_id), pdm_id_(pdm_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF), mute_(false),
-    audio_available_(false), audio_power_(false), audio_settings_page_(0),
-    audio_settings_count_(0) {}
+    audio_system_(AudioSystem::UNAVAILABLE), audio_source_(AudioSource::AM),
+    audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::init(const Caster::Yield<Message>& yield) {
     page(ScreenPage::SPLASH);
@@ -171,6 +171,9 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
                 case AudioEvent::TONE_STATE:
                     handleAudioTone((AudioToneState*)&event);
                     break;
+                case AudioEvent::SOURCE_STATE:
+                    handleAudioSource((AudioSourceState*)&event);
+                    break;
                 case AudioEvent::TRACK_PLAYBACK_STATE:
                     handleAudioPlayback((AudioTrackPlaybackState*)&event);
                     break;
@@ -182,6 +185,12 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
                     break;
                 case AudioEvent::TRACK_ALBUM_STATE:
                     setTxt("audio_track.album_txt", event.scratch);
+                    break;
+                case AudioEvent::RADIO_STATE:
+                    handleAudioRadio((AudioRadioState*)&event);
+                    break;
+                case AudioEvent::INPUT_STATE:
+                    handleAudioInput((AudioInputState*)&event);
                     break;
                 case AudioEvent::SETTINGS_MENU_STATE:
                     handleAudioSettingsMenu((AudioSettingsMenuState*)&event);
@@ -339,69 +348,35 @@ void HMI::handleSettings(const Event& event) {
 }
 
 void HMI::handleAudioSystem(const AudioSystemState* event) {
-    audio_available_ = event->available();
-    setVal("audio.available", event->available());
-    if (!event->available()) {
-        if (isAudioPage() && !isPage(ScreenPage::AUDIO_NO_STEREO)) {
-            page(ScreenPage::AUDIO_NO_STEREO);
+    setVal("audio.state", (uint8_t)event->state());
+    if (isAudioPage()) {
+        switch (event->state()) {
+            case AudioSystem::UNAVAILABLE:
+                if (!isPage(ScreenPage::AUDIO_NO_STEREO)) {
+                    page(ScreenPage::AUDIO_NO_STEREO);
+                }
+                break;
+            case AudioSystem::OFF:
+            case AudioSystem::BOOT:
+                if (!isPage(ScreenPage::AUDIO_POWER_OFF)) {
+                    page(ScreenPage::AUDIO_POWER_OFF);
+                }
+                break;
+            default:
+                if (isPage(ScreenPage::AUDIO_NO_STEREO) ||
+                       isPage(ScreenPage::AUDIO_POWER_OFF)) { 
+                    page(ScreenPage::AUDIO);
+                }
+                break;
         }
-        return;
-    }
-    audio_power_ = event->power();
-    setVal("audio.power", event->power());
-    if (event->power() && isPage(ScreenPage::AUDIO_POWER_OFF)) {
-        page(ScreenPage::AUDIO);
-    } else if (!event->power() && isAudioSourcePage() && !isPage(ScreenPage::AUDIO_POWER_OFF)) {
-        page(ScreenPage::AUDIO_POWER_OFF);
-    }
-    setVal("audio_radio.seek_mode", (uint8_t)event->seek_mode());
-    if (isPage(ScreenPage::AUDIO_RADIO)) {
-        refresh();
-    }
-
-    setVal("audio.source", (uint8_t)event->source());
-    switch (event->source()) {
-        case AudioSource::AM:
-            setTxt("audio_radio.freq_txt", (int32_t)(event->frequency() / 1000));
-            setTxt("audio_radio.freq_label", "KHz");
-            if (event->power() && isAudioSourcePage() && !isPage(ScreenPage::AUDIO_RADIO)) {
-                page(ScreenPage::AUDIO_RADIO);
-            }
-            break;
-        case AudioSource::FM:
-            setTxt("audio_radio.freq_txt", ((double)event->frequency() / 1000000.0), 1);
-            setTxt("audio_radio.freq_label", "MHz");
-            if (event->power() && isAudioSourcePage() && !isPage(ScreenPage::AUDIO_RADIO)) {
-                page(ScreenPage::AUDIO_RADIO);
-            }
-            break;
-        case AudioSource::AUX:
-            setTxt("audio_aux.input_txt", "Aux Input");
-            setGain(event->gain());
-            if (event->power() && isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
-                page(ScreenPage::AUDIO_AUX);
-            }
-            break;
-        case AudioSource::OPTICAL:
-            setTxt("audio_aux.input_txt", "Optical Input");
-            setGain(event->gain());
-            if (event->power() && isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
-                page(ScreenPage::AUDIO_AUX);
-            }
-            break;
-        default:
-            setVal("audio.device", event->bt_connected());
-            if (event->power() && (isPageWithHeader() || isPage(ScreenPage::AUDIO_TRACK))) {
-                refresh();
-            }
-            break;
     }
 }
 
 void HMI::handleAudioVolume(const AudioVolumeState* event) {
     setVal("audio.mute", event->mute());
     setVolume(event->volume());
-    if (audio_power_ && !mute_ && !event->mute() && !isPage(ScreenPage::SPLASH)) {
+    if (audio_system_ == AudioSystem::ON && !mute_ && !event->mute() &&
+            !isPage(ScreenPage::SPLASH)) {
         page(ScreenPage::AUDIO_VOLUME);
     }
     mute_ = event->mute();
@@ -411,6 +386,50 @@ void HMI::handleAudioVolume(const AudioVolumeState* event) {
 
 void HMI::handleAudioTone(const AudioToneState*) {
     //TODO: implement EQ handling
+}
+
+void HMI::handleAudioSource(const AudioSourceState* event) {
+    audio_source_ = event->source();
+    setVal("audio.source", (uint8_t)event->source());
+    switch (event->source()) {
+        case AudioSource::AM:
+        case AudioSource::FM:
+            setVal("audio.playback", 0);
+            setTxt("audio_radio.freq_txt", "");
+            setTxt("audio_radio.freq_label", "");
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_RADIO)) {
+                page(ScreenPage::AUDIO_RADIO);
+            } else if (isPageWithHeader()) {
+                refresh();
+            }
+            break;
+        case AudioSource::AUX:
+            setVal("audio.playback", 0);
+            setTxt("audio_aux.input_txt", "Aux Input");
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
+                page(ScreenPage::AUDIO_AUX);
+            } else if (isPageWithHeader()) {
+                refresh();
+            }
+            break;
+        case AudioSource::OPTICAL:
+            setVal("audio.playback", 0);
+            setTxt("audio_aux.input_txt", "Optical Input");
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
+                page(ScreenPage::AUDIO_AUX);
+            } else if (isPageWithHeader()) {
+                refresh();
+            }
+            break;
+        default:
+            setVal("audio.device", event->bt_connected());
+            if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_TRACK)) {
+                page(ScreenPage::AUDIO_TRACK);
+            } else if (isPageWithHeader()) {
+                refresh();
+            }
+            break;
+    }
 }
 
 void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
@@ -437,6 +456,26 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
         }
     }
     if (isPageWithHeader() || isPage(ScreenPage::AUDIO_TRACK)) {
+        refresh();
+    }
+}
+
+void HMI::handleAudioRadio(const AudioRadioState* event) {
+    setTxt("audio_radio.freq_txt", (int32_t)(event->frequency() / 1000));
+    if (audio_source_ == AudioSource::AM) {
+        setTxt("audio_radio.freq_label", "KHz");
+    } else if (audio_source_ == AudioSource::FM) {
+        setTxt("audio_radio.freq_label", "MHz");
+    }
+    setVal("audio_radio.seek_mode", (uint8_t)event->seek_mode());
+    if (isPage(ScreenPage::AUDIO_RADIO)) {
+        refresh();
+    }
+}
+
+void HMI::handleAudioInput(const AudioInputState* event) {
+    setGain(event->gain());
+    if (isPage(ScreenPage::AUDIO_AUX)) {
         refresh();
     }
 }
@@ -979,7 +1018,7 @@ void HMI::navPageNext(const Caster::Yield<Message>& yield) {
             sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
             break;
         case ScreenPage::CLIMATE:
-            if (audio_available_) {
+            if (audio_system_ != AudioSystem::UNAVAILABLE) {
                 page(ScreenPage::AUDIO);
             } else {
                 page(ScreenPage::VEHICLE);
@@ -1029,7 +1068,7 @@ void HMI::navPagePrev(const Caster::Yield<Message>& yield) {
             page(ScreenPage::CLIMATE);
             break;
         case ScreenPage::VEHICLE:
-            if (audio_available_) {
+            if (audio_system_ != AudioSystem::UNAVAILABLE) {
                 page(ScreenPage::AUDIO);
             } else {
                 page(ScreenPage::CLIMATE);

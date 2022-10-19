@@ -40,7 +40,10 @@ class HMI : public Controls {
         void handleAudioSystem(const AudioSystemState* event);
         void handleAudioVolume(const AudioVolumeState* event);
         void handleAudioTone(const AudioToneState* event);
+        void handleAudioSource(const AudioSourceState* event);
         void handleAudioPlayback(const AudioTrackPlaybackState* event);
+        void handleAudioRadio(const AudioRadioState* event);
+        void handleAudioInput(const AudioInputState* event);
         void handleAudioSettingsMenu(const AudioSettingsMenuState* event);
         void handleAudioSettingsItem(const AudioSettingsItemState* event);
         void handleAudioSettingsExit(const AudioSettingsExitState* event);
@@ -111,8 +114,8 @@ class HMI : public Controls {
 
         // audio state
         bool mute_;
-        bool audio_available_;
-        bool audio_power_;
+        AudioSystem audio_system_;
+        AudioSource audio_source_;
         uint8_t audio_settings_page_;
         uint8_t audio_settings_count_;
 };
