@@ -217,14 +217,6 @@ class AudioSettingsItemState : public Event {
         EVENT_PROPERTY(AudioSettingsType, type,
                 (AudioSettingsType)data[2],
                 data[2] = (uint8_t)value);
-        EVENT_PROPERTY(uint32_t, checksum,
-                Endian::nbtohl(data + 2),
-                Endian::hltonb(data + 2, value));
-
-        void clear() {
-            checksum(0);
-            scratch->clear();
-        }
 };
 
 class AudioSettingsExitState : public Event {
@@ -257,33 +249,22 @@ class AudioSettingsExitCommand : public Event {
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_EXIT_CMD) {}
 };
 
-class AudioChecksumEvent : public Event {
+class AudioTrackTitleState : public Event {
     public:
-        AudioChecksumEvent(AudioEvent id) : Event(SubSystem::AUDIO, (uint8_t)id) {}
-
-        EVENT_PROPERTY(uint32_t, checksum,
-                Endian::nbtohl(data),
-                Endian::hltonb(data, value));
-
-        void clear() {
-            checksum(0);
-            scratch->clear();
-        }
+        AudioTrackTitleState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TRACK_TITLE_STATE) {}
 };
 
-class AudioTrackTitleState : public AudioChecksumEvent {
+class AudioTrackArtistState : public Event {
     public:
-        AudioTrackTitleState() : AudioChecksumEvent(AudioEvent::TRACK_TITLE_STATE) {}
+        AudioTrackArtistState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TRACK_ARTIST_STATE) {}
 };
 
-class AudioTrackArtistState : public AudioChecksumEvent {
+class AudioTrackAlbumState : public Event {
     public:
-        AudioTrackArtistState() : AudioChecksumEvent(AudioEvent::TRACK_ARTIST_STATE) {}
-};
-
-class AudioTrackAlbumState : public AudioChecksumEvent {
-    public:
-        AudioTrackAlbumState() : AudioChecksumEvent(AudioEvent::TRACK_ALBUM_STATE) {}
+        AudioTrackAlbumState() :
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::TRACK_ALBUM_STATE) {}
 };
 
 class AudioRadioState : public Event {

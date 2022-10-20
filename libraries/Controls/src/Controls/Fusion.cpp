@@ -450,13 +450,13 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
             handleTrackPlayback(seq, msg, yield);
             break;
         case TRACK_TITLE:
-            handleTrackString(&track_title_scratch_, seq, msg, &track_title_, yield);
+            handleTrackString(seq, msg, &track_title_, yield);
             break;
         case TRACK_ARTIST:
-            handleTrackString(&track_artist_scratch_, seq, msg, &track_artist_, yield);
+            handleTrackString(seq, msg, &track_artist_, yield);
             break;
         case TRACK_ALBUM:
-            handleTrackString(&track_album_scratch_, seq, msg, &track_album_, yield);
+            handleTrackString(seq, msg, &track_album_, yield);
             break;
         case TRACK_ELAPSED:
             handleTrackTimeElapsed(seq, msg, yield);
@@ -663,10 +663,9 @@ void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
     }
 }
 
-void Fusion::handleTrackString(Scratch* scratch, uint8_t seq, const J1939Message& msg,
-        AudioChecksumEvent* event, const Yield<Message>& yield) {
-    if (handleString(scratch, seq, msg, 4)) {
-        event->checksum(checksum_.value());
+void Fusion::handleTrackString(uint8_t seq, const J1939Message& msg,
+        Event* event, const Yield<Message>& yield) {
+    if (handleString(event->scratch, seq, msg, 4)) {
         yield(*event);
     }
 }
@@ -889,9 +888,7 @@ void Fusion::handlePlaybackPrevCmd(const Caster::Yield<Message>& yield) {
 
 bool Fusion::handleString(Scratch* scratch, uint8_t seq, const J1939Message& msg, uint8_t offset) {
     if (seq == 0) {
-        scratch->bytes[0] = 0;
-        scratch->size = 0;
-        checksum_.reset();
+        scratch->clear();
         return false;
     }
 
@@ -907,7 +904,6 @@ bool Fusion::handleString(Scratch* scratch, uint8_t seq, const J1939Message& msg
         }
 
         scratch->bytes[scratch->size] = msg.data()[i + 1];
-        checksum_.update(msg.data()[i + 1]);
         if (scratch->bytes[scratch->size] == 0) {
             // end of string
             return true;
@@ -1171,9 +1167,9 @@ void Fusion::boot(const Yield<Message>& yield) {
     track_playback_.playback(AudioPlayback::NO_TRACK);
     track_playback_.time_elapsed(0);
     track_playback_.time_total(0);
-    track_title_.clear();
-    track_artist_.clear();
-    track_album_.clear();
+    track_title_scratch_.clear();
+    track_artist_scratch_.clear();
+    track_album_scratch_.clear();
     settings_menu_.page(0);
 
     // start boot countdown

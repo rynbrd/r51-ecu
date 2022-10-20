@@ -58,8 +58,8 @@ class Fusion : public Caster::Node<Message> {
                 const Caster::Yield<Message>& yield);
         void handleTrackPlayback(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleTrackString(Scratch* scratch, uint8_t seq,
-                const Canny::J1939Message& msg, AudioChecksumEvent* event,
+        void handleTrackString(uint8_t seq,
+                const Canny::J1939Message& msg, Event* event,
                 const Caster::Yield<Message>& yield);
         void handleTrackTimeElapsed(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
@@ -118,7 +118,6 @@ class Fusion : public Caster::Node<Message> {
         void boot(const Caster::Yield<Message>& yield);
 
         Faker::Clock* clock_;
-        CRC32::Checksum checksum_;
 
         uint8_t address_;
         uint8_t hu_address_;
