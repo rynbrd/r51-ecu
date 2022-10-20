@@ -145,8 +145,9 @@ class Fusion : public Caster::Node<Message> {
         AudioSettingsExitState settings_exit_;
 
         uint8_t state_;
-        bool state_ignore_;
+        bool state_ignore_next_;
         uint8_t state_counter_;
+        uint32_t state_pgn_;
         uint8_t cmd_counter_;
         Canny::J1939Message cmd_;
 

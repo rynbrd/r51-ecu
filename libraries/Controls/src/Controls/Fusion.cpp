@@ -29,11 +29,8 @@ static const uint32_t kAvailabilityTimeout = 5000;
 static const uint32_t kDiscoveryTick = 5000;
 static const int8_t kFadeMultiplier = 3;
 
-// Mappiing of Fusion state identifiers.
+// Mapping of Fusion state identifiers.
 enum FusionState : uint8_t {
-    // Unsupported state, reset counters.
-    UNSUPPORTED = 0x00,
-
     // 4th byte of A3:99:XX:80 state frames.
     // 1DFF040A#C0:19:A3:99:11:80:07:00
     SOURCE = 0x02,
@@ -57,8 +54,8 @@ enum FusionState : uint8_t {
     // PGN 1F014 announcement
     ANNOUNCE = 0xF0,
 
-    // Message is ignored.
-    IGNORE = 0xFF,
+    // Invalid state detected.
+    INVALID = 0xFF,
 };
 
 enum TrackCmd : uint8_t {
@@ -106,18 +103,6 @@ bool match(const uint8_t* data, const uint8_t (&match)[N]) {
     return true;
 }
 
-FusionState detectState(const J1939Message& msg, uint8_t hu_address) {
-    if (msg.pgn() == 0x1F014) {
-        return FusionState::ANNOUNCE;
-    } else if (msg.pgn() == 0x1FF04 && msg.source_address() == hu_address) {
-        if (match(msg.data() + 2, {0xA3, 0x99, 0xFF, 0x80})) {
-            return (FusionState)msg.data()[4];
-        }
-        return FusionState::UNSUPPORTED;
-    }
-    return FusionState::IGNORE;
-}
-
 }  // namespace
 
 Fusion::Fusion(Clock* clock) :
@@ -125,7 +110,7 @@ Fusion::Fusion(Clock* clock) :
         hb_timer_(kAvailabilityTimeout, false, clock),
         disco_timer_(kDiscoveryTick, false, clock),
         boot_timer_(kBootTimeout, true, clock),
-        state_(0xFF), state_ignore_(false), state_counter_(0xFF),
+        state_(0xFF), state_ignore_next_(false), state_counter_(0xFF),
         cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress),
         secondary_source_((AudioSource)0xFF) {
     cmd_.resize(8);
@@ -391,21 +376,38 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
     if (address_ == Canny::NullAddress) {
         return;
     }
-
-    // Detect current state and update counters.
-    if (counter_id(msg) != counter_id(state_counter_)) {
-        FusionState next_state = detectState(msg, hu_address_);
-        if (next_state == IGNORE) {
-           return;
-        } 
-        state_ = next_state;
-        state_ignore_ = false;
+    if (msg.source_address() == hu_address_) {
+        hb_timer_.reset();
     }
-    state_counter_ = counter(msg);
-    if (state_ignore_) {
+
+    // Detect state.
+    if (msg.pgn() == 0x1F014) {
+        state_ = FusionState::ANNOUNCE;
+        state_counter_ = counter(msg);
+    } else if (msg.pgn() == 0x1FF04 && msg.source_address() == hu_address_) {
+        if (counter_seq(msg) == 0) {
+            if (counter_id(msg) != counter_id(state_counter_) &&
+                    match(msg.data() + 2, {0xA3, 0x99, 0xFF, 0x80})) {
+                // first state message
+                state_ = (FusionState)msg.data()[4];
+            } else {
+                state_ = FusionState::INVALID;
+            }
+        } else if (counter_seq(msg) != counter_seq(state_counter_) + 1) {
+            // message out of sequence
+            state_ = FusionState::INVALID;
+        } else if (state_ignore_next_) {
+            // ignore requested
+            state_ignore_next_ = false;
+            state_ = FusionState::INVALID;
+        }
+        // else use current state 
+        state_counter_ = counter(msg);
+    } else if (msg.source_address() == hu_address_) {
+        state_counter_ = counter(msg);
+    } else {
         return;
     }
-    hb_timer_.reset();
 
     // Handle state message.
     uint8_t seq = counter_seq(msg);
@@ -584,7 +586,7 @@ void Fusion::handleTone(uint8_t seq, const J1939Message& msg,
     switch (seq) {
         case 0:
             if (msg.data()[6] != 0x00) {
-                state_ignore_ = true;
+                state_ignore_next_ = true;
                 return;
             }
             changed |= tone_.bass(msg.data()[7]);
