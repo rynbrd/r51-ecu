@@ -498,10 +498,11 @@ void HMI::handleAudioPlayback(const AudioTrackPlaybackState* event) {
 }
 
 void HMI::handleAudioRadio(const AudioRadioState* event) {
-    setTxt("audio_radio.freq_txt", (int32_t)(event->frequency() / 1000));
     if (audio_source_ == AudioSource::AM) {
+        setTxt("audio_radio.freq_txt", (int32_t)(event->frequency() / 1000));
         setTxt("audio_radio.freq_label", "KHz");
     } else if (audio_source_ == AudioSource::FM) {
+        setTxt("audio_radio.freq_txt", ((double)event->frequency() / 1000000.0), 1);
         setTxt("audio_radio.freq_label", "MHz");
     }
     setVal("audio_radio.seek_mode", (uint8_t)event->seek_mode());
