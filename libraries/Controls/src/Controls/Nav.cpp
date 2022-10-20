@@ -130,14 +130,14 @@ void NavControls::handlePageState(const ScreenPageState* event) {
 void NavControls::handleAudioInput(const Event& event, const Yield<Message>& yield) {
     if (event.id == (uint8_t)KeypadEvent::KEY_STATE) {
         const auto* key = (KeyState*)&event;
-        if (key->key() == 0 && !key->pressed()) {
-            sendCmd(yield, AudioEvent::VOLUME_TOGGLE_MUTE_CMD);
-        } else if (key->key() == 1) {
+        if (key->key() == 0) {
             if (key->pressed()) {
                 power_btn_.press();
             } else if (power_btn_.release()) {
-                sendCmd(yield, AudioEvent::PLAYBACK_TOGGLE_CMD);
+                sendCmd(yield, AudioEvent::VOLUME_TOGGLE_MUTE_CMD);
             }
+        } else if (key->key() == 1 && !key->pressed()) {
+            sendCmd(yield, AudioEvent::PLAYBACK_TOGGLE_CMD);
         }
     } else if (event.id == (uint8_t)KeypadEvent::ENCODER_STATE) {
         const auto* encoder = (EncoderState*)&event;
