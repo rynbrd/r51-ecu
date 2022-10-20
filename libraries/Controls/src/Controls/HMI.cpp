@@ -11,6 +11,8 @@
 #include "Screen.h"
 #include "Power.h"
 
+//#define HMI_DEBUG
+
 namespace R51 {
 namespace {
 
@@ -19,6 +21,7 @@ using ::Caster::Yield;
 static const uint8_t kBrightnessLow = 0x40;
 static const uint8_t kBrightnessHigh = 0xFF;
 
+#if defined(HMI_DEBUG)
 class HMIDebugStream : public Stream {
     public:
         HMIDebugStream(Stream* child) : child_(child), n_(0) {}
@@ -53,12 +56,16 @@ class HMIDebugStream : public Stream {
         Stream* child_;
         int n_;
 };
-
+#endif
 
 }  // namespace
 
 HMI::HMI(Stream* stream, uint8_t encoder_keypad_id, uint8_t pdm_id) :
+#if defined(HMI_DEBUG)
     stream_(new HMIDebugStream(stream)),
+#else
+    stream_(stream),
+#endif
     encoder_keypad_id_(encoder_keypad_id), pdm_id_(pdm_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF), mute_(false),
@@ -348,6 +355,7 @@ void HMI::handleSettings(const Event& event) {
 }
 
 void HMI::handleAudioSystem(const AudioSystemState* event) {
+    audio_system_ = event->state();
     setVal("audio.state", (uint8_t)event->state());
     if (isAudioPage()) {
         switch (event->state()) {
@@ -1081,6 +1089,7 @@ void HMI::navPagePrev(const Caster::Yield<Message>& yield) {
 
 void HMI::emit(const Yield<Message>& yield) {
     if (read(false)) {
+#if defined(HMI_DEBUG)
         Serial.print("hmi recv: ");
         for (size_t i = 0; i < scratch_.size; ++i) {
             if (scratch_.bytes[i] < 0x0F) {
@@ -1089,6 +1098,7 @@ void HMI::emit(const Yield<Message>& yield) {
             Serial.print(scratch_.bytes[i], HEX);
         }
         Serial.println();
+#endif
         handleSerial(yield);
     }
 }
