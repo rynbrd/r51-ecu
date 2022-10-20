@@ -823,6 +823,7 @@ void Fusion::handlePlaybackToggleCmd(const Caster::Yield<Message>& yield) {
         case AudioSource::AM:
         case AudioSource::FM:
             radio_.toggle_seek_mode();
+            yield(radio_);
             break;
         case AudioSource::BLUETOOTH:
             if (track_playback_.playback() == AudioPlayback::PAUSE) {
