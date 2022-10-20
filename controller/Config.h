@@ -5,6 +5,8 @@
 #define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT true
 
+#define WATCHDOG_TIMEOUT 500
+
 #define HMI_DEVICE Serial1
 #define HMI_BAUDRATE 115200
 

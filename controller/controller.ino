@@ -1,6 +1,7 @@
 #include "Config.h"
 #include "Debug.h"
 
+#include <Adafruit_SleepyDog.h>
 #include <Arduino.h>
 #include <Blink.h>
 #include <Canny.h>
@@ -98,6 +99,12 @@ void setup_serial() {
 #endif
 }
 
+void setup_watchdog() {
+#if !defined(DEBUG_ENABLE)
+    Watchdog.enable(WATCHDOG_TIMEOUT);
+#endif
+}
+
 void setup_can() {
     DEBUG_MSG("setup: connecting to CAN");
     while (!CAN.begin(J1939_CAN_MODE)) {
@@ -119,6 +126,7 @@ void setup_keypads() {
 
 void setup() {
     setup_serial();
+    setup_watchdog();
     setup_can();
     setup_hmi();
     setup_keypads();
@@ -127,6 +135,9 @@ void setup() {
 }
 
 void loop() {
+#if !defined(DEBUG_ENABLE)
+    Watchdog.reset();
+#endif
     bus.loop();
 #if defined(DEBUG_ENABLE)
     delay(10);
