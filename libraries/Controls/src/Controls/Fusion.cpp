@@ -549,7 +549,9 @@ void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
         } else {
             changed |= volume_.volume(zone2);
         }
-        changed |= volume_.fade((zone1 - zone2) / kFadeMultiplier);
+        if (zone1 != zone2 && volume_.fade() == 0) {
+            changed |= volume_.fade((zone1 - zone2) / kFadeMultiplier);
+        }
         if (changed && system_.state() == AudioSystem::ON) {
             yield(volume_);
         }
@@ -1040,11 +1042,8 @@ void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_
     //              |
     //              +------------------- zone 3
 
-    if (fade < kFadeMin) {
-        fade = kFadeMin;
-    } else if (fade > kFadeMax) {
-        fade = kFadeMax;
-    }
+    clamp(&fade, kFadeMin, kFadeMax);
+    volume_.fade(fade);
     fade *= kFadeMultiplier;
     int8_t zone1 = (int8_t)volume;
     int8_t zone2 = (int8_t)volume;
@@ -1060,6 +1059,7 @@ void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_
 
     sendCmd(yield, 0x08, 0x19, zone1, zone2);
     sendCmdPayload(yield, {volume, 0x01});
+    yield(volume_);
 }
 
 void Fusion::sendVolumeMuteCmd(const Yield<Message>& yield, bool mute) {
