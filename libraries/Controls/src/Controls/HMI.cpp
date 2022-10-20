@@ -888,38 +888,6 @@ void HMI::navUp(const Yield<Message>&) {
     uint8_t selected = getVal("navselect");
     switch (page_.page()) {
         case ScreenPage::AUDIO_SETTINGS:
-        case ScreenPage::AUDIO_SOURCE:
-        case ScreenPage::AUDIO_EQ:
-        case ScreenPage::SETTINGS_1:
-            if (selected > 1) {
-                setVal("navselect", selected - 1);
-                refresh();
-            }
-            break;
-        case ScreenPage::SETTINGS_2:
-            if (selected <= 1) {
-                setVal("settings_1.navselect", 5);
-                page(ScreenPage::SETTINGS_1);
-            } else {
-                setVal("navselect", selected - 1);
-                refresh();
-            }
-            break;
-        case ScreenPage::SETTINGS_3:
-            if (selected <= 1) {
-                setVal("settings_2.navselect", 5);
-                page(ScreenPage::SETTINGS_1);
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-void HMI::navDown(const Yield<Message>&) {
-    uint8_t selected = getVal("navselect");
-    switch (page_.page()) {
-        case ScreenPage::AUDIO_SETTINGS:
             if (selected < audio_settings_count_) {
                 setVal("navselect", selected + 1);
                 refresh();
@@ -954,6 +922,38 @@ void HMI::navDown(const Yield<Message>&) {
             if (selected < 1) {
                 setVal("navselect", selected + 1);
                 refresh();
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::navDown(const Yield<Message>&) {
+    uint8_t selected = getVal("navselect");
+    switch (page_.page()) {
+        case ScreenPage::AUDIO_SETTINGS:
+        case ScreenPage::AUDIO_SOURCE:
+        case ScreenPage::AUDIO_EQ:
+        case ScreenPage::SETTINGS_1:
+            if (selected > 1) {
+                setVal("navselect", selected - 1);
+                refresh();
+            }
+            break;
+        case ScreenPage::SETTINGS_2:
+            if (selected <= 1) {
+                setVal("settings_1.navselect", 5);
+                page(ScreenPage::SETTINGS_1);
+            } else {
+                setVal("navselect", selected - 1);
+                refresh();
+            }
+            break;
+        case ScreenPage::SETTINGS_3:
+            if (selected <= 1) {
+                setVal("settings_2.navselect", 5);
+                page(ScreenPage::SETTINGS_1);
             }
             break;
         default:
