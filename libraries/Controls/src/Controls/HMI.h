@@ -55,6 +55,7 @@ class HMI : public Controls {
         void handleAudioAuxButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioSourceButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioSettingsButton(uint8_t button, const Caster::Yield<Message>& yield);
+        void handleAudioEqButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioPowerOffButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleVehicleButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings1Button(uint8_t button, const Caster::Yield<Message>& yield);
@@ -114,6 +115,7 @@ class HMI : public Controls {
 
         // audio state
         bool mute_;
+        uint8_t volume_;
         AudioSystem audio_system_;
         AudioSource audio_source_;
         uint8_t audio_settings_page_;

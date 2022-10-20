@@ -8,6 +8,14 @@
 
 namespace R51 {
 
+static const uint8_t kVolumeMax = 24;
+static const int8_t kBalanceMin = -7;
+static const int8_t kBalanceMax = 7;
+static const int8_t kFadeMin = -8;
+static const int8_t kFadeMax = 8;
+static const int8_t kToneMin = -15;
+static const int8_t kToneMax = 15;
+
 // System state of the audio device.
 enum class AudioSystem : uint8_t {
     UNAVAILABLE = 0x00, // No audio system is connected.

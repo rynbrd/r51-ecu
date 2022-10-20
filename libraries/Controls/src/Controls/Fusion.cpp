@@ -27,14 +27,7 @@ using ::Faker::Clock;
 
 static const uint32_t kAvailabilityTimeout = 5000;
 static const uint32_t kDiscoveryTick = 5000;
-static const uint8_t kVolumeMax = 24;
-static const int8_t kBalanceMin = -7;
-static const int8_t kBalanceMax = 7;
-static const int8_t kFadeMin = -8;
-static const int8_t kFadeMax = 8;
 static const int8_t kFadeMultiplier = 3;
-static const int8_t kToneMin = -15;
-static const int8_t kToneMax = 15;
 
 // Mappiing of Fusion state identifiers.
 enum FusionState : uint8_t {

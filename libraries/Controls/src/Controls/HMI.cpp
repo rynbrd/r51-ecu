@@ -68,7 +68,8 @@ HMI::HMI(Stream* stream, uint8_t encoder_keypad_id, uint8_t pdm_id) :
 #endif
     encoder_keypad_id_(encoder_keypad_id), pdm_id_(pdm_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
-    climate_driver_temp_(0xFF), climate_pass_temp_(0xFF), mute_(false),
+    climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
+    mute_(false), volume_(0),
     audio_system_(AudioSystem::UNAVAILABLE), audio_source_(AudioSource::AM),
     audio_settings_page_(0), audio_settings_count_(0) {}
 
@@ -380,20 +381,48 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
     }
 }
 
-void HMI::handleAudioVolume(const AudioVolumeState* event) {
-    setVal("audio.mute", event->mute());
-    setVolume(event->volume());
-    if (audio_system_ == AudioSystem::ON && !mute_ && !event->mute() &&
-            !isPage(ScreenPage::SPLASH)) {
-        page(ScreenPage::AUDIO_VOLUME);
+int8_t eqProgressBarValue(int8_t value, int8_t min, int8_t max) {
+    int8_t range = max - min;
+    value -= min;
+    value = 100 * value / range;
+    if (value < 50) {
+        value -= 2;
+        if (value < 0) {
+            value = 0;
+        }
+    } else if (value > 50) {
+        value += 2;
+        if (value > 100) {
+            value = 100;
+        }
     }
-    mute_ = event->mute();
-    refresh();
-    //TODO: implement fade and balance
+    return value;
 }
 
-void HMI::handleAudioTone(const AudioToneState*) {
-    //TODO: implement EQ handling
+void HMI::handleAudioVolume(const AudioVolumeState* event) {
+    setVal("audio.mute", event->mute());
+    setVal("audio_eq.fade_bar", eqProgressBarValue(event->fade(), kFadeMin, kFadeMax));
+    setVal("audio_eq.balance_bar", eqProgressBarValue(event->balance(), kBalanceMin, kBalanceMax));
+    setVolume(event->volume());
+    if (audio_system_ == AudioSystem::ON && event->volume() != volume_ &&
+            !mute_ && !event->mute() && !isPage(ScreenPage::SPLASH)) {
+        page(ScreenPage::AUDIO_VOLUME);
+    }
+    if (event->mute() != mute_ || event->volume() != volume_ ||
+            isPage(ScreenPage::AUDIO_EQ)) {
+        refresh();
+    }
+    mute_ = event->mute();
+    volume_ = event->volume();
+}
+
+void HMI::handleAudioTone(const AudioToneState* event) {
+    setVal("audio_eq.bass_bar", eqProgressBarValue(event->bass(), kToneMin, kToneMax));
+    setVal("audio_eq.mid_bar", eqProgressBarValue(event->mid(), kToneMin, kToneMax));
+    setVal("audio_eq.treble_bar", eqProgressBarValue(event->treble(), kToneMin, kToneMax));
+    if (isPage(ScreenPage::AUDIO_EQ)) {
+        refresh();
+    }
 }
 
 void HMI::handleAudioSource(const AudioSourceState* event) {
@@ -567,6 +596,9 @@ void HMI::handleSerial(const Yield<Message>& yield) {
                     case ScreenPage::AUDIO_SETTINGS:
                         handleAudioSettingsButton(button, yield);
                         break;
+                    case ScreenPage::AUDIO_EQ:
+                        handleAudioEqButton(button, yield);
+                        break;
                     case ScreenPage::AUDIO_POWER_OFF:
                         handleAudioPowerOffButton(button, yield);
                         break;
@@ -688,6 +720,43 @@ void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield)
         case 0x02:
         case 0x0F:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x04);
+            break;
+    }
+}
+
+void HMI::handleAudioEqButton(uint8_t button, const Yield<Message>& yield) {
+    switch (button) {
+        case 0x09:
+            sendCmd(yield, AudioEvent::TONE_BASS_DEC_CMD);
+            break;
+        case 0x0B:
+            sendCmd(yield, AudioEvent::TONE_BASS_INC_CMD);
+            break;
+        case 0x03:
+            sendCmd(yield, AudioEvent::TONE_MID_DEC_CMD);
+            break;
+        case 0x06:
+            sendCmd(yield, AudioEvent::TONE_MID_INC_CMD);
+            break;
+        case 0x04:
+            sendCmd(yield, AudioEvent::TONE_TREBLE_DEC_CMD);
+            break;
+        case 0x02:
+            sendCmd(yield, AudioEvent::TONE_TREBLE_INC_CMD);
+            break;
+        case 0x05:
+            sendCmd(yield, AudioEvent::FADE_REAR_CMD);
+            break;
+        case 0x07:
+            sendCmd(yield, AudioEvent::FADE_FRONT_CMD);
+            break;
+        case 0x0A:
+            sendCmd(yield, AudioEvent::BALANCE_LEFT_CMD);
+            break;
+        case 0x08:
+            sendCmd(yield, AudioEvent::BALANCE_RIGHT_CMD);
+            break;
+        default:
             break;
     }
 }
