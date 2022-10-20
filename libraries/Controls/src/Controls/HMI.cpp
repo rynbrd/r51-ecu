@@ -1233,7 +1233,8 @@ bool HMI::isAudioPage() {
         isPage(ScreenPage::AUDIO_NO_STEREO) ||
         isPage(ScreenPage::AUDIO_VOLUME) ||
         isPage(ScreenPage::AUDIO_SOURCE) ||
-        isPage(ScreenPage::AUDIO_SETTINGS);
+        isPage(ScreenPage::AUDIO_SETTINGS) ||
+        isPage(ScreenPage::AUDIO_EQ);
 }
 
 bool HMI::isAudioSourcePage() {
