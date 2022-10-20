@@ -1369,9 +1369,6 @@ void HMI::setTxtTime(const char* key, uint16_t seconds) {
 
 void HMI::setVolume(uint8_t value) {
     stream_->print("audio_volume.volume_txt.txt=\"");
-    if (value < 10) {
-        stream_->print("0");
-    }
     stream_->print(value);
     stream_->print("\"");
     terminate();
