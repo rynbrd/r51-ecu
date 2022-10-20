@@ -686,7 +686,7 @@ void Fusion::handleTrackTimeElapsed(uint8_t seq, const J1939Message& msg,
 void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     if (seq == 1) {
-        uint32_t frequency = btohl(msg.data(), Endian::LITTLE);
+        uint32_t frequency = btohl(msg.data() + 1, Endian::LITTLE);
         radio_.frequency(frequency);
         if (system_.state() == AudioSystem::ON) {
             yield(radio_);
