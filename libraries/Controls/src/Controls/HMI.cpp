@@ -69,7 +69,7 @@ HMI::HMI(Stream* stream, uint8_t encoder_keypad_id, uint8_t pdm_id) :
     encoder_keypad_id_(encoder_keypad_id), pdm_id_(pdm_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
-    mute_(false), volume_(0),
+    climate_out_temp_(0xFF), mute_(false), volume_(0),
     audio_system_(AudioSystem::UNAVAILABLE), audio_source_(AudioSource::AM),
     audio_settings_page_(0), audio_settings_count_(0) {}
 
@@ -320,7 +320,7 @@ void HMI::handleClimateAirflow(const ClimateAirflowState* event) {
         refresh();
     } else if (climate_fan_ != 0xFF && climate_fan_ != event->fan_speed() &&
             climate_system_ != CLIMATE_SYSTEM_AUTO) {
-        climatePopup();
+        maybeClimatePopup();
     }
     climate_fan_ = event->fan_speed();
 }
@@ -328,13 +328,21 @@ void HMI::handleClimateAirflow(const ClimateAirflowState* event) {
 void HMI::handleClimateTemp(const ClimateTempState* event) {
     setTxtTemp("climate.dtemp_txt", event->driver_temp());
     setTxtTemp("climate.ptemp_txt", event->passenger_temp());
-    setTxtTemp("climate.otemp_txt", event->outside_temp());
-    if ((climate_driver_temp_ != 0xFF && climate_driver_temp_ != event->driver_temp()) ||
-            (climate_pass_temp_ != 0xFF && climate_pass_temp_ != event->passenger_temp())) {
-        climatePopup();
+    setTxtTemp("shared.otemp_txt", event->outside_temp());
+    if (isPage(ScreenPage::CLIMATE)) {
+        refresh();
+    } else {
+        if ((climate_driver_temp_ != 0xFF && climate_driver_temp_ != event->driver_temp()) ||
+                (climate_pass_temp_ != 0xFF && climate_pass_temp_ != event->passenger_temp())) {
+            maybeClimatePopup();
+        }
+        if (climate_out_temp_ != event->outside_temp() && isPageWithHeader()) {
+            refresh();
+        }
     }
     climate_driver_temp_ = event->driver_temp();
     climate_pass_temp_ = event->passenger_temp();
+    climate_out_temp_ = event->outside_temp();
 }
 
 void HMI::handleSettings(const Event& event) {
@@ -1268,7 +1276,7 @@ void HMI::page(ScreenPage value) {
     terminate();
 }
 
-void HMI::climatePopup() {
+void HMI::maybeClimatePopup() {
     if (!isSettingsPage() && !isPage(ScreenPage::CLIMATE)) {
         setVal("climate.popup", 1);
         page(ScreenPage::CLIMATE);

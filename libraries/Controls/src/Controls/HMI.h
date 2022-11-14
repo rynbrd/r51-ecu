@@ -83,7 +83,7 @@ class HMI : public Controls {
         bool isSettingsPage();
         bool isPageWithHeader();
         void page(ScreenPage value);
-        void climatePopup();
+        void maybeClimatePopup();
         void printEscaped(const char* value);
         int32_t getVal(const char* key);
         void setVal(const char* key, int32_t value);
@@ -112,6 +112,7 @@ class HMI : public Controls {
         uint8_t climate_fan_;
         uint8_t climate_driver_temp_;
         uint8_t climate_pass_temp_;
+        uint8_t climate_out_temp_;
 
         // audio state
         bool mute_;
