@@ -126,7 +126,7 @@ void PowerControls::sendIndicatorCmd(const Yield<Message>& yield, uint8_t led,
             indicator_cmd_.color(color);
             break;
     }
-    yield(indicator_cmd_);
+    yield(&indicator_cmd_);
 }
 
 void PowerControls::sendPowerCmd(const Yield<Message>& yield, PDMDevice device, PowerCmd cmd) {

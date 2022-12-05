@@ -59,7 +59,7 @@ void J1939SendRunCommand::run(Console* console, char* arg, const Caster::Yield<M
     msg_.data((uint8_t*)arg, data_len);
     console->stream()->print("console: send message ");
     console->stream()->println(msg_);
-    yield(msg_);
+    yield(&msg_);
 }
 
 void J1939MuteCommand::run(Console* console, char*, const Caster::Yield<Message>&) {

@@ -212,7 +212,7 @@ void Fusion::handleCommand(const Event& event, const Yield<Message>& yield) {
             break;
         case AudioEvent::RADIO_TOGGLE_SEEK_CMD:
             radio_.toggle_seek_mode();
-            yield(radio_);
+            yield(&radio_);
             break;
         case AudioEvent::RADIO_NEXT_CMD:
             switch (radio_.seek_mode()) {
@@ -349,7 +349,7 @@ void Fusion::handleCommand(const Event& event, const Yield<Message>& yield) {
             break;
         case AudioEvent::SETTINGS_BACK_CMD:
             if (settings_menu_.page() == 0x01)  {
-                yield(settings_exit_);
+                yield(&settings_exit_);
                 sendMenuExit(yield);
             } else {
                 sendMenuBack(yield);
@@ -512,7 +512,7 @@ void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
 
                 // tell our followers that we're signing off
                 system_.state(AudioSystem::OFF);
-                yield(system_);
+                yield(&system_);
             }
             break;
         case AudioSystem::UNAVAILABLE:
@@ -555,7 +555,7 @@ void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
             changed |= volume_.fade((zone1 - zone2) / kFadeMultiplier);
         }
         if (changed && system_.state() == AudioSystem::ON) {
-            yield(volume_);
+            yield(&volume_);
         }
     }
 }
@@ -563,7 +563,7 @@ void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
 void Fusion::handleMute(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     if (seq == 0 && volume_.mute(msg.data()[6] == 0x01) && system_.state() == AudioSystem::ON)  {
-        yield(volume_);
+        yield(&volume_);
     }
 }
 
@@ -574,7 +574,7 @@ void Fusion::handleBalance(uint8_t seq, const J1939Message& msg,
     if (seq == 0 && msg.data()[6] == 0x00 &&
             volume_.balance(msg.data()[7]) &&
             system_.state() == AudioSystem::ON) {
-        yield(volume_);
+        yield(&volume_);
     }
 }
 
@@ -599,7 +599,7 @@ void Fusion::handleTone(uint8_t seq, const J1939Message& msg,
             break;
     }
     if (changed && system_.state() == AudioSystem::ON) {
-        yield(tone_);
+        yield(&tone_);
     }
 }
 
@@ -627,7 +627,7 @@ void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
                     }
                 }
                 if (system_.state() == AudioSystem::ON) {
-                    yield(source_);
+                    yield(&source_);
                 }
             }
             break;
@@ -652,7 +652,7 @@ void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
             time = btohl(buffer_, Endian::LITTLE);
             track_playback_.time_total(time / 1000);
             if (system_.state() == AudioSystem::ON) {
-                yield(track_playback_);
+                yield(&track_playback_);
             }
             break;
         default:
@@ -663,7 +663,7 @@ void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
 void Fusion::handleTrackString(uint8_t seq, const J1939Message& msg,
         Event* event, const Yield<Message>& yield) {
     if (handleString(event->scratch, seq, msg, 4)) {
-        yield(*event);
+        yield(event);
     }
 }
 
@@ -675,7 +675,7 @@ void Fusion::handleTrackTimeElapsed(uint8_t seq, const J1939Message& msg,
         uint32_t time = btohl(buffer_, Endian::LITTLE);
         track_playback_.time_elapsed(time / 4);
         if (system_.state() == AudioSystem::ON) {
-            yield(track_playback_);
+            yield(&track_playback_);
         }
     }
 }
@@ -686,7 +686,7 @@ void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
         uint32_t frequency = btohl(msg.data() + 1, Endian::LITTLE);
         radio_.frequency(frequency);
         if (system_.state() == AudioSystem::ON) {
-            yield(radio_);
+            yield(&radio_);
         }
     }
 }
@@ -696,7 +696,7 @@ void Fusion::handleInputGain(uint8_t seq, const J1939Message& msg,
     if (seq == 0) {
         input_.gain((int8_t)msg.data()[7]);
         if (system_.state() == AudioSystem::ON) {
-            yield(input_);
+            yield(&input_);
         }
     }
 }
@@ -721,7 +721,7 @@ void Fusion::handleMenuLoad(uint8_t seq, const Canny::J1939Message& msg,
                 case 0x04:
                     {
                         Event event(SubSystem::AUDIO, (uint8_t)AudioEvent::SETTINGS_EXIT_STATE);
-                        yield(event);
+                        yield(&event);
                     }
                     break;
                 default:
@@ -745,7 +745,7 @@ void Fusion::handleMenuItemCount(uint8_t seq, const Canny::J1939Message& msg,
             count = 5;
         }
         settings_menu_.count(count);
-        yield(settings_menu_);
+        yield(&settings_menu_);
         sendMenuReqItemList(yield, count);
     }
 }
@@ -781,7 +781,7 @@ void Fusion::handleMenuItemList(uint8_t seq, const Canny::J1939Message& msg,
             break;
     }
     if (handleString(&settings_item_scratch_, seq, msg, 6)) {
-        yield(settings_item_);
+        yield(&settings_item_);
     }
 }
 
@@ -820,7 +820,7 @@ void Fusion::handlePlaybackToggleCmd(const Caster::Yield<Message>& yield) {
         case AudioSource::AM:
         case AudioSource::FM:
             radio_.toggle_seek_mode();
-            yield(radio_);
+            yield(&radio_);
             break;
         case AudioSource::BLUETOOTH:
             if (track_playback_.playback() == AudioPlayback::PAUSE) {
@@ -931,7 +931,7 @@ void Fusion::emit(const Yield<Message>& yield) {
         hu_address_ = Canny::NullAddress;
         cmd_.dest_address(Canny::NullAddress);
         system_.state(AudioSystem::UNAVAILABLE);
-        yield(system_);
+        yield(&system_);
         return;
     }
 
@@ -939,28 +939,28 @@ void Fusion::emit(const Yield<Message>& yield) {
         // if we're online, send initial state when boot completes
         boot_timer_.pause();
         system_.state(AudioSystem::ON);
-        yield(volume_);
-        yield(tone_);
-        yield(source_);
+        yield(&volume_);
+        yield(&tone_);
+        yield(&source_);
         switch (source_.source()) {
             case AudioSource::AM:
             case AudioSource::FM:
-                yield(radio_);
+                yield(&radio_);
                 break;
             case AudioSource::AUX:
             case AudioSource::OPTICAL:
-                yield(input_);
+                yield(&input_);
                 break;
             case AudioSource::BLUETOOTH:
-                yield(track_playback_);
-                yield(track_title_);
-                yield(track_artist_);
-                yield(track_album_);
+                yield(&track_playback_);
+                yield(&track_title_);
+                yield(&track_artist_);
+                yield(&track_album_);
                 break;
             default:
                 break;
         }
-        yield(system_);
+        yield(&system_);
     }
 }
 
@@ -973,14 +973,14 @@ void Fusion::sendStereoDiscovery(const Yield<Message>& yield) {
     disco_timer_.reset();
     J1939Message msg(0xEAFF, address_, 0xFF, 0x06);
     msg.data({0x14, 0xF0, 0x01});
-    yield(msg);
+    yield(&msg);
 }
 
 void Fusion::sendCmd(const Yield<Message>& yield,
         uint8_t cs, uint8_t id, uint8_t payload0, uint8_t payload1) {
     cmd_counter_ = (cmd_counter_ & 0xE0) + 0x20;
     cmd_.data({cmd_counter_++, cs, 0xA3, 0x99, id, 0x00, payload0, payload1});
-    yield(cmd_);
+    yield(&cmd_);
 }
 
 void Fusion::sendCmdPayload(const Yield<Message>& yield, uint32_t payload) {
@@ -988,7 +988,7 @@ void Fusion::sendCmdPayload(const Yield<Message>& yield, uint32_t payload) {
     // Fusion expects ints in little-endian byte order.
     Endian::hltob(cmd_.data() + 1, payload, Endian::LITTLE);
     memset(cmd_.data() + 5, 0xFF, 3);
-    yield(cmd_);
+    yield(&cmd_);
 }
 
 
@@ -1061,7 +1061,7 @@ void Fusion::sendVolumeSetCmd(const Yield<Message>& yield, uint8_t volume, int8_
 
     sendCmd(yield, 0x08, 0x19, zone1, zone2);
     sendCmdPayload(yield, {volume, 0x01});
-    yield(volume_);
+    yield(&volume_);
 }
 
 void Fusion::sendVolumeMuteCmd(const Yield<Message>& yield, bool mute) {
@@ -1173,7 +1173,7 @@ void Fusion::boot(const Yield<Message>& yield) {
 
     // inform listeners that we're booting
     system_.state(AudioSystem::BOOT);
-    yield(system_);
+    yield(&system_);
 
     // power on and request initial state from unit
     sendPowerCmd(yield, true);

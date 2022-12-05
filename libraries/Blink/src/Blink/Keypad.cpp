@@ -105,7 +105,7 @@ void BlinkKeypad::handleJ1939Message(const J1939Message& msg, const Yield<Messag
     }
     keypress_.key(msg.data()[3] - 1);
     keypress_.pressed(msg.data()[4] == 0x01);
-    yield(keypress_);
+    yield(&keypress_);
 }
 
 void BlinkKeypad::handleIndicatorCommand(const IndicatorCommand* cmd,
@@ -165,7 +165,7 @@ void BlinkKeypad::setKeyLED(const Yield<Message>& yield, uint8_t key, LEDMode mo
             command_.data()[6] = toBlinkColor(alt_color);
             break;
     }
-    yield(command_);
+    yield(&command_);
 }
 
 void BlinkKeypad::setKeyBrightness(const Yield<Message>& yield, uint8_t brightness) {
@@ -173,7 +173,7 @@ void BlinkKeypad::setKeyBrightness(const Yield<Message>& yield, uint8_t brightne
     command_.data()[3] = toBlinkBrightness(brightness);
     command_.data()[4] = 0xFF;
     command_.data()[5] = 0xFF;
-    yield(command_);
+    yield(&command_);
 }
 
 void BlinkKeypad::setBacklightColor(const Yield<Message>& yield, LEDColor color) {
@@ -181,7 +181,7 @@ void BlinkKeypad::setBacklightColor(const Yield<Message>& yield, LEDColor color)
     command_.data()[3] = toBlinkColor(color);
     command_.data()[4] = 0xFF;
     command_.data()[5] = 0xFF;
-    yield(command_);
+    yield(&command_);
 }
 
 void BlinkKeypad::setBacklightBrightness(const Yield<Message>& yield, uint8_t brightness) {
@@ -189,7 +189,7 @@ void BlinkKeypad::setBacklightBrightness(const Yield<Message>& yield, uint8_t br
     command_.data()[3] = toBlinkBrightness(brightness);
     command_.data()[4] = 0xFF;
     command_.data()[5] = 0xFF;
-    yield(command_);
+    yield(&command_);
 }
 
 }  // namespace R51

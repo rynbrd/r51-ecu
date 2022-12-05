@@ -23,20 +23,20 @@ class Message : public Printable {
         Message() : Message(EMPTY, nullptr) {}
 
         // Construct a message that references a system event.
-        Message(Event& event) :
-            type_(EVENT), ref_(&event) {}
+        Message(Event* event) :
+            type_(EVENT), ref_(event) {}
 
         // Construct a message that references a CAN frame.
-        Message(Canny::Frame& can_frame) :
-            type_(CAN_FRAME), ref_(&can_frame) {}
+        Message(Canny::Frame* can_frame) :
+            type_(CAN_FRAME), ref_(can_frame) {}
 
         // Construct a message that references a J1939 address claim.
-        Message(J1939Claim& j1939_claim) :
-            type_(J1939_CLAIM), ref_(&j1939_claim) {}
+        Message(J1939Claim* j1939_claim) :
+            type_(J1939_CLAIM), ref_(j1939_claim) {}
 
         // Construct a message that references a J1939 message.
-        Message(Canny::J1939Message& j1939_message) :
-            type_(J1939_MESSAGE), ref_(&j1939_message) {}
+        Message(Canny::J1939Message* j1939_message) :
+            type_(J1939_MESSAGE), ref_(j1939_message) {}
 
         // Return the type of the mesasge.
         enum Type type() const { return type_; };

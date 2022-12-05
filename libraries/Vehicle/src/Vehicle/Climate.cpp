@@ -68,7 +68,7 @@ void Climate::handleTempFrame(const Canny::Frame& frame, const Caster::Yield<Mes
         temp_state_.passenger_temp(frame.data()[5]) |
         temp_state_.outside_temp(frame.data()[7]) |
         temp_state_.units(frame.data()[3] == 0x40 ? UNITS_METRIC : UNITS_US)) {
-        yield(temp_state_);
+        yield(&temp_state_);
     }
 }
 
@@ -138,25 +138,25 @@ void Climate::handleSystemFrame(const Canny::Frame& frame, const Caster::Yield<M
     }
 
     if (system_state_changed) {
-        yield(system_state_);
+        yield(&system_state_);
     }
     if (airflow_state_changed) {
-        yield(airflow_state_);
+        yield(&airflow_state_);
     }
 }
 
 void Climate::handleControllerEvent(const Event& event, const Caster::Yield<Message>& yield) {
     if (RequestCommand::match(event, SubSystem::CLIMATE,
             (uint8_t)ClimateEvent::TEMP_STATE)) {
-        yield(temp_state_);
+        yield(&temp_state_);
     }
     if (RequestCommand::match(event, SubSystem::CLIMATE,
             (uint8_t)ClimateEvent::SYSTEM_STATE)) {
-        yield(system_state_);
+        yield(&system_state_);
     }
     if (RequestCommand::match(event, SubSystem::CLIMATE,
             (uint8_t)ClimateEvent::AIRFLOW_STATE)) {
-        yield(airflow_state_);
+        yield(&airflow_state_);
     }
 }
 
@@ -229,10 +229,10 @@ void Climate::handleClimateEvent(const Event& event, const Caster::Yield<Message
     }
 
     if (system_control_changed) {
-        yield(system_control_);
+        yield(&system_control_);
     }
     if (fan_control_changed) {
-        yield(fan_control_);
+        yield(&fan_control_);
     }
 }
 
@@ -243,22 +243,22 @@ void Climate::emit(const Caster::Yield<Message>& yield) {
     if (!control_init_ && clock_->millis() - startup_ >= CONTROL_INIT_EXPIRE) {
         system_control_.ready();
         fan_control_.ready();
-        yield(system_control_);
-        yield(fan_control_);
+        yield(&system_control_);
+        yield(&fan_control_);
         control_ticker_.reset(CONTROL_FRAME_TICK);
         control_init_ = true;
     }
 
     if (control_ticker_.active()) {
-        yield(system_control_);
-        yield(fan_control_);
+        yield(&system_control_);
+        yield(&fan_control_);
         control_ticker_.reset();
     }
 
     if (state_ticker_.active()) {
-        yield(temp_state_);
-        yield(system_state_);
-        yield(airflow_state_);
+        yield(&temp_state_);
+        yield(&system_state_);
+        yield(&airflow_state_);
         state_ticker_.reset();
     }
 }

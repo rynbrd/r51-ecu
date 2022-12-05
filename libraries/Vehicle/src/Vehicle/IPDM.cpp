@@ -60,7 +60,7 @@ void IPDM::emit(const Caster::Yield<Message>& yield) {
 
 void IPDM::yieldEvent(const Caster::Yield<Message>& yield) {
     ticker_.reset();
-    yield(event_);
+    yield(&event_);
 }
 
 }  // namespace R51

@@ -10,7 +10,7 @@ void BLENode::handle(const Message& msg, const Caster::Yield<Message>& yield) {
         case SubSystem::CONTROLLER:
             if (RequestCommand::match(*msg.event(), SubSystem::BLUETOOTH,
                     (uint8_t)BluetoothEvent::STATE)) {
-                yield(event_);
+                yield(&event_);
                 emit_ = false;
             }
             break;
@@ -33,7 +33,7 @@ void BLENode::handle(const Message& msg, const Caster::Yield<Message>& yield) {
 
 void BLENode::emit(const Caster::Yield<Message>& yield) {
     if (emit_) {
-        yield(event_);
+        yield(&event_);
         emit_ = false;
     }
 }

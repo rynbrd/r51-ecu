@@ -20,7 +20,7 @@ void CANGateway::handle(const Message& msg, const Caster::Yield<Message>&) {
 void CANGateway::emit(const Caster::Yield<Message>& yield) {
     Error err = can_->read(&frame_);
     if (err == ERR_OK) {
-        yield(frame_);
+        yield(&frame_);
     } else if (err != ERR_FIFO) {
         onReadError(err);
     }

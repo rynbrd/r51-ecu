@@ -775,32 +775,32 @@ void Settings::handleState22(const byte* data) {
 
 void Settings::emit(const Caster::Yield<Message>& yield) {
     if (initE_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (retrieveE_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (updateE_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (resetE_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (initF_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (retrieveF_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (updateF_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (resetF_->read(&frame_)) {
-        yield(frame_);
+        yield(&frame_);
     }
     if (ready() && available_) {
         available_ = false;
-        yield(event_);
+        yield(&event_);
     }
 }
 

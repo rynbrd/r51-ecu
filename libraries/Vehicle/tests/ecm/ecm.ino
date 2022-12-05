@@ -15,7 +15,7 @@ test(EngineTempStateTest, IgnoreIncorrectID) {
     Frame f(0x550, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     EngineTempState ecm;
-    ecm.handle(f, yield);
+    ecm.handle(&f, yield);
     assertSize(yield, 0);
     ecm.emit(yield);
     assertSize(yield, 0);
@@ -26,7 +26,7 @@ test(EngineTempStateTest, IgnoreIncorrectSize) {
     Frame f(0x551, 0, {});
 
     EngineTempState ecm;
-    ecm.handle(f, yield);
+    ecm.handle(&f, yield);
     ecm.emit(yield);
     assertSize(yield, 0);
 }
@@ -51,7 +51,7 @@ test(EngineTempStateTest, PositiveTemp) {
     Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     EngineTempState ecm;
-    ecm.handle(f, yield);
+    ecm.handle(&f, yield);
     ecm.emit(yield);
 
     Event expect((uint8_t)SubSystem::ECM, (uint8_t)ECMEvent::ENGINE_TEMP_STATE, {0x29});
@@ -64,7 +64,7 @@ test(EngineTempStateTest, MaxTemp) {
     Frame f(0x551, 0, {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     EngineTempState ecm;
-    ecm.handle(f, yield);
+    ecm.handle(&f, yield);
     ecm.emit(yield);
 
     Event expect((uint8_t)SubSystem::ECM, (uint8_t)ECMEvent::ENGINE_TEMP_STATE, {0xFF});
@@ -85,14 +85,14 @@ test(EngineTempStateTest, RequestPowerState) {
 
     // Set the temperature from frame.
     EngineTempState ecm;
-    ecm.handle(f, yield);
+    ecm.handle(&f, yield);
     ecm.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
     // Request current state.
-    ecm.handle(control, yield);
+    ecm.handle(&control, yield);
     ecm.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
@@ -114,14 +114,14 @@ test(EngineTempStateTest, RequestAllSubSystem) {
 
     // Set the temperature from frame.
     EngineTempState ecm;
-    ecm.handle(f, yield);
+    ecm.handle(&f, yield);
     ecm.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
     // Request current state.
-    ecm.handle(control, yield);
+    ecm.handle(&control, yield);
     ecm.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
@@ -143,14 +143,14 @@ test(EngineTempStateTest, RequestAll) {
 
     // Set the temperature from frame.
     EngineTempState ecm;
-    ecm.handle(f, yield);
+    ecm.handle(&f, yield);
     ecm.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
     // Request current state.
-    ecm.handle(control, yield);
+    ecm.handle(&control, yield);
     ecm.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);

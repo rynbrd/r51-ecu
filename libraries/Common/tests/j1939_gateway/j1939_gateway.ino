@@ -137,9 +137,9 @@ test(J1939GatewayTest, WriteFiltered) {
     J1939Message m1(0xEF00, 0x10, 0x11);
     J1939Message m2(0xEF00, 0x10, 0xFF);
     J1939Message m3(0xEF00, 0x11, 0x13);
-    node.handle(m1, yield);
-    node.handle(m2, yield);
-    node.handle(m3, yield);
+    node.handle(&m1, yield);
+    node.handle(&m2, yield);
+    node.handle(&m3, yield);
     assertSize(yield, 0);
     assertEqual(can.writeCount(), 2);
     assertPrintablesEqual(can.writeData()[0], m1);
@@ -154,9 +154,9 @@ test(J1939GatewayTest, WritePromiscuous) {
     J1939Message m1(0xEF00, 0x10, 0x11);
     J1939Message m2(0xEF00, 0x10, 0xFF);
     J1939Message m3(0xEF00, 0x11, 0x13);
-    node.handle(m1, yield);
-    node.handle(m2, yield);
-    node.handle(m3, yield);
+    node.handle(&m1, yield);
+    node.handle(&m2, yield);
+    node.handle(&m3, yield);
     assertSize(yield, 0);
     assertEqual(can.writeCount(), 3);
     assertPrintablesEqual(can.writeData()[0], m1);

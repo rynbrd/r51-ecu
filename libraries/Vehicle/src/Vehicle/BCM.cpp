@@ -29,7 +29,7 @@ void Illum::handle(const Message& msg, const Caster::Yield<Message>& yield) {
             (msg.event()->subsystem == (uint8_t)SubSystem::IPDM &&
             msg.event()->id == (uint8_t)IPDMEvent::POWER_STATE &&
             state_.illum(getBit(msg.event()->data, 0, 0) || getBit(msg.event()->data, 0, 1)))) {
-        yield(state_);
+        yield(&state_);
     }
 }
 
@@ -110,7 +110,7 @@ void TirePressure::emit(const Caster::Yield<Message>& yield) {
 
 void TirePressure::yieldEvent(const Caster::Yield<Message>& yield) {
     ticker_.reset();
-    yield(event_);
+    yield(&event_);
 }
 
 void TirePressure::swapPosition(uint8_t a, uint8_t b, const Caster::Yield<Message>& yield) {
