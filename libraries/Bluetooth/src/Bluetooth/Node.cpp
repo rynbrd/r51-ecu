@@ -6,16 +6,16 @@ void BLENode::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
         return;
     }
-    switch ((SubSystem)msg.event().subsystem) {
+    switch ((SubSystem)msg.event()->subsystem) {
         case SubSystem::CONTROLLER:
-            if (RequestCommand::match(msg.event(), SubSystem::BLUETOOTH,
+            if (RequestCommand::match(*msg.event(), SubSystem::BLUETOOTH,
                     (uint8_t)BluetoothEvent::STATE)) {
                 yield(event_);
                 emit_ = false;
             }
             break;
         case SubSystem::BLUETOOTH:
-            switch ((BluetoothEvent)msg.event().id) {
+            switch ((BluetoothEvent)msg.event()->id) {
                 case BluetoothEvent::DISCONNECT_CMD:
                     ble_->disconnect();
                     break;

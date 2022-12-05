@@ -583,10 +583,10 @@ Settings::~Settings() {
 void Settings::handle(const Message& msg, const Caster::Yield<Message>&) {
     switch (msg.type()) {
         case Message::CAN_FRAME:
-            handleFrame(msg.can_frame());
+            handleFrame(*msg.can_frame());
             break;
         case Message::EVENT:
-            handleEvent(msg.event());
+            handleEvent(*msg.event());
             break;
         default:
             break;

@@ -82,25 +82,25 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
         return;
     }
-    const auto& event = msg.event();
-    switch ((SubSystem)event.subsystem) {
+    const auto* event = msg.event();
+    switch ((SubSystem)event->subsystem) {
         case SubSystem::CONTROLLER:
-            if (RequestCommand::match(event, SubSystem::SCREEN,
+            if (RequestCommand::match(*event, SubSystem::SCREEN,
                         (uint8_t)ScreenEvent::PAGE_STATE)) {
                 yield(page_);
             }
-            if (RequestCommand::match(event, SubSystem::SCREEN,
+            if (RequestCommand::match(*event, SubSystem::SCREEN,
                         (uint8_t)ScreenEvent::POWER_STATE)) {
                 yield(power_);
             }
             break;
         case SubSystem::SCREEN:
-            switch ((ScreenEvent)event.id) {
+            switch ((ScreenEvent)event->id) {
                 case ScreenEvent::POWER_CMD:
-                    power(event.data[0] != 0x00);
+                    power(event->data[0] != 0x00);
                     break;
                 case ScreenEvent::BRIGHTNESS_CMD:
-                    brightness(yield, event.data[0]);
+                    brightness(yield, event->data[0]);
                     break;
                 case ScreenEvent::NAV_UP_CMD:
                     navUp(yield);
@@ -128,86 +128,86 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
             }
             break;
         case SubSystem::ECM:
-            handleECM(event);
+            handleECM(*event);
             break;
         case SubSystem::IPDM:
-            handleIPDM(event);
+            handleIPDM(*event);
             break;
         case SubSystem::BCM:
-            switch ((BCMEvent)event.id) {
+            switch ((BCMEvent)event->id) {
                 case BCMEvent::ILLUM_STATE:
-                    handleIllum(yield, event);
+                    handleIllum(yield, *event);
                     break;
                 case BCMEvent::TIRE_PRESSURE_STATE:
-                    handleTire(event);
+                    handleTire(*event);
                     break;
                 default:
                     break;
             }
             break;
         case SubSystem::POWER:
-            if (event.id == (uint8_t)PowerEvent::POWER_STATE) {
+            if (event->id == (uint8_t)PowerEvent::POWER_STATE) {
                 handlePowerState((PowerState*)&event);
             }
             break;
         case SubSystem::CLIMATE:
-            switch ((ClimateEvent)event.id) {
+            switch ((ClimateEvent)event->id) {
                 case ClimateEvent::SYSTEM_STATE:
-                    handleClimateSystem((ClimateSystemState*)&event);;
+                    handleClimateSystem((ClimateSystemState*)event);;
                     break;
                 case ClimateEvent::AIRFLOW_STATE:
-                    handleClimateAirflow((ClimateAirflowState*)&event);
+                    handleClimateAirflow((ClimateAirflowState*)event);
                     break;
                 case ClimateEvent::TEMP_STATE:
-                    handleClimateTemp((ClimateTempState*)&event);
+                    handleClimateTemp((ClimateTempState*)event);
                     break;
                 default:
                     break;
             }
             break;
         case SubSystem::SETTINGS:
-            handleSettings(msg.event());
+            handleSettings(*event);
             break;
         case SubSystem::AUDIO:
-            switch ((AudioEvent)event.id) {
+            switch ((AudioEvent)event->id) {
                 case AudioEvent::SYSTEM_STATE:
-                    handleAudioSystem((AudioSystemState*)&event);
+                    handleAudioSystem((AudioSystemState*)event);
                     break;
                 case AudioEvent::VOLUME_STATE:
-                    handleAudioVolume((AudioVolumeState*)&event);
+                    handleAudioVolume((AudioVolumeState*)event);
                     break;
                 case AudioEvent::TONE_STATE:
-                    handleAudioTone((AudioToneState*)&event);
+                    handleAudioTone((AudioToneState*)event);
                     break;
                 case AudioEvent::SOURCE_STATE:
-                    handleAudioSource((AudioSourceState*)&event);
+                    handleAudioSource((AudioSourceState*)event);
                     break;
                 case AudioEvent::TRACK_PLAYBACK_STATE:
-                    handleAudioPlayback((AudioTrackPlaybackState*)&event);
+                    handleAudioPlayback((AudioTrackPlaybackState*)event);
                     break;
                 case AudioEvent::TRACK_TITLE_STATE:
-                    setTxt("audio_track.title_txt", event.scratch);
+                    setTxt("audio_track.title_txt", event->scratch);
                     break;
                 case AudioEvent::TRACK_ARTIST_STATE:
-                    setTxt("audio_track.artist_txt", event.scratch);
+                    setTxt("audio_track.artist_txt", event->scratch);
                     break;
                 case AudioEvent::TRACK_ALBUM_STATE:
-                    setTxt("audio_track.album_txt", event.scratch);
+                    setTxt("audio_track.album_txt", event->scratch);
                     break;
                 case AudioEvent::RADIO_STATE:
-                    handleAudioRadio((AudioRadioState*)&event);
+                    handleAudioRadio((AudioRadioState*)event);
                     break;
                 case AudioEvent::INPUT_STATE:
-                    handleAudioInput((AudioInputState*)&event);
+                    handleAudioInput((AudioInputState*)event);
                     break;
                 case AudioEvent::SETTINGS_MENU_STATE:
-                    handleAudioSettingsMenu((AudioSettingsMenuState*)&event);
+                    handleAudioSettingsMenu((AudioSettingsMenuState*)event);
                     break;
                 case AudioEvent::SETTINGS_ITEM_STATE:
-                    handleAudioSettingsItem((AudioSettingsItemState*)&event);
+                    handleAudioSettingsItem((AudioSettingsItemState*)event);
                     break;
                 case AudioEvent::SETTINGS_EXIT_STATE:
-                    handleAudioSettingsExit((AudioSettingsExitState*)&event);
+                    handleAudioSettingsExit((AudioSettingsExitState*)event);
                     break;
                 default:
                     break;

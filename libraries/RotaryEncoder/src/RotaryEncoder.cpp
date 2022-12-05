@@ -115,18 +115,18 @@ RotaryEncoderGroup::RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders,
 
 void RotaryEncoderGroup::handle(const Message& msg, const Yield<Message>&) {
     if (msg.type() != Message::EVENT ||
-            msg.event().subsystem != (uint8_t)SubSystem::KEYPAD) {
+            msg.event()->subsystem != (uint8_t)SubSystem::KEYPAD) {
         return;
     }
-    switch ((KeypadEvent)msg.event().id) {
+    switch ((KeypadEvent)msg.event()->id) {
         case KeypadEvent::INDICATOR_CMD:
-            handleIndicatorCommand((IndicatorCommand*)&msg.event());
+            handleIndicatorCommand((IndicatorCommand*)msg.event());
             break;
         case KeypadEvent::BRIGHTNESS_CMD:
-            handleBrightnessCommand((BrightnessCommand*)&msg.event());
+            handleBrightnessCommand((BrightnessCommand*)msg.event());
             break;
         case KeypadEvent::BACKLIGHT_CMD:
-            handleBacklightCommand((BacklightCommand*)&msg.event());
+            handleBacklightCommand((BacklightCommand*)msg.event());
             break;
         default:
             break;

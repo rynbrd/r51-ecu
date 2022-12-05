@@ -18,13 +18,13 @@ J1939Adapter::J1939Adapter() : j1939_(0xFF00, Canny::NullAddress) {
 void J1939Adapter::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::J1939_CLAIM:
-            j1939_.source_address(msg.j1939_claim().address());
+            j1939_.source_address(msg.j1939_claim()->address());
             break;
         case Message::J1939_MESSAGE:
-            handleJ1939Message(msg.j1939_message(), yield);
+            handleJ1939Message(*msg.j1939_message(), yield);
             break;
         case Message::EVENT:
-            handleEvent(msg.event(), yield);
+            handleEvent(*msg.event(), yield);
             break;
         default:
             break;

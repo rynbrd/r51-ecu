@@ -124,15 +124,15 @@ void Fusion::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
             //TODO: Handle controller request command.
-            if (msg.event().subsystem == (uint8_t)SubSystem::AUDIO) {
-                handleCommand(msg.event(), yield);
+            if (msg.event()->subsystem == (uint8_t)SubSystem::AUDIO) {
+                handleCommand(*msg.event(), yield);
             }
             break;
         case Message::J1939_CLAIM:
-            handleJ1939Claim(msg.j1939_claim(), yield);
+            handleJ1939Claim(*msg.j1939_claim(), yield);
             break;
         case Message::J1939_MESSAGE:
-            handleJ1939Message(msg.j1939_message(), yield);
+            handleJ1939Message(*msg.j1939_message(), yield);
             break;
         default:
             break;

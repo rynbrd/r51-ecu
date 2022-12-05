@@ -39,16 +39,16 @@ void Climate::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     //TODO: Emit events directly.
     switch (msg.type()) {
         case Message::CAN_FRAME:
-            handleSystemFrame(msg.can_frame(), yield);
-            handleTempFrame(msg.can_frame(), yield);
+            handleSystemFrame(*msg.can_frame(), yield);
+            handleTempFrame(*msg.can_frame(), yield);
             break;
         case Message::EVENT:
-            switch ((SubSystem)msg.event().subsystem) {
+            switch ((SubSystem)msg.event()->subsystem) {
                 case SubSystem::CONTROLLER:
-                    handleControllerEvent(msg.event(), yield);
+                    handleControllerEvent(*msg.event(), yield);
                     break;
                 case SubSystem::CLIMATE:
-                    handleClimateEvent(msg.event(), yield);
+                    handleClimateEvent(*msg.event(), yield);
                     break;
                 default:
                     break;

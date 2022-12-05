@@ -71,7 +71,7 @@ test(ConsoleCANTest, ReadStdFrame) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::CAN_FRAME);
-    assertPrintablesEqual(yield.messages()[0].can_frame(), expect);
+    assertPrintablesEqual(*yield.messages()[0].can_frame(), expect);
 }
 
 test(ConsoleCANTest, ReadExtFrame) {
@@ -86,7 +86,7 @@ test(ConsoleCANTest, ReadExtFrame) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::CAN_FRAME);
-    assertPrintablesEqual(yield.messages()[0].can_frame(), expect);
+    assertPrintablesEqual(*yield.messages()[0].can_frame(), expect);
 }
 
 test(ConsoleCANTest, ReadAutoStdFrame) {
@@ -101,7 +101,7 @@ test(ConsoleCANTest, ReadAutoStdFrame) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::CAN_FRAME);
-    assertPrintablesEqual(yield.messages()[0].can_frame(), expect);
+    assertPrintablesEqual(*yield.messages()[0].can_frame(), expect);
 }
 
 test(ConsoleCANTest, ReadAutoExtFrame) {
@@ -116,7 +116,7 @@ test(ConsoleCANTest, ReadAutoExtFrame) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::CAN_FRAME);
-    assertPrintablesEqual(yield.messages()[0].can_frame(), expect);
+    assertPrintablesEqual(*yield.messages()[0].can_frame(), expect);
 }
 
 test(ConsoleCANTest, ReadNoColons) {
@@ -131,7 +131,7 @@ test(ConsoleCANTest, ReadNoColons) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::CAN_FRAME);
-    assertPrintablesEqual(yield.messages()[0].can_frame(), expect);
+    assertPrintablesEqual(*yield.messages()[0].can_frame(), expect);
 }
 
 test(ConsoleCANTest, ReadValidButBadlyFormed) {
@@ -146,7 +146,7 @@ test(ConsoleCANTest, ReadValidButBadlyFormed) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::CAN_FRAME);
-    assertPrintablesEqual(yield.messages()[0].can_frame(), expect);
+    assertPrintablesEqual(*yield.messages()[0].can_frame(), expect);
 }
 
 }  // namespace R51

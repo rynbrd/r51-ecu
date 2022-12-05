@@ -26,18 +26,18 @@
 
 #define assertIsEvent(message, event_) \
     assertEqual(message.type(), R51::Message::EVENT); \
-    assertPrintablesEqual(message.event(), event_);
+    assertPrintablesEqual(*message.event(), event_);
 
 #define assertIsCANFrame(message, frame) \
     assertEqual(message.type(), R51::Message::CAN_FRAME);\
-    assertPrintablesEqual(message.can_frame(), frame);
+    assertPrintablesEqual(*message.can_frame(), frame);
 
 #define assertIsJ1939Claim(message, claim) \
     assertEqual(message.type(), R51::Message::J1939_CLAIM);\
-    assertPrintablesEqual(message.j1939_claim(), claim);
+    assertPrintablesEqual(*message.j1939_claim(), claim);
 
 #define assertIsJ1939Message(message, j1939) \
     assertEqual(message.type(), R51::Message::J1939_MESSAGE);\
-    assertPrintablesEqual(message.j1939_message(), j1939);
+    assertPrintablesEqual(*message.j1939_message(), j1939);
 
 #endif  // _R51_TEST_MATCHERS_H_

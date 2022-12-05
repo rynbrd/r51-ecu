@@ -28,17 +28,17 @@ void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
         return;
     }
-    if (msg.event().subsystem == (uint8_t)SubSystem::KEYPAD &&
-            msg.event().id == (uint8_t)KeypadEvent::KEY_STATE &&
-            msg.event().data[0] == keypad_id_) {
-        handleKey((KeyState*)&msg.event(), yield);
-    } else if (msg.event().subsystem == (uint8_t)SubSystem::POWER &&
-            msg.event().id == (uint8_t)PowerEvent::POWER_STATE &&
-            msg.event().data[0] == pdm_id_) {
-        handlePower((PowerState*)&msg.event(), yield);
-    } else if (msg.event().subsystem == (uint8_t)SubSystem::BCM &&
-            msg.event().id == (uint8_t)BCMEvent::ILLUM_STATE) {
-        if (msg.event().data[0] == 0x00) {
+    if (msg.event()->subsystem == (uint8_t)SubSystem::KEYPAD &&
+            msg.event()->id == (uint8_t)KeypadEvent::KEY_STATE &&
+            msg.event()->data[0] == keypad_id_) {
+        handleKey((KeyState*)msg.event(), yield);
+    } else if (msg.event()->subsystem == (uint8_t)SubSystem::POWER &&
+            msg.event()->id == (uint8_t)PowerEvent::POWER_STATE &&
+            msg.event()->data[0] == pdm_id_) {
+        handlePower((PowerState*)msg.event(), yield);
+    } else if (msg.event()->subsystem == (uint8_t)SubSystem::BCM &&
+            msg.event()->id == (uint8_t)BCMEvent::ILLUM_STATE) {
+        if (msg.event()->data[0] == 0x00) {
             // daytime: no backlight, high brightness indicators
             setBrightness(yield, keypad_id_, kBrightnessHigh);
             setBacklight(yield, keypad_id_, 0);

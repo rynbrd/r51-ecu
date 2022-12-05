@@ -16,16 +16,16 @@ class MessageCopy : public Printable {
         MessageCopy(const Message& msg) : type_(msg.type()) {
             switch (msg.type()) {
                 case Message::EVENT:
-                    event_ = msg.event();
+                    event_ = *msg.event();
                     break;
                 case Message::CAN_FRAME:
-                    can_frame_ = msg.can_frame();
+                    can_frame_ = *msg.can_frame();
                     break;
                 case Message::J1939_CLAIM:
-                    j1939_claim_ = msg.j1939_claim();
+                    j1939_claim_ = *msg.j1939_claim();
                     break;
                 case Message::J1939_MESSAGE:
-                    j1939_message_ = msg.j1939_message();
+                    j1939_message_ = *msg.j1939_message();
                     break;
                 case Message::EMPTY:
                     break;
@@ -34,13 +34,13 @@ class MessageCopy : public Printable {
 
         enum Message::Type type() const { return type_; };
 
-        const Event& event() const { return event_; }
+        const Event* event() const { return &event_; }
 
-        const Canny::Frame& can_frame() const { return can_frame_; }
+        const Canny::Frame* can_frame() const { return &can_frame_; }
 
-        const J1939Claim& j1939_claim() const { return j1939_claim_; }
+        const J1939Claim* j1939_claim() const { return &j1939_claim_; }
 
-        const Canny::J1939Message& j1939_message() const { return j1939_message_; }
+        const Canny::J1939Message* j1939_message() const { return &j1939_message_; }
 
         size_t printTo(Print& p) const {
             switch (type_) {

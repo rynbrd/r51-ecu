@@ -60,7 +60,7 @@ test(ConsoleJ1939Test, ReadMessage) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::J1939_MESSAGE);
-    assertPrintablesEqual(yield.messages()[0].j1939_message(), expect);
+    assertPrintablesEqual(*yield.messages()[0].j1939_message(), expect);
 }
 
 test(ConsoleJ1939Test, SetMute) {

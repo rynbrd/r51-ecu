@@ -63,16 +63,16 @@ void BlinkKeypad::init(const Caster::Yield<Message>& yield) {
 void BlinkKeypad::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
-            if (msg.event().subsystem == (uint8_t)SubSystem::KEYPAD) {
-                switch ((KeypadEvent)msg.event().id) {
+            if (msg.event()->subsystem == (uint8_t)SubSystem::KEYPAD) {
+                switch ((KeypadEvent)msg.event()->id) {
                     case KeypadEvent::INDICATOR_CMD:
-                        handleIndicatorCommand((IndicatorCommand*)&msg.event(), yield);
+                        handleIndicatorCommand((IndicatorCommand*)msg.event(), yield);
                         break;
                     case KeypadEvent::BRIGHTNESS_CMD:
-                        handleBrightnessCommand((BrightnessCommand*)&msg.event(), yield);
+                        handleBrightnessCommand((BrightnessCommand*)msg.event(), yield);
                         break;
                     case KeypadEvent::BACKLIGHT_CMD:
-                        handleBacklightCommand((BacklightCommand*)&msg.event(), yield);
+                        handleBacklightCommand((BacklightCommand*)msg.event(), yield);
                         break;
                     default:
                         break;
@@ -80,10 +80,10 @@ void BlinkKeypad::handle(const Message& msg, const Caster::Yield<Message>& yield
             }
             break;
         case Message::J1939_CLAIM:
-            handleJ1939Claim(msg.j1939_claim());
+            handleJ1939Claim(*msg.j1939_claim());
             break;
         case Message::J1939_MESSAGE:
-            handleJ1939Message(msg.j1939_message(), yield);
+            handleJ1939Message(*msg.j1939_message(), yield);
             break;
         default:
             break;

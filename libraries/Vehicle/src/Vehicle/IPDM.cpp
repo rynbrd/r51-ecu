@@ -10,10 +10,10 @@ namespace R51 {
 void IPDM::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::CAN_FRAME:
-            handleFrame(msg.can_frame(), yield);
+            handleFrame(*msg.can_frame(), yield);
             break;
         case Message::EVENT:
-            handleEvent(msg.event(), yield);
+            handleEvent(*msg.event(), yield);
             break;
         default:
             break;

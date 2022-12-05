@@ -35,9 +35,9 @@ void J1939Gateway::init(const Caster::Yield<Message>& yield) {
 
 void J1939Gateway::handle(const Message& msg, const Yield<Message>&) {
     if (msg.type() == Message::J1939_MESSAGE &&
-        (promiscuous_ || (msg.j1939_message().source_address() == address_ &&
+        (promiscuous_ || (msg.j1939_message()->source_address() == address_ &&
                           address_ != NullAddress))) {
-        write(msg.j1939_message());
+        write(*msg.j1939_message());
     }
 }
 

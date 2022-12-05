@@ -25,11 +25,11 @@ SteeringControls::SteeringControls(uint8_t steering_keypad_id, Faker::Clock* clo
 
 void SteeringControls::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT ||
-            msg.event().subsystem != (uint8_t)SubSystem::KEYPAD) {
+            msg.event()->subsystem != (uint8_t)SubSystem::KEYPAD) {
         return;
     }
 
-    const auto* key = (KeyState*)&msg.event();
+    const auto* key = (KeyState*)msg.event();
     if (key->keypad() != keypad_id_) {
         return;
     }

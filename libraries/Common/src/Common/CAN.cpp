@@ -11,9 +11,9 @@ void CANGateway::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::CAN_FRAME) {
         return;
     }
-    Error err = can_->write(msg.can_frame());
+    Error err = can_->write(*msg.can_frame());
     if (err != ERR_OK && err != ERR_FIFO) {
-        onWriteError(err, msg.can_frame());
+        onWriteError(err, *msg.can_frame());
     }
 }
 

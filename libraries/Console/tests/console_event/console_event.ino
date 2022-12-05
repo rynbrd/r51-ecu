@@ -85,7 +85,7 @@ test(ConsoleEventTest, ReadEmptyEvent) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::EVENT);
-    assertPrintablesEqual(yield.messages()[0].event(), expect);
+    assertPrintablesEqual(*yield.messages()[0].event(), expect);
 }
 
 test(ConsoleEventTest, ReadPartialEvent) {
@@ -100,7 +100,7 @@ test(ConsoleEventTest, ReadPartialEvent) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::EVENT);
-    assertPrintablesEqual(yield.messages()[0].event(), expect);
+    assertPrintablesEqual(*yield.messages()[0].event(), expect);
 }
 
 test(ConsoleEventTest, ReadFullEvent) {
@@ -115,7 +115,7 @@ test(ConsoleEventTest, ReadFullEvent) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::EVENT);
-    assertPrintablesEqual(yield.messages()[0].event(), expect);
+    assertPrintablesEqual(*yield.messages()[0].event(), expect);
 }
 
 test(ConsoleEventTest, ReadNoColons) {
@@ -130,7 +130,7 @@ test(ConsoleEventTest, ReadNoColons) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::EVENT);
-    assertPrintablesEqual(yield.messages()[0].event(), expect);
+    assertPrintablesEqual(*yield.messages()[0].event(), expect);
 }
 
 test(ConsoleEventTest, ReadValidButBadlyFormedEvent) {
@@ -145,7 +145,7 @@ test(ConsoleEventTest, ReadValidButBadlyFormedEvent) {
     console.emit(yield);
     assertSize(yield, 1);
     assertEqual(yield.messages()[0].type(), Message::EVENT);
-    assertPrintablesEqual(yield.messages()[0].event(), expect);
+    assertPrintablesEqual(*yield.messages()[0].event(), expect);
 }
 
 test(ConsoleEventTest, ReadInvalidEvent) {

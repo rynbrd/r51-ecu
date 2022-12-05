@@ -37,29 +37,29 @@ void ConsoleNode::handle(const Message& msg, const Caster::Yield<R51::Message>&)
     switch (msg.type()) {
         case Message::EVENT:
             console_.stream()->print("console: event recv ");
-            console_.stream()->println(msg.event());
+            console_.stream()->println(*msg.event());
             break;
         case Message::CAN_FRAME:
-            if (console_.can_filter()->match(msg.can_frame())) {
+            if (console_.can_filter()->match(*msg.can_frame())) {
                 console_.stream()->print("console: can recv ");
-                console_.stream()->println(msg.can_frame());
+                console_.stream()->println(*msg.can_frame());
             }
             break;
         case Message::J1939_CLAIM:
             if (!console_.j1939_mute()) {
                 console_.stream()->print("console: j1939 claim ");
-                if (msg.j1939_claim().address() <= 0x0F) {
+                if (msg.j1939_claim()->address() <= 0x0F) {
                     console_.stream()->print("0x0");
                 } else {
                     console_.stream()->print("0x");
                 }
-                console_.stream()->println(msg.j1939_claim().address(), HEX);
+                console_.stream()->println(msg.j1939_claim()->address(), HEX);
             }
             break;
         case Message::J1939_MESSAGE:
             if (!console_.j1939_mute()) {
                 console_.stream()->print("console: j1939 recv ");
-                console_.stream()->println(msg.j1939_message());
+                console_.stream()->println(*msg.j1939_message());
             }
             break;
         case Message::EMPTY:

@@ -41,20 +41,29 @@ class Message : public Printable {
         // Return the type of the mesasge.
         enum Type type() const { return type_; };
 
-        // Return the event referenced by the message. Requires that
-        // type() returns EVENT or undefined behavior will result.
-        const Event& event() const { return *((Event*)ref_); }
+        // Return the event referenced by the message. Return nullptr if type()
+        // != EVENT.
+        const Event* event() const {
+            return type_ == EVENT ? (Event*)ref_ : nullptr;
+        }
 
-        // Return the CAN frame referenced by the message. Requires that type()
-        // returns CAN_FRAME or undefined behavior will result.
-        const Canny::Frame& can_frame() const { return *((Canny::Frame*)ref_); }
+        // Return the CAN frame referenced by the message. Return nullptr if
+        // type() != CAN_FRAME.
+        const Canny::Frame* can_frame() const {
+            return type_ == CAN_FRAME ? (Canny::Frame*)ref_ : nullptr;
+        }
 
         // Return the J1939 address claim event referenced by the message.
-        const J1939Claim& j1939_claim() const { return *((J1939Claim*)ref_); }
+        // Return nullptr if type() != J1939_CLAIM.
+        const J1939Claim* j1939_claim() const {
+            return type_ == J1939_CLAIM ? (J1939Claim*)ref_ : nullptr;
+        }
 
-        // Return the J1939 message referenced by the message. Requires that
-        // type() returns J1939_MESSAGE or u ndefined behavior will result.
-        const Canny::J1939Message& j1939_message() const { return *((Canny::J1939Message*)ref_); }
+        // Return the J1939 message referenced by the message. Return nullptr
+        // if type() != J1939_MESSAGE.
+        const Canny::J1939Message* j1939_message() const {
+            return type_ == J1939_MESSAGE ? (Canny::J1939Message*)ref_ : nullptr;
+        }
 
         // Print the message. This prints the payload or nothing if empty.
         size_t printTo(Print& p) const;

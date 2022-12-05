@@ -15,13 +15,13 @@ bool operator!=(const Message& left, const Message& right) {
 size_t Message::printTo(Print& p) const {
     switch (type_) {
         case EVENT:
-            return p.print(event());
+            return p.print(*event());
         case CAN_FRAME:
-            return p.print(can_frame());
+            return p.print(*can_frame());
         case J1939_CLAIM:
-            return p.print(j1939_claim());
+            return p.print(*j1939_claim());
         case J1939_MESSAGE:
-            return p.print(j1939_message());
+            return p.print(*j1939_message());
         case EMPTY:
             break;
     }

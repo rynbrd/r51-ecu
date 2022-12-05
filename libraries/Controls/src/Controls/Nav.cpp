@@ -29,33 +29,33 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
         return;
     }
-    switch ((SubSystem)msg.event().subsystem) {
+    switch ((SubSystem)msg.event()->subsystem) {
         case SubSystem::SCREEN:
-            switch ((ScreenEvent)msg.event().id)  {
+            switch ((ScreenEvent)msg.event()->id)  {
                 case ScreenEvent::POWER_STATE:
-                    handlePowerState((ScreenPowerState*)&msg.event());
+                    handlePowerState((ScreenPowerState*)msg.event());
                     break;
                 case ScreenEvent::PAGE_STATE:
-                    handlePageState((ScreenPageState*)&msg.event());
+                    handlePageState((ScreenPageState*)msg.event());
                     break;
                 default:
                     break;
             }
             break;
         case SubSystem::KEYPAD:
-            if (msg.event().data[0] == keypad_id_) {
+            if (msg.event()->data[0] == keypad_id_) {
                 if (!power_) {
-                    handlePowerInput(msg.event(), yield);
+                    handlePowerInput(*msg.event(), yield);
                 } else {
                     switch (page_) {
                         case NavPage::AUDIO:
-                            handleAudioInput(msg.event(), yield);
+                            handleAudioInput(*msg.event(), yield);
                             break;
                         case NavPage::CLIMATE:
-                            handleClimateInput(msg.event(), yield);
+                            handleClimateInput(*msg.event(), yield);
                             break;
                         case NavPage::SETTINGS:
-                            handleSettingsInput(msg.event(), yield);
+                            handleSettingsInput(*msg.event(), yield);
                             break;
                         default:
                             break;
@@ -64,8 +64,8 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
             }
             break;
         case SubSystem::BCM:
-            if (msg.event().id == (uint8_t)BCMEvent::ILLUM_STATE) {
-                if (msg.event().data[0] == 0x00) {
+            if (msg.event()->id == (uint8_t)BCMEvent::ILLUM_STATE) {
+                if (msg.event()->data[0] == 0x00) {
                     // daytime: no backlight, high brightness indicators
                     setBrightness(yield, keypad_id_, kBrightnessHigh);
                     setBacklight(yield, keypad_id_, 0);

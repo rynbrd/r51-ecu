@@ -24,19 +24,19 @@ void Illum::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
         return;
     }
-    if ((RequestCommand::match(msg.event(), SubSystem::BCM,
+    if ((RequestCommand::match(*msg.event(), SubSystem::BCM,
             (uint8_t)BCMEvent::ILLUM_STATE)) ||
-            (msg.event().subsystem == (uint8_t)SubSystem::IPDM &&
-            msg.event().id == (uint8_t)IPDMEvent::POWER_STATE &&
-            state_.illum(getBit(msg.event().data, 0, 0) || getBit(msg.event().data, 0, 1)))) {
+            (msg.event()->subsystem == (uint8_t)SubSystem::IPDM &&
+            msg.event()->id == (uint8_t)IPDMEvent::POWER_STATE &&
+            state_.illum(getBit(msg.event()->data, 0, 0) || getBit(msg.event()->data, 0, 1)))) {
         yield(state_);
     }
 }
 
-void Defrost::handle(const Message& message, const Caster::Yield<Message>&) {
-    if (message.type() != Message::EVENT ||
-            message.event().subsystem != (uint8_t)SubSystem::BCM ||
-            message.event().id != (uint8_t)BCMEvent::TOGGLE_DEFROST_CMD) {
+void Defrost::handle(const Message& msg, const Caster::Yield<Message>&) {
+    if (msg.type() != Message::EVENT ||
+            msg.event()->subsystem != (uint8_t)SubSystem::BCM ||
+            msg.event()->id != (uint8_t)BCMEvent::TOGGLE_DEFROST_CMD) {
         return;
     }
     output_.trigger();
@@ -58,10 +58,10 @@ TirePressure::TirePressure(ConfigStore* config, uint32_t tick_ms, Faker::Clock* 
 void TirePressure::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::CAN_FRAME:
-            handleFrame(msg.can_frame(), yield);
+            handleFrame(*msg.can_frame(), yield);
             break;
         case Message::EVENT:
-            handleEvent(msg.event(), yield);
+            handleEvent(*msg.event(), yield);
             break;
         default:
             break;

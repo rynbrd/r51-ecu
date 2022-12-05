@@ -38,16 +38,16 @@ BlinkKeybox::BlinkKeybox(uint8_t address, uint8_t pdm_id, Faker::Clock* clock) :
 void BlinkKeybox::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
-            if (msg.event().subsystem == (uint8_t)SubSystem::POWER &&
-                    msg.event().id == (uint8_t)PowerEvent::POWER_CMD) {
-                handlePowerCommand((PowerCommand*)&msg.event(), yield);
+            if (msg.event()->subsystem == (uint8_t)SubSystem::POWER &&
+                    msg.event()->id == (uint8_t)PowerEvent::POWER_CMD) {
+                handlePowerCommand((PowerCommand*)msg.event(), yield);
             }
             break;
         case Message::J1939_CLAIM:
-            handleJ1939Claim(msg.j1939_claim());
+            handleJ1939Claim(*msg.j1939_claim());
             break;
         case Message::J1939_MESSAGE:
-            handleJ1939Message(msg.j1939_message(), yield);
+            handleJ1939Message(*msg.j1939_message(), yield);
             break;
         default:
             break;
