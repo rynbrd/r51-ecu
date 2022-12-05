@@ -73,9 +73,6 @@ class Message : public Printable {
         void* ref_;
 
         Message(Type type, void* ref) : type_(type), ref_(ref) {}
-
-        friend bool operator==(const Message&, const Message&);
-        friend bool operator!=(const Message&, const Message&);
 };
 
 // Return true if the two messages reference the same payload.

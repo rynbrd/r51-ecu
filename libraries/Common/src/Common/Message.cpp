@@ -3,13 +3,25 @@
 namespace R51 {
 
 bool operator==(const Message& left, const Message& right) {
-    return left.type_ == right.type_ &&
-        left.ref_ == right.ref_;
+    if (left.type() == right.type()) {
+        switch (left.type()) {
+            case Message::EVENT:
+                return *left.event() == *right.event();
+            case Message::CAN_FRAME:
+                return *left.can_frame() == *right.can_frame();
+            case Message::J1939_CLAIM:
+                return *left.j1939_claim() == *right.j1939_claim();
+            case Message::J1939_MESSAGE:
+                return *left.j1939_message() == *right.j1939_message();
+            case Message::EMPTY:
+                return true;
+        }
+    }
+    return false;
 }
 
 bool operator!=(const Message& left, const Message& right) {
-    return left.type_ != right.type_ ||
-        left.ref_ != right.ref_;
+    return !(left == right);
 }
 
 size_t Message::printTo(Print& p) const {

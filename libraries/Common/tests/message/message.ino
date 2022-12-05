@@ -49,12 +49,12 @@ test(MessageTest, SamePayloadEquals) {
     assertTrue(left == right);
 }
 
-test(MessageTest, DifferentPayloadsNotEqual) {
+test(MessageTest, DifferentPayloadsSameValueEqual) {
     Frame frame1(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     Frame frame2(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     Message left(&frame1);
     Message right(&frame2);
-    assertTrue(!(left == right));
+    assertTrue(left == right);
 }
 
 }  // namespace R51
