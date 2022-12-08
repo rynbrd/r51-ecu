@@ -97,13 +97,13 @@ void J1939Gateway::emit(const Yield<Message>& yield) {
 
     // broadcast it on the internal bus
     if (promiscuous_ || msg_.dest_address() == address_ || msg_.broadcast()) {
-        yield(&msg_);
+        yield(MessageView(&msg_));
     }
 }
 
 void J1939Gateway::emitEvent(const Yield<Message>& yield) {
     J1939Claim claim(address_, name_);
-    yield(&claim);
+    yield(MessageView(&claim));
 }
 
 void J1939Gateway::write(const J1939Message& msg) {

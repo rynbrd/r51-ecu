@@ -164,7 +164,7 @@ void Fusion::sendCmdPayload(const Caster::Yield<Message>& yield, const uint8_t (
         cmd_.data()[i + 1] = payload[i];
     }
     memset(cmd_.data() + N + 1, 0xFF, 7 - N);
-    yield(&cmd_);
+    yield(MessageView(&cmd_));
 }
 
 }  // namespace R51

@@ -87,11 +87,11 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
         case SubSystem::CONTROLLER:
             if (RequestCommand::match(*event, SubSystem::SCREEN,
                         (uint8_t)ScreenEvent::PAGE_STATE)) {
-                yield(&page_);
+                yield(MessageView(&page_));
             }
             if (RequestCommand::match(*event, SubSystem::SCREEN,
                         (uint8_t)ScreenEvent::POWER_STATE)) {
-                yield(&power_);
+                yield(MessageView(&power_));
             }
             break;
         case SubSystem::SCREEN:
@@ -624,9 +624,9 @@ void HMI::handleSerial(const Yield<Message>& yield) {
         case 0x66:
             if (scratch_.size >= 2) {
                 if (page_.page((ScreenPage)scratch_.bytes[1])) {
-                    yield(&page_);
+                    yield(MessageView(&page_));
                     if (power_.power(page_.page() != ScreenPage::BLANK)) {
-                        yield(&power_);
+                        yield(MessageView(&power_));
                     }
                 }
             }
@@ -1217,7 +1217,7 @@ void HMI::brightness(const Yield<Message>& yield, uint8_t brightness) {
     stream_->print(brightness * 100 / 255);
     terminate();
     if (power_.brightness(brightness)) {
-        yield(&power_);
+        yield(MessageView(&power_));
     }
 }
 

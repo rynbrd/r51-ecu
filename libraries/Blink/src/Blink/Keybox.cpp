@@ -57,7 +57,7 @@ void BlinkKeybox::handle(const Message& msg, const Yield<Message>& yield) {
 void BlinkKeybox::emit(const Yield<Message>& yield) {
     if (hb_tick_.active()) {
         hb_tick_.reset();
-        yield(&hb_msg_);
+        yield(MessageView(&hb_msg_));
     }
 }
 
@@ -146,7 +146,7 @@ void BlinkKeybox::handleJ1939Message(const Canny::J1939Message& msg, const Yield
     power_.pin(pin);
     power_.mode(value ? PowerMode::FAULT : PowerMode::OFF);
     power_.duty_cycle(0xFF);
-    yield(&power_);
+    yield(MessageView(&power_));
 }
 
 void BlinkKeybox::setOutput(uint8_t pin, bool value, const Yield<Message>& yield) {
@@ -164,12 +164,12 @@ void BlinkKeybox::setOutput(uint8_t pin, bool value, const Yield<Message>& yield
 
     pin_cmd_.data()[3] = pin + 1;
     pin_cmd_.data()[4] = (uint8_t)value;
-    yield(&pin_cmd_);
+    yield(MessageView(&pin_cmd_));
 
     power_.pin(pin);
     power_.mode(value ? PowerMode::ON : PowerMode::OFF);
     power_.duty_cycle(0xFF);
-    yield(&power_);
+    yield(MessageView(&power_));
 }
 
 void BlinkKeybox::setPWM(uint8_t pin, uint8_t duty_cycle, const Yield<Message>& yield) {
@@ -186,12 +186,12 @@ void BlinkKeybox::setPWM(uint8_t pin, uint8_t duty_cycle, const Yield<Message>& 
     if (duty_cycle == current) {
         return;
     }
-    yield(&pwm_cmd_);
+    yield(MessageView(&pwm_cmd_));
 
     power_.pin(pin);
     power_.mode(PowerMode::PWM);
     power_.duty_cycle(duty_cycle);
-    yield(&power_);
+    yield(MessageView(&power_));
 }
 
 void BlinkKeybox::reset(uint8_t pin, const Yield<Message>& yield) {
@@ -203,12 +203,12 @@ void BlinkKeybox::reset(uint8_t pin, const Yield<Message>& yield) {
 
     pin_cmd_.data()[3] = pin + 1;
     pin_cmd_.data()[4] = 0x02;
-    yield(&pin_cmd_);
+    yield(MessageView(&pin_cmd_));
 
     power_.pin(pin);
     power_.mode(PowerMode::OFF);
     power_.duty_cycle(0xFF);
-    yield(&power_);
+    yield(MessageView(&power_));
 }
 
 }  // namespace R51

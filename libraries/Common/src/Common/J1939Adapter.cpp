@@ -51,7 +51,7 @@ void J1939Adapter::handleEvent(const Event& event, const Yield<Message>& yield) 
     j1939_.data()[0] = event.subsystem;
     j1939_.data()[1] = event.id;
     memcpy(j1939_.data()+2, event.data, 6);
-    yield(&j1939_);
+    yield(MessageView(&j1939_));
 }
 
 void J1939Adapter::handleJ1939Message(const J1939Message& msg, const Yield<Message>& yield) {
@@ -65,7 +65,7 @@ void J1939Adapter::handleJ1939Message(const J1939Message& msg, const Yield<Messa
     event_.id = msg.data()[1];
     memcpy(event_.data, msg.data()+2, 6);
     if (readFilter(event_)) {
-        yield(&event_);
+        yield(MessageView(&event_));
     }
 }
 

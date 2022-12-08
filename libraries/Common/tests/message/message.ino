@@ -9,51 +9,92 @@ using namespace aunit;
 using ::Canny::Frame;
 using ::Canny::J1939Message;
 
-test(MessageTest, Event) {
+test(MessageValueTest, Event) {
     Event event(0x01, 0x02);
-    Message msg(&event);
+    MessageValue msg(event);
+    assertEqual(msg.type(), Message::EVENT);
+    assertNotEqual(&event, msg.event());
+}
+
+test(MessageValueTest, CANFrame) {
+    Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    MessageValue msg(frame);
+    assertEqual(msg.type(), Message::CAN_FRAME);
+    assertNotEqual(&frame, msg.can_frame());
+}
+
+test(MessageValueTest, J1939Message) {
+    J1939Message j1939(0xFF00, 0x10);
+    MessageValue msg(j1939);
+    assertEqual(msg.type(), Message::J1939_MESSAGE);
+    assertNotEqual(&j1939, msg.j1939_message());
+}
+
+test(MessageValueTest, J1939Claim) {
+    J1939Claim claim(0x23, 1234);
+    MessageValue msg(claim);
+    assertEqual(msg.type(), Message::J1939_CLAIM);
+    assertNotEqual(&claim, msg.j1939_claim());
+}
+
+test(MessageValueTest, EmptyEquals) {
+    MessageValue left;
+    MessageValue right;
+    assertTrue(left == right);
+}
+
+test(MessageViewTest, Event) {
+    Event event(0x01, 0x02);
+    MessageView msg(&event);
     assertEqual(msg.type(), Message::EVENT);
     assertEqual(&event, msg.event());
 }
 
-test(MessageTest, CANFrame) {
+test(MessageViewTest, CANFrame) {
     Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
-    Message msg(&frame);
+    MessageView msg(&frame);
     assertEqual(msg.type(), Message::CAN_FRAME);
     assertEqual(&frame, msg.can_frame());
 }
 
-test(MessageTest, J1939Message) {
+test(MessageViewTest, J1939Message) {
     J1939Message j1939(0xFF00, 0x10);
-    Message msg(&j1939);
+    MessageView msg(&j1939);
     assertEqual(msg.type(), Message::J1939_MESSAGE);
     assertEqual(&j1939, msg.j1939_message());
 }
 
-test(MessageTest, EmptyEquals) {
-    Message left;
-    Message right;
+test(MessageViewTest, J1939Claim) {
+    J1939Claim claim(0x23, 1234);
+    MessageView msg(&claim);
+    assertEqual(msg.type(), Message::J1939_CLAIM);
+    assertEqual(&claim, msg.j1939_claim());
+}
+
+test(MessageViewTest, EmptyEquals) {
+    MessageView left;
+    MessageView right;
     assertTrue(left == right);
 }
 
-test(MessageTest, SameMessageEquals) {
+test(MessageViewTest, SameMessageEquals) {
     Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
-    Message msg(&frame);
+    MessageView msg(&frame);
     assertTrue(msg == msg);
 }
 
-test(MessageTest, SamePayloadEquals) {
+test(MessageViewTest, SamePayloadEquals) {
     Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
-    Message left(&frame);
-    Message right(&frame);
+    MessageView left(&frame);
+    MessageView right(&frame);
     assertTrue(left == right);
 }
 
-test(MessageTest, DifferentPayloadsSameValueEqual) {
+test(MessageViewTest, DifferentPayloadsSameValueEqual) {
     Frame frame1(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     Frame frame2(0x123, 4, {0x01, 0x02, 0x03, 0x04});
-    Message left(&frame1);
-    Message right(&frame2);
+    MessageView left(&frame1);
+    MessageView right(&frame2);
     assertTrue(left == right);
 }
 

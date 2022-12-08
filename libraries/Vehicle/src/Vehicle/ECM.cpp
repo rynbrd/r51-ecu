@@ -47,7 +47,7 @@ void EngineTempState::emit(const Caster::Yield<Message>& yield) {
 
 void EngineTempState::yieldEvent(const Caster::Yield<Message>& yield) {
     ticker_.reset();
-    yield(&event_);
+    yield(MessageView(&event_));
 }
 
 }  // namespace R51

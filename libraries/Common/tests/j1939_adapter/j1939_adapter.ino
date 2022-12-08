@@ -34,8 +34,8 @@ test(J1939AdapterTest, WriteEvent) {
     J1939Message expect(0xFF00, 0xAA, 0xFF);
     expect.data({0x01, 0x01, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
-    adapter.handle(&claim, yield);
-    adapter.handle(&event, yield);
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&event), yield);
     assertSize(yield, 1);
     assertIsJ1939Message(yield.messages()[0], expect);
 }
@@ -49,8 +49,8 @@ test(J1939AdapterTest, ReadBroadcastEvent) {
     msg.data({0x01, 0x01, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
     Event expect(0x01, 0x01, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
-    adapter.handle(&claim, yield);
-    adapter.handle(&msg, yield);
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&msg), yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
@@ -64,8 +64,8 @@ test(J1939AdapterTest, ReadAddressedEvent) {
     msg.data({0x01, 0x01, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
     Event expect(0x01, 0x01, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
-    adapter.handle(&claim, yield);
-    adapter.handle(&msg, yield);
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&msg), yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
@@ -78,8 +78,8 @@ test(J1939AdapterTest, ReadFilteredEvent) {
     J1939Message msg(0xEF00, 0x21, 0xAA);
     msg.data({0x01, 0x10, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
-    adapter.handle(&claim, yield);
-    adapter.handle(&msg, yield);
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&msg), yield);
     assertSize(yield, 0);
 }
 
@@ -91,8 +91,8 @@ test(J1939AdapterTest, IgnoreMessageToOtherDest) {
     J1939Message msg(0xEF00, 0x21, 0xAB);
     msg.data({0x01, 0x01, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
-    adapter.handle(&claim, yield);
-    adapter.handle(&msg, yield);
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&msg), yield);
     assertSize(yield, 0);
 }
 
@@ -105,8 +105,8 @@ test(J1939AdapterTest, RouteEvent) {
     J1939Message expect(0xEF00, 0xAA, 0xEE);
     expect.data({0xEE, 0x01, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
-    adapter.handle(&claim, yield);
-    adapter.handle(&event, yield);
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&event), yield);
     assertSize(yield, 1);
     assertIsJ1939Message(yield.messages()[0], expect);
 }
@@ -118,8 +118,8 @@ test(J1939AdapterTest, RouteNullEvent) {
 
     Event event(0xEF, 0x01, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
-    adapter.handle(&claim, yield);
-    adapter.handle(&event, yield);
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&event), yield);
     assertSize(yield, 0);
 }
 
