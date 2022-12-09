@@ -24,7 +24,7 @@ void EventSendRunCommand::run(Console* console, char* arg, const Caster::Yield<M
         memset(event_.data, 0xFF, 6);
         console->stream()->print("console: send event ");
         console->stream()->println(event_);
-        yield(&event_);
+        yield(MessageView(&event_));
         return;
     }
 
@@ -57,7 +57,7 @@ void EventSendRunCommand::run(Console* console, char* arg, const Caster::Yield<M
     }
     console->stream()->print("console: send event ");
     console->stream()->println(event_);
-    yield(&event_);
+    yield(MessageView(&event_));
 }
 
 }

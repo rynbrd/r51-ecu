@@ -39,7 +39,7 @@ test(ConsoleCANTest, WriteStdFrame) {
     ConsoleNode console(&stream);
 
     Frame frame(0x0324, 0, {0x11, 0x22, 0x33, 0x44});
-    console.handle(frame, yield);
+    console.handle(MessageView(&frame), yield);
     assertSize(yield, 0);
 
     assertStringsEqual("console: can recv -324#11:22:33:44\r\n", buffer);
@@ -53,7 +53,7 @@ test(ConsoleCANTest, WriteExtFrame) {
     ConsoleNode console(&stream);
 
     Frame frame(0x45324, 1, {0x11, 0x22, 0x33, 0x44});
-    console.handle(frame, yield);
+    console.handle(MessageView(&frame), yield);
     assertSize(yield, 0);
 
     assertStringsEqual("console: can recv +45324#11:22:33:44\r\n", buffer);

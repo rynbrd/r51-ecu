@@ -26,7 +26,7 @@ test(ConsoleJ1939Test, WriteUnmuted) {
 
     J1939Message msg(0xEF00, 0x31, 0x42, 0x01);
     msg.data({0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
-    console.handle(msg, yield);
+    console.handle(MessageView(&msg), yield);
 
     assertStringsEqual("console: j1939 recv 4EF4231#11:22:33:44:55:66:77:88\r\n", buffer);
 }
@@ -41,7 +41,7 @@ test(ConsoleJ1939Test, WriteMuted) {
 
     J1939Message msg(0xEF00, 0x31, 0x42, 0x01);
     msg.data({0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
-    console.handle(msg, yield);
+    console.handle(MessageView(&msg), yield);
     assertSize(yield, 0);
 
     assertStringsEqual("", buffer);
