@@ -121,6 +121,7 @@ test(CANGatewayTest, Write) {
 
     Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     node.handle(f, yield);
+    node.handle(MessageView(&f), yield);
     assertEqual(can.writeCount(), 1);
     assertPrintablesEqual(can.writeData()[0], f);
 }

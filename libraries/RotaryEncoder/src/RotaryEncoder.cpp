@@ -185,11 +185,11 @@ void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
         if (sw != 0) {
             keypress_event_.key(i);
             keypress_event_.pressed(sw == 1);
-            yield(&keypress_event_);
+            yield(MessageView(&keypress_event_));
         }
         if (encoder_event_.delta() != 0) {
             encoder_event_.encoder(i);
-            yield(&encoder_event_);
+            yield(MessageView(&encoder_event_));
         }
     }
     intr_read_ = 0;
