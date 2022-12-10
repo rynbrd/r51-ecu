@@ -7,23 +7,23 @@
 namespace R51 {
 
 using namespace aunit;
+using ::Canny::CAN20Frame;
 using ::Canny::Connection;
 using ::Canny::ERR_FIFO;
 using ::Canny::ERR_INTERNAL;
 using ::Canny::ERR_OK;
 using ::Canny::Error;
-using ::Canny::Frame;
 
-class FakeConnection : public Connection {
+class FakeConnection : public Connection<CAN20Frame> {
     public:
         FakeConnection(size_t read_size, size_t write_size) :
                 read_buffer_(nullptr), read_size_(read_size), read_len_(0), read_pos_(0),
                 write_buffer_(nullptr), write_size_(write_size), write_len_(0) {
             if (read_size_ > 0) {
-                read_buffer_ = new Frame[read_size_];
+                read_buffer_ = new CAN20Frame[read_size_];
             }
             if (write_size_ > 0) {
-                write_buffer_ = new Frame[write_size_];
+                write_buffer_ = new CAN20Frame[write_size_];
             }
         }
 
@@ -36,7 +36,7 @@ class FakeConnection : public Connection {
             }
         }
 
-        Error read(Frame* frame) override {
+        Error read(CAN20Frame* frame) override {
             if (read_pos_ >= read_len_) {
                 return ERR_FIFO;
             }
@@ -45,7 +45,7 @@ class FakeConnection : public Connection {
             return ERR_OK; 
         }
 
-        Error write(const Frame& frame) override {
+        Error write(const CAN20Frame& frame) override {
             if (write_len_ >= write_size_) {
                 return ERR_FIFO;
             }
@@ -54,7 +54,7 @@ class FakeConnection : public Connection {
         }
 
         template <size_t N>
-        void setReadBuffer(const Frame (&frames)[N]) {
+        void setReadBuffer(const CAN20Frame (&frames)[N]) {
             for (size_t i = 0; i < N && i < read_size_; ++i) {
                 read_buffer_[i] = frames[i];
             }
@@ -66,14 +66,14 @@ class FakeConnection : public Connection {
             return read_len_ - read_pos_;
         }
 
-        Frame* writeData() { return write_buffer_; }
+        CAN20Frame* writeData() { return write_buffer_; }
         int writeCount() { return write_len_; }
         void writeReset(int size = -1) {
             if (size >= 0) {
                 write_size_ = size;
                 delete[] write_buffer_;
                 if (size > 0) {
-                    write_buffer_ = new Frame[size];
+                    write_buffer_ = new CAN20Frame[size];
                 } else {
                     write_buffer_ = nullptr;
                 }
@@ -82,11 +82,11 @@ class FakeConnection : public Connection {
         }
 
     private:
-        Frame* read_buffer_;
+        CAN20Frame* read_buffer_;
         size_t read_size_;
         size_t read_len_;
         size_t read_pos_;
-        Frame* write_buffer_;
+        CAN20Frame* write_buffer_;
         size_t write_size_;
         size_t write_len_;
 };
@@ -105,7 +105,7 @@ test(CANGatewayTest, Read) {
     FakeConnection can(1, 0);
     CANGateway node(&can);
 
-    Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    CAN20Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     can.setReadBuffer({f});
 
     node.emit(yield);
@@ -119,8 +119,7 @@ test(CANGatewayTest, Write) {
     FakeConnection can(0, 1);
     CANGateway node(&can);
 
-    Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
-    node.handle(f, yield);
+    CAN20Frame f(0x01, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     node.handle(MessageView(&f), yield);
     assertEqual(can.writeCount(), 1);
     assertPrintablesEqual(can.writeData()[0], f);

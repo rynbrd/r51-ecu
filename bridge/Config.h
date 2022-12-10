@@ -4,6 +4,9 @@
 // Uncomment the following line to enable debug console.
 #define DEBUG_ENABLE
 
+#define MCP2515_CS_PIN 9
+#define MCP2518_CS_PIN 12
+
 // Serial configuration for the debug console.
 #define SERIAL_DEVICE Serial
 #define SERIAL_BAUDRATE 115200

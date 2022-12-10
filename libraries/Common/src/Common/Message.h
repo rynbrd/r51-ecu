@@ -31,7 +31,7 @@ class Message : public Printable {
 
         // Return the CAN frame referenced by the message. Return nullptr if
         // type() != CAN_FRAME.
-        virtual const Canny::Frame* can_frame() const { return nullptr; }
+        virtual const Canny::CAN20Frame* can_frame() const { return nullptr; }
 
         // Return the J1939 address claim event referenced by the message.
         // Return nullptr if type() != J1939_CLAIM.
@@ -56,7 +56,7 @@ class MessageValue : public Message {
             type_(EVENT), event_(event) {}
 
         // Construct a message holding a copy of a CAN frame.
-        MessageValue(const Canny::Frame& can_frame) :
+        MessageValue(const Canny::CAN20Frame& can_frame) :
             type_(CAN_FRAME), can_frame_(can_frame) {}
 
         // Construct a message holding a copy of a J1939 address claim.
@@ -76,7 +76,7 @@ class MessageValue : public Message {
 
         // Return the CAN frame referenced by the message. Return nullptr if
         // type() != CAN_FRAME.
-        const Canny::Frame* can_frame() const override;
+        const Canny::CAN20Frame* can_frame() const override;
 
         // Return the J1939 address claim event referenced by the message.
         // Return nullptr if type() != J1939_CLAIM.
@@ -89,7 +89,7 @@ class MessageValue : public Message {
         Type type_;
         union {
             Event event_;
-            Canny::Frame can_frame_;
+            Canny::CAN20Frame can_frame_;
             J1939Claim j1939_claim_;
             Canny::J1939Message j1939_message_;
         };
@@ -105,7 +105,7 @@ class MessageView : public Message {
             type_(EVENT), ref_(event) {}
 
         // Construct a message that references a CAN frame.
-        MessageView(Canny::Frame* can_frame) :
+        MessageView(Canny::CAN20Frame* can_frame) :
             type_(CAN_FRAME), ref_(can_frame) {}
 
         // Construct a message that references a J1939 address claim.
@@ -125,7 +125,7 @@ class MessageView : public Message {
 
         // Return the CAN frame referenced by the message. Return nullptr if
         // type() != CAN_FRAME.
-        const Canny::Frame* can_frame() const override;
+        const Canny::CAN20Frame* can_frame() const override;
 
         // Return the J1939 address claim event referenced by the message.
         // Return nullptr if type() != J1939_CLAIM.

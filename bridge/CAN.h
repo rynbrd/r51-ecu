@@ -4,25 +4,29 @@
 #include "Config.h"
 
 #include <Canny.h>
+#include <Canny/MCP2518.h>
 #include "Debug.h"
+
+Canny::MCP2518<Canny::CAN20Frame> CAN(MCP2518_CS_PIN);
 
 namespace R51 {
 
 // CAN connection which filters and buffers frames; and logs errors to serial.
-class FilteredCAN : public Canny::BufferedConnection {
+class CANConnection : public Canny::BufferedConnection<Canny::CAN20Frame> {
     public:
-        FilteredCAN(Canny::Connection* can) :
-                Canny::BufferedConnection(can, VEHICLE_READ_BUFFER, VEHICLE_WRITE_BUFFER, 8) {}
+        CANConnection() :
+            Canny::BufferedConnection<Canny::CAN20Frame>(
+                    &CAN, VEHICLE_READ_BUFFER, VEHICLE_WRITE_BUFFER) {}
 
         // Read R51 climate, settings, tire, and IPDM state frames.
-        bool readFilter(const Canny::Frame& frame) const override {
+        bool readFilter(const Canny::CAN20Frame& frame) const override {
             return (frame.id() & 0xFFFFFFFE) == 0x54A ||
                    (frame.id() & 0xFFFFFFFE) == 0x72E ||
                     frame.id() == 0x385 || frame.id() == 0x625;
         }
 
         // Write R51 climate and settings control frames.
-        bool writeFilter(const Canny::Frame& frame) const override {
+        bool writeFilter(const Canny::CAN20Frame& frame) const override {
             return (frame.id() & 0xFFFFFFFE) == 0x540 ||
                    (frame.id() & 0xFFFFFFFE) == 0x71E;
         }
@@ -33,7 +37,7 @@ class FilteredCAN : public Canny::BufferedConnection {
         }
 
         // Log write errors to debug serial.
-        void onWriteError(Canny::Error err, const Canny::Frame& frame) const override {
+        void onWriteError(Canny::Error err, const Canny::CAN20Frame& frame) const override {
             DEBUG_MSG_VAL("can: write error: ", err);
             DEBUG_MSG_VAL("can: dropped frame: ", frame);
         }

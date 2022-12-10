@@ -5,7 +5,6 @@
 #include <Arduino.h>
 #include <Blink.h>
 #include <Canny.h>
-#include <Canny/Detect.h>
 #include <Controls.h>
 #include <RotaryEncoder.h>
 #include "J1939.h"
@@ -32,7 +31,7 @@ using ::R51::RotaryEncoderGroup;
 using ::R51::Scratch;
 using ::R51::SteeringControls;
 
-J1939Connection j1939_conn(&CAN);
+J1939Connection j1939_conn;
 J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
 J1939ControllerAdapter j1939_adapter;
 HMI hmi(&HMI_DEVICE, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
@@ -105,10 +104,10 @@ void setup_watchdog() {
 #endif
 }
 
-void setup_can() {
-    DEBUG_MSG("setup: connecting to CAN");
-    while (!CAN.begin(J1939_CAN_MODE)) {
-        DEBUG_MSG("setup: failed to connect to CAN");
+void setup_j1939() {
+    DEBUG_MSG("setup: connecting to J1939");
+    while (!J1939.begin(J1939_CAN_MODE)) {
+        DEBUG_MSG("setup: failed to connect to J1939");
         delay(500);
     }
 }
@@ -127,7 +126,7 @@ void setup_keypads() {
 void setup() {
     setup_serial();
     setup_watchdog();
-    setup_can();
+    setup_j1939();
     setup_hmi();
     setup_keypads();
     DEBUG_MSG("setup: ECU started");

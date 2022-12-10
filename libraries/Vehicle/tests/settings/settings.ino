@@ -8,7 +8,7 @@
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::Frame;
+using ::Canny::CAN20Frame;
 using ::Faker::FakeClock;
 
 class SettingsTest : public TestOnce {
@@ -27,7 +27,7 @@ class SettingsTest : public TestOnce {
         }
 
         template <size_t N> 
-        void fillFrame(Frame* frame, uint32_t id, const uint8_t (&data)[N]) {
+        void fillFrame(CAN20Frame* frame, uint32_t id, const uint8_t (&data)[N]) {
             frame->clear(0xFF);
             frame->id(id);
             frame->data(data);
@@ -37,66 +37,66 @@ class SettingsTest : public TestOnce {
             }
         }
 
-        void fillEnterRequest(Frame* frame, uint32_t id) {
+        void fillEnterRequest(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x02, 0x10, 0xC0});
         }
 
-        void fillEnterResponse(Frame* frame, uint32_t id) {
+        void fillEnterResponse(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x02, 0x50, 0xC0});
         }
 
-        void fillExitRequest(Frame* frame, uint32_t id) {
+        void fillExitRequest(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x02, 0x10, 0x81});
         }
 
-        void fillExitResponse(Frame* frame, uint32_t id) {
+        void fillExitResponse(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x02, 0x50, 0x81});
         }
 
-        void fillUpdateRequest(Frame* frame, uint32_t id, uint8_t command, uint8_t value) {
+        void fillUpdateRequest(CAN20Frame* frame, uint32_t id, uint8_t command, uint8_t value) {
             fillFrame(frame, id, {0x03, 0x3B, command, value});
         }
 
-        void fillUpdateResponse(Frame* frame, uint32_t id, uint8_t command) {
+        void fillUpdateResponse(CAN20Frame* frame, uint32_t id, uint8_t command) {
             fillFrame(frame, id, {0x02, 0x7B, command});
         }
 
-        void fillResetRequest(Frame* frame, uint32_t id) {
+        void fillResetRequest(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x03, 0x3B, 0x1F, 0x00});
         }
 
-        void fillResetResponse(Frame* frame, uint32_t id) {
+        void fillResetResponse(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x02, 0x7B, 0x1F});
         }
 
-        void fillState0221Request(Frame* frame, uint32_t id) {
+        void fillState0221Request(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x02, 0x21, 0x01});
         }
 
-        void fillState3000Request(Frame* frame, uint32_t id) {
+        void fillState3000Request(CAN20Frame* frame, uint32_t id) {
             fillFrame(frame, id, {0x30, 0x00, 0x0A});
         }
 
-        void setAutoHeadlightDelayState(Frame* state21, byte value) {
+        void setAutoHeadlightDelayState(CAN20Frame* state21, byte value) {
             state21->data()[2] = (value >> 2) & 0x01;
             state21->data()[3] = (value & 0x03) << 6;
         }
 
-        void setAutoReLockTime(Frame* state21, byte value) {
+        void setAutoReLockTime(CAN20Frame* state21, byte value) {
             state21->data()[1] = (value & 0x03) << 4;
         }
 
-        void setRemoteKeyResponseLights(Frame* state21, byte value) {
+        void setRemoteKeyResponseLights(CAN20Frame* state21, byte value) {
             state21->data()[1] = 0x10 | ((value & 0x03) << 6);
         }
 
         void checkUpdate(Settings* settings, Event& control,
                 uint32_t expect_id, uint8_t expect_command, uint8_t expect_value,
-                Frame* state_71E_10, Frame* state_71E_21,
-                Frame* state_71E_22, Frame* state_71F_05,
+                CAN20Frame* state_71E_10, CAN20Frame* state_71E_21,
+                CAN20Frame* state_71E_22, CAN20Frame* state_71F_05,
                 Event* expect_event) {
             FakeYield yield;
-            Frame frame;
+            CAN20Frame frame;
 
             // Send control event to perform update.
             settings->handle(MessageView(&control), yield);
@@ -172,15 +172,15 @@ class SettingsTest : public TestOnce {
 
         void checkUpdate(Settings* settings, Event& control,
                 uint32_t expect_id, uint8_t expect_command, uint8_t expect_value,
-                Frame& state_71E_10, Frame& state_71E_21,
-                Frame& state_71E_22, Event& expect_event) {
+                CAN20Frame& state_71E_10, CAN20Frame& state_71E_21,
+                CAN20Frame& state_71E_22, Event& expect_event) {
             checkUpdate(settings, control, expect_id, expect_command, expect_value,
                     &state_71E_10, &state_71E_21, &state_71E_22, nullptr, &expect_event);
         }
 
         void checkUpdate(Settings* settings, Event& control,
                 uint32_t expect_id, uint8_t expect_command, uint8_t expect_value,
-                Frame& state_71F_05, Event& expect_event) {
+                CAN20Frame& state_71F_05, Event& expect_event) {
             checkUpdate(settings, control, expect_id, expect_command, expect_value,
                     nullptr, nullptr, nullptr, &state_71F_05, &expect_event);
         }
@@ -195,8 +195,8 @@ class SettingsTest : public TestOnce {
 
 testF(SettingsTest, Init) {
     FakeYield yield;
-    Frame frameE;
-    Frame frameF;
+    CAN20Frame frameE;
+    CAN20Frame frameF;
 
     // Trigger settings initialization.
     Settings settings(true, &clock);
@@ -290,8 +290,8 @@ testF(SettingsTest, RequestState) {
     FakeYield yield;
     Settings settings(false, &clock);
 
-    Frame frameE;
-    Frame frameF;
+    CAN20Frame frameE;
+    CAN20Frame frameF;
 
     // Send control event to trigger retrieve.
     RequestCommand command(SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE);
@@ -371,8 +371,8 @@ testF(SettingsTest, FactoryReset) {
     FakeYield yield;
     Settings settings(false, &clock);
 
-    Frame frameE;
-    Frame frameF;
+    CAN20Frame frameE;
+    CAN20Frame frameF;
 
     // Send control event to trigger reset.
     Event event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::FACTORY_RESET_CMD);
@@ -469,9 +469,9 @@ testF(SettingsTest, ToggleAutoInteriorIllumination) {
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 0, 0);
@@ -495,7 +495,7 @@ testF(SettingsTest, ToggleSlideDriverSeat) {
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state05 = {0x72F, 8, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF}};
+    CAN20Frame state05 = {0x72F, 8, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 0, 1);
@@ -519,9 +519,9 @@ testF(SettingsTest, ToggleSpeedSensingWipers) {
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 0, 2);
@@ -545,9 +545,9 @@ testF(SettingsTest, AutoHeadlightSensitivity) {
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting.
     expect.data[1] = 1;
@@ -594,9 +594,9 @@ testF(SettingsTest, AutoHeadlightOffDelay) {
     byte value = 0x00;
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to 30s.
     value = 0x02;
@@ -696,9 +696,9 @@ testF(SettingsTest, ToggleSelectiveDoorUnlock) {
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 2, 0);
@@ -723,9 +723,9 @@ testF(SettingsTest, AutoReLockTime) {
     byte value = 0x00;
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to 1m (default).
     value = 0x00;
@@ -765,9 +765,9 @@ testF(SettingsTest, RemoteKeyResponseHorn) {
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 3, 0);
@@ -792,9 +792,9 @@ testF(SettingsTest, RemoteKeyResponseLights) {
     byte value = 0x00;
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
     Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to "unlock".
     value = 0x01;

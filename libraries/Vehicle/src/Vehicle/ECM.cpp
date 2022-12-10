@@ -19,7 +19,7 @@ void EngineTempState::handle(const Message& msg, const Caster::Yield<Message>& y
     }
 }
 
-void EngineTempState::handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield) {
+void EngineTempState::handleFrame(const Canny::CAN20Frame& frame, const Caster::Yield<Message>& yield) {
     if (frame.id() != 0x551 || frame.size() < 1) {
         return;
     }

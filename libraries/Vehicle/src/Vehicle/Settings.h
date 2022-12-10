@@ -48,7 +48,7 @@ class Settings : public Caster::Node<Message> {
 
     private:
         void handleEvent(const Event& event);
-        void handleFrame(const Canny::Frame& frame);
+        void handleFrame(const Canny::CAN20Frame& frame);
         void handleState(const byte* data);
         void handleState05(const byte* data);
         void handleState10(const byte* data);
@@ -66,7 +66,7 @@ class Settings : public Caster::Node<Message> {
         SettingsReset* resetF_;
 
         bool available_;
-        Canny::Frame frame_;
+        Canny::CAN20Frame frame_;
         Event event_;
 
         bool readyE() const;

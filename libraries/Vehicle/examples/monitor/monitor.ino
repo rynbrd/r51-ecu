@@ -13,7 +13,7 @@ IPDMState ipdm;
 TirePressure tires;
 
 Canny::Error err;
-Canny::Frame frame(64);
+Canny::CANFDFrame frame(64);
 
 void printClimate();
 void printEcm();

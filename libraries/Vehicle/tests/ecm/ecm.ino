@@ -7,12 +7,12 @@
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::Frame;
+using ::Canny::CAN20Frame;
 using ::Faker::FakeClock;
 
 test(EngineTempStateTest, IgnoreIncorrectID) {
     FakeYield yield;
-    Frame f(0x550, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x550, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     EngineTempState ecm;
     ecm.handle(MessageView(&f), yield);
@@ -23,7 +23,7 @@ test(EngineTempStateTest, IgnoreIncorrectID) {
 
 test(EngineTempStateTest, IgnoreIncorrectSize) {
     FakeYield yield;
-    Frame f(0x551, 0, {});
+    CAN20Frame f(0x551, 0, {});
 
     EngineTempState ecm;
     ecm.handle(MessageView(&f), yield);
@@ -48,7 +48,7 @@ test(EngineTempStateTest, Tick) {
 
 test(EngineTempStateTest, PositiveTemp) {
     FakeYield yield;
-    Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     EngineTempState ecm;
     ecm.handle(MessageView(&f), yield);
@@ -61,7 +61,7 @@ test(EngineTempStateTest, PositiveTemp) {
 
 test(EngineTempStateTest, MaxTemp) {
     FakeYield yield;
-    Frame f(0x551, 0, {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x551, 0, {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     EngineTempState ecm;
     ecm.handle(MessageView(&f), yield);
@@ -74,7 +74,7 @@ test(EngineTempStateTest, MaxTemp) {
 
 test(EngineTempStateTest, RequestPowerState) {
     FakeYield yield;
-    Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     RequestCommand control(
         SubSystem::ECM,
         (uint8_t)ECMEvent::ENGINE_TEMP_STATE);
@@ -105,7 +105,7 @@ test(EngineTempStateTest, RequestPowerState) {
 
 test(EngineTempStateTest, RequestAllSubSystem) {
     FakeYield yield;
-    Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     RequestCommand control(SubSystem::ECM);
     Event expect(
         (uint8_t)SubSystem::ECM,
@@ -134,7 +134,7 @@ test(EngineTempStateTest, RequestAllSubSystem) {
 
 test(EngineTempStateTest, RequestAll) {
     FakeYield yield;
-    Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x551, 0, {0x29, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     RequestCommand control;
     Event expect(
         (uint8_t)SubSystem::ECM,

@@ -20,7 +20,7 @@ class CANSendRunCommand : public Command {
         void run(Console* console, char* arg, const Caster::Yield<Message>& yield) override;
 
     private:
-        Canny::Frame frame_;
+        Canny::CAN20Frame frame_;
 };
 
 class CANSendCommand : public NotEnoughArgumentsCommand {

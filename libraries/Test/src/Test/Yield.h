@@ -36,7 +36,7 @@ class MessageCopy : public Printable {
 
         const Event* event() const { return &event_; }
 
-        const Canny::Frame* can_frame() const { return &can_frame_; }
+        const Canny::CAN20Frame* can_frame() const { return &can_frame_; }
 
         const J1939Claim* j1939_claim() const { return &j1939_claim_; }
 
@@ -61,7 +61,7 @@ class MessageCopy : public Printable {
     private:
         Message::Type type_;
         Event event_;
-        Canny::Frame can_frame_;
+        Canny::CAN20Frame can_frame_;
         J1939Claim j1939_claim_;
         Canny::J1939Message j1939_message_;
 };

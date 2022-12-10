@@ -5,7 +5,6 @@ namespace R51 {
 using ::Canny::ERR_FIFO;
 using ::Canny::ERR_OK;
 using ::Canny::Error;
-using ::Canny::Frame;
 
 void CANGateway::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::CAN_FRAME) {

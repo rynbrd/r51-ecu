@@ -5,9 +5,9 @@
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::Frame;
+using ::Canny::CAN20Frame;
 
-bool checkFrame(const Frame& a, const Frame& b) {
+bool checkFrame(const CAN20Frame& a, const CAN20Frame& b) {
     if (a == b) {
         return true;
     }
@@ -19,14 +19,14 @@ bool checkFrame(const Frame& a, const Frame& b) {
 
 test(ClimateSystemControlFrameTest, Init) {
     ClimateSystemControlFrame c;
-    Frame expect(0x540, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x540, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     assertTrue(checkFrame(c, expect));
 }
 
 test(ClimateSystemControlFrameTest, Ready) {
     ClimateSystemControlFrame c(true);
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00});
 
     assertTrue(checkFrame(c, expect));
 }
@@ -34,7 +34,7 @@ test(ClimateSystemControlFrameTest, Ready) {
 test(ClimateSystemControlFrameTest, InitThenReady) {
     ClimateSystemControlFrame c;
 
-    Frame expect(0x540, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x540, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.ready();
@@ -46,7 +46,7 @@ test(ClimateSystemControlFrameTest, TurnOff) {
     ClimateSystemControlFrame c(true);
 
     c.turnOff();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x84, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x84, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.turnOff();
@@ -58,7 +58,7 @@ test(ClimateSystemControlFrameTest, ToggleAuto) {
     ClimateSystemControlFrame c(true);
 
     c.toggleAuto();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.toggleAuto();
@@ -70,7 +70,7 @@ test(ClimateSystemControlFrameTest, ToggleAC) {
     ClimateSystemControlFrame c(true);
 
     c.toggleAC();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.toggleAC();
@@ -82,7 +82,7 @@ test(ClimateSystemControlFrameTest, ToggleDual) {
     ClimateSystemControlFrame c(true);
 
     c.toggleDual();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.toggleDual();
@@ -94,7 +94,7 @@ test(ClimateSystemControlFrameTest, CycleMode) {
     ClimateSystemControlFrame c(true);
 
     c.cycleMode();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.cycleMode();
@@ -106,7 +106,7 @@ test(ClimateSystemControlFrameTest, ToggleDefog) {
     ClimateSystemControlFrame c(true);
 
     c.toggleDefog();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.toggleDefog();
@@ -118,7 +118,7 @@ test(ClimateSystemControlFrameTest, IncDriverTemp) {
     ClimateSystemControlFrame c(true);
 
     c.incDriverTemp();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x01, 0x00, 0x20, 0x04, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x01, 0x00, 0x20, 0x04, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.incDriverTemp();
@@ -130,7 +130,7 @@ test(ClimateSystemControlFrameTest, DecDriverTemp) {
     ClimateSystemControlFrame c(true);
 
     c.decDriverTemp();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0xFF, 0x00, 0x20, 0x04, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0xFF, 0x00, 0x20, 0x04, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.decDriverTemp();
@@ -142,7 +142,7 @@ test(ClimateSystemControlFrameTest, IncPassengerTemp) {
     ClimateSystemControlFrame c(true);
 
     c.incPassengerTemp();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x01, 0x20, 0x04, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0x01, 0x20, 0x04, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.incPassengerTemp();
@@ -154,7 +154,7 @@ test(ClimateSystemControlFrameTest, DecPassengerTemp) {
     ClimateSystemControlFrame c(true);
 
     c.decPassengerTemp();
-    Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0xFF, 0x20, 0x04, 0x00});
+    CAN20Frame expect(0x540, 0, {0x60, 0x40, 0x00, 0x00, 0xFF, 0x20, 0x04, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.decPassengerTemp();
@@ -164,7 +164,7 @@ test(ClimateSystemControlFrameTest, DecPassengerTemp) {
 
 test(ClimateFanControlFrameTest, Init) {
     ClimateFanControlFrame c;
-    Frame expect(0x541, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x541, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     assertTrue(checkFrame(c, expect));
 }
@@ -172,14 +172,14 @@ test(ClimateFanControlFrameTest, Init) {
 test(ClimateFanControlFrameTest, Ready) {
     ClimateFanControlFrame c(true);
 
-    Frame expect(0x541, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x541, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     assertTrue(checkFrame(c, expect));
 }
 
 test(ClimateFanControlFrameTest, InitThenReady) {
     ClimateFanControlFrame c;
 
-    Frame expect(0x541, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x541, 0, {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.ready();
@@ -191,7 +191,7 @@ test(ClimateFanControlFrameTest, ToggleRecirculate) {
     ClimateFanControlFrame c(true);
 
     c.toggleRecirculate();
-    Frame expect(0x541, 0, {0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x541, 0, {0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.toggleRecirculate();
@@ -203,7 +203,7 @@ test(ClimateFanControlFrameTest, IncFanSpeed) {
     ClimateFanControlFrame c(true);
 
     c.incFanSpeed();
-    Frame expect(0x541, 0, {0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x541, 0, {0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.incFanSpeed();
@@ -215,7 +215,7 @@ test(ClimateFanControlFrameTest, DecFanSpeed) {
     ClimateFanControlFrame c(true);
 
     c.decFanSpeed();
-    Frame expect(0x541, 0, {0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame expect(0x541, 0, {0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     assertTrue(checkFrame(c, expect));
 
     c.decFanSpeed();

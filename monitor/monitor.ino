@@ -8,7 +8,7 @@
 #include <Common.h>
 #include <Console.h>
 
-using ::Canny::Frame;
+using ::Canny::CAN20Frame;
 using ::Canny::J1939Message;
 using ::Caster::Bus;
 using ::Caster::Node;
@@ -27,7 +27,7 @@ class LoggingCANGateway : public CANGateway {
             DEBUG_MSG_VAL("can: read error: ", err);
         }
 
-        void onWriteError(Canny::Error err, const Frame& frame) {
+        void onWriteError(Canny::Error err, const CAN20Frame& frame) {
             DEBUG_MSG_VAL("can: write error: ", err);
             DEBUG_MSG_VAL("can: dropped frame: ", frame);
         }

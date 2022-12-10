@@ -19,7 +19,7 @@ class RealDashAdapter : public Caster::Node<Message> {
         // If heartbeat_id is set then that a frame with that ID and a counter
         // in the first byte  is sent to RealDash every interval of
         // heartbeat_ms.
-        RealDashAdapter(Canny::Connection* connection, uint32_t frame_id,
+        RealDashAdapter(Canny::Connection<Canny::CAN20Frame>* connection, uint32_t frame_id,
                 uint32_t heartbeat_id = 0, uint32_t heartbeat_ms = 500) :
             connection_(connection), frame_id_(frame_id), hb_id_(heartbeat_id),
             hb_counter_(0), hb_ticker_(heartbeat_ms), frame_(8) {}
@@ -31,12 +31,12 @@ class RealDashAdapter : public Caster::Node<Message> {
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
-        Canny::Connection* connection_;
+        Canny::Connection<Canny::CAN20Frame>* connection_;
         uint32_t frame_id_;
         uint32_t hb_id_;
         uint8_t hb_counter_;
         Ticker hb_ticker_;
-        Canny::Frame frame_;
+        Canny::CAN20Frame frame_;
         Event event_;
 };
 

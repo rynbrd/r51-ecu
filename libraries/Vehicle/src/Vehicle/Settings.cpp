@@ -79,7 +79,7 @@ uint32_t responseId(uint32_t request_id) {
 }
 
 // Fill a settings frame with a payload.
-bool fillRequest(Canny::Frame* frame, uint32_t id, byte prefix0, byte prefix1, byte prefix2, uint8_t value = 0xFF) {
+bool fillRequest(Canny::CAN20Frame* frame, uint32_t id, byte prefix0, byte prefix1, byte prefix2, uint8_t value = 0xFF) {
     frame->id(id, 0);
     frame->resize(8);
     frame->data()[0] = prefix0;
@@ -92,7 +92,7 @@ bool fillRequest(Canny::Frame* frame, uint32_t id, byte prefix0, byte prefix1, b
 
 // Fill a settings frame with data to be sent when the sequence transitions to
 // the given state. Some state transitions require value be attached.
-bool fillRequest(Canny::Frame* frame, uint32_t id, uint8_t state, uint8_t value = 0xFF) {
+bool fillRequest(Canny::CAN20Frame* frame, uint32_t id, uint8_t state, uint8_t value = 0xFF) {
     switch (state) {
         case STATE_READY:
             return false;
@@ -317,7 +317,7 @@ class SettingsSequence {
 
         // Read the next outgoing frame in the sequence if available. Return
         // true if the frame should be sent or false otherwise.
-        bool read(Canny::Frame* frame) {
+        bool read(Canny::CAN20Frame* frame) {
             if (clock_->millis() - started_ >= 500) {
                 state_ = STATE_READY;
                 return false;
@@ -333,7 +333,7 @@ class SettingsSequence {
         // the next expected frame in the sequence then the sequence advances
         // to the next state and read will fill the next outgoing frame.
         // Otherwise the sequence resets and becomes ready.
-        void handle(const Canny::Frame& frame) {
+        void handle(const Canny::CAN20Frame& frame) {
             if (frame.id() != responseId(request_id_)) {
                 // not destined for this sequence
                 return;
@@ -650,7 +650,7 @@ void Settings::handleEvent(const Event& event) {
     }
 }
 
-void Settings::handleFrame(const Canny::Frame& frame) {
+void Settings::handleFrame(const Canny::CAN20Frame& frame) {
     if (frame.size() < 8) {
         return;
     }

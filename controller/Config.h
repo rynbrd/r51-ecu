@@ -1,6 +1,8 @@
 #ifndef _R51_CTRL_CONFIG_H_
 #define _R51_CTRL_CONFIG_H_
 
+#define MCP2515_CS_PIN 9
+
 #define SERIAL_DEVICE Serial
 #define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT true

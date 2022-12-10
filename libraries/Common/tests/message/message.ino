@@ -6,7 +6,7 @@
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::Frame;
+using ::Canny::CAN20Frame;
 using ::Canny::J1939Message;
 
 test(MessageValueTest, Event) {
@@ -17,7 +17,7 @@ test(MessageValueTest, Event) {
 }
 
 test(MessageValueTest, CANFrame) {
-    Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    CAN20Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     MessageValue msg(frame);
     assertEqual(msg.type(), Message::CAN_FRAME);
     assertNotEqual(&frame, msg.can_frame());
@@ -51,7 +51,7 @@ test(MessageViewTest, Event) {
 }
 
 test(MessageViewTest, CANFrame) {
-    Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    CAN20Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     MessageView msg(&frame);
     assertEqual(msg.type(), Message::CAN_FRAME);
     assertEqual(&frame, msg.can_frame());
@@ -78,21 +78,21 @@ test(MessageViewTest, EmptyEquals) {
 }
 
 test(MessageViewTest, SameMessageEquals) {
-    Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    CAN20Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     MessageView msg(&frame);
     assertTrue(msg == msg);
 }
 
 test(MessageViewTest, SamePayloadEquals) {
-    Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    CAN20Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     MessageView left(&frame);
     MessageView right(&frame);
     assertTrue(left == right);
 }
 
 test(MessageViewTest, DifferentPayloadsSameValueEqual) {
-    Frame frame1(0x123, 4, {0x01, 0x02, 0x03, 0x04});
-    Frame frame2(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    CAN20Frame frame1(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    CAN20Frame frame2(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     MessageView left(&frame1);
     MessageView right(&frame2);
     assertTrue(left == right);

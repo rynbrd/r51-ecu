@@ -28,8 +28,8 @@ class J1939Gateway : public Caster::Node<Message> {
         // gateway can be configired to disable this filtering by setting
         // promiscuous to true. A gateway which fails to claim an address will
         // filter all outgoing messages when promiscuous mode is disabled.
-        J1939Gateway(Canny::Connection* can, uint8_t preferred_address, uint64_t name,
-                bool promiscuous) :
+        J1939Gateway(Canny::Connection<Canny::J1939Message>* can,
+                uint8_t preferred_address, uint64_t name, bool promiscuous) :
             can_(can), preferred_address_(preferred_address), address_(preferred_address),
             name_(name), promiscuous_(promiscuous) {}
 
@@ -41,7 +41,8 @@ class J1939Gateway : public Caster::Node<Message> {
         // received on the bus. This is particularly useful for monitoring a
         // J1939 bus when there is no need to send messages. Generally you
         // would assign the null address in such cases.
-        J1939Gateway(Canny::Connection* can, uint8_t address, bool promiscuous) :
+        J1939Gateway(Canny::Connection<Canny::J1939Message>* can,
+                uint8_t address, bool promiscuous) :
             can_(can), preferred_address_(address), address_(address), name_(0),
             promiscuous_(promiscuous) {}
 
@@ -82,7 +83,7 @@ class J1939Gateway : public Caster::Node<Message> {
         void writeClaim();
         void emitEvent(const Caster::Yield<Message>& yield);
 
-        Canny::Connection* can_;
+        Canny::Connection<Canny::J1939Message>* can_;
         const uint8_t preferred_address_;
         uint8_t address_;
         uint64_t name_;

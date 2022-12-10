@@ -13,7 +13,7 @@ namespace R51 {
 //
 // The control frame starts in an init state. It must sends the init frame a
 // few times before becoming ready.
-class ClimateSystemControlFrame : public Canny::Frame {
+class ClimateSystemControlFrame : public Canny::CAN20Frame {
     public:
         // Construct a climate system control object. If ready is true then the
         // control frame will immediately be placed into the ready state.
@@ -75,7 +75,7 @@ class ClimateSystemControlFrame : public Canny::Frame {
 //
 // The control frame starts in an init state. It must sends the init frame a
 // few times before becoming ready.
-class ClimateFanControlFrame : public Canny::Frame {
+class ClimateFanControlFrame : public Canny::CAN20Frame {
     public:
         // Construct a climate fan control object. If ready is true then the
         // control frame will immediately be placed into the ready state.

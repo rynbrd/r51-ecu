@@ -15,16 +15,16 @@ using ::Canny::Error;
 using ::Canny::Frame;
 using ::Canny::J1939Message;
 
-class FakeConnection : public Connection {
+class FakeConnection : public Connection<J1939Message> {
     public:
         FakeConnection(size_t read_size, size_t write_size) :
                 read_buffer_(nullptr), read_size_(read_size), read_len_(0), read_pos_(0),
                 write_buffer_(nullptr), write_size_(write_size), write_len_(0) {
             if (read_size_ > 0) {
-                read_buffer_ = new Frame[read_size_];
+                read_buffer_ = new J1939Message[read_size_];
             }
             if (write_size_ > 0) {
-                write_buffer_ = new Frame[write_size_];
+                write_buffer_ = new J1939Message[write_size_];
             }
         }
 
@@ -37,7 +37,7 @@ class FakeConnection : public Connection {
             }
         }
 
-        Error read(Frame* frame) override {
+        Error read(J1939Message* frame) override {
             if (read_pos_ >= read_len_) {
                 return ERR_FIFO;
             }
@@ -46,7 +46,7 @@ class FakeConnection : public Connection {
             return ERR_OK; 
         }
 
-        Error write(const Frame& frame) override {
+        Error write(const J1939Message& frame) override {
             if (write_len_ >= write_size_) {
                 return ERR_FIFO;
             }
@@ -55,7 +55,7 @@ class FakeConnection : public Connection {
         }
 
         template <size_t N>
-        void setReadBuffer(const Frame (&frames)[N]) {
+        void setReadBuffer(const J1939Message (&frames)[N]) {
             for (size_t i = 0; i < N && i < read_size_; ++i) {
                 read_buffer_[i] = frames[i];
             }
@@ -67,14 +67,14 @@ class FakeConnection : public Connection {
             return read_len_ - read_pos_;
         }
 
-        Frame* writeData() { return write_buffer_; }
+        J1939Message* writeData() { return write_buffer_; }
         int writeCount() { return write_len_; }
         void writeReset(int size = -1) {
             if (size >= 0) {
                 write_size_ = size;
                 delete[] write_buffer_;
                 if (size > 0) {
-                    write_buffer_ = new Frame[size];
+                    write_buffer_ = new J1939Message[size];
                 } else {
                     write_buffer_ = nullptr;
                 }
@@ -83,11 +83,11 @@ class FakeConnection : public Connection {
         }
 
     private:
-        Frame* read_buffer_;
+        J1939Message* read_buffer_;
         size_t read_size_;
         size_t read_len_;
         size_t read_pos_;
-        Frame* write_buffer_;
+        J1939Message* write_buffer_;
         size_t write_size_;
         size_t write_len_;
 };
@@ -172,7 +172,7 @@ test(J1939GatewayTest, InitAnnounce) {
     uint64_t name = 0x000013B000FFFAC0;
     J1939Gateway node(&can, address, name, false);
 
-    Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
+    Frame<8> expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
     J1939Claim expect_claim(address, name);
 
     node.init(yield);
@@ -215,7 +215,7 @@ test(J1939GatewayTest, RequestAddressClaim) {
     node.emit(yield);
 
     // we should respond with our address
-    Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
+    Frame<8> expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
 
     node.emit(yield);
     assertEqual(can.writeCount(), 1);
@@ -243,7 +243,7 @@ test(J1939GatewayTest, NoArbitraryAddressCannotClaim) {
     node.emit(yield);
 
     // we should respond with a null address
-    Frame expect_frame(0x18EEFFFE, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
+    Frame<8> expect_frame(0x18EEFFFE, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
     J1939Claim expect_claim(Canny::NullAddress, name);
 
     assertEqual(can.writeCount(), 1);
@@ -272,7 +272,7 @@ test(J1939GatewayTest, ArbitraryAddressClaim) {
     node.emit(yield);
 
     // we should respond with the next address
-    Frame expect_frame(0x18EEFF0B, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
+    Frame<8> expect_frame(0x18EEFF0B, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
     J1939Claim expect_claim(0x0B, name);
 
     assertEqual(can.writeCount(), 1);
@@ -312,7 +312,7 @@ test(J1939GatewayTest, ArbitraryAddressCannotClaim) {
         node.emit(yield);
 
         // we should response with the next address
-        Frame expect_frame(0x18EEFF00 | next, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
+        Frame<8> expect_frame(0x18EEFF00 | next, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
         J1939Claim expect_claim(next, name);
 
         assertEqual(can.writeCount(), 1);

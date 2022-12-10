@@ -74,7 +74,7 @@ class TirePressure : public Caster::Node<Message> {
 
     private:
         void yieldEvent(const Caster::Yield<Message>& yield);
-        void handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
+        void handleFrame(const Canny::CAN20Frame& frame, const Caster::Yield<Message>& yield);
         void handleEvent(const Event& event, const Caster::Yield<Message>& yield);
         void swapPosition(uint8_t a, uint8_t b, const Caster::Yield<Message>& yield);
 

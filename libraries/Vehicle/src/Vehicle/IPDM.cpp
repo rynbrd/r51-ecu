@@ -20,7 +20,7 @@ void IPDM::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     }
 }
 
-void IPDM::handleFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield) {
+void IPDM::handleFrame(const Canny::CAN20Frame& frame, const Caster::Yield<Message>& yield) {
     if (frame.id() != 0x625 || frame.size() < 6) {
         return;
     }

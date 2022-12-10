@@ -9,7 +9,7 @@
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::Frame;
+using ::Canny::CAN20Frame;
 using ::Faker::FakeReadStream;
 using ::Faker::FakeWriteStream;
 
@@ -38,7 +38,7 @@ test(ConsoleCANTest, WriteStdFrame) {
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
-    Frame frame(0x0324, 0, {0x11, 0x22, 0x33, 0x44});
+    CAN20Frame frame(0x0324, 0, {0x11, 0x22, 0x33, 0x44});
     console.handle(MessageView(&frame), yield);
     assertSize(yield, 0);
 
@@ -52,7 +52,7 @@ test(ConsoleCANTest, WriteExtFrame) {
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
-    Frame frame(0x45324, 1, {0x11, 0x22, 0x33, 0x44});
+    CAN20Frame frame(0x45324, 1, {0x11, 0x22, 0x33, 0x44});
     console.handle(MessageView(&frame), yield);
     assertSize(yield, 0);
 
@@ -60,7 +60,7 @@ test(ConsoleCANTest, WriteExtFrame) {
 }
 
 test(ConsoleCANTest, ReadStdFrame) {
-    Frame expect(0x321, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    CAN20Frame expect(0x321, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     strcpy((char*)buffer, "can send -321#11:22:33:44:55:66:77:88\n");
 
     FakeReadStream stream;
@@ -75,7 +75,7 @@ test(ConsoleCANTest, ReadStdFrame) {
 }
 
 test(ConsoleCANTest, ReadExtFrame) {
-    Frame expect(0x321, 1, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    CAN20Frame expect(0x321, 1, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     strcpy((char*)buffer, "can send +321#11:22:33:44:55:66:77:88\n");
 
     FakeReadStream stream;
@@ -90,7 +90,7 @@ test(ConsoleCANTest, ReadExtFrame) {
 }
 
 test(ConsoleCANTest, ReadAutoStdFrame) {
-    Frame expect(0x321, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    CAN20Frame expect(0x321, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     strcpy((char*)buffer, "can send 321#11:22:33:44:55:66:77:88\n");
 
     FakeReadStream stream;
@@ -105,7 +105,7 @@ test(ConsoleCANTest, ReadAutoStdFrame) {
 }
 
 test(ConsoleCANTest, ReadAutoExtFrame) {
-    Frame expect(0x0FFF, 1, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    CAN20Frame expect(0x0FFF, 1, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     strcpy((char*)buffer, "can send 0FFF#11:22:33:44:55:66:77:88\n");
 
     FakeReadStream stream;
@@ -120,7 +120,7 @@ test(ConsoleCANTest, ReadAutoExtFrame) {
 }
 
 test(ConsoleCANTest, ReadNoColons) {
-    Frame expect(0x321, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
+    CAN20Frame expect(0x321, 0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88});
     strcpy((char*)buffer, "can send -321#1122334455667788\n");
 
     FakeReadStream stream;
@@ -135,7 +135,7 @@ test(ConsoleCANTest, ReadNoColons) {
 }
 
 test(ConsoleCANTest, ReadValidButBadlyFormed) {
-    Frame expect(0x456, 0, {0x11, 0x02, 0xFF, 0xAB, 0x0C, 0x0E});
+    CAN20Frame expect(0x456, 0, {0x11, 0x02, 0xFF, 0xAB, 0x0C, 0x0E});
     strcpy((char*)buffer, "can send 00000456#112:FF:ABC:E\n");
 
     FakeReadStream stream;

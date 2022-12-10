@@ -9,7 +9,6 @@
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::Frame;
 using ::Faker::FakeReadStream;
 using ::Faker::FakeWriteStream;
 

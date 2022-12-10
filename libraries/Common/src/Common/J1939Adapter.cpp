@@ -11,9 +11,7 @@ namespace R51 {
 using ::Canny::J1939Message;
 using ::Caster::Yield;
 
-J1939Adapter::J1939Adapter() : j1939_(0xFF00, Canny::NullAddress) {
-    j1939_.reserve(8);
-}
+J1939Adapter::J1939Adapter() : j1939_(0xFF00, Canny::NullAddress) {}
 
 void J1939Adapter::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {

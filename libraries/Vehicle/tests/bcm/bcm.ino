@@ -7,7 +7,7 @@
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::Frame;
+using ::Canny::CAN20Frame;
 using ::Faker::FakeClock;
 using ::Faker::FakeGPIO;
 
@@ -218,7 +218,7 @@ test(DefrostTest, Trigger) {
 
 test(TirePressureTest, IgnoreIncorrectID) {
     FakeYield yield;
-    Frame f(0x384, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x384, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -228,7 +228,7 @@ test(TirePressureTest, IgnoreIncorrectID) {
 
 test(TirePressureTest, IgnoreIncorrectSize) {
     FakeYield yield;
-    Frame f(0x385, 0, {});
+    CAN20Frame f(0x385, 0, {});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -252,7 +252,7 @@ test(TirePressureTest, Tick) {
 
 test(TirePressureTest, AllSet) {
     FakeYield yield;
-    Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x84, 0x79, 0x77, 0x00, 0xF0});
+    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x84, 0x79, 0x77, 0x00, 0xF0});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -264,7 +264,7 @@ test(TirePressureTest, AllSet) {
 
 test(TirePressureTest, Tire1Set) {
     FakeYield yield;
-    Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x00, 0x00, 0x00, 0x00, 0x80});
+    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x00, 0x00, 0x00, 0x00, 0x80});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -276,7 +276,7 @@ test(TirePressureTest, Tire1Set) {
 
 test(TirePressureTest, Tire2Set) {
     FakeYield yield;
-    Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x40});
+    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x40});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -288,7 +288,7 @@ test(TirePressureTest, Tire2Set) {
 
 test(TirePressureTest, Tire3Set) {
     FakeYield yield;
-    Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x75, 0x00, 0x00, 0x20});
+    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x75, 0x00, 0x00, 0x20});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -300,7 +300,7 @@ test(TirePressureTest, Tire3Set) {
 
 test(TirePressureTest, Tire4Set) {
     FakeYield yield;
-    Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x77, 0x00, 0x10});
+    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x77, 0x00, 0x10});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -313,12 +313,12 @@ test(TirePressureTest, Tire4Set) {
 test(TirePressureTest, Swap) {
     FakeYield yield;
     TirePressure tire;
-    Frame f;
+    CAN20Frame f;
     Event control;
     Event expect;
 
     // Populate initial values from frame.
-    f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x01, 0x02, 0x03, 0x04});
@@ -336,7 +336,7 @@ test(TirePressureTest, Swap) {
     yield.clear();
 
     // Send new values from frame.
-    f = Frame(0x385, 0, {0x84, 0x0C, 0x11, 0x12, 0x13, 0x14, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x11, 0x12, 0x13, 0x14, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x14, 0x12, 0x13, 0x11});
@@ -354,7 +354,7 @@ test(TirePressureTest, Swap) {
     yield.clear();
 
     // Send new values from frame.
-    f = Frame(0x385, 0, {0x84, 0x0C, 0x21, 0x22, 0x23, 0x24, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x21, 0x22, 0x23, 0x24, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x24, 0x22, 0x21, 0x23});
@@ -366,7 +366,7 @@ test(TirePressureTest, Swap) {
 test(TirePressureTest, RequestPressureTest) {
     FakeYield yield;
     TirePressure tire;
-    Frame f;
+    CAN20Frame f;
     RequestCommand control(
         SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE);
@@ -376,7 +376,7 @@ test(TirePressureTest, RequestPressureTest) {
         {0x01, 0x02, 0x03, 0x04});
 
     // Populate initial values from frame.
-    f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     assertSize(yield, 1);
@@ -398,7 +398,7 @@ test(TirePressureTest, RequestPressureTest) {
 test(TirePressureTest, RequestSubSystem) {
     FakeYield yield;
     TirePressure tire;
-    Frame f;
+    CAN20Frame f;
     RequestCommand control(SubSystem::BCM);
     Event expect(
         (uint8_t)SubSystem::BCM,
@@ -406,7 +406,7 @@ test(TirePressureTest, RequestSubSystem) {
         {0x01, 0x02, 0x03, 0x04});
 
     // Populate initial values from frame.
-    f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     assertSize(yield, 1);
@@ -428,7 +428,7 @@ test(TirePressureTest, RequestSubSystem) {
 test(TirePressureTest, RequestAll) {
     FakeYield yield;
     TirePressure tire;
-    Frame f;
+    CAN20Frame f;
     RequestCommand control;
     Event expect(
         (uint8_t)SubSystem::BCM,
@@ -436,7 +436,7 @@ test(TirePressureTest, RequestAll) {
         {0x01, 0x02, 0x03, 0x04});
 
     // Populate initial values from frame.
-    f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     assertSize(yield, 1);
@@ -459,7 +459,7 @@ test(TirePressureTest, LoadInitialInvalidMap) {
     FakeYield yield;
     FakeConfigStore config(false);
     TirePressure tire(&config);
-    Frame f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    CAN20Frame f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect = Event(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
@@ -477,7 +477,7 @@ test(TirePressureTest, LoadInitialValidMap) {
     FakeYield yield;
     FakeConfigStore config(true, {0, 2, 1, 3});
     TirePressure tire(&config);
-    Frame f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    CAN20Frame f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect = Event(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
@@ -495,7 +495,7 @@ test(TirePressureTest, SwapAndSaveMap) {
     FakeYield yield;
     FakeConfigStore config(true);
     TirePressure tire(&config);
-    Frame f = Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    CAN20Frame f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect;
 
     // Ensure values are in the order provided by the frame.

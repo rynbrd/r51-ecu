@@ -25,8 +25,8 @@ class Climate : public Caster::Node<Message> {
         void emit(const Caster::Yield<Message>& yield) override;
 
     private:
-        void handleTempFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
-        void handleSystemFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield);
+        void handleTempFrame(const Canny::CAN20Frame& frame, const Caster::Yield<Message>& yield);
+        void handleSystemFrame(const Canny::CAN20Frame& frame, const Caster::Yield<Message>& yield);
         void handleControllerEvent(const Event& event, const Caster::Yield<Message>& yield);
         void handleClimateEvent(const Event& event, const Caster::Yield<Message>& yield);
 

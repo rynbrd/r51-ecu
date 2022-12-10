@@ -59,7 +59,7 @@ void Climate::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     }
 }
 
-void Climate::handleTempFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield) {
+void Climate::handleTempFrame(const Canny::CAN20Frame& frame, const Caster::Yield<Message>& yield) {
     if (frame.id() != 0x54A || frame.size() < 8) {
         return;
     }
@@ -72,7 +72,7 @@ void Climate::handleTempFrame(const Canny::Frame& frame, const Caster::Yield<Mes
     }
 }
 
-void Climate::handleSystemFrame(const Canny::Frame& frame, const Caster::Yield<Message>& yield) {
+void Climate::handleSystemFrame(const Canny::CAN20Frame& frame, const Caster::Yield<Message>& yield) {
     if (frame.id() != 0x54B || frame.size() < 8) {
         return;
     }

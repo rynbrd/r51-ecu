@@ -11,7 +11,7 @@
 namespace R51 {
 namespace {
 
-uint8_t getPressureValue(const Canny::Frame& frame, int tire) {
+uint8_t getPressureValue(const Canny::CAN20Frame& frame, int tire) {
     if (getBit(frame.data(), 7, 7-tire)) {
         return frame.data()[2+tire];
     }
@@ -68,7 +68,7 @@ void TirePressure::handle(const Message& msg, const Caster::Yield<Message>& yiel
     }
 }
 
-void TirePressure::handleFrame(const Canny::Frame& frame,const Caster::Yield<Message>& yield) {
+void TirePressure::handleFrame(const Canny::CAN20Frame& frame,const Caster::Yield<Message>& yield) {
     if (frame.id() != 0x385 || frame.size() != 8) {
         return;
     }

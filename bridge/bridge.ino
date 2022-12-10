@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <Bluetooth.h>
 #include <Canny.h>
-#include <Canny/Detect.h>
 #include <Canny/RealDash.h>
 #include <Caster.h>
 #include <Console.h>
@@ -22,7 +21,7 @@ using ::R51::BLENode;
 using ::R51::CANGateway;
 using ::R51::Climate;
 using ::R51::Defrost;
-using ::R51::FilteredCAN;
+using ::R51::CANConnection;
 using ::R51::IPDM;
 using ::R51::Illum;
 using ::R51::J1939Adapter;
@@ -41,12 +40,12 @@ R51::ConsoleNode console(&SERIAL_DEVICE);
 #endif
 
 // vehicle CAN connection
-FilteredCAN can_conn(&CAN);
+CANConnection can_conn;
 CANGateway can_gw(&can_conn);
 
 // control system J1939 connection
 #if defined(J1939_ENABLE)
-J1939Connection j1939_conn(&CAN1);
+J1939Connection j1939_conn;
 J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
 J1939Adapter j1939_adapter;
 #endif
@@ -56,7 +55,7 @@ J1939Adapter j1939_adapter;
 BLE ble_conn(BLUETOOTH_SPI_CS_PIN, BLUETOOTH_SPI_IRQ_PIN);
 BLENode ble_monitor(&ble_conn);
 
-Canny::RealDash realdash_serial(&ble_conn);
+Canny::RealDash<Canny::CAN20Frame> realdash_serial(&ble_conn);
 RealDashAdapter realdash(&realdash_serial, REALDASH_FRAME_ID,
         REALDASH_HB_ID, REALDASH_HB_MS);
 
@@ -131,7 +130,7 @@ void setup_can() {
 void setup_j1939() {
 #if defined(J1939_ENABLE)
     DEBUG_MSG("setup: connecting to J1939");
-    while (!CAN1.begin(J1939_CAN_MODE)) {
+    while (!J1939.begin(J1939_CAN_MODE)) {
         DEBUG_MSG("setup: failed to connect to J1939");
         delay(500);
     }

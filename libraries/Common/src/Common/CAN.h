@@ -8,12 +8,12 @@
 
 namespace R51 {
 
-// Bus node for reading and writing CAN frames to a CAN controller.
+// Bus node for reading and writing frames to a CAN 2.0 controller.
 class CANGateway : public Caster::Node<Message> {
     public:
         // Construct a new note that transmits frames over the given
         // connection.
-        CANGateway(Canny::Connection* can) : can_(can) {}
+        CANGateway(Canny::Connection<Canny::CAN20Frame>* can) : can_(can) {}
         virtual ~CANGateway() = default;
 
         // Write a frame to the CAN bus.
@@ -26,11 +26,11 @@ class CANGateway : public Caster::Node<Message> {
         virtual void onReadError(Canny::Error) {}
 
         // Called when a frame can't be written to the bus.
-        virtual void onWriteError(Canny::Error, const Canny::Frame&) {}
+        virtual void onWriteError(Canny::Error, const Canny::CAN20Frame&) {}
 
     private:
-        Canny::Connection* can_;
-        Canny::Frame frame_;
+        Canny::Connection<Canny::CAN20Frame>* can_;
+        Canny::CAN20Frame frame_;
 };
 
 }  // namespace R51

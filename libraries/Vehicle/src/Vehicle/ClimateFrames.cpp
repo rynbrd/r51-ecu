@@ -7,13 +7,13 @@
 namespace R51 {
 namespace {
 
-bool isInit(const Canny::Frame* frame) {
+bool isInit(const Canny::CAN20Frame* frame) {
     return frame->data()[0] == 0x80;
 }
 
 }  // namespace
 
-ClimateSystemControlFrame::ClimateSystemControlFrame(bool ready) : Canny::Frame(0x540, 0, 8) {
+ClimateSystemControlFrame::ClimateSystemControlFrame(bool ready) : Canny::CAN20Frame(0x540, 0, 8) {
     data()[0] = 0x80;
     if (ready) {
         this->ready();
@@ -103,7 +103,7 @@ void ClimateSystemControlFrame::decPassengerTemp() {
     data()[4]--;
 }
 
-ClimateFanControlFrame::ClimateFanControlFrame(bool ready) : Canny::Frame(0x541, 0, 8) {
+ClimateFanControlFrame::ClimateFanControlFrame(bool ready) : Canny::CAN20Frame(0x541, 0, 8) {
     data()[0] = 0x80;
     if (ready) {
         this->ready();

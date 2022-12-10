@@ -49,6 +49,7 @@ size_t Message::printTo(Print& p) const {
         case EMPTY:
             return 0;
     }
+    return 0;
 }
 
 // Return the event referenced by the message. Return nullptr if type()
@@ -59,8 +60,8 @@ const Event* MessageView::event() const {
 
 // Return the CAN frame referenced by the message. Return nullptr if
 // type() != CAN_FRAME.
-const Canny::Frame* MessageView::can_frame() const {
-    return type_ == CAN_FRAME ? (Canny::Frame*)ref_ : nullptr;
+const Canny::CAN20Frame* MessageView::can_frame() const {
+    return type_ == CAN_FRAME ? (Canny::CAN20Frame*)ref_ : nullptr;
 }
 
 // Return the J1939 address claim event referenced by the message.
@@ -102,7 +103,7 @@ const Event* MessageValue::event() const {
 
 // Return the CAN frame referenced by the message. Return nullptr if
 // type() != CAN_FRAME.
-const Canny::Frame* MessageValue::can_frame() const {
+const Canny::CAN20Frame* MessageValue::can_frame() const {
     return type_ == CAN_FRAME ? &can_frame_ : nullptr;
 }
 
