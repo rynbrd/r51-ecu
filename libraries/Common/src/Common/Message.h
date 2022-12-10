@@ -8,6 +8,7 @@
 
 namespace R51 {
 
+// Message type used on the internal bus.
 class Message : public Printable {
     public:
         // The message type.
@@ -45,11 +46,18 @@ class Message : public Printable {
         size_t printTo(Print& p) const;
 };
 
+// The message value type. Holds a copy of the message payload. This should be
+// used where messages need to be buffered or stored for repeated use.
 class MessageValue : public Message {
     public:
         // Default constructor. Sets type to EMPTY.
         MessageValue() : type_(EMPTY) {}
         virtual ~MessageValue() override;
+
+        // Copy another message into this one. If msg is a MessageView then its
+        // referenced contents are copied into the new MessageValue.
+        MessageValue(const Message& msg);
+        MessageValue(const MessageValue& msg);
 
         // Construct a message holding a copy of a system event.
         MessageValue(const Event& event) :
@@ -95,10 +103,16 @@ class MessageValue : public Message {
         };
 };
 
+// The message view type. Holds a reference to the message payload to avoid
+// copying. Should be used to wrap a payload in all calls to yield().
 class MessageView : public Message {
     public:
         // Default constructor. Sets type to EMPTY.
         MessageView() : type_(EMPTY), ref_(nullptr) {}
+
+        // Copy a reference to another message into this one. If msg is a
+        // MessageValue then the new MessageView references that MessageValue.
+        MessageView(const Message& msg);
 
         // Construct a message that references a system event.
         MessageView(Event* event) :
@@ -137,7 +151,7 @@ class MessageView : public Message {
 
     private:
         Type type_;
-        void* ref_;
+        const void* ref_;
 };
 
 // Return true if the two messages reference the same payload.
