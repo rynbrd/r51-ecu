@@ -7,7 +7,7 @@
 namespace R51 {
 
 // An address claim. Emitted to the bus when this device claims an address.
-class J1939Claim : public Printable {
+class J1939Claim {
     public:
         J1939Claim() : address_(Canny::NullAddress), name_(0) {}
         J1939Claim(uint8_t address, uint64_t name) : address_(address), name_(name) {}
@@ -18,7 +18,7 @@ class J1939Claim : public Printable {
         uint64_t name() const { return name_; }
         void name(uint64_t name) { name_ = name; }
 
-        size_t printTo(Print& p) const override;
+        size_t printTo(Print& p) const;
     private:
         uint8_t address_;
         uint64_t name_;

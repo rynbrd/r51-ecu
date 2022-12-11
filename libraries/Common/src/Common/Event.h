@@ -46,7 +46,7 @@ enum class ControllerEvent : uint8_t {
                         // all states the controller owns.
 };
 
-struct Event : public Printable {
+struct Event {
     // Subsystem identifier. This is the subsystem the event belongs to.
     uint8_t subsystem;
     // ID of the event. This uniquely identifies an event within a subsystem.
@@ -71,8 +71,8 @@ struct Event : public Printable {
     template <size_t N> 
     Event(SubSystem subsystem, uint8_t id, const uint8_t (&data)[N]);
 
-    // Print the system event.
-    size_t printTo(Print& p) const override;
+    // Print the event.
+    size_t printTo(Print& p) const;
 };
 
 // Event class for the CONTROLLER:REQUEST_CMD event.

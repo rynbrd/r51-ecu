@@ -17,7 +17,12 @@
     SERIAL_DEVICE.println(VAL);\
     SERIAL_DEVICE.flush();\
 })
-#define DEBUG_MSG_VAL_FMT(MSG, VAL, FMT) ({\
+#define DEBUG_MSG_OBJ(MSG, OBJ) ({\
+    SERIAL_DEVICE.print(MSG);\
+    (OBJ).printTo(SERIAL_DEVICE);\
+    SERIAL_DEVICE.flush();\
+})
+#define DEBUG_MSG_FMT(MSG, VAL, FMT) ({\
     SERIAL_DEVICE.print(MSG);\
     SERIAL_DEVICE.println(VAL, FMT);\
     SERIAL_DEVICE.flush();\

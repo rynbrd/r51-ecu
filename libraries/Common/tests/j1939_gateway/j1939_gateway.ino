@@ -7,12 +7,12 @@
 namespace R51 {
 
 using namespace aunit;
+using ::Canny::CAN20Frame;
 using ::Canny::Connection;
 using ::Canny::ERR_FIFO;
 using ::Canny::ERR_INTERNAL;
 using ::Canny::ERR_OK;
 using ::Canny::Error;
-using ::Canny::Frame;
 using ::Canny::J1939Message;
 
 class FakeConnection : public Connection<J1939Message> {
@@ -172,7 +172,7 @@ test(J1939GatewayTest, InitAnnounce) {
     uint64_t name = 0x000013B000FFFAC0;
     J1939Gateway node(&can, address, name, false);
 
-    Frame<8> expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
+    CAN20Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
     J1939Claim expect_claim(address, name);
 
     node.init(yield);
@@ -215,7 +215,7 @@ test(J1939GatewayTest, RequestAddressClaim) {
     node.emit(yield);
 
     // we should respond with our address
-    Frame<8> expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
+    CAN20Frame expect_frame(0x18EEFF0A, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
 
     node.emit(yield);
     assertEqual(can.writeCount(), 1);
@@ -243,7 +243,7 @@ test(J1939GatewayTest, NoArbitraryAddressCannotClaim) {
     node.emit(yield);
 
     // we should respond with a null address
-    Frame<8> expect_frame(0x18EEFFFE, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
+    CAN20Frame expect_frame(0x18EEFFFE, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC0});
     J1939Claim expect_claim(Canny::NullAddress, name);
 
     assertEqual(can.writeCount(), 1);
@@ -272,7 +272,7 @@ test(J1939GatewayTest, ArbitraryAddressClaim) {
     node.emit(yield);
 
     // we should respond with the next address
-    Frame<8> expect_frame(0x18EEFF0B, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
+    CAN20Frame expect_frame(0x18EEFF0B, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
     J1939Claim expect_claim(0x0B, name);
 
     assertEqual(can.writeCount(), 1);
@@ -312,7 +312,7 @@ test(J1939GatewayTest, ArbitraryAddressCannotClaim) {
         node.emit(yield);
 
         // we should response with the next address
-        Frame<8> expect_frame(0x18EEFF00 | next, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
+        CAN20Frame expect_frame(0x18EEFF00 | next, 1, {0x00, 0x00, 0x13, 0xB0, 0x00, 0xFF, 0xFA, 0xC1});
         J1939Claim expect_claim(next, name);
 
         assertEqual(can.writeCount(), 1);

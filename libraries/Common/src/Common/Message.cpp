@@ -58,22 +58,22 @@ size_t Message::printTo(Print& p) const {
     switch (type()) {
         case EVENT:
             if (event() != nullptr) {
-                return p.print(*event());
+                return event()->printTo(p);
             }
             return 0;
         case CAN_FRAME:
             if (can_frame() != nullptr) {
-                return p.print(*can_frame());
+                return can_frame()->printTo(p);
             }
             return 0;
         case J1939_CLAIM:
             if (j1939_claim() != nullptr) {
-                return p.print(*j1939_claim());
+                return j1939_claim()->printTo(p);
             }
             return 0;
         case J1939_MESSAGE:
             if (j1939_message() != nullptr) {
-                return p.print(*j1939_message());
+                return j1939_message()->printTo(p);
             }
             return 0;
         case EMPTY:
@@ -82,42 +82,13 @@ size_t Message::printTo(Print& p) const {
     return 0;
 }
 
-MessageValue::MessageValue(const Message& msg) : type_(msg.type()) {
-    switch (type_) {
-        case EMPTY:
-            break;
-        case EVENT:
-            if (msg.event() == nullptr) {
-                type_ = EMPTY;
-            } else {
-                event_ = *msg.event();
-            }
-            break;
-        case CAN_FRAME:
-            if (msg.can_frame() == nullptr) {
-                type_ = EMPTY;
-            } else {
-                can_frame_ = *msg.can_frame();
-            }
-            break;
-        case J1939_CLAIM:
-            if (msg.j1939_claim() == nullptr) {
-                type_ = EMPTY;
-            } else {
-                j1939_claim_ = *msg.j1939_claim();
-            }
-            break;
-        case J1939_MESSAGE:
-            if (msg.j1939_message() == nullptr) {
-                type_ = EMPTY;
-            } else {
-                j1939_message_ = *msg.j1939_message();
-            }
-            break;
-    }
+MessageValue::MessageValue(const Message& msg) : MessageValue() {
+    copyFrom(msg);
 }
 
-MessageValue::MessageValue(const MessageValue& msg) : MessageValue((const Message&)msg) {}
+MessageValue::MessageValue(const MessageValue& msg) : MessageValue() {
+    copyFrom(msg);
+}
 
 MessageValue::~MessageValue() {
     switch (type_) {
@@ -127,7 +98,7 @@ MessageValue::~MessageValue() {
             event_.~Event();
             break;
         case CAN_FRAME:
-            can_frame_.~Frame();
+            can_frame_.~CAN20Frame();
             break;
         case J1939_CLAIM:
             j1939_claim_.~J1939Claim();
@@ -160,6 +131,51 @@ const J1939Claim* MessageValue::j1939_claim() const {
 // if type() != J1939_MESSAGE.
 const Canny::J1939Message* MessageValue::j1939_message() const {
     return type_ == J1939_MESSAGE ? &j1939_message_ : nullptr;
+}
+
+MessageValue& MessageValue::operator=(const Message& msg) {
+    copyFrom(msg);
+    return *this;
+}
+
+void MessageValue::copyFrom(const Message& msg) {
+    type_ = msg.type();
+    switch (type_) {
+        case EMPTY:
+            break;
+        case EVENT:
+            if (msg.event() == nullptr) {
+                type_ = EMPTY;
+                empty_ = 0;
+            } else {
+                event_ = *msg.event();
+            }
+            break;
+        case CAN_FRAME:
+            if (msg.can_frame() == nullptr) {
+                type_ = EMPTY;
+                empty_ = 0;
+            } else {
+                can_frame_ = *msg.can_frame();
+            }
+            break;
+        case J1939_CLAIM:
+            if (msg.j1939_claim() == nullptr) {
+                type_ = EMPTY;
+                empty_ = 0;
+            } else {
+                j1939_claim_ = *msg.j1939_claim();
+            }
+            break;
+        case J1939_MESSAGE:
+            if (msg.j1939_message() == nullptr) {
+                type_ = EMPTY;
+                empty_ = 0;
+            } else {
+                j1939_message_ = *msg.j1939_message();
+            }
+            break;
+    }
 }
 
 MessageView::MessageView(const Message& msg) : type_(msg.type()), ref_(makeRef(msg)) {}

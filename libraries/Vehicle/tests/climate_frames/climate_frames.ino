@@ -11,9 +11,10 @@ bool checkFrame(const CAN20Frame& a, const CAN20Frame& b) {
     if (a == b) {
         return true;
     }
-    SERIAL_PORT_MONITOR.print(a);
+    a.printTo(SERIAL_PORT_MONITOR);
     SERIAL_PORT_MONITOR.print(" != ");
-    SERIAL_PORT_MONITOR.println(b);
+    b.printTo(SERIAL_PORT_MONITOR);
+    SERIAL_PORT_MONITOR.println();
     return false;
 }
 

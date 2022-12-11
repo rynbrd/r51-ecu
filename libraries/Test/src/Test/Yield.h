@@ -47,13 +47,13 @@ class MessageCopy : public Printable {
                 case Message::EMPTY:
                     return p.print("(EMPTY)");
                 case Message::EVENT:
-                    return p.print("(EVENT)") + p.print(event_);
+                    return p.print("(EVENT)") + event_.printTo(p);
                 case Message::CAN_FRAME:
-                    return p.print("(CAN_FRAME)") + p.print(can_frame_);
+                    return p.print("(CAN_FRAME)") + can_frame_.printTo(p);
                 case Message::J1939_CLAIM:
-                    return p.print("(J1939_CLAIM)") +  p.print(j1939_claim_);
+                    return p.print("(J1939_CLAIM)") +  j1939_claim_.printTo(p);
                 case Message::J1939_MESSAGE:
-                    return p.print("(J1939_MESSAGE)") + p.print(j1939_message_);
+                    return p.print("(J1939_MESSAGE)") + j1939_message_.printTo(p);
             }
             return 0;
         }

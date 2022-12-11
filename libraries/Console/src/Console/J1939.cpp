@@ -58,7 +58,8 @@ void J1939SendRunCommand::run(Console* console, char* arg, const Caster::Yield<M
     }
     msg_.data((uint8_t*)arg, data_len);
     console->stream()->print("console: send message ");
-    console->stream()->println(msg_);
+    msg_.printTo(*console->stream());
+    console->stream()->println();
     yield(MessageView(&msg_));
 }
 

@@ -20,7 +20,7 @@ void RealDashAdapter::handle(const Message& msg, const Caster::Yield<Message>&) 
     Canny::Error err = connection_->write(frame_);
     if (err != Canny::ERR_OK) {
         DEBUG_MSG_VAL("realdash: write error: ", err);
-        DEBUG_MSG_VAL("realdash: discard frame: ", frame_);
+        DEBUG_MSG_OBJ("realdash: discard frame: ", frame_);
     }
 }
 
@@ -35,7 +35,7 @@ void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
         Canny::Error err = connection_->write(frame_);
         if (err != Canny::ERR_OK) {
             DEBUG_MSG_VAL("realdash: write error: ", err);
-            DEBUG_MSG_VAL("realdash: discard frame: ", frame_);
+            DEBUG_MSG_OBJ("realdash: discard frame: ", frame_);
         }
     }
 

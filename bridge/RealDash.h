@@ -22,7 +22,7 @@ class RealDashAdapter : public Caster::Node<Message> {
         RealDashAdapter(Canny::Connection<Canny::CAN20Frame>* connection, uint32_t frame_id,
                 uint32_t heartbeat_id = 0, uint32_t heartbeat_ms = 500) :
             connection_(connection), frame_id_(frame_id), hb_id_(heartbeat_id),
-            hb_counter_(0), hb_ticker_(heartbeat_ms), frame_(8) {}
+            hb_counter_(0), hb_ticker_(heartbeat_ms), frame_(0, 0, 8) {}
 
         // Encode and send an Event message to RealDash.
         void handle(const Message& msg, const Caster::Yield<Message>&) override;

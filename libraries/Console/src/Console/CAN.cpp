@@ -59,7 +59,8 @@ void CANSendRunCommand::run(Console* console, char* arg, const Caster::Yield<Mes
     }
     frame_.data((uint8_t*)arg, data_len);
     console->stream()->print("console: send frame ");
-    console->stream()->println(frame_);
+    frame_.printTo(*console->stream());
+    console->stream()->println();
     yield(MessageView(&frame_));
 }
 

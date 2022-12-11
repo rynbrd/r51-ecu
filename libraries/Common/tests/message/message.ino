@@ -126,12 +126,44 @@ test(MessageValueTest, CopyBaseClass) {
     CAN20Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
     MessageView msg(&frame);
     const Message& ref = msg;
-    MessageValue copy(msg);
+    MessageValue copy(ref);
 
     assertTrue(msg == copy);
     assertTrue(ref == copy);
     assertTrue(&frame != copy.can_frame());
     assertTrue(frame == *copy.can_frame());
+}
+
+test(MessageValueTest, EventNoCrashOnUse) {
+    Event event(0x01, 0x02);
+    MessageView msg(&event);
+    msg.printTo(Serial);Serial.println();
+    MessageValue copy(msg);
+    copy.printTo(Serial);Serial.println();
+}
+
+test(MessageValueTest, FrameNoCrashOnUse) {
+    CAN20Frame frame(0x123, 4, {0x01, 0x02, 0x03, 0x04});
+    MessageView msg(&frame);
+    msg.printTo(Serial);Serial.println();
+    MessageValue copy(msg);
+    copy.printTo(Serial);Serial.println();
+}
+
+test(MessageValueTest, J1939MessageNoCrashOnUse) {
+    J1939Message j1939(0xFF00, 0x10);
+    MessageView msg(&j1939);
+    msg.printTo(Serial);Serial.println();
+    MessageValue copy(msg);
+    copy.printTo(Serial);Serial.println();
+}
+
+test(MessageValueTest, J1939ClaimNoCrashOnUse) {
+    J1939Claim claim(0x23, 1234);
+    MessageView msg(&claim);
+    msg.printTo(Serial);Serial.println();
+    MessageValue copy(msg);
+    copy.printTo(Serial);Serial.println();
 }
 
 test(MessageViewTest, Event) {

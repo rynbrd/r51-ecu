@@ -39,7 +39,7 @@ class CANConnection : public Canny::BufferedConnection<Canny::CAN20Frame> {
         // Log write errors to debug serial.
         void onWriteError(Canny::Error err, const Canny::CAN20Frame& frame) const override {
             DEBUG_MSG_VAL("can: write error: ", err);
-            DEBUG_MSG_VAL("can: dropped frame: ", frame);
+            DEBUG_MSG_OBJ("can: dropped frame: ", frame);
         }
 };
 

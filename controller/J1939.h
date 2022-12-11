@@ -32,7 +32,7 @@ class J1939Connection : public Canny::BufferedConnection<Canny::J1939Message> {
         // Log write errors to debug serial.
         void onWriteError(Canny::Error err, const Canny::J1939Message& msg) const override {
             DEBUG_MSG_VAL("j1939: write error: ", err);
-            DEBUG_MSG_VAL("j1939: dropped frame: ", msg);
+            DEBUG_MSG_OBJ("j1939: dropped frame: ", msg);
         }
 };
 
