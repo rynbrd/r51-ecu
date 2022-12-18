@@ -14,15 +14,15 @@ functionality here.
 The following housings or harness parts are assumed to be compatible. This is
 pending confirmation.
 
-| Connector | Pin | Housing      | Harness or Alternate Part   | 
-| --------- | --- | ------------ | --------------------------- |
-| M42       |  20 |              | ["Upgraded" Metra 70-7552]  |
-| M43       |  12 |              |                             |
-| M44       |   3 |              | Metra 40-NI12               |
-| M45       |  24 | TE 1376103-1 |                             |
-| M46       |  16 | TE 1376106-1 |                             |
-| M69       |  12 | TE 1379675-5 | Metra 70-7554, TE 1379675-1 |
-| M70       |  32 | TE 1473799-1 |                             |
+| Connector | Pin | Housing      | Harness or Alternate Part     | 
+| --------- | --- | ------------ | ----------------------------- |
+| M42       |  20 |              | ["Upgraded" Metra 70-7552]    |
+| M43       |  12 |              |                               |
+| M44       |   3 |              | [Metra 40-NI12]               |
+| M45       |  24 | TE 1376103-1 |                               |
+| M46       |  16 | TE 1376106-1 |                               |
+| M69       |  12 | TE 1379675-5 | [Metra 70-7554], TE 1379675-1 |
+| M70       |  32 | TE 1473799-1 |                               |
 
 The "upgraded" 70-7552 is not a Metra product but contains all the necessary
 wires to connect to the stock harness. There are extras, particularly if your
@@ -222,3 +222,7 @@ inputs.
 | 106 | G     |  PKB_SIG          | parking break enable signal  |
 | 107 | LG    |  SPEED_8P         | 8-pulse vehicle speed signal |
 
+
+["Upgraded" Metra 70-7552]: https://www.amazon.com/20-pin-Subaru-Headunit-Harness-Steering/dp/B01D9K3L44/
+[Metra 40-NI12]: https://www.amazon.com/Metra-Electronics-40-NI12-Aftermarket-Infiniti/dp/B000PANZ7U/
+[Metra 70-7554]: https://www.amazon.com/Metra-70-7554-Integration-Harness-Vehicles/dp/B007B5SH7K/
