@@ -1,6 +1,5 @@
 #ifndef _R51_BRIDGE_PICO_H_
 #define _R51_BRIDGE_PICO_H_
-#ifdef RASPBERRYPI_PICO
 
 #include <Arduino.h>
 #include <CRC32.h>
@@ -96,5 +95,4 @@ class PicoConfigStore : public ConfigStore {
 
 }  // namespace R51
 
-#endif  // RASPBERRYPI_PICO
 #endif  // _R51_BRIDGE_PICO_H_

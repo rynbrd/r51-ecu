@@ -1,6 +1,6 @@
 [submodule "libraries/AUnit"]
 	path = libraries/AUnit
-	url = https://github.com/bxparks/AUnit.git
+	url = git@github.com:BlueDragonX/AUnit.git
 [submodule "libraries/Adafruit_BluefruitLE_nRF51"]
 	path = libraries/BluefruitLE
 	url = git@github.com:BlueDragonX/Adafruit_BluefruitLE_nRF51.git

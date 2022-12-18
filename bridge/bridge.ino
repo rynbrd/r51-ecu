@@ -14,6 +14,10 @@
 #include "Pico.h"
 #include "RealDash.h"
 
+#ifndef PICO_RP2040
+#error "Target platform is not RP2040."
+#endif
+
 using ::Caster::Bus;
 using ::Caster::Node;
 using ::R51::BLE;

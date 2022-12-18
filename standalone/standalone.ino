@@ -12,6 +12,10 @@
 #include "J1939.h"
 #include "Pico.h"
 
+#ifndef PICO_RP2040
+#error "Target platform is not RP2040."
+#endif
+
 using namespace ::R51;
 using ::Caster::Bus;
 using ::Caster::Node;

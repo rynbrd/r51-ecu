@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#ifdef RASPBERRYPI_PICO
+#ifdef PICO_RP2040
 
 #include <Caster.h>
 #include "Message.h"

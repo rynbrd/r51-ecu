@@ -7,7 +7,7 @@
 #include <Core.h>
 #include "Debug.h"
 
-#if defined(RASPBERRYPI_PICO)
+#if defined(PICO_RP2040)
 #include <Canny/MCP2515.h>
 Canny::MCP2515<Canny::J1939Message> J1939(MCP2515_CS_PIN);
 #elif defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)

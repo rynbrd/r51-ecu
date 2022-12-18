@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#ifdef RASPBERRYPI_PICO
+#ifdef PICO_RP2040
 
 #include <Caster.h>
 #include "Message.h"
@@ -81,5 +81,5 @@ class PicoPipe {
 
 }  // namespace R51
 
-#endif  // RASPBERRYPI_PICO
+#endif  // PICO_RP2040
 #endif  // _R51_CORE_PICO_H_
