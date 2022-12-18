@@ -17,8 +17,9 @@ using ::Caster::Bus;
 using ::Caster::Node;
 
 // Init console support if enabled. 
-#if defined(cONSOLE_ENABLE)
-R51::ConsoleNode console(&SERIAL_DEVICE);
+#if defined(CONSOLE_ENABLE)
+#include <Console.h>
+ConsoleNode console(&SERIAL_DEVICE);
 #endif
 
 PicoConfigStore config;
@@ -189,6 +190,7 @@ void setup() {
     io_bus.init();
 }
 
+// Processing core setup.
 void setup1() {
     setup_serial();
     DEBUG_MSG("setup: core1 initializing");
@@ -197,6 +199,7 @@ void setup1() {
     proc_bus.init();
 }
 
+// I/O main loop.
 void loop() {
     io_bus.loop();
 #if defined(DEBUG_ENABLE)
@@ -204,6 +207,7 @@ void loop() {
 #endif
 }
 
+// Processing main loop.
 void loop1() {
     proc_bus.loop();
 #if defined(DEBUG_ENABLE)
