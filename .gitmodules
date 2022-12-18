@@ -16,6 +16,9 @@
 [submodule "libraries/Longan_CANFD"]
 	path = libraries/Longan_CANFD
 	url = git@github.com:BlueDragonX/Longan_CANFD.git
+[submodule "libraries/Endian"]
+    path = libraries/Endian
+    url = git@github.com:BlueDragonX/ArduinoEndian.git
 [submodule "libraries/EpoxyDuino"]
 	path = libraries/EpoxyDuino
 	url = https://github.com/bxparks/EpoxyDuino.git
