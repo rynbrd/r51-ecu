@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_SCRATCH_H_
-#define _R51_COMMON_SCRATCH_H_
+#ifndef _R51_CORE_SCRATCH_H_
+#define _R51_CORE_SCRATCH_H_
 
 namespace R51 {
 
@@ -26,4 +26,4 @@ struct Scratch {
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_SCRATCH_H_
+#endif  // _R51_CORE_SCRATCH_H_

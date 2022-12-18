@@ -2,7 +2,7 @@
 #define _R51_BLUETOOTH_NODE_H_
 
 #include <Caster.h>
-#include <Common.h>
+#include <Core.h>
 #include "BLE.h"
 
 namespace R51 {

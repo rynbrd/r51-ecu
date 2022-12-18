@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_EVENT_H_
-#define _R51_COMMON_EVENT_H_
+#ifndef _R51_CORE_EVENT_H_
+#define _R51_CORE_EVENT_H_
 
 // Convenience macro for defining getters and setters on child events.
 #define EVENT_PROPERTY(type, name, getter, setter) \
@@ -123,4 +123,4 @@ Event::Event(SubSystem subsystem, uint8_t id, const uint8_t (&data)[N]) :
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_EVENT_H_
+#endif  // _R51_CORE_EVENT_H_

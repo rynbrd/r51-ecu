@@ -2,7 +2,7 @@
 #define _R51_CONTROLS_AUDIO_H_
 
 #include <Arduino.h>
-#include <Common.h>
+#include <Core.h>
 #include <Endian.h>
 #include <Foundation.h>
 

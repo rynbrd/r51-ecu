@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_J1939_GATEWAY_H_
-#define _R51_COMMON_J1939_GATEWAY_H_
+#ifndef _R51_CORE_J1939_GATEWAY_H_
+#define _R51_CORE_J1939_GATEWAY_H_
 
 #include <Arduino.h>
 #include <Canny.h>
@@ -94,4 +94,4 @@ class J1939Gateway : public Caster::Node<Message> {
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_J1939_GATEWAY_H_
+#endif  // _R51_CORE_J1939_GATEWAY_H_

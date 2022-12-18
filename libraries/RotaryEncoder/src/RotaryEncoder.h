@@ -4,7 +4,7 @@
 #include <Adafruit_seesaw.h>
 #include <Arduino.h>
 #include <Canny.h>
-#include <Common.h>
+#include <Core.h>
 #include <seesaw_neopixel.h>
 
 namespace R51 {

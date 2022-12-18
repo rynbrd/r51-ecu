@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include <Caster.h>
-#include <Common.h>
+#include <Core.h>
 #include <Foundation.h>
 
 namespace R51 {

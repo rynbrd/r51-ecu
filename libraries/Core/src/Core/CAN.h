@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_CAN_
-#define _R51_COMMON_CAN_
+#ifndef _R51_CORE_CAN_H_
+#define _R51_CORE_CAN_H_
 
 #include <Canny.h>
 #include <Caster.h>
@@ -35,4 +35,4 @@ class CANGateway : public Caster::Node<Message> {
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_CAN_
+#endif  // _R51_CORE_CAN_H_

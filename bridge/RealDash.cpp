@@ -1,6 +1,6 @@
 #include "RealDash.h"
 
-#include <Common.h>
+#include <Core.h>
 #include "Debug.h"
 
 using ::R51::Message;

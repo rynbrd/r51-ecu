@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_MESSAGE_H_
-#define _R51_COMMON_MESSAGE_H_
+#ifndef _R51_CORE_MESSAGE_H_
+#define _R51_CORE_MESSAGE_H_
 
 #include <Arduino.h>
 #include <Canny.h>
@@ -169,4 +169,4 @@ bool operator!=(const Message& left, const Message& right);
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_MESSAGE_H_
+#endif  // _R51_CORE_MESSAGE_H_

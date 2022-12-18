@@ -2,7 +2,7 @@
 #define _R51_VEHICLE_CLIMATE_EVENTS_H_
 
 #include <Arduino.h>
-#include <Common.h>
+#include <Core.h>
 #include <Foundation.h>
 #include "Units.h"
 

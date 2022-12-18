@@ -4,7 +4,7 @@
 #include "Config.h"
 
 #include <Canny.h>
-#include <Common.h>
+#include <Core.h>
 #include "Debug.h"
 
 #if defined(RASPBERRYPI_PICO)

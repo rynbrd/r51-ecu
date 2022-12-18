@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_J1939_CLAIM_H_
-#define _R51_COMMON_J1939_CLAIM_H_
+#ifndef _R51_CORE_J1939_CLAIM_H_
+#define _R51_CORE_J1939_CLAIM_H_
 
 #include <Arduino.h>
 #include <Canny.h>
@@ -29,4 +29,4 @@ bool operator!=(const J1939Claim& left, const J1939Claim& right);
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_J1939_CLAIM_H_
+#endif  // _R51_CORE_J1939_CLAIM_H_

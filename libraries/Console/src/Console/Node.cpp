@@ -2,7 +2,7 @@
 
 #include <Canny.h>
 #include <Caster.h>
-#include <Common.h>
+#include <Core.h>
 #include "Console.h"
 
 namespace R51 {

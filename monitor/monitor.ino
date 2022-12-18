@@ -5,7 +5,7 @@
 #include <Canny.h>
 #include <Canny/Detect.h>
 #include <Caster.h>
-#include <Common.h>
+#include <Core.h>
 #include <Console.h>
 
 using ::Canny::CAN20Frame;

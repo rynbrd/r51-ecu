@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_PICO_H_
-#define _R51_COMMON_PICO_H_
+#ifndef _R51_CORE_PICO_H_
+#define _R51_CORE_PICO_H_
 
 #include <Arduino.h>
 
@@ -82,4 +82,4 @@ class PicoPipe {
 }  // namespace R51
 
 #endif  // RASPBERRYPI_PICO
-#endif  // _R51_COMMON_PICO_H_
+#endif  // _R51_CORE_PICO_H_

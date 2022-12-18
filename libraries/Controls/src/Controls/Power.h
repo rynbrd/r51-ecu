@@ -2,7 +2,7 @@
 #define _R51_CONTROLS_POWER_H_
 
 #include <Arduino.h>
-#include <Common.h>
+#include <Core.h>
 #include <Blink.h>
 #include "Controls.h"
 

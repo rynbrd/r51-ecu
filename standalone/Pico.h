@@ -4,7 +4,7 @@
 
 #include <Arduino.h>
 #include <CRC32.h>
-#include <Common.h>
+#include <Core.h>
 #include <Vehicle.h>
 
 extern "C" {

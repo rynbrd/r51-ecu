@@ -2,7 +2,7 @@
 #define _R51_CONSOLE_SCRATCH_H_
 
 #include <Arduino.h>
-#include <Common.h>
+#include <Core.h>
 #include "Command.h"
 #include "Error.h"
 

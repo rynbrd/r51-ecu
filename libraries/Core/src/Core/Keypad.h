@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_KEYPAD_H_
-#define _R51_COMMON_KEYPAD_H_
+#ifndef _R51_CORE_KEYPAD_H_
+#define _R51_CORE_KEYPAD_H_
 
 #include <Arduino.h>
 #include "Event.h"
@@ -126,4 +126,4 @@ class BacklightCommand : public Event {
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_KEYPAD_H_
+#endif  // _R51_CORE_KEYPAD_H_

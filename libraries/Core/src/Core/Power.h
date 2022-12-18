@@ -1,5 +1,5 @@
-#ifndef _R51_COMMON_POWER_H_
-#define _R51_COMMON_POWER_H_
+#ifndef _R51_CORE_POWER_H_
+#define _R51_CORE_POWER_H_
 
 #include <Arduino.h>
 #include <Foundation.h>
@@ -69,4 +69,4 @@ class PowerCommand : public Event {
 
 }  // namespace R51
 
-#endif  // _R51_COMMON_POWER_H_
+#endif  // _R51_CORE_POWER_H_

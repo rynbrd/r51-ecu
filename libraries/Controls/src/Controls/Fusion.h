@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <CRC32.h>
 #include <Caster.h>
-#include <Common.h>
+#include <Core.h>
 #include <Endian.h>
 #include <Faker.h>
 #include <Foundation.h>
