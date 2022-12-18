@@ -6,7 +6,7 @@
 #include <Canny.h>
 #include <Canny/RealDash.h>
 #include <Caster.h>
-#include <Console.h>
+#include <Core.h>
 #include <Vehicle.h>
 #include "CAN.h"
 #include "Debug.h"
@@ -18,28 +18,13 @@
 #error "Target platform is not RP2040."
 #endif
 
+using namespace ::R51;
 using ::Caster::Bus;
 using ::Caster::Node;
-using ::R51::BLE;
-using ::R51::BLENode;
-using ::R51::CANGateway;
-using ::R51::Climate;
-using ::R51::Defrost;
-using ::R51::CANConnection;
-using ::R51::IPDM;
-using ::R51::Illum;
-using ::R51::J1939Adapter;
-using ::R51::J1939Connection;
-using ::R51::J1939Gateway;
-using ::R51::Message;
-using ::R51::PicoConfigStore;
-using ::R51::RealDashAdapter;
-using ::R51::Settings;
-using ::R51::SteeringKeypad;
-using ::R51::TirePressure;
 
 // debug console
-#if defined(DEBUG_ENABLE)
+#if defined(CONSOLE_ENABLE)
+#include <Console.h>
 R51::ConsoleNode console(&SERIAL_DEVICE);
 #endif
 
@@ -50,7 +35,7 @@ CANGateway can_gw(&can_conn);
 // control system J1939 connection
 #if defined(J1939_ENABLE)
 J1939Connection j1939_conn;
-J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
+J1939Gateway j1939_gw(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
 J1939Adapter j1939_adapter;
 #endif
 
@@ -78,7 +63,7 @@ Climate climate;
 Settings settings;
 IPDM ipdm;
 Illum illum;
-TirePressure tire_pressure;
+TirePressure tire_pressure(&config);
 #if defined(DEFROST_HEATER_ENABLE)
 Defrost defrost(DEFROST_HEATER_PIN, DEFROST_HEATER_MS);
 #endif
@@ -86,41 +71,52 @@ Defrost defrost(DEFROST_HEATER_PIN, DEFROST_HEATER_MS);
 SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_B);
 #endif
 
-Node<Message>* nodes[] = {
-#if defined(DEBUG_ENABLE)
-    &console,
-#endif
+// Create internal bus.
+PicoFilteredPipe pipe;
+
+Node<Message>* io_nodes[] = {
+    pipe.left(),
     &can_gw,
 #if defined(J1939_ENABLE)
-    &j1939_gateway,
-    &j1939_adapter,
-#endif
-#if defined(BLUETOOTH_ENABLE)
-    &ble_monitor,
-    &realdash,
-    &climate,
-    &settings,
-#endif
-    &ipdm,
-    &illum,
-    &tire_pressure,
-#if defined(DEFROST_HEATER_ENABLE)
-    &defrost,
+    &j1939_gw,
 #endif
 #if defined(STEERING_KEYPAD_ENABLE)
     &steering_keypad,
 #endif
 };
-Bus<Message> bus(nodes, sizeof(nodes)/sizeof(nodes[0]));
+Bus<Message> io_bus(io_nodes, sizeof(io_nodes)/sizeof(io_nodes[0]));
+
+Node<Message>* proc_nodes[] = {
+    &climate,
+    &settings,
+    &ipdm,
+    &illum,
+    &tire_pressure,
+#if defined(DEBUG_ENABLE)
+    &console,
+#endif
+#if defined(J1939_ENABLE)
+    &j1939_adapter,
+#endif
+#if defined(BLUETOOTH_ENABLE)
+    &ble_monitor,
+    &realdash,
+#endif
+#if defined(DEFROST_HEATER_ENABLE)
+    &defrost,
+#endif
+};
+Bus<Message> proc_bus(proc_nodes, sizeof(proc_nodes)/sizeof(proc_nodes[0]));
 
 void setup_serial() {
+#if defined(DEBUG_ENABLE) || defined(CONSOLE_ENABLE)
     SERIAL_DEVICE.begin(SERIAL_BAUDRATE);
     if (SERIAL_WAIT) {
         while(!SERIAL_DEVICE) {
             delay(100);
         }
     }
-    DEBUG_MSG("setup: ECU booting");
+#endif
 }
 
 void setup_can() {
@@ -155,19 +151,34 @@ void setup_ble() {
 
 void setup() {
     setup_serial();
+    DEBUG_MSG("setup: core0 initializing");
     setup_can();
     setup_j1939();
     setup_ble();
-    DEBUG_MSG("setup: ECU running");
-    bus.init();
+    DEBUG_MSG("setup: core0 online");
+    io_bus.init();
+}
+
+void setup1() {
+    setup_serial();
+    DEBUG_MSG("setup: core1 online");
+    proc_bus.init();
 }
 
 void loop() {
-    bus.loop();
+    io_bus .loop();
 #if defined(BLUETOOTH_ENABLE)
     // BLE's update method needs to be called to enable connectivity callbacks
     ble_conn.update(BLUETOOTH_UPDATE_MS);
 #endif
+#if defined(DEBUG_ENABLE)
+    delay(10);
+#endif
+}
+
+// Processing main loop.
+void loop1() {
+    proc_bus.loop();
 #if defined(DEBUG_ENABLE)
     delay(10);
 #endif

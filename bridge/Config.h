@@ -1,16 +1,23 @@
 #ifndef _R51_BRIDGE_CONFIG_H_
 #define _R51_BRIDGE_CONFIG_H_
 
-// Uncomment the following line to enable debug console.
+// Uncomment the following line to enable debug output on serial and/or the
+// interactive console.
 #define DEBUG_ENABLE
-
-#define MCP2515_CS_PIN 9
-#define MCP2518_CS_PIN 12
+#define CONSOLE_ENABLE
 
 // Serial configuration for the debug console.
 #define SERIAL_DEVICE Serial
 #define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT true
+
+// CAN hardware configuration.
+#define MCP2515_CS_PIN 9
+#define MCP2518_CS_PIN 12
+
+// Multicore buffer settings.
+#define IO_CORE_BUFFER_SIZE 32
+#define PROC_CORE_BUFFER_SIZE 16
 
 // Vehicle CAN bus mode and speed. This is CAN 2.0 at 500K for the R51.
 #define VEHICLE_CAN_MODE Canny::CAN20_500K
@@ -27,11 +34,12 @@
 #define J1939_WRITE_BUFFER 2
 
 // Uncomment the following line to enable rear defrost control.
-#define DEFEROST_HEATER_ENABLE
-#define DEFEROST_HEATER_PIN 6
-#define DEFEROST_HEATER_MS 200
+#define DEFROST_HEATER_ENABLE
+#define DEFROST_HEATER_PIN 6
+#define DEFROST_HEATER_MS 200
 
 // Uncomment the following line to enable steering keypad.
+#define STEERING_KEYPAD_ENABLE
 #define STEERING_KEYPAD_ID 0x00
 #define STEERING_KEYPAD_ENABLE
 #define STEERING_PIN_A A2
