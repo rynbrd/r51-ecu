@@ -2,7 +2,7 @@
 # Makefile to compile and run Arduino programs natively on Linux or MacOS.
 
 APP_NAME := steering
-ARDUINO_LIBS := AUnit AnalogMultiButton CRC32 Canny Caster Common Endian \
+ARDUINO_LIBS := AUnit AnalogMultiButton CRC32 Canny Caster Core Endian \
    	Faker Foundation Test Vehicle
 EXTRA_CXXFLAGS += -g
 include ../../../EpoxyDuino/EpoxyDuino.mk
