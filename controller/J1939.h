@@ -4,20 +4,17 @@
 #include "Config.h"
 
 #include <Canny.h>
+#include <Canny/MCP2515.h>
 #include <Core.h>
 #include "Debug.h"
 
-#if defined(PICO_RP2040)
-#include <Canny/MCP2515.h>
 Canny::MCP2515<Canny::J1939Message> J1939(MCP2515_CS_PIN);
-#elif defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)
-#include <Canny/SAME51.h>
-Canny::SAME51<Canny::J1939Message> J1939;
-#endif
 
 namespace R51 {
 
-// J1939 connection which filters and buffers frames; and logs errors to serial.
+// J1939 connection which that logs errors to serial.
+// TODO: Enable MCP hardware filtering.
+// TODO: Check if MCP hardware is wired for interrupts.
 class J1939Connection : public Canny::BufferedConnection<Canny::J1939Message> {
     public:
         J1939Connection() :

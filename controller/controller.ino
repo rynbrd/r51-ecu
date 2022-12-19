@@ -1,42 +1,42 @@
 #include "Config.h"
 #include "Debug.h"
 
-#include <Adafruit_SleepyDog.h>
 #include <Arduino.h>
 #include <Blink.h>
 #include <Canny.h>
 #include <Controls.h>
 #include <RotaryEncoder.h>
 #include "J1939.h"
+#include "Pico.h"
 
-#if defined(DEBUG_ENABLE)
-#include <Console.h>
+#ifndef PICO_RP2040
+#error "Target platform is not RP2040."
 #endif
 
+using namespace ::R51;
 using ::Canny::J1939Message;
 using ::Caster::Bus;
 using ::Caster::Node;
-using ::R51::BlinkKeybox;
-using ::R51::BlinkKeypad;
-using ::R51::Fusion;
-using ::R51::HMI;
-using ::R51::J1939Connection;
-using ::R51::J1939ControllerAdapter ;
-using ::R51::J1939Gateway;
-using ::R51::Message;
-using ::R51::NavControls;
-using ::R51::PowerControls;
-using ::R51::RotaryEncoder;
-using ::R51::RotaryEncoderGroup;
-using ::R51::Scratch;
-using ::R51::SteeringControls;
 
+// Init console support if enabled. 
+#if defined(CONSOLE_ENABLE)
+#include <Console.h>
+R51::ConsoleNode console(&SERIAL_DEVICE);
+#endif
+
+// TODO: Integrate RP2040 watchdog timer.
+
+// Create J1939 connection.
 J1939Connection j1939_conn;
-J1939Gateway j1939_gateway(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
+J1939Gateway j1939_gw(&j1939_conn, J1939_ADDRESS, J1939_NAME, J1939_PROMISCUOUS);
 J1939ControllerAdapter j1939_adapter;
-HMI hmi(&HMI_DEVICE, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
-Fusion fusion;
 
+// HMI screen node. This will live on the processing core since this hosts
+// communication with the the visual user interface. We don't want this and the
+// CAN modules to block each other.
+HMI hmi(&HMI_DEVICE, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
+
+// Rotary encoder hardware. This node lives on the I/O core.
 RotaryEncoder rotary_encoder0(&Wire);
 RotaryEncoder rotary_encoder1(&Wire);
 RotaryEncoder* rotary_encoders[] = {
@@ -46,34 +46,8 @@ RotaryEncoder* rotary_encoders[] = {
 RotaryEncoderGroup rotary_encoder_group(ROTARY_ENCODER_ID, rotary_encoders,
         sizeof(rotary_encoders)/sizeof(rotary_encoders[0]));
 
-BlinkKeypad blink_keypad(BLINK_KEYPAD_ADDR, BLINK_KEYPAD_ID, BLINK_KEYPAD_KEYS);
-BlinkKeybox blink_keybox(BLINK_KEYBOX_ADDR, BLINK_KEYBOX_ID);
-
-NavControls nav_controls(ROTARY_ENCODER_ID);
-PowerControls power_controls(BLINK_KEYPAD_ID, BLINK_KEYBOX_ID);
-SteeringControls steering_controls(STEERING_KEYPAD_ID);
-
-#if defined(DEBUG_ENABLE)
-R51::ConsoleNode console(&SERIAL_DEVICE);
-#endif
-
-Node<Message>* nodes[] = {
-#if defined(DEBUG_ENABLE)
-    &console,
-#endif
-    &j1939_gateway,
-    &j1939_adapter,
-    &rotary_encoder_group,
-    &blink_keypad,
-    &blink_keybox,
-    &hmi,
-    &fusion,
-    &nav_controls,
-    &power_controls,
-    &steering_controls,
-};
-Bus<Message> bus(nodes, sizeof(nodes)/sizeof(nodes[0]));
-
+// Enable rotary encoder interrupts if is configured.
+#if defined(ROTARY_ENCODER_INTR_PIN)
 void rotaryEncoderISR() {
     rotary_encoder_group.interrupt(0xFF);
 }
@@ -85,22 +59,53 @@ void attachInterrupts() {
 void detachInterrupts() {
     detachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN));
 }
+#endif
+
+// J1939 hardware integrations.
+Fusion fusion;
+BlinkKeypad blink_keypad(BLINK_KEYPAD_ADDR, BLINK_KEYPAD_ID, BLINK_KEYPAD_KEYS);
+BlinkKeybox blink_keybox(BLINK_KEYBOX_ADDR, BLINK_KEYBOX_ID);
+
+// Controller nodes.
+NavControls nav_controls(ROTARY_ENCODER_ID);
+PowerControls power_controls(BLINK_KEYPAD_ID, BLINK_KEYBOX_ID);
+SteeringControls steering_controls(STEERING_KEYPAD_ID);
+
+// Create internal bus.
+PicoFilteredPipe pipe;
+
+Node<Message>* io_nodes[] = {
+    pipe.left(),
+    &j1939_gw,
+    &rotary_encoder_group,
+};
+Bus<Message> io_bus(io_nodes, sizeof(io_nodes)/sizeof(io_nodes[0]));
+
+Node<Message>* proc_nodes[] = {
+    pipe.right(),
+#if defined(DEBUG_ENABLE)
+    &console,
+#endif
+    &j1939_adapter,
+    &fusion,
+    &blink_keypad,
+    &blink_keybox,
+    &hmi,
+    &nav_controls,
+    &power_controls,
+    &steering_controls,
+};
+Bus<Message> proc_bus(proc_nodes, sizeof(proc_nodes)/sizeof(proc_nodes[0]));
 
 void setup_serial() {
-#if defined(DEBUG_ENABLE)
-    SERIAL_DEVICE.begin(SERIAL_BAUDRATE);
+#if defined(DEBUG_ENABLE) || defined(CONSOLE_ENABLE)
+    // RP2040 already call Serial.begin(115200) so we only ensure serial is
+    // online before starting the cores.
     if (SERIAL_WAIT) {
         while(!SERIAL_DEVICE) {
             delay(100);
         }
     }
-    DEBUG_MSG("setup: ECU booting");
-#endif
-}
-
-void setup_watchdog() {
-#if !defined(DEBUG_ENABLE)
-    Watchdog.enable(WATCHDOG_TIMEOUT);
 #endif
 }
 
@@ -117,27 +122,40 @@ void setup_hmi() {
     HMI_DEVICE.begin(HMI_BAUDRATE);
 }
 
-void setup_keypads() {
-    DEBUG_MSG("setup: configuring keypads");
+void setup_rotary_encoders() {
+    DEBUG_MSG("setup: configuring rotary encoders");
     rotary_encoder0.begin(ROTARY_ENCODER_ADDR0);
     rotary_encoder1.begin(ROTARY_ENCODER_ADDR1);
 }
 
 void setup() {
     setup_serial();
-    setup_watchdog();
+    DEBUG_MSG("setup: core0 initializing");
     setup_j1939();
-    setup_hmi();
-    setup_keypads();
-    DEBUG_MSG("setup: ECU started");
-    bus.init();
+    setup_rotary_encoders();
+    DEBUG_MSG("setup: core0 online");
+    io_bus.init();
 }
 
+void setup1() {
+    setup_serial();
+    DEBUG_MSG("setup: core1 initializing");
+    setup_hmi();
+    DEBUG_MSG("setup: core1 online");
+    proc_bus.init();
+}
+
+// I/O main loop.
 void loop() {
-#if !defined(DEBUG_ENABLE)
-    Watchdog.reset();
+    io_bus.loop();
+#if defined(DEBUG_ENABLE)
+    delay(10);
 #endif
-    bus.loop();
+}
+
+// Processing main loop.
+void loop1() {
+    proc_bus.loop();
 #if defined(DEBUG_ENABLE)
     delay(10);
 #endif
