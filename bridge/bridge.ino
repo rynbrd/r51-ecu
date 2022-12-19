@@ -110,7 +110,8 @@ Bus<Message> proc_bus(proc_nodes, sizeof(proc_nodes)/sizeof(proc_nodes[0]));
 
 void setup_serial() {
 #if defined(DEBUG_ENABLE) || defined(CONSOLE_ENABLE)
-    SERIAL_DEVICE.begin(SERIAL_BAUDRATE);
+    // RP2040 already call Serial.begin(115200) so we only ensure serial is
+    // online before starting the cores.
     if (SERIAL_WAIT) {
         while(!SERIAL_DEVICE) {
             delay(100);

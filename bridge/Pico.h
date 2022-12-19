@@ -27,7 +27,8 @@ class PicoFilteredPipe : public PicoPipe {
         // system events to the I/O core.
         bool filterRight(const Message& msg) override {
             return msg.type() == Message::CAN_FRAME ||
-                msg.type() == Message::J1939_MESSAGE;
+                msg.type() == Message::J1939_MESSAGE ||
+                msg.type() == Message::EVENT;
         }
 
         void onBufferOverrun(const Message& msg) override {
