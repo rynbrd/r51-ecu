@@ -2,13 +2,12 @@
 #include <Arduino.h>
 #include <Caster.h>
 #include <Core.h>
+#include <Platform.h>
 #include <Test.h>
 
 namespace R51 {
 
 using namespace aunit;
-using ::Canny::CAN20Frame;
-using ::Canny::J1939Message;
 using ::Caster::Bus;
 using ::Caster::Node;
 using ::Caster::Yield;

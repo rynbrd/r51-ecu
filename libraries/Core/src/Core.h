@@ -8,7 +8,6 @@
 #include "Core/J1939Gateway.h"
 #include "Core/Keypad.h"
 #include "Core/Message.h"
-#include "Core/Pico.h"
 #include "Core/Power.h"
 #include "Core/Scratch.h"
 

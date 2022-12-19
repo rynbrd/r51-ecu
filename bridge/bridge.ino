@@ -11,7 +11,7 @@
 #include "CAN.h"
 #include "Debug.h"
 #include "J1939.h"
-#include "Pico.h"
+#include "Platform.h"
 #include "RealDash.h"
 
 #ifndef PICO_RP2040

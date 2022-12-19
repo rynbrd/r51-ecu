@@ -10,7 +10,7 @@
 #include <Vehicle.h>
 #include "CAN.h"
 #include "J1939.h"
-#include "Pico.h"
+#include "Platform.h"
 
 #ifndef PICO_RP2040
 #error "Target platform is not RP2040."

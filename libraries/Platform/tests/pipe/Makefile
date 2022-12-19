@@ -1,8 +1,8 @@
 # See https://github.com/bxparks/EpoxyDuino for documentation about this
 # Makefile to compile and run Arduino programs natively on Linux or MacOS.
 
-APP_NAME := pico
-ARDUINO_LIBS := AUnit CRC32 Canny Caster Common Endian Faker Foundation Test
+APP_NAME := pipe
+ARDUINO_LIBS := AUnit CRC32 Canny Caster Core Endian Faker Foundation Test
 EXTRA_CXXFLAGS += -g
 include ../../../EpoxyDuino/EpoxyDuino.mk
 
