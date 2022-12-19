@@ -2,7 +2,7 @@
 # Makefile to compile and run Arduino programs natively on Linux or MacOS.
 
 APP_NAME := keybox
-ARDUINO_LIBS := AUnit Blink Canny Caster Core CRC32 Endian Faker Foundation Test
+ARDUINO_LIBS := AUnit Blink ByteOrder Canny Caster Core CRC32 Faker Foundation Test
 EXTRA_CXXFLAGS += -g
 include ../../../EpoxyDuino/EpoxyDuino.mk
 

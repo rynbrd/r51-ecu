@@ -2,8 +2,8 @@
 #define _R51_CONTROLS_AUDIO_H_
 
 #include <Arduino.h>
+#include <ByteOrder.h>
 #include <Core.h>
-#include <Endian.h>
 #include <Foundation.h>
 
 namespace R51 {
@@ -185,11 +185,11 @@ class AudioTrackPlaybackState : public Event {
 
         EVENT_PROPERTY(AudioPlayback, playback, (AudioPlayback)data[0], data[0] = (uint8_t)value);
         EVENT_PROPERTY(uint16_t, time_elapsed,
-                Endian::nbtohs(data + 1),
-                Endian::hstonb(data + 1, value));
+                ByteOrder::nbtohs(data + 1),
+                ByteOrder::hstonb(data + 1, value));
         EVENT_PROPERTY(uint16_t, time_total,
-                Endian::nbtohs(data + 3),
-                Endian::hstonb(data + 3, value));
+                ByteOrder::nbtohs(data + 3),
+                ByteOrder::hstonb(data + 3, value));
 };
 
 class AudioSettingsMenuState : public Event {
@@ -285,8 +285,8 @@ class AudioRadioState : public Event {
                 (AudioSeek)getBit(data, 0, 0),
                 setBit(data, 0, 0, (bool)value));
         EVENT_PROPERTY(uint32_t, frequency,
-                Endian::nbtohl(data + 1),
-                Endian::hltonb(data + 1, value));
+                ByteOrder::nbtohl(data + 1),
+                ByteOrder::hltonb(data + 1, value));
 
         void toggle_seek_mode() {
             flipBit(data, 0, 0);
@@ -319,8 +319,8 @@ class AudioRadioTuneCommand : public Event {
                     {0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint32_t, frequency,
-                Endian::nbtohl(data),
-                Endian::hltonb(data, value));
+                ByteOrder::nbtohl(data),
+                ByteOrder::hltonb(data, value));
 };
 
 class AudioInputGainSetCommand : public Event {

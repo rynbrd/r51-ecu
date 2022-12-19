@@ -2,10 +2,10 @@
 #define _R51_CONTROLS_FUSION_H_
 
 #include <Arduino.h>
+#include <ByteOrder.h>
 #include <CRC32.h>
 #include <Caster.h>
 #include <Core.h>
-#include <Endian.h>
 #include <Faker.h>
 #include <Foundation.h>
 #include "Audio.h"

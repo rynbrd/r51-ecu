@@ -1,7 +1,7 @@
 #include "J1939Claim.h"
 
 #include <Arduino.h>
-#include <Endian.h>
+#include <ByteOrder.h>
 
 namespace R51 {
 namespace {
@@ -15,7 +15,7 @@ void printHexByte(Print& p, uint8_t byte) {
 
 size_t printHexUint64(Print& p, uint64_t value) {
     uint8_t* bytes = (uint8_t*)&value;
-    if (Endian::host() ==  Endian::BIG) {
+    if (ByteOrder::host() == ByteOrder::BIG) {
         for (uint8_t i = 0; i < 8; ++i) {
             printHexByte(p, bytes[i]);
         }

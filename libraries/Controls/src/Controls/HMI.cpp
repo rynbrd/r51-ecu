@@ -2,9 +2,9 @@
 
 #include <Arduino.h>
 #include <Bluetooth.h>
+#include <ByteOrder.h>
 #include <Caster.h>
 #include <Core.h>
-#include <Endian.h>
 #include <Foundation.h>
 #include <Vehicle.h>
 #include "Audio.h"
@@ -1304,7 +1304,7 @@ int32_t HMI::getVal(const char* key) {
        int32_t sl;
        uint32_t ul;
     } value;
-    value.ul = Endian::btohl(scratch_.bytes + 1, Endian::LITTLE);
+    value.ul = ByteOrder::btohl(scratch_.bytes + 1, ByteOrder::LITTLE);
     return value.sl;
 }
 

@@ -1,9 +1,9 @@
 #include "Fusion.h"
 
 #include <Arduino.h>
+#include <ByteOrder.h>
 #include <Caster.h>
 #include <Core.h>
-#include <Endian.h>
 #include <Faker.h>
 #include "Audio.h"
 
@@ -649,7 +649,7 @@ void Fusion::handleTrackPlayback(uint8_t seq, const J1939Message& msg,
         case 2:
             memcpy(buffer_, msg.data() + 3, 3);
             buffer_[3] = 0x00;
-            time = btohl(buffer_, Endian::LITTLE);
+            time = btohl(buffer_, ByteOrder::LITTLE);
             track_playback_.time_total(time / 1000);
             if (system_.state() == AudioSystem::ON) {
                 yield(MessageView(&track_playback_));
@@ -672,7 +672,7 @@ void Fusion::handleTrackTimeElapsed(uint8_t seq, const J1939Message& msg,
     if (seq == 1) {
         memcpy(buffer_, msg.data() + 1, 3);
         buffer_[3] = 0x00;
-        uint32_t time = btohl(buffer_, Endian::LITTLE);
+        uint32_t time = btohl(buffer_, ByteOrder::LITTLE);
         track_playback_.time_elapsed(time / 4);
         if (system_.state() == AudioSystem::ON) {
             yield(MessageView(&track_playback_));
@@ -683,7 +683,7 @@ void Fusion::handleTrackTimeElapsed(uint8_t seq, const J1939Message& msg,
 void Fusion::handleRadioFrequency(uint8_t seq, const J1939Message& msg,
         const Yield<Message>& yield) {
     if (seq == 1) {
-        uint32_t frequency = btohl(msg.data() + 1, Endian::LITTLE);
+        uint32_t frequency = btohl(msg.data() + 1, ByteOrder::LITTLE);
         radio_.frequency(frequency);
         if (system_.state() == AudioSystem::ON) {
             yield(MessageView(&radio_));
@@ -986,7 +986,7 @@ void Fusion::sendCmd(const Yield<Message>& yield,
 void Fusion::sendCmdPayload(const Yield<Message>& yield, uint32_t payload) {
     cmd_.data()[0] = cmd_counter_++;
     // Fusion expects ints in little-endian byte order.
-    Endian::hltob(cmd_.data() + 1, payload, Endian::LITTLE);
+    ByteOrder::hltob(cmd_.data() + 1, payload, ByteOrder::LITTLE);
     memset(cmd_.data() + 5, 0xFF, 3);
     yield(MessageView(&cmd_));
 }
