@@ -5,6 +5,7 @@
 #include <CRC32.h>
 #include <Core.h>
 #include <Vehicle.h>
+#include "Config.h"
 
 extern "C" {
     #include <hardware/flash.h>
