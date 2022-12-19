@@ -13,6 +13,10 @@
 #error "Target platform is not RP2040."
 #endif
 
+extern "C" {
+    #include <hardware/watchdog.h>
+};
+
 using namespace ::R51;
 using ::Canny::J1939Message;
 using ::Caster::Bus;
@@ -23,8 +27,6 @@ using ::Caster::Node;
 #include <Console.h>
 R51::ConsoleNode console(&SERIAL_DEVICE);
 #endif
-
-// TODO: Integrate RP2040 watchdog timer.
 
 // Create J1939 connection.
 J1939Connection j1939_conn;
@@ -109,6 +111,12 @@ void setup_serial() {
 #endif
 }
 
+void setup_watchdog()  {
+#if !defined(DEBUG_ENABLE)
+    watchdog_enable(500, 1);
+#endif
+}
+
 void setup_j1939() {
     DEBUG_MSG("setup: connecting to J1939");
     while (!J1939.begin(J1939_CAN_MODE)) {
@@ -131,6 +139,7 @@ void setup_rotary_encoders() {
 void setup() {
     setup_serial();
     DEBUG_MSG("setup: core0 initializing");
+    setup_watchdog();
     setup_j1939();
     setup_rotary_encoders();
     DEBUG_MSG("setup: core0 online");
@@ -150,6 +159,8 @@ void loop() {
     io_bus.loop();
 #if defined(DEBUG_ENABLE)
     delay(10);
+#else
+    watchdog_update();
 #endif
 }
 

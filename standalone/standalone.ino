@@ -16,6 +16,10 @@
 #error "Target platform is not RP2040."
 #endif
 
+extern "C" {
+    #include <hardware/watchdog.h>
+};
+
 using namespace ::R51;
 using ::Caster::Bus;
 using ::Caster::Node;
@@ -28,7 +32,6 @@ ConsoleNode console(&SERIAL_DEVICE);
 
 PicoConfigStore config;
 
-// TODO: Integrate RP2040 watchdog timer.
 // TODO: Add BLE RealDash integration.
 
 /**
@@ -159,6 +162,12 @@ void setup_serial() {
 #endif
 }
 
+void setup_watchdog()  {
+#if !defined(DEBUG_ENABLE)
+    watchdog_enable(500, 1);
+#endif
+}
+
 void setup_can() {
     DEBUG_MSG("setup: connecting to CAN");
     while (!CAN.begin(VEHICLE_CAN_MODE)) {
@@ -190,6 +199,7 @@ void setup_rotary_encoders() {
 void setup() {
     setup_serial();
     DEBUG_MSG("setup: core0 initializing");
+    setup_watchdog();
     setup_can();
     setup_j1939();
     setup_rotary_encoders();
@@ -211,6 +221,8 @@ void loop() {
     io_bus.loop();
 #if defined(DEBUG_ENABLE)
     delay(10);
+#else
+    watchdog_update();
 #endif
 }
 
