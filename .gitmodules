@@ -2,7 +2,7 @@
 	path = libraries/AUnit
 	url = git@github.com:BlueDragonX/AUnit.git
 [submodule "libraries/Adafruit_BluefruitLE_nRF51"]
-	path = libraries/BluefruitLE
+	path = libraries/Adafruit_BluefruitLE
 	url = git@github.com:BlueDragonX/Adafruit_BluefruitLE_nRF51.git
 [submodule "libraries/Adafruit_BusIO"]
     path = libraries/Adafruit_BusIO
