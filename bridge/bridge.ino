@@ -7,11 +7,12 @@
 #include <Canny/RealDash.h>
 #include <Caster.h>
 #include <Core.h>
+#include <Platform.h>
 #include <Vehicle.h>
 #include "CAN.h"
 #include "Debug.h"
 #include "J1939.h"
-#include "Platform.h"
+#include "Pipe.h"
 #include "RealDash.h"
 
 #ifndef PICO_RP2040
@@ -62,7 +63,7 @@ void onBluetoothDisconnect(void*) {
 #endif
 
 // vehicle management
-PicoConfigStore config;
+PlatformConfigStore config;
 Climate climate;
 Settings settings;
 IPDM ipdm;
@@ -76,7 +77,7 @@ SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_
 #endif
 
 // Create internal bus.
-PicoFilteredPipe pipe;
+FilteredPipe pipe;
 
 Node<Message>* io_nodes[] = {
     pipe.left(),

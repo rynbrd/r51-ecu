@@ -1,23 +1,18 @@
-#ifndef _R51_CTRL_PICO_H_
-#define _R51_CTRL_PICO_H_
+#ifndef _R51_STANDALONE_PIPE_H_
+#define _R51_STANDALONE_PIPE_H_
 
 #include <Arduino.h>
-#include <CRC32.h>
 #include <Core.h>
+#include <Platform.h>
 #include "Config.h"
-
-extern "C" {
-    #include <hardware/flash.h>
-    #include <hardware/sync.h>
-};
 
 namespace R51 {
 
-class PicoFilteredPipe : public PicoPipe {
+class FilteredPipe : public Pipe {
     public:
-        PicoFilteredPipe() : PicoPipe(IO_CORE_BUFFER_SIZE, PROC_CORE_BUFFER_SIZE) {}
+        FilteredPipe() : Pipe(IO_CORE_BUFFER_SIZE, PROC_CORE_BUFFER_SIZE) {}
 
-        // Filtering for the I/O core. Forwards all frames  to the processing core.
+        // Filtering for the I/O core. Forwards all frames to the processing core.
         bool filterLeft(const Message&) override { return true; }
 
         // Filtering for the processing core. Only forwards CAN bus frames and
@@ -34,4 +29,4 @@ class PicoFilteredPipe : public PicoPipe {
 
 }  // namespace R51
 
-#endif  // _R51_CTRL_PICO_H_
+#endif  // _R51_STANDALONE_PIPE_H_

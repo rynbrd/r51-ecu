@@ -10,9 +10,9 @@ extern "C" {
 
 namespace R51 {
 
-class PicoConfigStore : public ConfigStore {
+class PlatformConfigStore : public ConfigStore {
     public:
-        PicoConfigStore();
+        PlatformConfigStore();
 
         // Load the tire mapping from flash.
         ConfigStore::Error loadTireMap(uint8_t* map) override;

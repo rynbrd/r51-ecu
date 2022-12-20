@@ -4,13 +4,14 @@
 #include <Arduino.h>
 #include <Blink.h>
 #include <Caster.h>
-#include <Core.h>
 #include <Controls.h>
+#include <Core.h>
+#include <Platform.h>
 #include <RotaryEncoder.h>
 #include <Vehicle.h>
 #include "CAN.h"
 #include "J1939.h"
-#include "Platform.h"
+#include "Pipe.h"
 
 #ifndef PICO_RP2040
 #error "Target platform is not RP2040."
@@ -30,7 +31,7 @@ using ::Caster::Node;
 ConsoleNode console(&SERIAL_DEVICE);
 #endif
 
-PicoConfigStore config;
+PlatformConfigStore config;
 
 // TODO: Add BLE RealDash integration.
 
@@ -114,7 +115,7 @@ SteeringControls steering_controls(STEERING_KEYPAD_ID);
 /**
  * Create Internal Bus
  */
-PicoFilteredPipe pipe;
+FilteredPipe pipe;
 
 Node<Message>* io_nodes[] = {
     pipe.left(),

@@ -11,12 +11,12 @@ extern "C" {
 
 namespace R51 {
 
-class PicoPipe;
+class Pipe;
 
-// Caster node implementation for PicoPipe. Do not use this directly.
-class PicoPipeNode : public Caster::Node<Message> {
+// Caster node implementation for Pipe. Do not use this directly.
+class PipeNode : public Caster::Node<Message> {
     public:
-        PicoPipeNode(PicoPipe* parent, int8_t side) : parent_(parent), side_(side) {}
+        PipeNode(Pipe* parent, int8_t side) : parent_(parent), side_(side) {}
 
         // Send event to the write queue.
         void handle(const Message& msg, const Caster::Yield<Message>&) override;
@@ -24,7 +24,7 @@ class PicoPipeNode : public Caster::Node<Message> {
         // Emit the next message in the read queue.
         void emit(const Caster::Yield<Message>& yield) override;
     private:
-        PicoPipe* parent_;
+        Pipe* parent_;
         int8_t side_;
 
         queue_t* read_queue() const;
@@ -32,21 +32,21 @@ class PicoPipeNode : public Caster::Node<Message> {
         bool filter(const Message& msg);
 };
 
-// PicoPipe allows two RP2040 cores to each run their own bus and communicate
-// over it via a shared queue. A PicoPipe object exposes two nodes that should
+// Pipe allows two RP2040 cores to each run their own bus and communicate
+// over it via a shared queue. A Pipe object exposes two nodes that should
 // be added to the buses running on their respective cores.
 //
 // Messages received when a queue is full are discarded. The queue sizes should
 // be carefully chosen to handle bursty writes to the bus. Filtering should be
 // used to mitigate this, only transmitting relevant events across the cores.
-class PicoPipe {
+class Pipe {
     public:
-        // Construct a PicoPipe node with the given queue capacities. The left
+        // Construct a Pipe node with the given queue capacities. The left
         // and right nodes write to the left and right queues respectively.
-        PicoPipe(size_t left_capacity, size_t right_capacity);
+        Pipe(size_t left_capacity, size_t right_capacity);
 
         // Destroy the object. Frees memory associated with the underlying queues.
-        ~PicoPipe();
+        ~Pipe();
 
         // Return a pointer to the "left" node. Messages received by this node
         // are yielded to the "right" node's bus.
@@ -70,10 +70,10 @@ class PicoPipe {
         queue_t left_queue_;    // Left node produces to this queue.
         queue_t right_queue_;   // Right node produces to this queue.
 
-        PicoPipeNode left_node_;
-        PicoPipeNode right_node_;
+        PipeNode left_node_;
+        PipeNode right_node_;
 
-        friend class PicoPipeNode;
+        friend class PipeNode;
 };
 
 }  // namespace R51

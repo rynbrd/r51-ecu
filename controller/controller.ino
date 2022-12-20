@@ -7,7 +7,7 @@
 #include <Controls.h>
 #include <RotaryEncoder.h>
 #include "J1939.h"
-#include "Platform.h"
+#include "Pipe.h"
 
 #ifndef PICO_RP2040
 #error "Target platform is not RP2040."
@@ -74,7 +74,7 @@ PowerControls power_controls(BLINK_KEYPAD_ID, BLINK_KEYBOX_ID);
 SteeringControls steering_controls(STEERING_KEYPAD_ID);
 
 // Create internal bus.
-PicoFilteredPipe pipe;
+FilteredPipe pipe;
 
 Node<Message>* io_nodes[] = {
     pipe.left(),

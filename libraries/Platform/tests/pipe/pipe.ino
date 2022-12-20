@@ -12,10 +12,10 @@ using ::Caster::Bus;
 using ::Caster::Node;
 using ::Caster::Yield;
 
-class PicoPipeTestImpl : public PicoPipe {
+class PipeTestImpl : public Pipe {
     public:
-        PicoPipeTestImpl(size_t left_capacity, size_t right_capacity) :
-            PicoPipe(left_capacity, right_capacity) {}
+        PipeTestImpl(size_t left_capacity, size_t right_capacity) :
+            Pipe(left_capacity, right_capacity) {}
 
         bool filterLeft(const Message& msg) override {
             return msg.type() != Message::EVENT || msg.event()->id < 0x10;
@@ -49,12 +49,12 @@ class FakeNode : public Node<Message> {
         size_t capacity;
 };
 
-test(PicoPipeTest, TransferLeftToRight) {
+test(PipeTest, TransferLeftToRight) {
     Event event(0x01, 0x02);
     MessageView msg(&event);
     FakeNode<2> fake;
 
-    PicoPipe smp(1, 1);
+    Pipe smp(1, 1);
     Node<Message>* left_nodes[] = {smp.left()};
     Caster::Bus<Message> left_bus(left_nodes, sizeof(left_nodes)/sizeof(left_nodes[0]));
     Node<Message>* right_nodes[] = {smp.right(), &fake};
@@ -67,12 +67,12 @@ test(PicoPipeTest, TransferLeftToRight) {
     assertPrintablesEqual(fake.messages[0], msg);
 }
 
-test(PicoPipeTest, TransferRightToLeft) {
+test(PipeTest, TransferRightToLeft) {
     Event event(0x13, 0x04);
     MessageView msg(&event);
     FakeNode<2> fake;
 
-    PicoPipe smp(1, 1);
+    Pipe smp(1, 1);
     Node<Message>* left_nodes[] = {smp.left(), &fake};
     Caster::Bus<Message> left_bus(left_nodes, sizeof(left_nodes)/sizeof(left_nodes[0]));
     Node<Message>* right_nodes[] = {smp.right()};
@@ -85,14 +85,14 @@ test(PicoPipeTest, TransferRightToLeft) {
     assertPrintablesEqual(fake.messages[0], msg);
 }
 
-test(PicoPipeTest, FilterLeft) {
+test(PipeTest, FilterLeft) {
     Event event1(0x01, 0x02);
     MessageView msg1(&event1);
     Event event2(0x01, 0x12);
     MessageView msg2(&event2);
     FakeNode<2> fake;
 
-    PicoPipeTestImpl smp(2, 2);
+    PipeTestImpl smp(2, 2);
     Node<Message>* left_nodes[] = {smp.left()};
     Caster::Bus<Message> left_bus(left_nodes, sizeof(left_nodes)/sizeof(left_nodes[0]));
     Node<Message>* right_nodes[] = {smp.right(), &fake};
@@ -107,14 +107,14 @@ test(PicoPipeTest, FilterLeft) {
     assertPrintablesEqual(fake.messages[0], msg1);
 }
 
-test(PicoPipeTest, FilterRight) {
+test(PipeTest, FilterRight) {
     Event event1(0x01, 0x02);
     MessageView msg1(&event1);
     Event event2(0x01, 0x12);
     MessageView msg2(&event2);
     FakeNode<2> fake;
 
-    PicoPipeTestImpl smp(2, 2);
+    PipeTestImpl smp(2, 2);
     Node<Message>* left_nodes[] = {smp.left(), &fake};
     Caster::Bus<Message> left_bus(left_nodes, sizeof(left_nodes)/sizeof(left_nodes[0]));
     Node<Message>* right_nodes[] = {smp.right()};
@@ -129,7 +129,7 @@ test(PicoPipeTest, FilterRight) {
     assertPrintablesEqual(fake.messages[0], msg2);
 }
 
-test(PicoPipeTest, Overrun) {
+test(PipeTest, Overrun) {
     Event event1(0x01, 0x01);
     MessageView msg1(&event1);
     Event event2(0x01, 0x02);
@@ -139,7 +139,7 @@ test(PicoPipeTest, Overrun) {
     FakeNode<2> fake;
 
     Serial.println(">>> start");
-    PicoPipeTestImpl smp(1, 1);
+    PipeTestImpl smp(1, 1);
     Node<Message>* left_nodes[] = {smp.left()};
     Caster::Bus<Message> left_bus(left_nodes, sizeof(left_nodes)/sizeof(left_nodes[0]));
     Node<Message>* right_nodes[] = {smp.right(), &fake};
