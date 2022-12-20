@@ -38,43 +38,43 @@ class SettingsTest : public TestOnce {
         }
 
         void fillEnterRequest(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x02, 0x10, 0xC0});
+            fillFrame(frame, id, (uint8_t[]){0x02, 0x10, 0xC0});
         }
 
         void fillEnterResponse(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x02, 0x50, 0xC0});
+            fillFrame(frame, id, (uint8_t[]){0x02, 0x50, 0xC0});
         }
 
         void fillExitRequest(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x02, 0x10, 0x81});
+            fillFrame(frame, id, (uint8_t[]){0x02, 0x10, 0x81});
         }
 
         void fillExitResponse(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x02, 0x50, 0x81});
+            fillFrame(frame, id, (uint8_t[]){0x02, 0x50, 0x81});
         }
 
         void fillUpdateRequest(CAN20Frame* frame, uint32_t id, uint8_t command, uint8_t value) {
-            fillFrame(frame, id, {0x03, 0x3B, command, value});
+            fillFrame(frame, id, (uint8_t[]){0x03, 0x3B, command, value});
         }
 
         void fillUpdateResponse(CAN20Frame* frame, uint32_t id, uint8_t command) {
-            fillFrame(frame, id, {0x02, 0x7B, command});
+            fillFrame(frame, id, (uint8_t[]){0x02, 0x7B, command});
         }
 
         void fillResetRequest(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x03, 0x3B, 0x1F, 0x00});
+            fillFrame(frame, id, (uint8_t[]){0x03, 0x3B, 0x1F, 0x00});
         }
 
         void fillResetResponse(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x02, 0x7B, 0x1F});
+            fillFrame(frame, id, (uint8_t[]){0x02, 0x7B, 0x1F});
         }
 
         void fillState0221Request(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x02, 0x21, 0x01});
+            fillFrame(frame, id, (uint8_t[]){0x02, 0x21, 0x01});
         }
 
         void fillState3000Request(CAN20Frame* frame, uint32_t id) {
-            fillFrame(frame, id, {0x30, 0x00, 0x0A});
+            fillFrame(frame, id, (uint8_t[]){0x30, 0x00, 0x0A});
         }
 
         void setAutoHeadlightDelayState(CAN20Frame* state21, byte value) {
@@ -219,23 +219,23 @@ testF(SettingsTest, Init) {
 
     // Receive next init frames.
     settings.emit(yield);
-    fillFrame(&frameE, 0x71E, {0x02, 0x3B, 0x00});
-    fillFrame(&frameF, 0x71F, {0x02, 0x3B, 0x00});
+    fillFrame(&frameE, 0x71E, (uint8_t[]){0x02, 0x3B, 0x00});
+    fillFrame(&frameF, 0x71F, (uint8_t[]){0x02, 0x3B, 0x00});
     assertSize(yield, 2);
     assertIsCANFrame(yield.messages()[0], frameE);
     assertIsCANFrame(yield.messages()[1], frameF);
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07});
     settings.handle(MessageView(&frameE), yield);
-    fillFrame(&frameF, 0x72F, {0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07});
+    fillFrame(&frameF, 0x72F, (uint8_t[]){0x06, 0x7B, 0x00, 0x60, 0x01, 0x0E, 0x07});
     settings.handle(MessageView(&frameF), yield);
     yield.clear();
 
     // Receive next init frames. Final F frame.
     settings.emit(yield);
-    fillFrame(&frameE, 0x71E, {0x02, 0x3B, 0x20});
+    fillFrame(&frameE, 0x71E, (uint8_t[]){0x02, 0x3B, 0x20});
     fillExitRequest(&frameF, 0x71F);
     assertSize(yield, 2);
     assertIsCANFrame(yield.messages()[0], frameE);
@@ -243,7 +243,7 @@ testF(SettingsTest, Init) {
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x20, 0xC2, 0x6F, 0x73, 0xD3});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x06, 0x7B, 0x20, 0xC2, 0x6F, 0x73, 0xD3});
     settings.handle(MessageView(&frameE), yield);
     fillExitResponse(&frameF, 0x72F);
     settings.handle(MessageView(&frameF), yield);
@@ -251,25 +251,25 @@ testF(SettingsTest, Init) {
 
     // Receive next E init Frame.
     settings.emit(yield);
-    fillFrame(&frameE, 0x71E, {0x02, 0x3B, 0x40});
+    fillFrame(&frameE, 0x71E, (uint8_t[]){0x02, 0x3B, 0x40});
     assertSize(yield, 1);
     assertIsCANFrame(yield.messages()[0], frameE);
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x40, 0xC2, 0xA1, 0x90, 0x01});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x06, 0x7B, 0x40, 0xC2, 0xA1, 0x90, 0x01});
     settings.handle(MessageView(&frameE), yield);
     yield.clear();
 
     // Receive next E init Frame.
     settings.emit(yield);
-    fillFrame(&frameE, 0x71E, {0x02, 0x3B, 0x60});
+    fillFrame(&frameE, 0x71E, (uint8_t[]){0x02, 0x3B, 0x60});
     assertSize(yield, 1);
     assertIsCANFrame(yield.messages()[0], frameE);
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x06, 0x7B, 0x60, 0x00, 0xFF, 0xF1, 0x70});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x06, 0x7B, 0x60, 0x00, 0xFF, 0xF1, 0x70});
     settings.handle(MessageView(&frameE), yield);
     yield.clear();
 
@@ -324,9 +324,9 @@ testF(SettingsTest, RequestState) {
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00});
     settings.handle(MessageView(&frameE), yield);
-    fillFrame(&frameF, 0x72F, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF});
+    fillFrame(&frameF, 0x72F, (uint8_t[]){0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF});
     settings.handle(MessageView(&frameF), yield);
     yield.clear();
 
@@ -340,9 +340,9 @@ testF(SettingsTest, RequestState) {
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00});
     settings.handle(MessageView(&frameE), yield);
-    fillFrame(&frameE, 0x72E, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF});
     settings.handle(MessageView(&frameE), yield);
     fillExitResponse(&frameF, 0x72F);
     settings.handle(MessageView(&frameF), yield);
@@ -361,7 +361,7 @@ testF(SettingsTest, RequestState) {
     yield.clear();
 
     // Ensure settings are at default.
-    Event event(SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
+    Event event(SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
     settings.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], event);
@@ -421,9 +421,9 @@ testF(SettingsTest, FactoryReset) {
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00});
     settings.handle(MessageView(&frameE), yield);
-    fillFrame(&frameF, 0x72F, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF});
+    fillFrame(&frameF, 0x72F, (uint8_t[]){0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF});
     settings.handle(MessageView(&frameF), yield);
 
     // Receive next E state frame and F exit frame.
@@ -436,9 +436,9 @@ testF(SettingsTest, FactoryReset) {
     yield.clear();
 
     // Simulate response.
-    fillFrame(&frameE, 0x72E, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00});
     settings.handle(MessageView(&frameE), yield);
-    fillFrame(&frameE, 0x72E, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF});
+    fillFrame(&frameE, 0x72E, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF});
     settings.handle(MessageView(&frameE), yield);
     fillExitResponse(&frameF, 0x72F);
     settings.handle(MessageView(&frameF), yield);
@@ -457,7 +457,7 @@ testF(SettingsTest, FactoryReset) {
     yield.clear();
 
     // Ensure settings are at default.
-    event = Event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
+    event = Event((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
     settings.emit(yield);
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], event);
@@ -468,10 +468,10 @@ testF(SettingsTest, ToggleAutoInteriorIllumination) {
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 0, 0);
@@ -494,8 +494,8 @@ testF(SettingsTest, ToggleSlideDriverSeat) {
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state05 = {0x72F, 8, {0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state05 = {0x72F, 8, (uint8_t[]){0x05, 0x61, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 0, 1);
@@ -518,10 +518,10 @@ testF(SettingsTest, ToggleSpeedSensingWipers) {
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 0, 2);
@@ -544,10 +544,10 @@ testF(SettingsTest, AutoHeadlightSensitivity) {
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting.
     expect.data[1] = 1;
@@ -593,10 +593,10 @@ testF(SettingsTest, AutoHeadlightOffDelay) {
     // Initial state.
     byte value = 0x00;
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to 30s.
     value = 0x02;
@@ -695,10 +695,10 @@ testF(SettingsTest, ToggleSelectiveDoorUnlock) {
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 2, 0);
@@ -722,10 +722,10 @@ testF(SettingsTest, AutoReLockTime) {
     // Initial state.
     byte value = 0x00;
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to 1m (default).
     value = 0x00;
@@ -764,10 +764,10 @@ testF(SettingsTest, RemoteKeyResponseHorn) {
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Toggle setting on.
     flipBit(expect.data, 3, 0);
@@ -791,10 +791,10 @@ testF(SettingsTest, RemoteKeyResponseLights) {
     // Initial state.
     byte value = 0x00;
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
-    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, {0x00, 0x00, 0x00, 0x00});
-    CAN20Frame state10 = {0x72E, 8, {0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
-    CAN20Frame state21 = {0x72E, 8, {0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
-    CAN20Frame state22 = {0x72E, 8, {0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
+    Event expect((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
+    CAN20Frame state10 = {0x72E, 8, (uint8_t[]){0x10, 0x11, 0x61, 0x01, 0x00, 0x1E, 0x24, 0x00}};
+    CAN20Frame state21 = {0x72E, 8, (uint8_t[]){0x21, 0x10, 0x0C, 0x40, 0x40, 0x01, 0x64, 0x00}};
+    CAN20Frame state22 = {0x72E, 8, (uint8_t[]){0x22, 0x94, 0x00, 0x00, 0x47, 0xFF, 0xFF, 0xFF}};
 
     // Increase setting to "unlock".
     value = 0x01;

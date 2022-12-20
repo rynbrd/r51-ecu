@@ -43,7 +43,7 @@ class KeyState : public Event {
             Event(
                 SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::KEY_STATE,
-                {keypad, key, pressed}) {}
+                {keypad, key, (uint8_t)pressed}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -59,7 +59,7 @@ class EncoderState : public Event {
     public:
         EncoderState() : Event(SubSystem::KEYPAD,
                 (uint8_t)KeypadEvent::ENCODER_STATE,
-                {0x00, 0x00, 0x00}) {}
+                (uint8_t[]){0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad. This is assigned to the Keypad object on construction.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -76,7 +76,7 @@ class IndicatorCommand : public Event {
     public:
         IndicatorCommand(uint8_t keypad = 0xFF) :
                 Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::INDICATOR_CMD,
-                        {keypad, 0xFF, 0x00, 0x00, 0x00}) {}
+                        (uint8_t[]){keypad, 0xFF, 0x00, 0x00, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -99,7 +99,7 @@ class BrightnessCommand : public Event {
     public:
         BrightnessCommand(uint8_t keypad = 0xFF) :
                 Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::BRIGHTNESS_CMD,
-                        {keypad, 0x00}) {}
+                        (uint8_t[]){keypad, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);
@@ -114,7 +114,7 @@ class BacklightCommand : public Event {
     public:
         BacklightCommand(uint8_t keypad = 0xFF) :
                 Event(SubSystem::KEYPAD, (uint8_t)KeypadEvent::BACKLIGHT_CMD,
-                        {keypad, 0x00}) {}
+                        (uint8_t[]){keypad, 0x00}) {}
 
         // The ID of the keypad.
         EVENT_PROPERTY(uint8_t, keypad, data[0], data[0] = value);

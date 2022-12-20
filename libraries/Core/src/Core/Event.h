@@ -81,12 +81,12 @@ class RequestCommand : public Event {
         RequestCommand() :
             Event(SubSystem::CONTROLLER,
                 (uint8_t)ControllerEvent::REQUEST_CMD,
-                {0xFF, 0xFF}) {}
+                {(uint8_t)0xFF, (uint8_t)0xFF}) {}
 
         RequestCommand(SubSystem request_subsystem) :
             Event(SubSystem::CONTROLLER,
                 (uint8_t)ControllerEvent::REQUEST_CMD,
-                {(uint8_t)request_subsystem, 0xFF}) {}
+                {(uint8_t)request_subsystem, (uint8_t)0xFF}) {}
 
         RequestCommand(SubSystem request_subsystem, uint8_t request_id) :
             Event(SubSystem::CONTROLLER,
@@ -115,11 +115,15 @@ bool operator!=(const Event& left, const Event& right);
 
 template <size_t N>
 Event::Event(uint8_t subsystem, uint8_t id, const uint8_t (&data)[N]) :
-        Event(subsystem, id, data, N) {}
+        Event(subsystem, id) {
+    for (size_t i = 0; i <  N; ++i) {
+        this->data[i] = data[i];
+    }
+}
 
 template <size_t N>
 Event::Event(SubSystem subsystem, uint8_t id, const uint8_t (&data)[N]) :
-        Event((uint8_t)subsystem, id, data, N) {}
+        Event((uint8_t)subsystem, id, data) {}
 
 }  // namespace R51
 

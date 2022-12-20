@@ -48,7 +48,7 @@ void Defrost::emit(const Caster::Yield<Message>&) {
 
 TirePressure::TirePressure(ConfigStore* config, uint32_t tick_ms, Faker::Clock* clock) :
     config_(config), event_((uint8_t)SubSystem::BCM,
-    (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x00, 0x00, 0x00, 0x00}),
+    (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00}),
     ticker_(tick_ms, tick_ms == 0, clock), map_{0, 1, 2, 3} {
         if (config_ != nullptr) {
             config_->loadTireMap(map_);

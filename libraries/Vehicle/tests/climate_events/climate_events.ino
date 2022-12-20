@@ -27,7 +27,7 @@ test(ClimateTempStateTest, Setters) {
     event.outside_temp(0x49);
     event.units(UNITS_US);
 
-    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TEMP_STATE, {0x40, 0x41, 0x49, 0x01});
+    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TEMP_STATE, (uint8_t[]){0x40, 0x41, 0x49, 0x01});
     assertPrintablesEqual(event, expect);
 }
 
@@ -49,7 +49,7 @@ test(ClimateAirflowStateTest, Setters) {
     event.face(true);
     event.recirculate(true);
 
-    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::AIRFLOW_STATE, {0x07, 0x09});
+    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::AIRFLOW_STATE, (uint8_t[]){0x07, 0x09});
     assertPrintablesEqual(event, expect);
 }
 
@@ -87,7 +87,7 @@ test(ClimateSystemStateTest, SetOff) {
     event.ac(false);
     event.dual(false);
 
-    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, {0x00});
+    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, (uint8_t[]){0x00});
     assertPrintablesEqual(event, expect);
 }
 
@@ -96,7 +96,7 @@ test(ClimateSystemStateTest, SetAutoAC) {
     event.mode(CLIMATE_SYSTEM_AUTO);
     event.ac(true);
 
-    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, {0x05});
+    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, (uint8_t[]){0x05});
     assertPrintablesEqual(event, expect);
 }
 
@@ -106,7 +106,7 @@ test(ClimateSystemStateTest, SetDefogACDual) {
     event.ac(true);
     event.dual(true);
 
-    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, {0x0F});
+    Event expect((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, (uint8_t[]){0x0F});
     assertPrintablesEqual(event, expect);
 }
 

@@ -70,7 +70,7 @@ test(IllumTest, RequestIllum) {
     FakeYield yield;
     Illum illum;
 
-    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0xFF});
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0xFF});
     illum.handle(MessageView(&event), yield);
     yield.clear();
 
@@ -87,7 +87,7 @@ test(IllumTest, OnWhenLowBeam) {
     FakeYield yield;
     Illum illum;
 
-    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x02});
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x02});
     IllumState expect;
     expect.illum(true);
 
@@ -100,7 +100,7 @@ test(IllumTest, OnWhenHighBeam) {
     FakeYield yield;
     Illum illum;
 
-    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x01});
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x01});
     IllumState expect;
     expect.illum(true);
 
@@ -113,7 +113,7 @@ test(IllumTest, RemainOnWhenHighBeamToggle) {
     FakeYield yield;
     Illum illum;
 
-    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x02});
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x02});
     IllumState expect;
     expect.illum(true);
 
@@ -122,7 +122,7 @@ test(IllumTest, RemainOnWhenHighBeamToggle) {
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
-    event = Event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x01});
+    event = Event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x01});
     illum.handle(MessageView(&event), yield);
     assertSize(yield, 0);
 }
@@ -131,7 +131,7 @@ test(IllumTest, OnWhenBothBeamsOn) {
     FakeYield yield;
     Illum illum;
 
-    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x03});
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x03});
     IllumState expect;
     expect.illum(true);
 
@@ -144,7 +144,7 @@ test(IllumTest, OffWhenBeamsOff) {
     FakeYield yield;
     Illum illum;
 
-    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x02});
+    Event event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x02});
     IllumState expect;
     expect.illum(true);
 
@@ -153,7 +153,7 @@ test(IllumTest, OffWhenBeamsOff) {
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
-    event = Event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+    event = Event(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x00});
     expect.illum(false);
 
     illum.handle(MessageView(&event), yield);
@@ -218,7 +218,7 @@ test(DefrostTest, Trigger) {
 
 test(TirePressureTest, IgnoreIncorrectID) {
     FakeYield yield;
-    CAN20Frame f(0x384, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x384, 0, (uint8_t[]){0x84, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
@@ -244,7 +244,7 @@ test(TirePressureTest, Tick) {
     tire.emit(yield);
     assertSize(yield, 0);
 
-    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x00, 0x00, 0x00, 0x00});
+    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00});
     clock.set(200);
     tire.emit(yield);
     assertIsEvent(yield.messages()[0], expect);
@@ -252,61 +252,61 @@ test(TirePressureTest, Tick) {
 
 test(TirePressureTest, AllSet) {
     FakeYield yield;
-    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x84, 0x79, 0x77, 0x00, 0xF0});
+    CAN20Frame f(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x82, 0x84, 0x79, 0x77, 0x00, 0xF0});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
 
-    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x82, 0x84, 0x79, 0x77});
+    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x82, 0x84, 0x79, 0x77});
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(TirePressureTest, Tire1Set) {
     FakeYield yield;
-    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x82, 0x00, 0x00, 0x00, 0x00, 0x80});
+    CAN20Frame f(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x82, 0x00, 0x00, 0x00, 0x00, 0x80});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
 
-    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x82, 0x00, 0x00, 0x00});
+    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x82, 0x00, 0x00, 0x00});
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(TirePressureTest, Tire2Set) {
     FakeYield yield;
-    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x40});
+    CAN20Frame f(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x40});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
 
-    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x00, 0xA0, 0x00, 0x00});
+    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x00, 0xA0, 0x00, 0x00});
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(TirePressureTest, Tire3Set) {
     FakeYield yield;
-    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x75, 0x00, 0x00, 0x20});
+    CAN20Frame f(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x00, 0x00, 0x75, 0x00, 0x00, 0x20});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
 
-    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x00, 0x00, 0x75, 0x00});
+    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x00, 0x00, 0x75, 0x00});
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(TirePressureTest, Tire4Set) {
     FakeYield yield;
-    CAN20Frame f(0x385, 0, {0x84, 0x0C, 0x00, 0x00, 0x00, 0x77, 0x00, 0x10});
+    CAN20Frame f(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x00, 0x00, 0x00, 0x77, 0x00, 0x10});
 
     TirePressure tire;
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
 
-    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x00, 0x00, 0x00, 0x77});
+    Event expect((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x77});
     assertIsEvent(yield.messages()[0], expect);
 }
 
@@ -318,46 +318,46 @@ test(TirePressureTest, Swap) {
     Event expect;
 
     // Populate initial values from frame.
-    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
-    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x01, 0x02, 0x03, 0x04});
+    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x01, 0x02, 0x03, 0x04});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
     // Send control frame to swap positions.
-    control = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_SWAP_CMD, {0x03});
+    control = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_SWAP_CMD, (uint8_t[]){0x03});
     tire.handle(MessageView(&control), yield);
     tire.emit(yield);
-    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x04, 0x02, 0x03, 0x01});
+    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x04, 0x02, 0x03, 0x01});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
     // Send new values from frame.
-    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x11, 0x12, 0x13, 0x14, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x11, 0x12, 0x13, 0x14, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
-    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x14, 0x12, 0x13, 0x11});
+    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x14, 0x12, 0x13, 0x11});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
     // Send control frame to swap positions again.
-    control = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_SWAP_CMD, {0x23});
+    control = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_SWAP_CMD, (uint8_t[]){0x23});
     tire.handle(MessageView(&control), yield);
     tire.emit(yield);
-    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x14, 0x12, 0x11, 0x13});
+    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x14, 0x12, 0x11, 0x13});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
 
     // Send new values from frame.
-    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x21, 0x22, 0x23, 0x24, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x21, 0x22, 0x23, 0x24, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
-    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, {0x24, 0x22, 0x21, 0x23});
+    expect = Event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TIRE_PRESSURE_STATE, (uint8_t[]){0x24, 0x22, 0x21, 0x23});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
@@ -373,10 +373,10 @@ test(TirePressureTest, RequestPressureTest) {
     Event expect(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
-        {0x01, 0x02, 0x03, 0x04});
+        (uint8_t[]){0x01, 0x02, 0x03, 0x04});
 
     // Populate initial values from frame.
-    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     assertSize(yield, 1);
@@ -403,10 +403,10 @@ test(TirePressureTest, RequestSubSystem) {
     Event expect(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
-        {0x01, 0x02, 0x03, 0x04});
+        (uint8_t[]){0x01, 0x02, 0x03, 0x04});
 
     // Populate initial values from frame.
-    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     assertSize(yield, 1);
@@ -433,10 +433,10 @@ test(TirePressureTest, RequestAll) {
     Event expect(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
-        {0x01, 0x02, 0x03, 0x04});
+        (uint8_t[]){0x01, 0x02, 0x03, 0x04});
 
     // Populate initial values from frame.
-    f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     tire.handle(MessageView(&f), yield);
     tire.emit(yield);
     assertSize(yield, 1);
@@ -459,11 +459,11 @@ test(TirePressureTest, LoadInitialInvalidMap) {
     FakeYield yield;
     FakeConfigStore config(false);
     TirePressure tire(&config);
-    CAN20Frame f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    CAN20Frame f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect = Event(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
-        {0x01, 0x02, 0x03, 0x04});
+        (uint8_t[]){0x01, 0x02, 0x03, 0x04});
 
     // Ensure values are in the order provided by the frame.
     tire.handle(MessageView(&f), yield);
@@ -477,11 +477,11 @@ test(TirePressureTest, LoadInitialValidMap) {
     FakeYield yield;
     FakeConfigStore config(true, {0, 2, 1, 3});
     TirePressure tire(&config);
-    CAN20Frame f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    CAN20Frame f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect = Event(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
-        {0x01, 0x03, 0x02, 0x04});
+        (uint8_t[]){0x01, 0x03, 0x02, 0x04});
 
     // Ensure values are in the order provided by the frame.
     tire.handle(MessageView(&f), yield);
@@ -495,7 +495,7 @@ test(TirePressureTest, SwapAndSaveMap) {
     FakeYield yield;
     FakeConfigStore config(true);
     TirePressure tire(&config);
-    CAN20Frame f = CAN20Frame(0x385, 0, {0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
+    CAN20Frame f = CAN20Frame(0x385, 0, (uint8_t[]){0x84, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x00, 0xF0});
     Event expect;
 
     // Ensure values are in the order provided by the frame.
@@ -504,7 +504,7 @@ test(TirePressureTest, SwapAndSaveMap) {
     expect = Event(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
-        {0x01, 0x02, 0x03, 0x04});
+        (uint8_t[]){0x01, 0x02, 0x03, 0x04});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();
@@ -513,13 +513,13 @@ test(TirePressureTest, SwapAndSaveMap) {
     Event control = Event(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_SWAP_CMD,
-        {0x03});
+        (uint8_t[]){0x03});
     tire.handle(MessageView(&control), yield);
     tire.emit(yield);
     expect = Event(
         (uint8_t)SubSystem::BCM,
         (uint8_t)BCMEvent::TIRE_PRESSURE_STATE,
-        {0x04, 0x02, 0x03, 0x01});
+        (uint8_t[]){0x04, 0x02, 0x03, 0x01});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
     yield.clear();

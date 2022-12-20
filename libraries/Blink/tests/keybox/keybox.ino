@@ -20,7 +20,7 @@ test(KeyboxTest, SetOutput) {
 
     // assign source address
     J1939Claim claim(ecm_address, 0);
-    keybox.handle(claim, yield);
+    keybox.handle(MessageView(&claim), yield);
     assertSize(yield, 0);
 
     // turn on
@@ -28,7 +28,7 @@ test(KeyboxTest, SetOutput) {
     cmd.pdm(pdm_id);
     cmd.pin(3);
     cmd.cmd(PowerCmd::ON);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     J1939Message expect_msg(0xEF00, ecm_address, pdm_address, 6);
     expect_msg.data({0x04, 0x1B, 0x01, 0x04, 0x01, 0xFF, 0xFF, 0xFF});
@@ -44,7 +44,7 @@ test(KeyboxTest, SetOutput) {
     yield.clear();
 
     // turn on again
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
     assertSize(yield, 0);
 }
 
@@ -57,7 +57,7 @@ test(KeyboxTest, PWM) {
 
     // assign source address
     J1939Claim claim(ecm_address, 0);
-    keybox.handle(claim, yield);
+    keybox.handle(MessageView(&claim), yield);
     assertSize(yield, 0);
 
     // turn on
@@ -65,7 +65,7 @@ test(KeyboxTest, PWM) {
     cmd.pdm(pdm_id);
     cmd.pin(11);
     cmd.cmd(PowerCmd::ON);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     J1939Message expect_msg(0xEF00, ecm_address, pdm_address, 6);
     expect_msg.data({0x04, 0x1B, 0x03, 0xFF, 0x00, 0xFF, 0xFF, 0xFF});
@@ -85,7 +85,7 @@ test(KeyboxTest, PWM) {
     cmd.pdm(pdm_id);
     cmd.pin(11);
     cmd.cmd(PowerCmd::OFF);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     expect_msg.data({0x04, 0x1B, 0x03, 0x00, 0x00, 0xFF, 0xFF, 0xFF});
 
@@ -104,7 +104,7 @@ test(KeyboxTest, PWM) {
     cmd.pin(11);
     cmd.cmd(PowerCmd::PWM);
     cmd.duty_cycle(0xB3);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     expect_msg.data({0x04, 0x1B, 0x03, 0xB3, 0x00, 0xFF, 0xFF, 0xFF});
 
@@ -123,7 +123,7 @@ test(KeyboxTest, PWM) {
     cmd.pin(12);
     cmd.cmd(PowerCmd::PWM);
     cmd.duty_cycle(0x51);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     expect_msg.data({0x04, 0x1B, 0x03, 0xB3, 0x51, 0xFF, 0xFF, 0xFF});
 
@@ -142,7 +142,7 @@ test(KeyboxTest, PWM) {
     cmd.pin(11);
     cmd.cmd(PowerCmd::PWM);
     cmd.duty_cycle(0xB3);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     assertSize(yield, 0);
 }
@@ -156,7 +156,7 @@ test(KeyboxTest, ToggleOutput) {
 
     // assign source address
     J1939Claim claim(ecm_address, 0);
-    keybox.handle(claim, yield);
+    keybox.handle(MessageView(&claim), yield);
     assertSize(yield, 0);
 
     // toggle on
@@ -164,7 +164,7 @@ test(KeyboxTest, ToggleOutput) {
     cmd.pdm(pdm_id);
     cmd.pin(9);
     cmd.cmd(PowerCmd::TOGGLE);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     J1939Message expect_msg(0xEF00, ecm_address, pdm_address, 6);
     expect_msg.data({0x04, 0x1B, 0x01, 0x0A, 0x01, 0xFF, 0xFF, 0xFF});
@@ -183,7 +183,7 @@ test(KeyboxTest, ToggleOutput) {
     cmd.pdm(pdm_id);
     cmd.pin(9);
     cmd.cmd(PowerCmd::TOGGLE);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     expect_msg.data({0x04, 0x1B, 0x01, 0x0A, 0x00, 0xFF, 0xFF, 0xFF});
 
@@ -206,7 +206,7 @@ test(KeyboxTest, TogglePWM) {
 
     // assign source address
     J1939Claim claim(ecm_address, 0);
-    keybox.handle(claim, yield);
+    keybox.handle(MessageView(&claim), yield);
     assertSize(yield, 0);
 
     // turn on
@@ -215,7 +215,7 @@ test(KeyboxTest, TogglePWM) {
     cmd.pin(11);
     cmd.cmd(PowerCmd::PWM);
     cmd.duty_cycle(0x15);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     J1939Message expect_msg(0xEF00, ecm_address, pdm_address, 6);
     expect_msg.data({0x04, 0x1B, 0x03, 0x15, 0x00, 0xFF, 0xFF, 0xFF});
@@ -235,7 +235,7 @@ test(KeyboxTest, TogglePWM) {
     cmd.pdm(pdm_id);
     cmd.pin(11);
     cmd.cmd(PowerCmd::TOGGLE);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     expect_msg.data({0x04, 0x1B, 0x03, 0x00, 0x00, 0xFF, 0xFF, 0xFF});
 
@@ -253,7 +253,7 @@ test(KeyboxTest, TogglePWM) {
     cmd.pdm(pdm_id);
     cmd.pin(11);
     cmd.cmd(PowerCmd::TOGGLE);
-    keybox.handle(cmd, yield);
+    keybox.handle(MessageView(&cmd), yield);
 
     expect_msg.data({0x04, 0x1B, 0x03, 0xFF, 0x00, 0xFF, 0xFF, 0xFF});
 

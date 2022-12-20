@@ -13,7 +13,7 @@ using ::Faker::FakeGPIO;
 
 test(IPDMTest, IgnoreIncorrectID) {
     FakeYield yield;
-    CAN20Frame f(0x624, 0, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x624, 0, (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
@@ -23,7 +23,7 @@ test(IPDMTest, IgnoreIncorrectID) {
 
 test(IPDMTest, IgnoreIncorrectSize) {
     FakeYield yield;
-    CAN20Frame f(0x625, 0, {0x00, 0x00, 0x00});
+    CAN20Frame f(0x625, 0, (uint8_t[]){0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
@@ -39,7 +39,7 @@ test(IPDMTest, Tick) {
     ipdm.emit(yield);
     assertSize(yield, 0);
 
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x00});
     clock.set(200);
     ipdm.emit(yield);
     assertSize(yield, 1);
@@ -48,78 +48,78 @@ test(IPDMTest, Tick) {
 
 test(IPDMTest, Defrost) {
     FakeYield yield;
-    CAN20Frame f(0x625, 0, {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x625, 0, (uint8_t[]){0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
     ipdm.emit(yield);
     
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x40});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x40});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(IPDMTest, HighBeams) {
     FakeYield yield;
-    CAN20Frame f(0x625, 0, {0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x625, 0, (uint8_t[]){0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
     ipdm.emit(yield);
 
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x01});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x01});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(IPDMTest, LowBeams) {
     FakeYield yield;
-    CAN20Frame f(0x625, 0, {0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x625, 0, (uint8_t[]){0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
     ipdm.emit(yield);
 
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x02});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x02});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(IPDMTest, FogLights) {
     FakeYield yield;
-    CAN20Frame f(0x625, 0, {0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x625, 0, (uint8_t[]){0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
     ipdm.emit(yield);
 
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x08});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x08});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(IPDMTest, RunningLights) {
     FakeYield yield;
-    CAN20Frame f(0x625, 0, {0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x625, 0, (uint8_t[]){0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
     ipdm.emit(yield);
 
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x04});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x04});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
 
 test(IPDMTest, ACCompressor) {
     FakeYield yield;
-    CAN20Frame f(0x625, 0, {0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    CAN20Frame f(0x625, 0, (uint8_t[]){0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&f), yield);
     ipdm.emit(yield);
 
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x80});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x80});
     assertSize(yield, 1);
     assertIsEvent(yield.messages()[0], expect);
 }
@@ -127,7 +127,7 @@ test(IPDMTest, ACCompressor) {
 test(IPDMTest, RequestPowerState) {
     FakeYield yield;
     RequestCommand control(SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE);
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&control), yield);
@@ -139,7 +139,7 @@ test(IPDMTest, RequestPowerState) {
 test(IPDMTest, RequestSubSystem) {
     FakeYield yield;
     RequestCommand control(SubSystem::IPDM);
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&control), yield);
@@ -151,7 +151,7 @@ test(IPDMTest, RequestSubSystem) {
 test(IPDMTest, RequestAll) {
     FakeYield yield;
     RequestCommand control;
-    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, {0x00});
+    Event expect((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE, (uint8_t[]){0x00});
 
     IPDM ipdm;
     ipdm.handle(MessageView(&control), yield);

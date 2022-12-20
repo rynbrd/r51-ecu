@@ -23,7 +23,7 @@ test(ConsoleCANTest, WriteEmpty) {
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
-    Message msg;
+    MessageValue msg;
     console.handle(msg, yield);
     assertSize(yield, 0);
 

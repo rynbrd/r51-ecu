@@ -21,7 +21,7 @@ enum class BCMEvent : uint8_t {
 
 class IllumState : public Event {
     public:
-        IllumState() : Event(SubSystem::BCM, (uint8_t)BCMEvent::ILLUM_STATE, {0x00}) {}
+        IllumState() : Event(SubSystem::BCM, (uint8_t)BCMEvent::ILLUM_STATE, (uint8_t[]){0x00}) {}
 
         EVENT_PROPERTY(bool, illum, data[0] != 0x00, data[0] = (uint8_t)value);
 };

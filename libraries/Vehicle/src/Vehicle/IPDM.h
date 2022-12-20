@@ -18,7 +18,7 @@ class IPDM : public Caster::Node<Message> {
     public:
         IPDM(uint32_t tick_ms = 0, Faker::Clock* clock = Faker::Clock::real()) :
             event_((uint8_t)SubSystem::IPDM, (uint8_t)IPDMEvent::POWER_STATE,
-                    {0x00}), ticker_(tick_ms, tick_ms == 0, clock) {}
+                    (uint8_t[]){0x00}), ticker_(tick_ms, tick_ms == 0, clock) {}
 
         // Handle a 0x625 IPDM state frame. Returns true if the state changed
         // as a result of handling the frame.

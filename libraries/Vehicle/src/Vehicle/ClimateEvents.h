@@ -38,7 +38,7 @@ enum ClimateSystemMode : uint8_t {
 // Climate temperature state event.
 class ClimateTempState : public Event {
     public:
-        ClimateTempState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TEMP_STATE, {0x00, 0x00, 0x00, 0x00}) {}
+        ClimateTempState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::TEMP_STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, driver_temp, data[0], data[0] = value)
         EVENT_PROPERTY(uint8_t, passenger_temp, data[1], data[1] = value)
@@ -49,7 +49,7 @@ class ClimateTempState : public Event {
 // Climate airflow state event.
 class ClimateAirflowState : public Event {
     public:
-        ClimateAirflowState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::AIRFLOW_STATE, {0x00, 0x00}) {}
+        ClimateAirflowState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::AIRFLOW_STATE, (uint8_t[]){0x00, 0x00}) {}
 
         EVENT_PROPERTY(uint8_t, fan_speed, data[0], data[0] = value)
         EVENT_PROPERTY(bool, face,
@@ -69,7 +69,7 @@ class ClimateAirflowState : public Event {
 // Climate system state event.
 class ClimateSystemState : public Event {
     public:
-        ClimateSystemState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, {0x00}) {}
+        ClimateSystemState() : Event((uint8_t)SubSystem::CLIMATE, (uint8_t)ClimateEvent::SYSTEM_STATE, (uint8_t[]){0x00}) {}
 
         EVENT_PROPERTY(ClimateSystemMode, mode,
                 (ClimateSystemMode)(data[0] & 0x03),

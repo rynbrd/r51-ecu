@@ -22,7 +22,7 @@ test(ConsoleEventTest, WriteEmpty) {
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
-    Message msg;
+    MessageValue msg;
     console.handle(msg, yield);
     assertSize(yield, 0);
 
@@ -38,7 +38,7 @@ test(ConsoleEventTest, WriteEventEmptyPayload) {
     ConsoleNode console(&stream);
 
     Event event(0x01, 0x02);
-    console.handle(event, yield);
+    console.handle(MessageView(&event), yield);
     assertSize(yield, 0);
 
     assertStringsEqual("console: event recv 01:02#FF:FF:FF:FF:FF:FF\r\n", buffer);
@@ -51,8 +51,8 @@ test(ConsoleEventTest, WriteEventPartialPayload) {
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
-    Event event(0x01, 0x02, {0xAA, 0xBB});
-    console.handle(event, yield);
+    Event event(0x01, 0x02, (uint8_t[]){0xAA, 0xBB});
+    console.handle(MessageView(&event), yield);
     assertSize(yield, 0);
 
     assertStringsEqual("console: event recv 01:02#AA:BB:FF:FF:FF:FF\r\n", buffer);
@@ -65,8 +65,8 @@ test(ConsoleEventTest, WriteEventFullPayload) {
     stream.set(buffer, buffer_size);
     ConsoleNode console(&stream);
 
-    Event event(0x01, 0x02, {0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE});
-    console.handle(event, yield);
+    Event event(0x01, 0x02, (uint8_t[]){0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE});
+    console.handle(MessageView(&event), yield);
     assertSize(yield, 0);
 
     assertStringsEqual("console: event recv 01:02#99:AA:BB:CC:DD:EE\r\n", buffer);
@@ -88,7 +88,7 @@ test(ConsoleEventTest, ReadEmptyEvent) {
 }
 
 test(ConsoleEventTest, ReadPartialEvent) {
-    Event expect(0x03, 0x04, {0x22, 0x33});
+    Event expect(0x03, 0x04, (uint8_t[]){0x22, 0x33});
     strcpy((char*)buffer, "event send 03:04#22:33\r\n");
 
     FakeReadStream stream;
@@ -103,7 +103,7 @@ test(ConsoleEventTest, ReadPartialEvent) {
 }
 
 test(ConsoleEventTest, ReadFullEvent) {
-    Event expect(0x03, 0x04, {0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
+    Event expect(0x03, 0x04, (uint8_t[]){0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
     strcpy((char*)buffer, "event send 03:04#22:33:44:55:66:77\n");
 
     FakeReadStream stream;
@@ -118,7 +118,7 @@ test(ConsoleEventTest, ReadFullEvent) {
 }
 
 test(ConsoleEventTest, ReadNoColons) {
-    Event expect(0x03, 0x04, {0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
+    Event expect(0x03, 0x04, (uint8_t[]){0x22, 0x33, 0x44, 0x55, 0x66, 0x77});
     strcpy((char*)buffer, "event send 03:04#223344556677\n");
 
     FakeReadStream stream;
@@ -133,7 +133,7 @@ test(ConsoleEventTest, ReadNoColons) {
 }
 
 test(ConsoleEventTest, ReadValidButBadlyFormedEvent) {
-    Event expect(0x03, 0x04, {0x22, 0x33, 0x04});
+    Event expect(0x03, 0x04, (uint8_t[]){0x22, 0x33, 0x04});
     strcpy((char*)buffer, "event send 03:04#2233:4\n");
 
     FakeReadStream stream;

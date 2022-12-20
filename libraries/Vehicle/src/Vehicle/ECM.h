@@ -17,7 +17,7 @@ enum class ECMEvent : uint8_t {
 class EngineTempState : public Caster::Node<Message> {
     public:
         EngineTempState(uint32_t tick_ms = 0, Faker::Clock* clock = Faker::Clock::real()) :
-            changed_(false), event_((uint8_t)SubSystem::ECM, (uint8_t)ECMEvent::ENGINE_TEMP_STATE, {0x00}),
+            changed_(false), event_((uint8_t)SubSystem::ECM, (uint8_t)ECMEvent::ENGINE_TEMP_STATE, (uint8_t[]){0x00}),
             ticker_(tick_ms, tick_ms == 0, clock) {}
 
         // Handle ECM 0x551 state frames. Returns true if the state changed as
