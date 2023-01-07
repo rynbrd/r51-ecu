@@ -79,7 +79,7 @@ The contents of this repository are covered under the GPLv3. See the [LICENSE]
 file for full details.
 
 
-[arduino-pico]: https://github.com/earlephilhower/arduino-pico
+[Arduino Pico Core]: https://github.com/earlephilhower/arduino-pico
 [Longan Labs]: https://www.longan-labs.cc/
 [CANBed RP2040]: http://docs.longan-labs.cc/1030018/
 [CANBed Dual]: http://docs.longan-labs.cc/1030019/
