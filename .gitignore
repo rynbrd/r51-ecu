@@ -3,3 +3,6 @@
 *.o
 *.out
 notes
+display/*.png
+display/assets
+display/fonts
