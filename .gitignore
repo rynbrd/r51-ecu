@@ -3,6 +3,5 @@
 *.o
 *.out
 notes
-display/*.png
-display/assets
-display/fonts
+ui/**/*.png
+ui/hmi/fonts
