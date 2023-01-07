@@ -11,10 +11,10 @@
     path = libraries/Adafruit_Seesaw
     url = git@github.com:BlueDragonX/Adafruit_Seesaw.git
 [submodule "libraries/Aruino_CAN_BUS_MCP2515"]
-	path = libraries/Longan_MCP2515
+	path = libraries/MCP2515
 	url = git@github.com:BlueDragonX/Aruino_CAN_BUS_MCP2515.git
 [submodule "libraries/Longan_CANFD"]
-	path = libraries/Longan_CANFD
+	path = libraries/MCP2518
 	url = git@github.com:BlueDragonX/ArduinoMCP2518.git
 [submodule "libraries/Endian"]
 	path = libraries/ByteOrder
