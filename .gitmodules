@@ -46,6 +46,3 @@
 [submodule "libraries/CRC32"]
 	path = libraries/CRC32
 	url = git@github.com:BlueDragonX/ArduionoCRC32.git
-[submodule "libraries/Adafruit_SleepyDog"]
-	path = libraries/Adafruit_SleepyDog
-	url = git@github.com:BlueDragonX/Adafruit_SleepyDog.git
