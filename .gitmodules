@@ -15,7 +15,7 @@
 	url = git@github.com:BlueDragonX/Aruino_CAN_BUS_MCP2515.git
 [submodule "libraries/Longan_CANFD"]
 	path = libraries/Longan_CANFD
-	url = git@github.com:BlueDragonX/Longan_CANFD.git
+	url = git@github.com:BlueDragonX/ArduinoMCP2518.git
 [submodule "libraries/Endian"]
 	path = libraries/ByteOrder
     url = git@github.com:BlueDragonX/ArduinoByteOrder.git
@@ -46,3 +46,5 @@
 [submodule "libraries/CRC32"]
 	path = libraries/CRC32
 	url = git@github.com:BlueDragonX/ArduionoCRC32.git
+[submodule "libraries/Longan_MCP2515"]
+	url = git@github.com:BlueDragonX/ArduinoMCP2515.git
