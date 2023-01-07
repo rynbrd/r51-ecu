@@ -19,6 +19,14 @@ submodules. Libraries are included in the [libraries] directory. The Arduino
 IDE should be configured to use this repo's root as the sketchbook location in
 order to utilize the included libraries.
 
+### CANBed Dual Notes
+
+There have been multiple versions of the [CANBed Dual] board. The latest
+version uses a separate GD32 chip as the CAN controller while the older version
+used MCP2515 and MCP2518 chips for CAN 2.0 and CAN FD respectively. This
+project uses the older version. Additional work would be needed to support the
+GD32 flavor of the board.
+
 ## Components
 
 ### Bridge ECU
