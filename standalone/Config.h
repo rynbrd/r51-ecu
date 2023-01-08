@@ -51,6 +51,11 @@
 #define BLUETOOTH_SPI_IRQ_PIN 23
 #define BLUETOOTH_UPDATE_MS 1000
 
+// Realdash enabled with Bluetooth.
+#define REALDASH_FRAME_ID 0x10
+#define REALDASH_HB_ID 0x20
+#define REALDASH_HB_MS 500
+
 // Rotary encoder configuration.
 #define ROTARY_ENCODER_ID 0x01
 #define ROTARY_ENCODER_INTR false

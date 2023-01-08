@@ -36,6 +36,8 @@ class FilteredPipe : public Pipe {
 
             // Only power system state events.
             switch ((SubSystem)msg.event()->subsystem) {
+                case SubSystem::BLUETOOTH:
+                    return true;
                 case SubSystem::IPDM:
                 case SubSystem::BCM:
                 case SubSystem::CLIMATE:

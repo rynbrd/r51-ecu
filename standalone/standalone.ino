@@ -3,6 +3,9 @@
 
 #include <Arduino.h>
 #include <Blink.h>
+#include <Bluetooth.h>
+#include <Canny.h>
+#include <Canny/RealDash.h>
 #include <Caster.h>
 #include <Controls.h>
 #include <Core.h>
@@ -33,8 +36,6 @@ ConsoleNode console(&SERIAL_DEVICE);
 
 PlatformConfigStore config;
 
-// TODO: Add BLE RealDash integration.
-
 /**
  * Vehicle Integration
  * Create vehicle CAN bus connection and all R51 specific controller nodes.
@@ -54,6 +55,26 @@ Settings settings;
 IPDM ipdm;
 TirePressure tire_pressure(&config);
 Illum illum;
+
+/**
+ * BLE and RealDash Integration
+ * Support RealDash connectivity over Bluetooth.
+ */
+#if defined(BLUETOOTH_ENABLE)
+BLE ble_conn(BLUETOOTH_SPI_CS_PIN, BLUETOOTH_SPI_IRQ_PIN);
+BLENode ble_monitor(&ble_conn);
+Canny::RealDash<Canny::CAN20Frame> realdash_conn(&ble_conn);
+RealDashGateway realdash_gw(&realdash_conn, REALDASH_FRAME_ID,
+        REALDASH_HB_ID, REALDASH_HB_MS);
+
+void onBluetoothConnect(void*) {
+    ble_monitor.onConnect();
+}
+
+void onBluetoothDisconnect(void*) {
+    ble_monitor.onDisconnect();
+}
+#endif
 
 /**
  * Aftermarket Integration
@@ -112,6 +133,8 @@ Node<Message>* io_nodes[] = {
     &j1939_gw,
     &steering_keypad,
     &rotary_encoder_group,
+    &ble_monitor,
+    &realdash_gw,
 };
 Bus<Message> io_bus(io_nodes, sizeof(io_nodes)/sizeof(io_nodes[0]));
 
@@ -174,6 +197,18 @@ void setup_j1939() {
     }
 }
 
+void setup_bluetooth() {
+#if defined(BLUETOOTH_ENABLE)
+    DEBUG_MSG("setup: initializing bluetooth");
+    while (!ble_conn.begin()) {
+        DEBUG_MSG("setup: failed to init bluetooth");
+        delay(500);
+    }
+    ble_conn.setOnConnect(onBluetoothConnect, nullptr);
+    ble_conn.setOnDisconnect(onBluetoothDisconnect, nullptr);
+#endif
+}
+
 void setup_hmi() {
     DEBUG_MSG("setup: configuring HMI");
     HMI_DEVICE.begin(HMI_BAUDRATE);
@@ -198,6 +233,7 @@ void setup() {
     setup_watchdog();
     setup_can();
     setup_j1939();
+    setup_bluetooth();
     setup_rotary_encoders();
     DEBUG_MSG("setup: core0 online");
     io_bus.init();
