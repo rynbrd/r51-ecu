@@ -132,9 +132,9 @@ enum class AudioEvent {
     SETTINGS_BACK_CMD   = 0xF1, // Sent by the user to go the the previous settings menu.
     SETTINGS_EXIT_CMD   = 0xF2, // Sent by the user to exit the settings menu.
     SETTINGS_SELECT_CMD = 0xF3, // Sent by the user to select a settings menu item.
-    SETTINGS_MENU_STATE = 0xF4, // Sent by Fusion to display a settings menu.
-    SETTINGS_ITEM_STATE = 0xF5, // Sent by Fusion to display an item in a settings menu.
-    SETTINGS_EXIT_STATE = 0xF6, // Sent by Fusion to stop displaying the settings menu.
+    SETTINGS_MENU_STATE = 0x0A, // Sent by Fusion to display a settings menu.
+    SETTINGS_ITEM_STATE = 0x0B, // Sent by Fusion to display an item in a settings menu.
+    SETTINGS_EXIT_STATE = 0x0C, // Sent by Fusion to stop displaying the settings menu.
 };
 
 class AudioSystemState : public Event {

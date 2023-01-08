@@ -41,7 +41,7 @@ enum class SubSystem : uint8_t {
 };
 
 enum class ControllerEvent : uint8_t {
-    REQUEST_CMD = 0x00, // Request state from the controller. Payload is the
+    REQUEST_CMD = 0x10, // Request state from the controller. Payload is the
                         // subsystem and state ID to retrieve or 0xFFFF for
                         // all states the controller owns.
 };
