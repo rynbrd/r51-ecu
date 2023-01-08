@@ -15,15 +15,36 @@ class FilteredPipe : public Pipe {
         // Filtering for the I/O core. Forwards all frames to the processing core.
         bool filterLeft(const Message&) override { return true; }
 
-        // Filtering for the processing core. Only forwards CAN bus frames and
-        // system events to the I/O core.
+        // Filtering for the processing core. Forwards CAN frames, J1939
+        // messages, and events for BLE serial.
         bool filterRight(const Message& msg) override {
             return msg.type() == Message::CAN_FRAME ||
-                msg.type() == Message::J1939_MESSAGE;
+                msg.type() == Message::J1939_MESSAGE ||
+                isBluetoothEvent(msg);
         }
 
         void onBufferOverrun(const Message& msg) override {
             DEBUG_MSG_OBJ("pipe: dropped frame: ", msg);
+        }
+
+    private:
+        // Return true if an event should be sent over BLE serial.
+        bool isBluetoothEvent(const Message& msg) {
+            if (msg.type() != Message::EVENT) {
+                return false;
+            }
+
+            // Only power system state events.
+            switch ((SubSystem)msg.event()->subsystem) {
+                case SubSystem::IPDM:
+                case SubSystem::BCM:
+                case SubSystem::CLIMATE:
+                case SubSystem::POWER:
+                    return msg.event()->id < 0x10;
+                default:
+                    break;
+            }
+            return false;
         }
 };
 
