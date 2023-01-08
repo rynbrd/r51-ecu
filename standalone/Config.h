@@ -23,6 +23,7 @@
 
 // Vehicle CAN bus mode and speed. This is CAN 2.0 at 500K for the R51.
 #define VEHICLE_CAN_MODE Canny::CAN20_500K
+#define VEHICLE_PROMISCUOUS false
 #define VEHICLE_READ_BUFFER 16
 #define VEHICLE_WRITE_BUFFER 2
 

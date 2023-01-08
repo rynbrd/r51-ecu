@@ -13,8 +13,6 @@ Canny::MCP2515<Canny::J1939Message> J1939(MCP2515_CS_PIN);
 namespace R51 {
 
 // J1939 connection which that logs errors to serial.
-// TODO: Enable MCP hardware filtering.
-// TODO: Check if MCP hardware is wired for interrupts.
 class J1939Connection : public Canny::BufferedConnection<Canny::J1939Message> {
     public:
         J1939Connection() :

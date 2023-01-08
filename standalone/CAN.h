@@ -12,25 +12,22 @@ Canny::MCP2518<Canny::CAN20Frame> CAN(MCP2518_CS_PIN);
 namespace R51 {
 
 // CAN connection which filters and buffers frames; and logs errors to serial.
-// TODO: Enable MCP hardware filtering.
-// TODO: Check if MCP hardware is wired for interrupts.
 class CANConnection : public Canny::BufferedConnection<Canny::CAN20Frame> {
     public:
         CANConnection() :
             Canny::BufferedConnection<Canny::CAN20Frame>(
-                    &CAN, VEHICLE_READ_BUFFER, VEHICLE_WRITE_BUFFER) {}
-
-        // Read R51 climate, settings, tire, and IPDM state frames.
-        bool readFilter(const Canny::CAN20Frame& frame) const override {
-            return (frame.id() & 0xFFFFFFFE) == 0x54A ||
-                   (frame.id() & 0xFFFFFFFE) == 0x72E ||
-                    frame.id() == 0x385 || frame.id() == 0x625;
-        }
-
-        // Write R51 climate and settings control frames.
-        bool writeFilter(const Canny::CAN20Frame& frame) const override {
-            return (frame.id() & 0xFFFFFFFE) == 0x540 ||
-                   (frame.id() & 0xFFFFFFFE) == 0x71E;
+                    &CAN, VEHICLE_READ_BUFFER, VEHICLE_WRITE_BUFFER) {
+            // Enable hardware filtering if not in promiscuous mode.
+            if (!VEHICLE_PROMISCUOUS) {
+                // Read climate frames.
+                CAN.setFilter(0, 0, 0x54A, 0xFFFFFFFE);
+                // Read settings frames.
+                CAN.setFilter(0, 0, 0x72E, 0xFFFFFFFE);
+                // Read tire frames.
+                CAN.setFilter(0, 0, 0x385, 0xFFFFFFFF);
+                // Read IPDM frames.
+                CAN.setFilter(0, 0, 0x625, 0xFFFFFFFF);
+            }
         }
 
         // Log read errors to debug serial.
