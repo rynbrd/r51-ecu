@@ -117,7 +117,7 @@ Bus<Message> io_bus(io_nodes, sizeof(io_nodes)/sizeof(io_nodes[0]));
 
 Node<Message>* proc_nodes[] = {
     pipe.right(),
-#if defined(DEBUG_ENABLE)
+#if defined(CONSOLE_ENABLE)
     &console,
 #endif
     &defrost,
