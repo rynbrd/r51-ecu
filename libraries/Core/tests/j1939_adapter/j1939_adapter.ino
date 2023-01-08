@@ -96,6 +96,19 @@ test(J1939AdapterTest, IgnoreMessageToOtherDest) {
     assertSize(yield, 0);
 }
 
+test(J1939AdapterTest, IgnoreMessageFromSelf) {
+    FakeYield yield;
+    J1939FilteredAdapter adapter;
+    J1939Claim claim(0xAA, 0);
+
+    J1939Message msg(0xFF00, 0xAA);
+    msg.data({0x01, 0x01, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+
+    adapter.handle(MessageView(&claim), yield);
+    adapter.handle(MessageView(&msg), yield);
+    assertSize(yield, 0);
+}
+
 test(J1939AdapterTest, RouteEvent) {
     FakeYield yield;
     J1939FilteredAdapter adapter;

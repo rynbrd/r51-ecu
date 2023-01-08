@@ -53,9 +53,10 @@ void J1939Adapter::handleEvent(const Event& event, const Yield<Message>& yield) 
 }
 
 void J1939Adapter::handleJ1939Message(const J1939Message& msg, const Yield<Message>& yield) {
-    if (msg.size() < 8 || (msg.pgn() != 0xFF00 && (msg.pgn() != 0xEF00 ||
+    if (msg.size() < 8 || msg.source_address() == j1939_.source_address() ||
+            (msg.pgn() != 0xFF00 && (msg.pgn() != 0xEF00 ||
             msg.dest_address() != j1939_.source_address()))) {
-        // ignore messages that don't have events in them
+        // ignore messages from us or that don't have events in them
         return;
     }
 
