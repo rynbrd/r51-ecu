@@ -36,8 +36,15 @@ class FilteredPipe : public Pipe {
 
             // Only power system state events.
             switch ((SubSystem)msg.event()->subsystem) {
+                // Bluetooth control events.
                 case SubSystem::BLUETOOTH:
-                    return true;
+                    return msg.event()->id >= 0x10;
+
+                // Rotary encoder control events.
+                case SubSystem::KEYPAD:
+                    return msg.event()->data[0] == ROTARY_ENCODER_ID;
+
+                // Power state events.
                 case SubSystem::IPDM:
                 case SubSystem::BCM:
                 case SubSystem::CLIMATE:
