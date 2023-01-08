@@ -25,6 +25,7 @@ class BlinkKeybox : public Caster::Node<Message> {
     private:
         void handlePowerCommand(const PowerCommand* cmd,
                 const Caster::Yield<Message>& yield);
+        void handlePowerStateRequest(const Caster::Yield<Message>& yield);
         void handleJ1939Claim(const J1939Claim& claim);
         void handleJ1939Message(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
@@ -39,6 +40,8 @@ class BlinkKeybox : public Caster::Node<Message> {
         Canny::J1939Message pwm_cmd_;
         uint16_t pin_state_;
         uint16_t pin_fault_;
+        uint8_t pin11_pwm_;
+        uint8_t pin12_pwm_;
         PowerState power_;
 };
 

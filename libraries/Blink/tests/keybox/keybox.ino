@@ -269,12 +269,6 @@ test(KeyboxTest, TogglePWM) {
 
 }
 
-test(KeyboxTest, FaultOutput) {
-}
-
-test(KeyboxTest, FaultPWM) {
-}
-
 }
 
 // Test boilerplate.

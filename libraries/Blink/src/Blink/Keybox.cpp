@@ -21,7 +21,8 @@ BlinkKeybox::BlinkKeybox(uint8_t address, uint8_t pdm_id, Faker::Clock* clock) :
         hb_msg_(0xEE00, Canny::NullAddress, address, 0x06),
         pin_cmd_(0xEF00, Canny::NullAddress, address, 0x06),
         pwm_cmd_(0xEF00, Canny::NullAddress, address, 0x06),
-        pin_state_(0), pin_fault_(0), power_(pdm_id) {
+        pin_state_(0), pin_fault_(0), pin11_pwm_(0), pin12_pwm_(0),
+        power_(pdm_id) {
     hb_msg_.resize(4);
     pin_cmd_.resize(8);
     pin_cmd_.data()[0] = 0x04;
@@ -38,6 +39,9 @@ BlinkKeybox::BlinkKeybox(uint8_t address, uint8_t pdm_id, Faker::Clock* clock) :
 void BlinkKeybox::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
+            if (RequestCommand::match(*msg.event(), SubSystem::POWER, (uint8_t)PowerEvent::POWER_STATE)) {
+                handlePowerStateRequest(yield);
+            }
             if (msg.event()->subsystem == (uint8_t)SubSystem::POWER &&
                     msg.event()->id == (uint8_t)PowerEvent::POWER_CMD) {
                 handlePowerCommand((PowerCommand*)msg.event(), yield);
@@ -62,7 +66,7 @@ void BlinkKeybox::emit(const Yield<Message>& yield) {
 }
 
 void BlinkKeybox::handlePowerCommand(const PowerCommand* cmd, const Yield<Message>& yield) {
-    if (cmd->pdm() != power_.pdm() || pin_cmd_.source_address() == Canny::NullAddress) {
+    if (cmd->pdm() != power_.pdm() || pin_cmd_.source_address() == Canny::NullAddress || cmd->pin() > 12) {
         return;
     }
     switch (cmd->cmd()) {
@@ -106,6 +110,32 @@ void BlinkKeybox::handlePowerCommand(const PowerCommand* cmd, const Yield<Messag
         case PowerCmd::PWM:
             setPWM(cmd->pin(), cmd->duty_cycle(), yield);
             break;
+    }
+}
+
+void BlinkKeybox::handlePowerStateRequest(const Caster::Yield<Message>& yield) {
+    bool state;
+    bool fault;
+    power_.duty_cycle(0xFF);
+    for (uint8_t pin = 0; pin < 12; ++pin) {
+        state = (pin_state_ >> pin) & 1;
+        fault = (pin_fault_ >> pin) & 1;
+        power_.pin(pin);
+        if (fault) {
+            power_.mode(PowerMode::FAULT);
+            power_.duty_cycle(0xFF);
+        } else if (pin == 11) {
+            power_.mode(PowerMode::PWM);
+            power_.duty_cycle(pin11_pwm_);
+        } else if (pin == 12) {
+            power_.mode(PowerMode::PWM);
+            power_.duty_cycle(pin12_pwm_);
+        } else if (state) {
+            power_.mode(PowerMode::ON);
+        } else {
+            power_.mode(PowerMode::OFF);
+        }
+        yield(MessageView(&power_));
     }
 }
 
@@ -175,11 +205,13 @@ void BlinkKeybox::setOutput(uint8_t pin, bool value, const Yield<Message>& yield
 void BlinkKeybox::setPWM(uint8_t pin, uint8_t duty_cycle, const Yield<Message>& yield) {
     uint8_t current;
     if (pin == 11) {
-        current = pwm_cmd_.data()[3];
+        current = pin11_pwm_;
         pwm_cmd_.data()[3] = duty_cycle;
+        pin11_pwm_ = duty_cycle;
     } else if (pin == 12) {
-        current = pwm_cmd_.data()[4];
+        current = pin12_pwm_;
         pwm_cmd_.data()[4] = duty_cycle;
+        pin12_pwm_ = duty_cycle;
     } else {
         return;
     }
