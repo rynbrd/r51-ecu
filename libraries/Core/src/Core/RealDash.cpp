@@ -6,7 +6,7 @@
 namespace R51 {
 
 void RealDashGateway::handle(const Message& msg, const Caster::Yield<Message>&) {
-    if (msg.type() != Message::EVENT) {
+    if (msg.type() != Message::EVENT || msg.event()->id >= 0x10) {
         return;
     }
 
