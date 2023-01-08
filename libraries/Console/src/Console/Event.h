@@ -33,17 +33,41 @@ class EventSendCommand : public NotEnoughArgumentsCommand {
         EventSendRunCommand run_;
 };
 
+class EventMuteCommand : public Command {
+    public:
+        Command* next(char*) override {
+            return TooManyArgumentsCommand::get();
+        }
+
+        void run(Console* console, char*, const Caster::Yield<Message>&) override;
+};
+
+class EventUnmuteCommand : public Command {
+    public:
+        Command* next(char*) override {
+            return TooManyArgumentsCommand::get();
+        }
+
+        void run(Console* console, char*, const Caster::Yield<Message>&) override;
+};
+
 class EventCommand : public NotEnoughArgumentsCommand {
     public:
         Command* next(char* arg) override {
             if (strcmp(arg, "send") == 0)  {
                 return &send_;
+            } else if (strcmp(arg, "mute") == 0) {
+                return &mute_;
+            } else if (strcmp(arg, "unmute") == 0) {
+                return &unmute_;
             }
             return NotFoundCommand::get();
         }
 
     private:
         EventSendCommand send_;
+        EventMuteCommand mute_;
+        EventUnmuteCommand unmute_;
 };
 
 }  // namespace R51::internal

@@ -62,4 +62,12 @@ void EventSendRunCommand::run(Console* console, char* arg, const Caster::Yield<M
     yield(MessageView(&event_));
 }
 
+void EventMuteCommand::run(Console* console, char*, const Caster::Yield<Message>&) {
+    console->event_mute(true);
+}
+
+void EventUnmuteCommand::run(Console* console, char*, const Caster::Yield<Message>&) {
+    console->event_mute(false);
+}
+
 }

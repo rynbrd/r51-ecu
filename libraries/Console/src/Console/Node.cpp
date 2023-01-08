@@ -36,9 +36,11 @@ void ConsoleNode::emit(const Caster::Yield<Message>& yield) {
 void ConsoleNode::handle(const Message& msg, const Caster::Yield<R51::Message>&) {
     switch (msg.type()) {
         case Message::EVENT:
-            console_.stream()->print("console: event recv ");
-            msg.event()->printTo(*console_.stream());
-            console_.stream()->println();
+            if (!console_.event_mute()) {
+                console_.stream()->print("console: event recv ");
+                msg.event()->printTo(*console_.stream());
+                console_.stream()->println();
+            }
             break;
         case Message::CAN_FRAME:
             if (console_.can_filter()->match(*msg.can_frame())) {

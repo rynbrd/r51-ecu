@@ -8,15 +8,20 @@ namespace R51 {
 
 class Console {
     public:
-        Console(Stream* stream) : stream_(stream), j1939_mute_(false) {}
+        Console(Stream* stream) : stream_(stream), event_mute_(true), j1939_mute_(true) {
+            can_filter_.mode(Canny::FilterMode::DROP);
+        }
         Stream* stream() { return stream_; }
         Canny::FrameIDFilter* can_filter() { return &can_filter_; }
+        bool event_mute() { return event_mute_; }
+        void event_mute(bool mute) { event_mute_ = mute; }
         bool j1939_mute() { return j1939_mute_; }
         void j1939_mute(bool mute) { j1939_mute_ = mute; }
 
     private:
         Stream* stream_;
         Canny::FrameIDFilter can_filter_;
+        bool event_mute_;
         bool j1939_mute_;
 };
 
