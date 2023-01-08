@@ -89,20 +89,9 @@ RotaryEncoder* rotary_encoders[] = {
 RotaryEncoderGroup rotary_encoder_group(ROTARY_ENCODER_ID, rotary_encoders,
         sizeof(rotary_encoders)/sizeof(rotary_encoders[0]));
 
-// Enable rotary encoder interrupts if is configured.
-#if defined(ROTARY_ENCODER_INTR_PIN)
 void rotaryEncoderISR() {
     rotary_encoder_group.interrupt(0xFF);
 }
-
-void attachInterrupts() {
-    attachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN), rotaryEncoderISR, FALLING);
-}
-
-void detachInterrupts() {
-    detachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN));
-}
-#endif
 
 /**
  * Controller Nodes
@@ -192,6 +181,12 @@ void setup_hmi() {
 
 void setup_rotary_encoders() {
     DEBUG_MSG("setup: configuring rotary encoders");
+
+// Enable rotary encoder interrupts if configured.
+#if defined(ROTARY_ENCODER_INTR_PIN)
+    attachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN), rotaryEncoderISR, FALLING);
+#endif
+
     rotary_encoder0.begin(ROTARY_ENCODER_ADDR0);
     rotary_encoder1.begin(ROTARY_ENCODER_ADDR1);
 }
