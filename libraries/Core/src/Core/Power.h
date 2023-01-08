@@ -9,8 +9,7 @@ namespace R51 {
 
 enum class PowerEvent : uint8_t {
     POWER_STATE = 0x01, // Sent on power state change.
-    FAULT_STATE = 0x02, // Sent on output fault state change. 
-    INPUT_STATE = 0x03, // Sent on input state changes.
+    INPUT_STATE = 0x02, // Sent on input state changes.
     POWER_CMD   = 0x10, // Change power state.
 };
 
