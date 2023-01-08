@@ -9,6 +9,7 @@
 #include "Core/Keypad.h"
 #include "Core/Message.h"
 #include "Core/Power.h"
+#include "Core/RealDash.h"
 #include "Core/Scratch.h"
 
 #endif  // _R51_CORE_H_

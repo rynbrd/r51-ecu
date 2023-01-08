@@ -13,7 +13,6 @@
 #include "Debug.h"
 #include "J1939.h"
 #include "Pipe.h"
-#include "RealDash.h"
 
 #ifndef PICO_RP2040
 #error "Target platform is not RP2040."
@@ -50,7 +49,7 @@ BLE ble_conn(BLUETOOTH_SPI_CS_PIN, BLUETOOTH_SPI_IRQ_PIN);
 BLENode ble_monitor(&ble_conn);
 
 Canny::RealDash<Canny::CAN20Frame> realdash_serial(&ble_conn);
-RealDashAdapter realdash(&realdash_serial, REALDASH_FRAME_ID,
+RealDashGateway realdash(&realdash_serial, REALDASH_FRAME_ID,
         REALDASH_HB_ID, REALDASH_HB_MS);
 
 void onBluetoothConnect(void*) {

@@ -1,13 +1,11 @@
 #include "RealDash.h"
 
-#include <Core.h>
-#include "Debug.h"
-
-using ::R51::Message;
+#include <Caster.h>
+#include "Message.h"
 
 namespace R51 {
 
-void RealDashAdapter::handle(const Message& msg, const Caster::Yield<Message>&) {
+void RealDashGateway::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::EVENT) {
         return;
     }
@@ -19,12 +17,11 @@ void RealDashAdapter::handle(const Message& msg, const Caster::Yield<Message>&) 
     memcpy(frame_.data()+2, msg.event()->data, 6);
     Canny::Error err = connection_->write(frame_);
     if (err != Canny::ERR_OK) {
-        DEBUG_MSG_VAL("realdash: write error: ", err);
-        DEBUG_MSG_OBJ("realdash: discard frame: ", frame_);
+        onWriteError(err, frame_);
     }
 }
 
-void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
+void RealDashGateway::emit(const Caster::Yield<Message>& yield) {
     if (hb_id_ > 0 && hb_ticker_.active()) {
         frame_.id(hb_id_);
         frame_.resize(8);
@@ -34,8 +31,7 @@ void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
 
         Canny::Error err = connection_->write(frame_);
         if (err != Canny::ERR_OK) {
-            DEBUG_MSG_VAL("realdash: write error: ", err);
-            DEBUG_MSG_OBJ("realdash: discard frame: ", frame_);
+            onWriteError(err, frame_);
         }
     }
 
@@ -43,7 +39,7 @@ void RealDashAdapter::emit(const Caster::Yield<Message>& yield) {
     if (err == Canny::ERR_FIFO) {
         return;
     } else if (err != Canny::ERR_OK) {
-        DEBUG_MSG_VAL("realdash: read error: ", err);
+        onReadError(err);
         return;
     } else if (frame_.id() != frame_id_ || frame_.size() < 8) {
         return;
