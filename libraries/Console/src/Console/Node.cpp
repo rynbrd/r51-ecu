@@ -3,6 +3,7 @@
 #include <Canny.h>
 #include <Caster.h>
 #include <Core.h>
+#include <Foundation.h>
 #include <Vehicle.h>
 #include "Console.h"
 
@@ -68,6 +69,35 @@ void prettyPrintEvent(Stream* stream, const Event* event) {
         stream->print(", outside temp ");
         stream->print(s->outside_temp());
         stream->print(unit);
+        stream->print(")");
+    } else if (isEvent(event, SubSystem::BCM, BCMEvent::ILLUM_STATE)) {
+        const auto* s = (IllumState*)event;
+        stream->print(" (dash illumination ");
+        stream->print(s->illum()  ? "on" : "off");
+        stream->print(")");
+    } else if (isEvent(event, SubSystem::BCM, BCMEvent::TIRE_PRESSURE_STATE)) {
+        stream->print(" (tire pressure ");
+        stream->print(event->data[0]);
+        stream->print(" ");
+        stream->print(event->data[1]);
+        stream->print(" ");
+        stream->print(event->data[2]);
+        stream->print(" ");
+        stream->print(event->data[3]);
+        stream->print(")");
+    } else if (isEvent(event, SubSystem::IPDM, IPDMEvent::POWER_STATE)) {
+        stream->print(" (ipdm high beams ");
+        stream->print(getBit(event->data, 0, 0) ? "on" : "off");
+        stream->print(", low beams ");
+        stream->print(getBit(event->data, 0, 1) ? "on" : "off");
+        stream->print(", running lights ");
+        stream->print(getBit(event->data, 0, 2) ? "on" : "off");
+        stream->print(", fog lights ");
+        stream->print(getBit(event->data, 0, 3) ? "on" : "off");
+        stream->print(", defrost ");
+        stream->print(getBit(event->data, 0, 6) ? "on" : "off");
+        stream->print(", a/c comp ");
+        stream->print(getBit(event->data, 0, 7) ? "on" : "off");
         stream->print(")");
     }
 }
