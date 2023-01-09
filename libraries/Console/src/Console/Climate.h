@@ -73,7 +73,9 @@ class ClimateCommand : public NotEnoughArgumentsCommand {
             dtemp_(Event(SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_DRIVER_TEMP_CMD),
                    Event(SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_DRIVER_TEMP_CMD)),
             ptemp_(Event(SubSystem::CLIMATE, (uint8_t)ClimateEvent::INC_PASSENGER_TEMP_CMD),
-                   Event(SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP_CMD)) {}
+                   Event(SubSystem::CLIMATE, (uint8_t)ClimateEvent::DEC_PASSENGER_TEMP_CMD)),
+            request_(Event(SubSystem::CONTROLLER, (uint8_t)ControllerEvent::REQUEST_CMD,
+                           {(uint8_t)SubSystem::CLIMATE})) {}
 
         Command* next(char* arg) override {
             if (strcmp(arg, "off") == 0 || strcmp(arg, "o") == 0) {
@@ -96,6 +98,8 @@ class ClimateCommand : public NotEnoughArgumentsCommand {
                 return &dtemp_;
             } else if (strcmp(arg, "ptemp") == 0 || strcmp(arg, "pt") == 0) {
                 return &ptemp_;
+            } else if (strcmp(arg, "request") == 0 || strcmp(arg, "req") == 0) {
+                return &request_;
             } else if (strcmp(arg, "help") == 0 || strcmp(arg, "h") == 0) {
                 return &help_;
             }
@@ -113,6 +117,7 @@ class ClimateCommand : public NotEnoughArgumentsCommand {
         ClimateSend mode_;
         ClimateIncDec dtemp_;
         ClimateIncDec ptemp_;
+        ClimateSend request_;
         ClimateHelp help_;
 };
 
