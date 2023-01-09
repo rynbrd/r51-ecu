@@ -251,6 +251,10 @@ void setup1() {
 // I/O main loop.
 void loop() {
     io_bus.loop();
+#if defined(BLUETOOTH_ENABLE)
+    // BLE's update method needs to be called to enable connectivity callbacks
+    ble_conn.update(BLUETOOTH_UPDATE_MS);
+#endif
 #if defined(DEBUG_ENABLE)
     delay(10);
 #else
