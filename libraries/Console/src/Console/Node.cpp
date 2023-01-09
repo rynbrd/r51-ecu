@@ -13,7 +13,27 @@ namespace R51 {
 namespace {
 
 void prettyPrintEvent(Stream* stream, const Event* event) {
-    if (isEvent(event, SubSystem::CLIMATE, ClimateEvent::SYSTEM_STATE)) {
+    if (isEvent(event, SubSystem::KEYPAD, KeypadEvent::KEY_STATE)) {
+        const auto* s = (KeyState*)event;
+        stream->print(" (keypad ");
+        stream->print(s->keypad());
+        if (s->pressed()) {
+            stream->print(" press ");
+        } else {
+            stream->print(" release ");
+        }
+        stream->print(s->key());
+        stream->print(")");
+    } else if (isEvent(event, SubSystem::KEYPAD, KeypadEvent::ENCODER_STATE)) {
+        const auto* s = (EncoderState*)event;
+        stream->print(" (keypad ");
+        stream->print(s->keypad());
+        stream->print(" encoder ");
+        stream->print(s->encoder());
+        stream->print(" delta ");
+        stream->print(s->delta());
+        stream->print(")");
+    } else if (isEvent(event, SubSystem::CLIMATE, ClimateEvent::SYSTEM_STATE)) {
         const auto* s = (ClimateSystemState*)event;
         stream->print(" (climate ");
         switch (s->mode()) {
