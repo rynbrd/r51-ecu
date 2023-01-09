@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "CAN.h"
+#include "Climate.h"
 #include "Command.h"
 #include "Console.h"
 #include "Error.h"
@@ -18,12 +19,14 @@ class RootCommand : public Command {
         RootCommand() {}
 
         Command* next(char* arg) override {
-            if (strcmp(arg, "can") == 0) {
+            if (strcmp(arg, "can") == 0 || strcmp(arg, "f") == 0) {
                 return &can_;
-            } else if (strcmp(arg, "event") == 0) {
+            } else if (strcmp(arg, "event") == 0 || strcmp(arg, "e") == 0) {
                 return &event_;
-            } else if (strcmp(arg, "j1939") == 0) {
+            } else if (strcmp(arg, "j1939") == 0 || strcmp(arg, "j") == 0) {
                 return &j1939_;
+            } else if (strcmp(arg, "climate") == 0 || strcmp(arg, "c") == 0) {
+                return &climate_;
             }
             return NotFoundCommand::get();
         }
@@ -38,6 +41,7 @@ class RootCommand : public Command {
         CANCommand can_;
         EventCommand event_;
         J1939Command j1939_;
+        ClimateCommand climate_;
 };
 
 }  // namespace R51::internal
