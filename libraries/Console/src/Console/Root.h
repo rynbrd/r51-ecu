@@ -9,6 +9,7 @@
 #include "Console.h"
 #include "Error.h"
 #include "Event.h"
+#include "IPDM.h"
 #include "J1939.h"
 #include "Scratch.h"
 
@@ -30,6 +31,8 @@ class RootCommand : public Command {
                 return &climate_;
             } else if (strcmp(arg, "bcm") == 0 || strcmp(arg, "b") == 0) {
                 return &bcm_;
+            } else if (strcmp(arg, "ipdm") == 0 || strcmp(arg, "i") == 0) {
+                return &ipdm_;
             }
             return NotFoundCommand::get();
         }
@@ -46,6 +49,7 @@ class RootCommand : public Command {
         J1939Command j1939_;
         ClimateCommand climate_;
         BCMCommand bcm_;
+        IPDMCommand ipdm_;
 };
 
 }  // namespace R51::internal
