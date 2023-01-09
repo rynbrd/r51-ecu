@@ -21,7 +21,7 @@ test(ConsoleJ1939Test, WriteUnmuted) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
     assertSize(yield, 0);
 
     J1939Message msg(0xEF00, 0x31, 0x42, 0x01);
@@ -36,7 +36,7 @@ test(ConsoleJ1939Test, WriteMuted) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
     console.console()->j1939_mute(true);
 
     J1939Message msg(0xEF00, 0x31, 0x42, 0x01);
@@ -55,7 +55,7 @@ test(ConsoleJ1939Test, ReadMessage) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -68,7 +68,7 @@ test(ConsoleJ1939Test, SetMute) {
     FakeReadStream stream;
     FakeYield yield;
 
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
     assertFalse(console.console()->j1939_mute());
 
     strcpy((char*)buffer, "j1939 mute\n");

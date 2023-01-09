@@ -25,8 +25,8 @@ namespace R51 {
 // Each message printed is terminated with a CR+LF.
 class ConsoleNode : public Caster::Node<R51::Message> {
     public:
-        ConsoleNode(Stream* stream) :
-            console_(stream),
+        ConsoleNode(Stream* stream, bool mute = true) :
+            console_(stream, mute),
             reader_(stream, buffer_, 256),
             command_(&root_) {}
 

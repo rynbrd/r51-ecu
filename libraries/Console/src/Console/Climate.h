@@ -17,24 +17,11 @@ class ClimateHelp : public Command {
             return TooManyArgumentsCommand::get();
         }
 
-        void run(Console* console, char* arg, const Caster::Yield<Message>&) override {
-            Stream* s = console->stream();
-            s->println("usage: climate CMD [INC|DEC]");
-            s->println("commands: off, auto, ac, dual, defog, fan, recirculate, mode, dtemp, ptemp");
-            s->println("fan, dtemp, and  ptemp take a inc/dec argument");
+        void run(Console* console, char*, const Caster::Yield<Message>&) override {
+            console->stream()->println("usage: climate CMD [INC|DEC]");
+            console->stream()->println("commands: off, auto, ac, dual, defog, fan, recirculate, mode, dtemp, ptemp");
+            console->stream()->println("fan, dtemp, and  ptemp take a inc/dec argument");
         }
-};
-
-class ClimateOff : public Command {
-    public:
-        Command* next(char*) override {
-            return TooManyArgumentsCommand::get();
-        }
-
-        void run(Console* console, char* arg, const Caster::Yield<Message>& yield) override;
-
-    private:
-        Event event_;
 };
 
 class ClimateSend : public Command {
@@ -45,7 +32,7 @@ class ClimateSend : public Command {
             return TooManyArgumentsCommand::get();
         }
 
-        void run(Console* console, char* arg, const Caster::Yield<Message>& yield) override {
+        void run(Console*, char*, const Caster::Yield<Message>& yield) override {
             yield(MessageView(&event_));
         }
 

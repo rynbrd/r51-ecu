@@ -8,8 +8,10 @@ namespace R51 {
 
 class Console {
     public:
-        Console(Stream* stream) : stream_(stream), event_mute_(true), j1939_mute_(true) {
-            can_filter_.mode(Canny::FilterMode::DROP);
+        Console(Stream* stream, bool mute) : stream_(stream), event_mute_(mute), j1939_mute_(mute) {
+            if (mute) {
+                can_filter_.mode(Canny::FilterMode::DROP);
+            }
         }
         Stream* stream() { return stream_; }
         Canny::FrameIDFilter* can_filter() { return &can_filter_; }

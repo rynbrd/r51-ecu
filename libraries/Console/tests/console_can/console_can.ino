@@ -21,7 +21,7 @@ test(ConsoleCANTest, WriteEmpty) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     MessageValue msg;
     console.handle(msg, yield);
@@ -36,7 +36,7 @@ test(ConsoleCANTest, WriteStdFrame) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     CAN20Frame frame(0x0324, 0, {0x11, 0x22, 0x33, 0x44});
     console.handle(MessageView(&frame), yield);
@@ -50,7 +50,7 @@ test(ConsoleCANTest, WriteExtFrame) {
     memset(buffer, 0, buffer_size);
     FakeWriteStream stream;
     stream.set(buffer, buffer_size);
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     CAN20Frame frame(0x45324, 1, {0x11, 0x22, 0x33, 0x44});
     console.handle(MessageView(&frame), yield);
@@ -66,7 +66,7 @@ test(ConsoleCANTest, ReadStdFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -81,7 +81,7 @@ test(ConsoleCANTest, ReadExtFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -96,7 +96,7 @@ test(ConsoleCANTest, ReadAutoStdFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -111,7 +111,7 @@ test(ConsoleCANTest, ReadAutoExtFrame) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -126,7 +126,7 @@ test(ConsoleCANTest, ReadNoColons) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     console.emit(yield);
     assertSize(yield, 1);
@@ -141,7 +141,7 @@ test(ConsoleCANTest, ReadValidButBadlyFormed) {
     FakeReadStream stream;
     stream.set(buffer, strlen((char*)buffer));
     FakeYield yield;
-    ConsoleNode console(&stream);
+    ConsoleNode console(&stream, false);
 
     console.emit(yield);
     assertSize(yield, 1);
