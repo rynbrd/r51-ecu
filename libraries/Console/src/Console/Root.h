@@ -2,6 +2,7 @@
 #define _R51_CONSOLE_ROOT_H_
 
 #include <Arduino.h>
+#include "BCM.h"
 #include "CAN.h"
 #include "Climate.h"
 #include "Command.h"
@@ -27,6 +28,8 @@ class RootCommand : public Command {
                 return &j1939_;
             } else if (strcmp(arg, "climate") == 0 || strcmp(arg, "c") == 0) {
                 return &climate_;
+            } else if (strcmp(arg, "bcm") == 0 || strcmp(arg, "b") == 0) {
+                return &bcm_;
             }
             return NotFoundCommand::get();
         }
@@ -42,6 +45,7 @@ class RootCommand : public Command {
         EventCommand event_;
         J1939Command j1939_;
         ClimateCommand climate_;
+        BCMCommand bcm_;
 };
 
 }  // namespace R51::internal

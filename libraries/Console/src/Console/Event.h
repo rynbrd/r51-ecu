@@ -10,6 +10,22 @@
 
 namespace R51::internal {
 
+class EventSendCommand : public Command {
+    public:
+        EventSendCommand(const Event& event) : event_(event) {}
+
+        Command* next(char*) override {
+            return TooManyArgumentsCommand::get();
+        }
+
+        void run(Console*, char*, const Caster::Yield<Message>& yield) override {
+            yield(MessageView(&event_));
+        }
+
+    private:
+        Event event_;
+};
+
 class EventSendRunCommand : public Command {
     public:
         Command* next(char*) override {
@@ -23,7 +39,7 @@ class EventSendRunCommand : public Command {
         Event event_;
 };
 
-class EventSendCommand : public NotEnoughArgumentsCommand {
+class EventReadCommand : public NotEnoughArgumentsCommand {
     public:
         Command* next(char*) override {
             return &run_;
@@ -65,7 +81,7 @@ class EventCommand : public NotEnoughArgumentsCommand {
         }
 
     private:
-        EventSendCommand send_;
+        EventReadCommand send_;
         EventMuteCommand mute_;
         EventUnmuteCommand unmute_;
 };

@@ -3,10 +3,12 @@
 
 #include <Arduino.h>
 #include <Caster.h>
+#include <Core.h>
 #include <Vehicle.h>
 #include "Command.h"
 #include "Console.h"
 #include "Error.h"
+#include "Event.h"
 
 namespace R51 {
 namespace internal {
@@ -19,25 +21,9 @@ class ClimateHelp : public Command {
 
         void run(Console* console, char*, const Caster::Yield<Message>&) override {
             console->stream()->println("usage: climate CMD [INC|DEC]");
-            console->stream()->println("commands: off, auto, ac, dual, defog, fan, recirculate, mode, dtemp, ptemp");
+            console->stream()->println("commands: off, auto, ac, dual, defog, fan, recirculate, mode,\n  dtemp, ptemp, request");
             console->stream()->println("fan, dtemp, and  ptemp take a inc/dec argument");
         }
-};
-
-class ClimateSend : public Command {
-    public:
-        ClimateSend(const Event& event) : event_(event) {}
-
-        Command* next(char*) override {
-            return TooManyArgumentsCommand::get();
-        }
-
-        void run(Console*, char*, const Caster::Yield<Message>& yield) override {
-            yield(MessageView(&event_));
-        }
-
-    private:
-        Event event_;
 };
 
 class ClimateIncDec : public NotEnoughArgumentsCommand {
@@ -54,8 +40,8 @@ class ClimateIncDec : public NotEnoughArgumentsCommand {
         }
 
     private:
-        ClimateSend inc_;
-        ClimateSend dec_;
+        EventSendCommand inc_;
+        EventSendCommand dec_;
 };
 
 class ClimateCommand : public NotEnoughArgumentsCommand {
@@ -107,17 +93,17 @@ class ClimateCommand : public NotEnoughArgumentsCommand {
         }
 
     private:
-        ClimateSend off_;
-        ClimateSend auto_;
-        ClimateSend ac_;
-        ClimateSend dual_;
-        ClimateSend defog_;
+        EventSendCommand off_;
+        EventSendCommand auto_;
+        EventSendCommand ac_;
+        EventSendCommand dual_;
+        EventSendCommand defog_;
         ClimateIncDec fan_;
-        ClimateSend recirc_;
-        ClimateSend mode_;
+        EventSendCommand recirc_;
+        EventSendCommand mode_;
         ClimateIncDec dtemp_;
         ClimateIncDec ptemp_;
-        ClimateSend request_;
+        EventSendCommand request_;
         ClimateHelp help_;
 };
 
