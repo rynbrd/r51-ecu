@@ -34,6 +34,7 @@ ConsoleNode console(&SERIAL_DEVICE, false);
 
 // Internal Bus
 Node<Message>* nodes[] = {
+    &console,
     &can_gw,
     &defrost,
     &steering_keypad,
