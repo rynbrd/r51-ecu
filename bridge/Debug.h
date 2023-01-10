@@ -20,6 +20,7 @@
 #define DEBUG_MSG_OBJ(MSG, OBJ) ({\
     SERIAL_DEVICE.print(MSG);\
     (OBJ).printTo(SERIAL_DEVICE);\
+    SERIAL_DEVICE.println();\
     SERIAL_DEVICE.flush();\
 })
 #define DEBUG_MSG_FMT(MSG, VAL, FMT) ({\
