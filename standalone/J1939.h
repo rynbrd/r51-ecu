@@ -19,6 +19,11 @@ class J1939Connection : public Canny::BufferedConnection<Canny::J1939Message> {
             Canny::BufferedConnection<Canny::J1939Message>(
                     &J1939, J1939_READ_BUFFER, J1939_WRITE_BUFFER) {}
 
+        bool begin() {
+            // Initialize controller.
+            return J1939.begin(J1939_CAN_MODE);
+        }
+
         // Log read errors to debug serial.
         void onReadError(Canny::Error err) const override {
             DEBUG_MSG_VAL("j1939: read error: ", err);

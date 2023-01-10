@@ -16,7 +16,13 @@ class CANConnection : public Canny::BufferedConnection<Canny::CAN20Frame> {
     public:
         CANConnection() :
             Canny::BufferedConnection<Canny::CAN20Frame>(
-                    &CAN, VEHICLE_READ_BUFFER, VEHICLE_WRITE_BUFFER) {
+                    &CAN, VEHICLE_READ_BUFFER, VEHICLE_WRITE_BUFFER) {}
+
+        bool begin() {
+            // Initialize controller.
+            if (!CAN.begin(VEHICLE_CAN_MODE)) {
+                return false;
+            }
             // Enable hardware filtering if not in promiscuous mode.
             if (!VEHICLE_PROMISCUOUS) {
                 // Read climate and settings frames.
@@ -28,6 +34,7 @@ class CANConnection : public Canny::BufferedConnection<Canny::CAN20Frame> {
                 CAN.setFilter(3, 0, 0x385);
                 CAN.setFilter(2, 0, 0x625);
             }
+            return true;
         }
 
         // Log read errors to debug serial.

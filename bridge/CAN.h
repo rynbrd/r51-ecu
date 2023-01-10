@@ -18,6 +18,11 @@ class CANConnection : public Canny::BufferedConnection<Canny::CAN20Frame> {
             Canny::BufferedConnection<Canny::CAN20Frame>(
                     &CAN, VEHICLE_READ_BUFFER, VEHICLE_WRITE_BUFFER) {}
 
+        bool begin() {
+            // Initialize controller.
+            return CAN.begin(VEHICLE_CAN_MODE);
+        }
+
         // Read R51 climate, settings, tire, and IPDM state frames.
         bool readFilter(const Canny::CAN20Frame& frame) const override {
             return (frame.id() & 0xFFFFFFFE) == 0x54A ||

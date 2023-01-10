@@ -54,7 +54,7 @@ void setup() {
     }
     DEBUG_MSG("setup: initializing ECU");
 
-    while (!CAN.begin(VEHICLE_CAN_MODE)) {
+    while (!can_conn.begin()) {
         DEBUG_MSG("setup: failed to connect to CAN");
         delay(500);
     }

@@ -132,7 +132,7 @@ void setup_watchdog()  {
 
 void setup_can() {
     DEBUG_MSG("setup: connecting to CAN");
-    while (!CAN.begin(VEHICLE_CAN_MODE)) {
+    while (!can_conn.begin()) {
         DEBUG_MSG("setup: failed to connect to CAN");
         delay(500);
     }
@@ -141,7 +141,7 @@ void setup_can() {
 void setup_j1939() {
 #if defined(J1939_ENABLE)
     DEBUG_MSG("setup: connecting to J1939");
-    while (!J1939.begin(J1939_CAN_MODE)) {
+    while (!j1939_conn.begin()) {
         DEBUG_MSG("setup: failed to connect to J1939");
         delay(500);
     }
