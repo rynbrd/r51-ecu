@@ -9,8 +9,8 @@
 #include "J1939.h"
 #include "Pipe.h"
 
-#ifndef PICO_RP2040
-#error "Target platform is not RP2040."
+#ifndef ARDUINO_RASPBERRY_PI_PICO
+#error "Target platform is not Longan RP2040."
 #endif
 
 extern "C" {

@@ -13,8 +13,11 @@ This repo targets the [Longan Labs] CANBed boards based on the RP2040. The
 [CANBed Dual] board is used to bridge the vehicle bus to J1939 and the [CANBed
 RP2040] board for individual components.
 
-This is an Arduino project and uses Earle Philhower's [Arduino Pico Core]. All
-libraries are either included directly in the repo or linked in using git
+This is an Arduino project and uses the Longan RP2040 core. Earle Philhower's
+Arduino Pico Core will not work as the SPI pin definitions are not correct for
+the Longan boards.
+
+All libraries are either included directly in the repo or linked in using git
 submodules. Libraries are included in the [libraries] directory. The Arduino
 IDE should be configured to use this repo's root as the sketchbook location in
 order to utilize the included libraries.
@@ -79,7 +82,6 @@ The contents of this repository are covered under the GPLv3. See the [LICENSE]
 file for full details.
 
 
-[Arduino Pico Core]: https://github.com/earlephilhower/arduino-pico
 [Longan Labs]: https://www.longan-labs.cc/
 [CANBed RP2040]: http://docs.longan-labs.cc/1030018/
 [CANBed Dual]: http://docs.longan-labs.cc/1030019/

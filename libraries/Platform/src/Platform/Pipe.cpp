@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#ifdef PICO_RP2040
+#if defined(PICO_RP2040) || defined(ARDUINO_RASPBERRY_PI_PICO)
 
 #include <Caster.h>
 #include <Core.h>
