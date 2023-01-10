@@ -87,7 +87,7 @@ testF(ClimateTest, RequestSystemState) {
     Event expect(
         (uint8_t)SubSystem::CLIMATE,
         (uint8_t)ClimateEvent::SYSTEM_STATE,
-        (uint8_t[]){0x05});
+        (uint8_t[]){0x0D});
 
     climate.handle(MessageView(&control), yield);
     climate.emit(yield);
@@ -145,7 +145,7 @@ testF(ClimateTest, RequestSubSystem) {
     Event expect_system(
         (uint8_t)SubSystem::CLIMATE,
         (uint8_t)ClimateEvent::SYSTEM_STATE,
-        (uint8_t[]){0x05});
+        (uint8_t[]){0x0D});
     Event expect_airflow(
         (uint8_t)SubSystem::CLIMATE,
         (uint8_t)ClimateEvent::AIRFLOW_STATE,
@@ -173,7 +173,7 @@ testF(ClimateTest, RequestAll) {
     Event expect_system(
         (uint8_t)SubSystem::CLIMATE,
         (uint8_t)ClimateEvent::SYSTEM_STATE,
-        (uint8_t[]){0x05});
+        (uint8_t[]){0x0D});
     Event expect_airflow(
         (uint8_t)SubSystem::CLIMATE,
         (uint8_t)ClimateEvent::AIRFLOW_STATE,
@@ -416,6 +416,7 @@ testF(ClimateTest, TickOffState) {
     ClimateAirflowState airflow;
     ClimateSystemState system;
     system.mode(CLIMATE_SYSTEM_OFF);
+    system.dual(true);
 
     climate.handle(MessageView(&state54A), yield);
     climate.handle(MessageView(&state54B), yield);

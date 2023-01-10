@@ -125,7 +125,7 @@ void Climate::handleSystemFrame(const Canny::CAN20Frame& frame, const Caster::Yi
 
     bool system_state_changed = (
         system_state_.ac(getBit(frame.data(), 0, 3)) |
-        system_state_.dual(getBit(frame.data(), 3, 7)));
+        system_state_.dual(!getBit(frame.data(), 3, 7)));
 
     if (airflow_state_.windshield()) {
         system_state_changed |= system_state_.mode(CLIMATE_SYSTEM_DEFOG);
