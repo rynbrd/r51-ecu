@@ -169,7 +169,7 @@ test(DefrostTest, Trigger) {
     Event event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TOGGLE_DEFROST_CMD);
 
     // Ensure default state is off.
-    defrost.emit(yield);
+    defrost.init(yield);
     assertSize(yield, 0);
     assertEqual(gpio.digitalRead(1), 0);
 
