@@ -37,8 +37,8 @@
 
 // Uncomment the following line to enable rear defrost control.
 #define DEFROST_HEATER_ENABLE
-#define DEFROST_HEATER_PIN 6
-#define DEFROST_HEATER_MS 200
+#define DEFROST_HEATER_PIN 24
+#define DEFROST_HEATER_MS 300
 
 // Uncomment the following line to enable steering keypad.
 #define STEERING_KEYPAD_ENABLE

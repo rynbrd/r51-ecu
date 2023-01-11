@@ -168,52 +168,60 @@ test(DefrostTest, Trigger) {
     Defrost defrost(1, 200, &clock, &gpio);
     Event event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TOGGLE_DEFROST_CMD);
 
-    // Ensure default state is off.
+    // Ensure default state is on (high impedence).
     defrost.init(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 0);
+    assertEqual(gpio.pinMode(1), (uint32_t)INPUT);
+    assertEqual(gpio.digitalRead(1), 1);
 
-    // Toggle the defrost heater.
+    // Toggle the defrost heater (open drain).
     clock.set(1);
     defrost.handle(MessageView(&event), yield);
     defrost.emit(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 1);
+    assertEqual(gpio.pinMode(1), (uint32_t)OUTPUT);
+    assertEqual(gpio.digitalRead(1), 0);
 
     // Ensure state is on after only part of the time elapses.
     clock.set(200);
     defrost.emit(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 1);
+    assertEqual(gpio.pinMode(1), (uint32_t)OUTPUT);
+    assertEqual(gpio.digitalRead(1), 0);
 
     // Ensure state is off after the entire time elapses.
     clock.set(201);
     defrost.emit(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 0);
+    assertEqual(gpio.pinMode(1), (uint32_t)INPUT);
+    assertEqual(gpio.digitalRead(1), 1);
 
     // State stays the same.
     clock.set(1000);
     defrost.emit(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 0);
+    assertEqual(gpio.pinMode(1), (uint32_t)INPUT);
+    assertEqual(gpio.digitalRead(1), 1);
 
     // Trigger it again.
     clock.set(1001);
     defrost.handle(MessageView(&event), yield);
     defrost.emit(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 1);
+    assertEqual(gpio.pinMode(1), (uint32_t)OUTPUT);
+    assertEqual(gpio.digitalRead(1), 0);
 
     clock.set(1200);
     defrost.emit(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 1);
+    assertEqual(gpio.pinMode(1), (uint32_t)OUTPUT);
+    assertEqual(gpio.digitalRead(1), 0);
 
     clock.set(1201);
     defrost.emit(yield);
     assertSize(yield, 0);
-    assertEqual(gpio.digitalRead(1), 0);
+    assertEqual(gpio.pinMode(1), (uint32_t)INPUT);
+    assertEqual(gpio.digitalRead(1), 1);
 }
 
 test(TirePressureTest, IgnoreIncorrectID) {

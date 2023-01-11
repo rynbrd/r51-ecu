@@ -41,13 +41,18 @@ class Illum : public Caster::Node<Message> {
 };
 
 // Controls the defrost heater via a GPIO pin connected to the BCM. The pin is
-// momentarily pulled high to simulate a button press.
+// momentarily pulled high to simulate a button press. The pin should have a 1k
+// resistor in series with the defrost output in the vehicle harness.
 class Defrost : public Caster::Node<Message> {
     public:
         Defrost(int output_pin, uint16_t output_ms,
                 Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real()) :
-            output_(output_pin, output_ms, clock, gpio) {}
+            output_(output_pin, output_ms, -1,
+                    MomentaryOutput::MOMENTARILY_DRAIN, clock, gpio) {}
+
+        // Initialize outputs.
+        void init(const Caster::Yield<Message>&) override;
 
         // Handles the IPDM TOGGLE_DEFROST_CMD mesage.
         void handle(const Message& message, const Caster::Yield<Message>&) override;

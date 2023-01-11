@@ -36,8 +36,8 @@
 #define J1939_WRITE_BUFFER 4
 
 // Defrost heater configuration.
-#define DEFROST_HEATER_PIN 6
-#define DEFROST_HEATER_MS 200
+#define DEFROST_HEATER_PIN 24
+#define DEFROST_HEATER_MS 300
 
 // Steering keypad configuration.
 #define STEERING_KEYPAD_ID 0x00

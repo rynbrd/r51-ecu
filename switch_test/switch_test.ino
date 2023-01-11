@@ -3,44 +3,60 @@
 
 #define SW_A_PIN A1
 #define SW_B_PIN A2
-#define RDEF_PIN 6
+#define RDEF_PIN 24
 
 // Values for a 1k pullup resistor.
-static constexpr const int sw_values[sw_count] = {12, 80, 240};
+static constexpr const int sw_values[] = {12, 80, 240};
 static constexpr const int sw_count = 3;
 
 class DigitalToggle {
     public:
-        DigitalToggle(int pin, uint16_t trigger_ms, int32_t cooldown_ms = -1, bool high = true)
-            : pin_(pin), high_(high), triggered_(false), 
+        DigitalToggle(int pin, uint16_t trigger_ms, int32_t cooldown_ms = -1)
+            : pin_(pin), triggered_(0), 
               trigger_ms_(trigger_ms), trigger_time_(0),
-              cooldown_ms_(cooldown_ms < 0 ? trigger_ms : (uint16_t)cooldown_ms) {}
+              cooldown_ms_(cooldown_ms < 0 ? trigger_ms : (uint16_t)cooldown_ms) {
+        }
 
-        void Loop() {
+        void begin() {
+            high();
+        }
+
+        void loop() {
             if (triggered_) {
                 if (millis() - trigger_time_ >= trigger_ms_ + cooldown_ms_) {
-                    triggered_ = false;
-                } else if (millis() - trigger_time_ >= trigger_ms_) {
-                    digitalWrite(pin_, !high_);
+                    triggered_ = 0;
+                } else if (triggered_ < 2 && millis() - trigger_time_ >= trigger_ms_) {
+                    triggered_ = 2;
+                    high();
                 }
             }
         }
 
-        bool Toggle() {
+        bool toggle() {
             if (triggered_) {
                 return false;
             }
 
-            digitalWrite(pin_, high_);
-            triggered_ = true;
+            low();
+            triggered_ = 1;
             trigger_time_ = millis();
             return true;
         }
 
     private:
+        void low() {
+            pinMode(pin_, OUTPUT);
+            digitalWrite(pin_, LOW);
+            Serial.println("open drain");
+        }
+
+        void high() {
+            pinMode(pin_, INPUT);
+            Serial.println("high impedence");
+        }
+
         int pin_;
-        bool high_;
-        bool triggered_;
+        uint8_t triggered_;
         uint16_t trigger_ms_;
         uint32_t trigger_time_;
         uint16_t cooldown_ms_;
@@ -48,7 +64,7 @@ class DigitalToggle {
 
 AnalogMultiButton swA(SW_A_PIN, sw_count, sw_values);
 AnalogMultiButton swB(SW_B_PIN, sw_count, sw_values);
-DigitalToggle rdef(RDEF_PIN, 200);
+DigitalToggle rdef(RDEF_PIN, 300);
 
 void setup() {
     pinMode(SW_A_PIN, INPUT);
@@ -59,15 +75,13 @@ void setup() {
     delay(10);
     analogRead(SW_A_PIN);
     analogRead(SW_B_PIN);
-
-    pinMode(RDEF_PIN, OUTPUT);
-    digitalWrite(RDEF_PIN, 0);
+    rdef.begin();
 
     Serial.begin(115200);
     while(!Serial) {
         delay(100);
     }
-    Serial.println("Hello, world.");
+    Serial.println("boot boot");
 }
 
 void loop() {
@@ -108,10 +122,10 @@ void loop() {
         Serial.println("release VOLUME_UP");
     }
 
-    rdef.Loop();
+    rdef.loop();
     while (Serial.available()) {
         if (Serial.read() == '\n') {
-            if (rdef.Toggle()) {
+            if (rdef.toggle()) {
                 Serial.println("toggle rear defrost");
             } else {
                 Serial.println("toggle failed, currently active");

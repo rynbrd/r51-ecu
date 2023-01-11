@@ -33,6 +33,10 @@ void Illum::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     }
 }
 
+void Defrost::init(const Caster::Yield<Message>&) {
+    output_.init();
+}
+
 void Defrost::handle(const Message& msg, const Caster::Yield<Message>&) {
     if (msg.type() != Message::EVENT ||
             msg.event()->subsystem != (uint8_t)SubSystem::BCM ||
