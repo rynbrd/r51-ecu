@@ -42,8 +42,8 @@
 // Steering keypad configuration.
 #define STEERING_KEYPAD_ID 0x00
 #define STEERING_KEYPAD_ENABLE
-#define STEERING_PIN_A A2
-#define STEERING_PIN_B A3
+#define STEERING_PIN_A A1
+#define STEERING_PIN_B A2
 
 // Uncomment to enable Bluetooth via SPI.
 #define BLUETOOTH_ENABLE

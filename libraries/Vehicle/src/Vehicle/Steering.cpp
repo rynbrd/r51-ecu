@@ -7,8 +7,9 @@
 namespace R51 {
 
 // Steering keypad button count and resistance thresholds.
+// Values are set for use with a 1k pull-up resistor.
+static constexpr const int kSteeringKeypadValues[] = {12, 80, 240};
 static const int kSteeringKeypadCount = 3;
-static constexpr const int kSteeringKeypadValues[] = {50, 280, 640};
 
 SteeringKeypad::SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,
     Faker::Clock* clock, Faker::GPIO* gpio) :
@@ -22,7 +23,19 @@ SteeringKeypad::SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,
             AnalogMultiButton::DEFAULT_DEBOUNCE_DURATION,
             AnalogMultiButton::DEFAULT_ANALOG_RESOLUTION,
             clock, gpio),
-        key_(keypad) {}
+        key_(keypad), clock_(clock), gpio_(gpio),
+        a_pin_(sw_a_pin), b_pin_(sw_b_pin) {}
+
+void SteeringKeypad::init(const Caster::Yield<Message>&) {
+    // Initialize GPIOs and discard the first read.
+    gpio_->pinMode(a_pin_, INPUT);
+    gpio_->digitalWrite(a_pin_, LOW);
+    gpio_->pinMode(b_pin_, INPUT);
+    gpio_->digitalWrite(b_pin_, LOW);
+    clock_->delay(10);
+    gpio_->analogRead(a_pin_);
+    gpio_->analogRead(b_pin_);
+}
 
 void SteeringKeypad::emit(const Caster::Yield<Message>& yield) {
     sw_a_.update();

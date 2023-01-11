@@ -12,7 +12,7 @@ using ::Faker::FakeGPIO;
 
 class SteeringKeypadTest : public TestOnce {
     public:
-        static constexpr const int values[] = {50, 280, 640};
+        static constexpr const int values[] = {12, 80, 240};
         static const int pin_a = 1;
         static const int pin_b = 2;
         static const uint8_t keypad_id = 0x10;

@@ -27,6 +27,9 @@ class SteeringKeypad : public Caster::Node<Message> {
                 Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
 
+        // Initialize the keypad GPIOs.
+        void init(const Caster::Yield<Message>&) override;
+
         // Noop. This node does not process messages.
         void handle(const Message&, const Caster::Yield<Message>&) override {}
 
@@ -37,6 +40,10 @@ class SteeringKeypad : public Caster::Node<Message> {
         AnalogMultiButton sw_a_;
         AnalogMultiButton sw_b_;
         KeyState key_;
+        Faker::Clock* clock_;
+        Faker::GPIO* gpio_;
+        int a_pin_;
+        int b_pin_;
 };
 
 }  // namespace R51

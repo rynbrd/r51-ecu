@@ -1,12 +1,13 @@
 #include <Arduino.h>
 #include <AnalogMultiButton.h>
 
-#define SW_A_PIN A2
-#define SW_B_PIN A3
+#define SW_A_PIN A1
+#define SW_B_PIN A2
 #define RDEF_PIN 6
 
+// Values for a 1k pullup resistor.
+static constexpr const int sw_values[sw_count] = {12, 80, 240};
 static constexpr const int sw_count = 3;
-static constexpr const int sw_values[sw_count] = {50, 280, 640};
 
 class DigitalToggle {
     public:
@@ -50,6 +51,15 @@ AnalogMultiButton swB(SW_B_PIN, sw_count, sw_values);
 DigitalToggle rdef(RDEF_PIN, 200);
 
 void setup() {
+    pinMode(SW_A_PIN, INPUT);
+    digitalWrite(SW_A_PIN, LOW);
+    pinMode(SW_B_PIN, INPUT);
+    digitalWrite(SW_B_PIN, LOW);
+
+    delay(10);
+    analogRead(SW_A_PIN);
+    analogRead(SW_B_PIN);
+
     pinMode(RDEF_PIN, OUTPUT);
     digitalWrite(RDEF_PIN, 0);
 
@@ -61,6 +71,13 @@ void setup() {
 }
 
 void loop() {
+/*
+    Serial.print(analogRead(SW_A_PIN));
+    Serial.print(", ");
+    Serial.println(analogRead(SW_B_PIN));
+    delay(1000);
+*/
+
     swA.update();
     if (swA.onPress(0))  {
         Serial.println("press POWER");
