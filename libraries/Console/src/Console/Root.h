@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "BCM.h"
+#include "Bluetooth.h"
 #include "CAN.h"
 #include "Climate.h"
 #include "Command.h"
@@ -33,6 +34,8 @@ class RootCommand : public Command {
                 return &bcm_;
             } else if (strcmp(arg, "ipdm") == 0 || strcmp(arg, "i") == 0) {
                 return &ipdm_;
+            } else if (strcmp(arg, "bluetooth") == 0 || strcmp(arg, "ble") == 0) {
+                return &bluetooth_;
             }
             return NotFoundCommand::get();
         }
@@ -50,6 +53,7 @@ class RootCommand : public Command {
         ClimateCommand climate_;
         BCMCommand bcm_;
         IPDMCommand ipdm_;
+        BluetoothCommand bluetooth_;
 };
 
 }  // namespace R51::internal

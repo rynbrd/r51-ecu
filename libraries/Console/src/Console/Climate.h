@@ -21,7 +21,8 @@ class ClimateHelp : public Command {
 
         void run(Console* console, char*, const Caster::Yield<Message>&) override {
             console->stream()->println("usage: climate CMD [INC|DEC]");
-            console->stream()->println("commands: off, auto, ac, dual, defog, fan, recirculate, mode,\n  dtemp, ptemp, request");
+            console->stream()->println("commands: off, auto, ac, dual, defog, fan, recirculate,");
+            console->stream()->println("  mode, dtemp, ptemp, request");
             console->stream()->println("fan, dtemp, and  ptemp take a inc/dec argument");
         }
 };
