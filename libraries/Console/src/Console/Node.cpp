@@ -119,6 +119,10 @@ void prettyPrintEvent(Stream* stream, const Event* event) {
         stream->print(", a/c comp ");
         stream->print(getBit(event->data, 0, 7) ? "on" : "off");
         stream->print(")");
+    } else if (isEvent(event, SubSystem::BLUETOOTH, BluetoothEvent::STATE)) {
+        stream->print(" (bluetooth ");
+        stream->print(event->data[0] == 0x00 ? "disconnect" : "connect");
+        stream->print(")");
     }
 }
 
