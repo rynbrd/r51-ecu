@@ -49,7 +49,8 @@
 
 // Uncomment to enable Bluetooth via SPI.
 #define BLUETOOTH_ENABLE
-#define BLUETOOTH_SPI_CS_PIN 24
+#define BLUETOOTH_DEVICE_NAME "R51 Controls"
+#define BLUETOOTH_SPI_CS_PIN 22
 #define BLUETOOTH_SPI_IRQ_PIN 23
 #define BLUETOOTH_UPDATE_MS 1000
 

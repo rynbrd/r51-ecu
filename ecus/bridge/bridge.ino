@@ -155,6 +155,9 @@ void setup_ble() {
         DEBUG_MSG("setup: failed to init bluetooth");
         delay(500);
     }
+#if defined(BLUETOOTH_DEVICE_NAME)
+    ble_conn.setName(BLUETOOTH_DEVICE_NAME);
+#endif
     ble_conn.setOnConnect(onBluetoothConnect, nullptr);
     ble_conn.setOnDisconnect(onBluetoothDisconnect, nullptr);
 #endif
