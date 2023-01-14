@@ -11,6 +11,11 @@
 #define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT true
 
+// I2C hardware configuration.
+#define I2C_DEVICE Wire1
+#define I2C_SDA_PIN 6
+#define I2C_SCL_PIN 7
+
 // CAN hardware configuration.
 #define MCP2515_CS_PIN 9
 #define MCP2515_INT_PIN 11
@@ -58,8 +63,7 @@
 
 // Rotary encoder configuration.
 #define ROTARY_ENCODER_ID 0x01
-#define ROTARY_ENCODER_INTR false
-#define ROTARY_ENCODER_INTR_PIN 8
+#define ROTARY_ENCODER_INTR_PIN 21
 #define ROTARY_ENCODER_ADDR0 0x36
 #define ROTARY_ENCODER_ADDR1 0x37
 

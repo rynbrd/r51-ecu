@@ -101,8 +101,8 @@ BlinkKeybox blink_keybox(BLINK_KEYBOX_ADDR, BLINK_KEYBOX_ID);
 HMI hmi(&HMI_DEVICE, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
 
 // Rotary encoder hardware. This node lives on the I/O core.
-RotaryEncoder rotary_encoder0(&Wire);
-RotaryEncoder rotary_encoder1(&Wire);
+RotaryEncoder rotary_encoder0(&I2C_DEVICE);
+RotaryEncoder rotary_encoder1(&I2C_DEVICE);
 RotaryEncoder* rotary_encoders[] = {
     &rotary_encoder0,
     &rotary_encoder1,
@@ -110,9 +110,19 @@ RotaryEncoder* rotary_encoders[] = {
 RotaryEncoderGroup rotary_encoder_group(ROTARY_ENCODER_ID, rotary_encoders,
         sizeof(rotary_encoders)/sizeof(rotary_encoders[0]));
 
+#if defined(ROTARY_ENCODER_INTR_PIN)
 void rotaryEncoderISR() {
     rotary_encoder_group.interrupt(0xFF);
 }
+
+void rotaryEncoderAttachISR(uint8_t) {
+    attachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN), rotaryEncoderISR, FALLING);
+}
+
+void rotaryEncoderDetachISR(uint8_t) {
+    detachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN));
+}
+#endif
 
 /**
  * Controller Nodes
@@ -181,6 +191,14 @@ void setup_watchdog()  {
 #endif
 }
 
+void setup_i2c() {
+#if defined(I2C_SDA_PIN) && defined(I2C_SCL_PIN)
+    DEBUG_MSG("setup: configuring I2C");
+    I2C_DEVICE.setSDA(I2C_SDA_PIN);
+    I2C_DEVICE.setSCL(I2C_SCL_PIN);
+#endif
+}
+
 void setup_can() {
     DEBUG_MSG("setup: connecting to CAN");
     while (!can_conn.begin()) {
@@ -219,7 +237,8 @@ void setup_rotary_encoders() {
 
 // Enable rotary encoder interrupts if configured.
 #if defined(ROTARY_ENCODER_INTR_PIN)
-    attachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN), rotaryEncoderISR, FALLING);
+    rotaryEncoderAttachISR(0xFF);
+    rotary_encoder_group.enableInterrupts(&rotaryEncoderDetachISR, &rotaryEncoderAttachISR);
 #endif
 
     rotary_encoder0.begin(ROTARY_ENCODER_ADDR0);
@@ -231,6 +250,7 @@ void setup() {
     setup_serial();
     DEBUG_MSG("setup: core0 initializing");
     setup_watchdog();
+    setup_i2c();
     setup_can();
     setup_j1939();
     setup_bluetooth();

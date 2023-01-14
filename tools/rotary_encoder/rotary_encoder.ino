@@ -55,7 +55,7 @@ void setup() {
     DEBUG_MSG("setup: initializing ECU");
 
     DEBUG_MSG("setup: configuring I2C");
-# if defined(I2C_SDA_PIN) && defined(I2C_SCL_PIN)
+#if defined(I2C_SDA_PIN) && defined(I2C_SCL_PIN)
     I2C_DEVICE.setSDA(I2C_SDA_PIN);
     I2C_DEVICE.setSCL(I2C_SCL_PIN);
 #endif

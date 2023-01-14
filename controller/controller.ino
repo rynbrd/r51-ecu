@@ -39,8 +39,8 @@ J1939ControllerAdapter j1939_adapter;
 HMI hmi(&HMI_DEVICE, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
 
 // Rotary encoder hardware. This node lives on the I/O core.
-RotaryEncoder rotary_encoder0(&Wire);
-RotaryEncoder rotary_encoder1(&Wire);
+RotaryEncoder rotary_encoder0(&I2C_DEVICE);
+RotaryEncoder rotary_encoder1(&I2C_DEVICE);
 RotaryEncoder* rotary_encoders[] = {
     &rotary_encoder0,
     &rotary_encoder1,
@@ -54,11 +54,11 @@ void rotaryEncoderISR() {
     rotary_encoder_group.interrupt(0xFF);
 }
 
-void attachInterrupts() {
+void rotaryEncoderAttachISR(uint8_t) {
     attachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN), rotaryEncoderISR, FALLING);
 }
 
-void detachInterrupts() {
+void rotaryEncoderDetachISR(uint8_t) {
     detachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN));
 }
 #endif
@@ -117,6 +117,14 @@ void setup_watchdog()  {
 #endif
 }
 
+void setup_i2c() {
+#if defined(I2C_SDA_PIN) && defined(I2C_SCL_PIN)
+    DEBUG_MSG("setup: configuring I2C");
+    I2C_DEVICE.setSDA(I2C_SDA_PIN);
+    I2C_DEVICE.setSCL(I2C_SCL_PIN);
+#endif
+}
+
 void setup_j1939() {
     DEBUG_MSG("setup: connecting to J1939");
     while (!j1939_conn.begin()) {
@@ -132,6 +140,13 @@ void setup_hmi() {
 
 void setup_rotary_encoders() {
     DEBUG_MSG("setup: configuring rotary encoders");
+
+// Enable rotary encoder interrupts if configured.
+#if defined(ROTARY_ENCODER_INTR_PIN)
+    rotaryEncoderAttachISR(0xFF);
+    rotary_encoder_group.enableInterrupts(&rotaryEncoderDetachISR, &rotaryEncoderAttachISR);
+#endif
+
     rotary_encoder0.begin(ROTARY_ENCODER_ADDR0);
     rotary_encoder1.begin(ROTARY_ENCODER_ADDR1);
 }
@@ -140,6 +155,7 @@ void setup() {
     setup_serial();
     DEBUG_MSG("setup: core0 initializing");
     setup_watchdog();
+    setup_i2c();
     setup_j1939();
     setup_rotary_encoders();
     DEBUG_MSG("setup: core0 online");
