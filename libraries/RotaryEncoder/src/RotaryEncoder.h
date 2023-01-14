@@ -88,9 +88,12 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
         void emit(const Caster::Yield<Message>& yield) override;
 
         // Enable interrupts and set the interrupts callbacks. When interrupts
-        // are enabled the ISR must call interrupt() in order for data to be
-        // read from an encoder. The callbacks are used to pause and resume
-        // interrupts to avoid hanging the I2C bus. 
+        // are enabled the ISR for an encoder must call interrupt(n) where n is
+        // the index of the encoder whose interrupt was triggered. A value of
+        // 0xFF should be used if all encoders are wired to the same interrupt
+        // pin. The callbacks are used to pause and resume interrupts to avoid
+        // hanging the I2C bus. ISRs must be attached before the node's handle
+        // method is called for the first time.
         void enableInterrupts(void (*pause_cb)(uint8_t), void (*resume_cb)(uint8_t));
 
         // Disable interrupts. Emit will read events on each iteration instead
