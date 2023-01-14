@@ -31,6 +31,7 @@ class BLE : public Stream {
 
         // Set the name of the device. This is persisted across reboots.
         void setName(const uint8_t* name, size_t size);
+        void setName(const char name[]);
 
         // Should be called periodically to retrieve BLE device status. If IRQ
         // is wired then this should be called with period_ms = 0 on interrupt.

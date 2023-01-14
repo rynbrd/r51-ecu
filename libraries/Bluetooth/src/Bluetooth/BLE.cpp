@@ -38,6 +38,10 @@ void BLE::setName(const uint8_t* name, size_t size) {
     bluefruit_.atcommand("AT+GAPDEVNAME", name, size);
 }
 
+void BLE::setName(const char name[]) {
+    bluefruit_.atcommand("AT+GAPDEVNAME", name);
+}
+
 void BLE::update(uint32_t period_ms) {
     bluefruit_.update(period_ms);
 }
