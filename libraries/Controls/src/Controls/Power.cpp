@@ -50,13 +50,6 @@ void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
     }
 }
 
-// blink keypad key map:
-//   0: right arrow up
-//   1: right arrow down
-//   2: page/layer
-//   3: left arrow up
-//   4: left arrow down
-//   5: power/circle
 void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) {
     if (key->pressed()) {
         return;
@@ -66,19 +59,25 @@ void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) 
             sendPowerCmd(yield, PDMDevice::LIGHT_BAR, PowerCmd::TOGGLE);
             break;
         case 1:
-            // noop
+            sendPowerCmd(yield, PDMDevice::DITCH_LIGHTS, PowerCmd::TOGGLE);
             break;
         case 2:
-            sendCmd(yield, ScreenEvent::NAV_PAGE_NEXT_CMD);
+            sendPowerCmd(yield, PDMDevice::CHASE_LIGHTS, PowerCmd::TOGGLE);
             break;
         case 3:
-            sendPowerCmd(yield, PDMDevice::FRONT_LOCKER, PowerCmd::TOGGLE);
+            sendPowerCmd(yield, PDMDevice::ROCK_LIGHTS, PowerCmd::TOGGLE);
             break;
         case 4:
-            sendPowerCmd(yield, PDMDevice::REAR_LOCKER, PowerCmd::TOGGLE);
+            sendPowerCmd(yield, PDMDevice::FRONT_LOCKER, PowerCmd::TOGGLE);
             break;
         case 5:
+            sendPowerCmd(yield, PDMDevice::REAR_LOCKER, PowerCmd::TOGGLE);
+            break;
+        case 6:
             sendPowerCmd(yield, PDMDevice::AIR_COMP, PowerCmd::TOGGLE);
+            break;
+        case 7:
+            sendCmd(yield, ScreenEvent::NAV_PAGE_NEXT_CMD);
             break;
         default:
             break;
@@ -87,17 +86,26 @@ void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) 
 
 void PowerControls::handlePower(const PowerState* power, const Yield<Message>& yield) {
     switch ((PDMDevice)power->pin()) {
-        case PDMDevice::FRONT_LOCKER:
-            sendIndicatorCmd(yield, 3, power->mode(), power->duty_cycle(), kLockerColor);
-            break;
-        case PDMDevice::REAR_LOCKER:
-            sendIndicatorCmd(yield, 4, power->mode(), power->duty_cycle(), kLockerColor);
-            break;
-        case PDMDevice::AIR_COMP:
-            sendIndicatorCmd(yield, 5, power->mode(), power->duty_cycle(), kAirColor);
-            break;
         case PDMDevice::LIGHT_BAR:
             sendIndicatorCmd(yield, 0, power->mode(), power->duty_cycle(), kLightColor);
+            break;
+        case PDMDevice::DITCH_LIGHTS:
+            sendIndicatorCmd(yield, 1, power->mode(), power->duty_cycle(), kLightColor);
+            break;
+        case PDMDevice::CHASE_LIGHTS:
+            sendIndicatorCmd(yield, 2, power->mode(), power->duty_cycle(), kLightColor);
+            break;
+        case PDMDevice::ROCK_LIGHTS:
+            sendIndicatorCmd(yield, 3, power->mode(), power->duty_cycle(), kLightColor);
+            break;
+        case PDMDevice::FRONT_LOCKER:
+            sendIndicatorCmd(yield, 4, power->mode(), power->duty_cycle(), kLockerColor);
+            break;
+        case PDMDevice::REAR_LOCKER:
+            sendIndicatorCmd(yield, 5, power->mode(), power->duty_cycle(), kLockerColor);
+            break;
+        case PDMDevice::AIR_COMP:
+            sendIndicatorCmd(yield, 6, power->mode(), power->duty_cycle(), kAirColor);
             break;
     }
 }

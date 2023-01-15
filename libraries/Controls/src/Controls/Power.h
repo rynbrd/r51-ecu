@@ -13,6 +13,9 @@ enum class PDMDevice : uint8_t {
     REAR_LOCKER  = 9,   // A2
     AIR_COMP     = 10,  // A3
     LIGHT_BAR    = 2,   // E1
+    CHASE_LIGHTS = 7,   // E3
+    ROCK_LIGHTS  = 3,   // F1
+    DITCH_LIGHTS = 11,  // F2
 };
 
 class PowerControls : public Controls {
