@@ -55,11 +55,13 @@ void setup() {
     }
     DEBUG_MSG("setup: initializing ECU");
 
+    DEBUG_MSG("setup: connecting to CAN");
     while (!can_conn.begin()) {
         DEBUG_MSG("setup: failed to connect to CAN");
         delay(500);
     }
 
+    DEBUG_MSG("setup: initializing internal bus");
     bus.init();
 
     DEBUG_MSG("setup: ECU started");
