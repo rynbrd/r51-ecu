@@ -3,8 +3,11 @@
 
 // Serial configuration for the debug console.
 #define SERIAL_DEVICE Serial
-#define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT true
+
+// Multicore buffer settings.
+#define IO_CORE_BUFFER_SIZE 256
+#define PROC_CORE_BUFFER_SIZE 16
 
 // Bluetooth configuration.
 #define BLUETOOTH_SPI_CS_PIN 22
