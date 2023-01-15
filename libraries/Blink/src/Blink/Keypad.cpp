@@ -52,14 +52,6 @@ BlinkKeypad::BlinkKeypad(uint8_t address, uint8_t keypad, uint8_t key_count) :
     command_.data()[1] = 0x1B;
 }
 
-void BlinkKeypad::init(const Caster::Yield<Message>& yield) {
-    setBacklightBrightness(yield, 0x00);
-    setKeyBrightness(yield, 0xFF);
-    for (uint8_t i = 0; i < key_count_; ++i) {
-        setKeyLED(yield, i, LEDMode::OFF);
-    }
-}
-
 void BlinkKeypad::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
@@ -80,7 +72,7 @@ void BlinkKeypad::handle(const Message& msg, const Caster::Yield<Message>& yield
             }
             break;
         case Message::J1939_CLAIM:
-            handleJ1939Claim(*msg.j1939_claim());
+            handleJ1939Claim(*msg.j1939_claim(), yield);
             break;
         case Message::J1939_MESSAGE:
             handleJ1939Message(*msg.j1939_message(), yield);
@@ -90,8 +82,13 @@ void BlinkKeypad::handle(const Message& msg, const Caster::Yield<Message>& yield
     }
 }
 
-void BlinkKeypad::handleJ1939Claim(const J1939Claim& claim) {
+void BlinkKeypad::handleJ1939Claim(const J1939Claim& claim, const Yield<Message>& yield) {
     command_.source_address(claim.address());
+    setBacklightBrightness(yield, 0x00);
+    setKeyBrightness(yield, 0xFF);
+    for (uint8_t i = 0; i < key_count_; ++i) {
+        setKeyLED(yield, i, LEDMode::OFF);
+    }
 }
 
 void BlinkKeypad::handleJ1939Message(const J1939Message& msg, const Yield<Message>& yield) {

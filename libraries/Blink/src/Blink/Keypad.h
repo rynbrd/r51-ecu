@@ -19,15 +19,13 @@ class BlinkKeypad : public Caster::Node<Message> {
         // buttons on the PKP.
         BlinkKeypad(uint8_t address, uint8_t keypad, uint8_t key_count);
 
-        // Initialize the button LED state.
-        void init(const Caster::Yield<Message>& yield) override;
-
         // Handle J1939 keypad message and a LED command events. Keypad events
         // are yield'd in response to J1939 keypad messages.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
 
     private:
-        void handleJ1939Claim(const J1939Claim& claim);
+        void handleJ1939Claim(const J1939Claim& claim,
+                const Caster::Yield<Message>& yield);
         void handleJ1939Message(const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handleIndicatorCommand(const IndicatorCommand* cmd,
