@@ -235,6 +235,11 @@ void setup_hmi() {
     HMI_DEVICE.begin(HMI_BAUDRATE);
 }
 
+void setup_steering() {
+    DEBUG_MSG("setup: initializing steering keypad GPIO");
+    steering_keypad.begin();
+}
+
 void setup_rotary_encoders() {
     DEBUG_MSG("setup: configuring rotary encoders");
 
@@ -258,6 +263,7 @@ void setup() {
     setup_j1939();
     setup_bluetooth();
     setup_rotary_encoders();
+    setup_steering();
     DEBUG_MSG("setup: core0 online");
     io_bus.init();
 }

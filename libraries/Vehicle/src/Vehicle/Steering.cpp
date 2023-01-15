@@ -26,7 +26,7 @@ SteeringKeypad::SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,
         key_(keypad), clock_(clock), gpio_(gpio),
         a_pin_(sw_a_pin), b_pin_(sw_b_pin) {}
 
-void SteeringKeypad::init(const Caster::Yield<Message>&) {
+void SteeringKeypad::begin() {
     // Initialize GPIOs and discard the first read.
     gpio_->pinMode(a_pin_, INPUT);
     gpio_->digitalWrite(a_pin_, LOW);

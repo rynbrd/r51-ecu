@@ -27,6 +27,7 @@ class SteeringKeypadTest : public TestOnce {
 
             // initialize keypad
             SteeringKeypad keypad(keypad_id, pin_a, pin_b, &clock, &gpio);
+            keypad.begin();
             gpio.analogWrite(pin_a, 1023);
             gpio.analogWrite(pin_b, 1023);
 
