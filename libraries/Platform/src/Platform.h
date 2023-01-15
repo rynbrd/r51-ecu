@@ -7,5 +7,6 @@
 
 #include <Platform/Config.h>
 #include <Platform/Pipe.h>
+#include <Platform/SyncWait.h>
 
 #endif  // _R51_PICO_H_
