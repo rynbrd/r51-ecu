@@ -235,6 +235,11 @@ void setup_hmi() {
     HMI_DEVICE.begin(HMI_BAUDRATE);
 }
 
+void setup_defrost() {
+    DEBUG_MSG("setup: initializing defrost GPIO");
+    defrost.begin();
+}
+
 void setup_steering() {
     DEBUG_MSG("setup: initializing steering keypad GPIO");
     steering_keypad.begin();
@@ -263,6 +268,7 @@ void setup() {
     setup_j1939();
     setup_bluetooth();
     setup_rotary_encoders();
+    setup_defrost();
     setup_steering();
     DEBUG_MSG("setup: core0 online");
     io_bus.init();

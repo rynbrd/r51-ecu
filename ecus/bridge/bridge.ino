@@ -163,6 +163,11 @@ void setup_ble() {
 #endif
 }
 
+void setup_defrost() {
+    DEBUG_MSG("setup: initializing defrost GPIO");
+    defrost.begin();
+}
+
 void setup_steering() {
     DEBUG_MSG("setup: initializing steering keypad GPIO");
     steering_keypad.begin();
@@ -176,6 +181,7 @@ void setup() {
     setup_j1939();
     setup_ble();
     DEBUG_MSG("setup: core0 online");
+    setup_defrost();
     setup_steering();
     io_bus.init();
 }

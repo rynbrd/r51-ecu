@@ -166,10 +166,10 @@ test(DefrostTest, Trigger) {
     FakeClock clock;
     FakeGPIO gpio;
     Defrost defrost(1, 200, &clock, &gpio);
+    defrost.begin();
     Event event((uint8_t)SubSystem::BCM, (uint8_t)BCMEvent::TOGGLE_DEFROST_CMD);
 
     // Ensure default state is on (high impedence).
-    defrost.init(yield);
     assertSize(yield, 0);
     assertEqual(gpio.pinMode(1), (uint32_t)INPUT);
     assertEqual(gpio.digitalRead(1), 1);

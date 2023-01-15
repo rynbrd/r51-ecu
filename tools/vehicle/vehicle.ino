@@ -61,6 +61,8 @@ void setup() {
         delay(500);
     }
 
+    DEBUG_MSG("setup: initializing defrost GPIO");
+    defrost.begin();
     DEBUG_MSG("setup: initializing steering keypad GPIO");
     steering_keypad.begin();
 

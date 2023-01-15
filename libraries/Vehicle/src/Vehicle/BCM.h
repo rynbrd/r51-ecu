@@ -51,8 +51,8 @@ class Defrost : public Caster::Node<Message> {
             output_(output_pin, output_ms, -1,
                     MomentaryOutput::MOMENTARILY_DRAIN, clock, gpio) {}
 
-        // Initialize outputs.
-        void init(const Caster::Yield<Message>&) override;
+        // Initialize output GPIO.
+        void begin();
 
         // Handles the IPDM TOGGLE_DEFROST_CMD mesage.
         void handle(const Message& message, const Caster::Yield<Message>&) override;

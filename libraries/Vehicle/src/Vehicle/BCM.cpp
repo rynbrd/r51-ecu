@@ -33,7 +33,7 @@ void Illum::handle(const Message& msg, const Caster::Yield<Message>& yield) {
     }
 }
 
-void Defrost::init(const Caster::Yield<Message>&) {
+void Defrost::begin() {
     output_.init();
 }
 
