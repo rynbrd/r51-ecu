@@ -22,7 +22,6 @@ void MomentaryOutput::init() {
             gpio_->digitalWrite(pin_, LOW);
             break;
         case MOMENTARILY_DRAIN:
-            Serial.println("output: high impedence");
             gpio_->digitalWrite(pin_, HIGH);
             gpio_->pinMode(pin_, INPUT);
             break;
@@ -48,7 +47,6 @@ void MomentaryOutput::update() {
                     gpio_->digitalWrite(pin_, HIGH);
                     break;
                 case MOMENTARILY_DRAIN:
-                    Serial.println("output: high impedence");
                     gpio_->digitalWrite(pin_, HIGH);
                     gpio_->pinMode(pin_, INPUT);
             }
@@ -73,7 +71,6 @@ bool MomentaryOutput::trigger() {
             gpio_->digitalWrite(pin_, LOW);
             break;
         case MOMENTARILY_DRAIN:
-            Serial.println("output: open drain");
             gpio_->pinMode(pin_, OUTPUT);
             gpio_->digitalWrite(pin_, LOW);
             break;
