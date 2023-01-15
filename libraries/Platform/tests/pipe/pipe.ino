@@ -138,7 +138,6 @@ test(PipeTest, Overrun) {
     MessageView msg3(&event3);
     FakeNode<2> fake;
 
-    Serial.println(">>> start");
     PipeTestImpl smp(1, 1);
     Node<Message>* left_nodes[] = {smp.left()};
     Caster::Bus<Message> left_bus(left_nodes, sizeof(left_nodes)/sizeof(left_nodes[0]));
@@ -151,7 +150,6 @@ test(PipeTest, Overrun) {
     right_bus.loop();
     right_bus.loop();
     right_bus.loop();
-    Serial.println("<<< stop");
 
     assertEqual((int)fake.size, 1);
     assertPrintablesEqual(fake.messages[0], msg1);

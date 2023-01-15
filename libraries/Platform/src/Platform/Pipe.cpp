@@ -19,12 +19,8 @@ void PipeNode::handle(const Message& msg, const Caster::Yield<Message>&) {
     }
     MessageValue value(msg);
     if (!queue_try_add(write_queue(), &value)) {
-        Serial.print("overrun ");
         parent_->onBufferOverrun(msg);
-    } else {
-        Serial.print("write ");
     }
-    Serial.println(msg);
 }
 
 void PipeNode::emit(const Caster::Yield<Message>& yield) {
