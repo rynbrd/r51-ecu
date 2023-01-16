@@ -9,13 +9,13 @@
 namespace R51 {
 
 enum class PDMDevice : uint8_t {
-    FRONT_LOCKER = 6,   // A1
-    REAR_LOCKER  = 9,   // A2
-    AIR_COMP     = 10,  // A3
-    LIGHT_BAR    = 2,   // E1
-    CHASE_LIGHTS = 7,   // E3
-    ROCK_LIGHTS  = 3,   // F1
-    DITCH_LIGHTS = 11,  // F2
+    FRONT_LOCKER = 5,   // A1
+    REAR_LOCKER  = 8,   // A2
+    AIR_COMP     = 9,   // A3
+    LIGHT_BAR    = 1,   // E1
+    CHASE_LIGHTS = 6,   // E3
+    ROCK_LIGHTS  = 2,   // F1
+    DITCH_LIGHTS = 10,  // F2
 };
 
 class PowerControls : public Controls {

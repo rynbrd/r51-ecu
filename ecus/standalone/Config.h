@@ -75,7 +75,7 @@
 // External J1939 keypad configuration.
 #define BLINK_KEYPAD_ID 0x02
 #define BLINK_KEYPAD_ADDR 0x24
-#define BLINK_KEYPAD_KEYS 6
+#define BLINK_KEYPAD_KEYS 8
 
 // External J1939 PDU configuration.
 #define BLINK_KEYBOX_ID 0x01
