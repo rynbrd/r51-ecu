@@ -215,17 +215,10 @@ void loop() {
     // BLE's update method needs to be called to enable connectivity callbacks
     ble_conn.update(BLUETOOTH_UPDATE_MS);
 #endif
-#if defined(DEBUG_ENABLE)
-    delay(10);
-#else
     watchdog_update();
-#endif
 }
 
 // Processing main loop.
 void loop1() {
     proc_bus.loop();
-#if defined(DEBUG_ENABLE)
-    delay(10);
-#endif
 }

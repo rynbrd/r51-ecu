@@ -162,17 +162,10 @@ void setup1() {
 // I/O main loop.
 void loop() {
     io_bus.loop();
-#if defined(DEBUG_ENABLE)
-    delay(10);
-#else
     watchdog_update();
-#endif
 }
 
 // Processing main loop.
 void loop1() {
     proc_bus.loop();
-#if defined(DEBUG_ENABLE)
-    delay(10);
-#endif
 }
