@@ -4,10 +4,10 @@
 #include "Config.h"
 
 #include <Canny.h>
-#include <Canny/MCP2518.h>
+#include <Canny/MCP2515.h>
 #include "Debug.h"
 
-Canny::MCP2518<Canny::CAN20Frame> CAN(MCP2518_CS_PIN);
+Canny::MCP2515<Canny::CAN20Frame> CAN(MCP2515_CS_PIN);
 
 namespace R51 {
 
@@ -25,14 +25,14 @@ class CANConnection : public Canny::BufferedConnection<Canny::CAN20Frame> {
             }
             // Enable hardware filtering if not in promiscuous mode.
             if (!VEHICLE_PROMISCUOUS) {
-                // Read climate frames.
-                CAN.setFilter(0, 0, 0x54A, 0xFFFFFFFE);
-                // Read settings frames.
-                CAN.setFilter(0, 0, 0x72E, 0xFFFFFFFE);
-                // Read tire frames.
-                CAN.setFilter(0, 0, 0x385, 0xFFFFFFFF);
-                // Read IPDM frames.
-                CAN.setFilter(0, 0, 0x625, 0xFFFFFFFF);
+                // Read climate and settings frames.
+                CAN.setMask(0, 0, 0xFFFFFFFE);
+                CAN.setFilter(0, 0, 0x54A);
+                CAN.setFilter(1, 0, 0x72E);
+                // Read BCM tire and IPDM power frames.
+                CAN.setMask(1, 0, 0xFFFFFFFF);
+                CAN.setFilter(2, 0, 0x385);
+                CAN.setFilter(3, 0, 0x625);
             }
             return true;
         }

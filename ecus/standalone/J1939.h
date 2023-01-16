@@ -4,11 +4,11 @@
 #include "Config.h"
 
 #include <Canny.h>
-#include <Canny/MCP2515.h>
+#include <Canny/MCP2518.h>
 #include <Core.h>
 #include "Debug.h"
 
-Canny::MCP2515<Canny::J1939Message> J1939(MCP2515_CS_PIN);
+Canny::MCP2518<Canny::J1939Message> J1939(MCP2518_CS_PIN);
 
 namespace R51 {
 
