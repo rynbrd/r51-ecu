@@ -6,8 +6,8 @@
 #define SERIAL_WAIT true
 
 // Multicore buffer settings.
-#define IO_CORE_BUFFER_SIZE 256
-#define PROC_CORE_BUFFER_SIZE 16
+#define IO_CORE_BUFFER_SIZE 2
+#define PROC_CORE_BUFFER_SIZE 2
 
 // Bluetooth configuration.
 #define BLUETOOTH_SPI_CS_PIN 22
