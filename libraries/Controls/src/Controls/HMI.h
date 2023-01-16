@@ -28,6 +28,7 @@ class HMI : public Controls {
         // Emit input events from the HMI display.
         void emit(const Caster::Yield<Message>& yield) override;
     private:
+        // Bus event handling.
         void handleECM(const Event& event);
         void handleIPDM(const Event& event);
         void handleIllum(const Caster::Yield<Message>& yield, const Event& event);
@@ -48,6 +49,7 @@ class HMI : public Controls {
         void handleAudioSettingsItem(const AudioSettingsItemState* event);
         void handleAudioSettingsExit(const AudioSettingsExitState* event);
 
+        // HMI serial handling.
         void handleSerial(const Caster::Yield<Message>& yield);
         void handleClimateButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioRadioButton(uint8_t button, const Caster::Yield<Message>& yield);
@@ -62,6 +64,7 @@ class HMI : public Controls {
         void handleSettings2Button(uint8_t button, const Caster::Yield<Message>& yield);
         void handleSettings3Button(uint8_t button, const Caster::Yield<Message>& yield);
 
+        // Input event handling.
         void navUp(const Caster::Yield<Message>& yield);
         void navDown(const Caster::Yield<Message>& yield);
         void navLeft(const Caster::Yield<Message>& yield);
@@ -70,6 +73,7 @@ class HMI : public Controls {
         void navPageNext(const Caster::Yield<Message>& yield);
         void navPagePrev(const Caster::Yield<Message>& yield);
 
+        // HMI serial helpers.
         void terminate();
         void refresh();
         void back();

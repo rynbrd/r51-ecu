@@ -650,23 +650,29 @@ void HMI::handleSerial(const Yield<Message>& yield) {
 
 void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x02:
+        case 2:
             sendCmd(yield, ClimateEvent::TURN_OFF_CMD);
             break;
-        case 0x13:
+        case 17:
             sendCmd(yield, ClimateEvent::TOGGLE_AC_CMD);
             break;
-        case 0x27:
+        case 36:
             sendCmd(yield, ClimateEvent::TOGGLE_DEFOG_CMD);
             break;
-        case 0x28:
+        case 37:
             sendCmd(yield, BCMEvent::TOGGLE_DEFROST_CMD);
             break;
-        case 0x14:
+        case 18:
             sendCmd(yield, ClimateEvent::TOGGLE_RECIRCULATE_CMD);
             break;
-        case 0x15:
+        case 19:
             sendCmd(yield, ClimateEvent::CYCLE_AIRFLOW_MODE_CMD);
+            break;
+        case 39:
+            sendCmd(yield, ClimateEvent::INC_FAN_SPEED_CMD);
+            break;
+        case 40:
+            sendCmd(yield, ClimateEvent::DEC_FAN_SPEED_CMD);
             break;
         default:
             break;
@@ -675,10 +681,10 @@ void HMI::handleClimateButton(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x0E:
+        case 14:
             sendCmd(yield, AudioEvent::POWER_OFF_CMD);
             break;
-        case 0x0A:
+        case 10:
             sendCmd(yield, AudioEvent::RADIO_TOGGLE_SEEK_CMD);
             break;
         default:
@@ -688,10 +694,10 @@ void HMI::handleAudioRadioButton(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x13:
+        case 19:
             sendCmd(yield, AudioEvent::POWER_OFF_CMD);
             break;
-        case 0x0D:
+        case 14:
             sendCmd(yield, AudioEvent::SETTINGS_OPEN_CMD);
             break;
     }
@@ -699,7 +705,7 @@ void HMI::handleAudioTrackButton(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleAudioAuxButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x0C:
+        case 12:
             sendCmd(yield, AudioEvent::POWER_OFF_CMD);
             break;
     }
@@ -711,28 +717,23 @@ void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield)
             // on page exit
             sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
             break;
-        case 0x0E:
+        case 9:
             // on back button
             sendCmd(yield, AudioEvent::SETTINGS_BACK_CMD);
             break;
-        case 0x01:
-        case 0x06:
+        case 21:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x00);
             break;
-        case 0x05:
-        case 0x07:
+        case 2:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x01);
             break;
-        case 0x04:
-        case 0x08:
+        case 3:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x02);
             break;
-        case 0x03:
-        case 0x09:
+        case 4:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x03);
             break;
-        case 0x02:
-        case 0x0F:
+        case 10:
             sendCmd(yield, AudioEvent::SETTINGS_SELECT_CMD, 0x04);
             break;
     }
@@ -740,34 +741,34 @@ void HMI::handleAudioSettingsButton(uint8_t button, const Yield<Message>& yield)
 
 void HMI::handleAudioEqButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x09:
+        case 9:
             sendCmd(yield, AudioEvent::TONE_BASS_DEC_CMD);
             break;
-        case 0x0B:
+        case 11:
             sendCmd(yield, AudioEvent::TONE_BASS_INC_CMD);
             break;
-        case 0x03:
+        case 3:
             sendCmd(yield, AudioEvent::TONE_MID_DEC_CMD);
             break;
-        case 0x06:
+        case 6:
             sendCmd(yield, AudioEvent::TONE_MID_INC_CMD);
             break;
-        case 0x04:
+        case 4:
             sendCmd(yield, AudioEvent::TONE_TREBLE_DEC_CMD);
             break;
-        case 0x02:
+        case 2:
             sendCmd(yield, AudioEvent::TONE_TREBLE_INC_CMD);
             break;
-        case 0x05:
+        case 5:
             sendCmd(yield, AudioEvent::FADE_REAR_CMD);
             break;
-        case 0x07:
+        case 7:
             sendCmd(yield, AudioEvent::FADE_FRONT_CMD);
             break;
-        case 0x0A:
+        case 10:
             sendCmd(yield, AudioEvent::BALANCE_LEFT_CMD);
             break;
-        case 0x08:
+        case 8:
             sendCmd(yield, AudioEvent::BALANCE_RIGHT_CMD);
             break;
         default:
@@ -777,7 +778,7 @@ void HMI::handleAudioEqButton(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleAudioPowerOffButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x03:
+        case 2:
             sendCmd(yield, AudioEvent::POWER_ON_CMD);
             break;
         default:
@@ -787,19 +788,19 @@ void HMI::handleAudioPowerOffButton(uint8_t button, const Yield<Message>& yield)
 
 void HMI::handleAudioSourceButton(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x01:
+        case 1:
             sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::BLUETOOTH);
             break;
-        case 0x02:
+        case 2:
             sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::AM);
             break;
-        case 0x03:
+        case 3:
             sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::FM);
             break;
-        case 0x04:
+        case 4:
             sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::AUX);
             break;
-        case 0x0A:
+        case 10:
             sendCmd(yield, AudioEvent::SOURCE_SET_CMD, AudioSource::OPTICAL);
             break;
         default:
@@ -817,14 +818,14 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
                 }
             }
             break;
-        case 0x1E:
-            sendPowerCmd(yield, pdm_id_, (uint8_t)PDMDevice::AIR_COMP, PowerCmd::TOGGLE);
-            break;
-        case 0x1F:
+        case 28:
             sendPowerCmd(yield, pdm_id_, (uint8_t)PDMDevice::FRONT_LOCKER, PowerCmd::TOGGLE);
             break;
-        case 0x20:
+        case 29:
             sendPowerCmd(yield, pdm_id_, (uint8_t)PDMDevice::REAR_LOCKER, PowerCmd::TOGGLE);
+            break;
+        case 27:
+            sendPowerCmd(yield, pdm_id_, (uint8_t)PDMDevice::AIR_COMP, PowerCmd::TOGGLE);
             break;
         default:
             break;
@@ -833,25 +834,25 @@ void HMI::handleVehicleButton(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x05:
+        case 4:
             sendCmd(yield, SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
             break;
-        case 0x07:
+        case 6:
             sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_SENS_CMD);
             break;
-        case 0x08:
+        case 7:
             sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
             break;
-        case 0x0B:
+        case 10:
             sendCmd(yield, SettingsEvent::PREV_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             break;
-        case 0x0C:
+        case 11:
             sendCmd(yield, SettingsEvent::NEXT_AUTO_HEADLIGHT_OFF_DELAY_CMD);
             break;
-        case 0x0F:
+        case 14:
             sendCmd(yield, SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
             break;
-        case 0x11:
+        case 16:
             sendCmd(yield, SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
             break;
         default:
@@ -861,25 +862,25 @@ void HMI::handleSettings1Button(uint8_t button, const Yield<Message>& yield) {
 
 void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
     switch (button) {
-        case 0x0A:
+        case 10:
             sendCmd(yield, SettingsEvent::PREV_REMOTE_KEY_RESP_LIGHTS_CMD);
             break;
-        case 0x04:
+        case 4:
             sendCmd(yield, SettingsEvent::NEXT_REMOTE_KEY_RESP_LIGHTS_CMD);
             break;
-        case 0x06:
+        case 6:
             sendCmd(yield, SettingsEvent::PREV_AUTO_RELOCK_TIME_CMD);
             break;
-        case 0x07:
+        case 7:
             sendCmd(yield, SettingsEvent::NEXT_AUTO_RELOCK_TIME_CMD);
             break;
-        case 0x0B:
+        case 11:
             sendCmd(yield, SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
             break;
-        case 0x0E:
+        case 14:
             sendCmd(yield, SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
             break;
-        case 0x10:
+        case 16:
             sendCmd(yield, BluetoothEvent::FORGET_CMD);
             break;
         default:
@@ -890,7 +891,7 @@ void HMI::handleSettings2Button(uint8_t button, const Yield<Message>& yield) {
 void HMI::handleSettings3Button(uint8_t button, const Yield<Message>& yield) {
     Event event;
     switch (button) {
-        case 0x03:
+        case 3:
             sendCmd(yield, SettingsEvent::FACTORY_RESET_CMD);
             break;
         default:
