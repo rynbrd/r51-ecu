@@ -13,7 +13,39 @@ namespace R51 {
 namespace {
 
 void prettyPrintEvent(Stream* stream, const Event* event) {
-    if (isEvent(event, SubSystem::KEYPAD, KeypadEvent::KEY_STATE)) {
+    if (isEvent(event, SubSystem::POWER, PowerEvent::POWER_STATE)) {
+        const auto* s = (PowerState*)event;
+        stream->print(" (pdm ");
+        stream->print(s->pdm());
+        stream->print(" output ");
+        stream->print(s->pin());
+        stream->print(" ");
+        switch (s->mode()) {
+            case PowerMode::OFF:
+                stream->print("off");
+                break;
+            case PowerMode::ON:
+                stream->print("on");
+                break;
+            case PowerMode::PWM:
+                stream->print("pwm ");
+                stream->print(s->duty_cycle());
+                break;
+            case PowerMode::FAULT:
+                stream->print("fault");
+                break;
+        }
+        stream->print(")");
+    } else if (isEvent(event, SubSystem::POWER, PowerEvent::INPUT_STATE)) {
+        const auto* s = (InputState*)event;
+        stream->print(" (pdm ");
+        stream->print(s->pdm());
+        stream->print(" input ");
+        stream->print(s->pin());
+        stream->print(" ");
+        stream->print(s->state() ? "on" : "off");
+        stream->print(")");
+    } else if (isEvent(event, SubSystem::KEYPAD, KeypadEvent::KEY_STATE)) {
         const auto* s = (KeyState*)event;
         stream->print(" (keypad ");
         stream->print(s->keypad());
