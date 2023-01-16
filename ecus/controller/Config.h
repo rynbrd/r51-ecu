@@ -17,7 +17,7 @@
 
 // CAN hardware configuration.
 #define MCP2515_CS_PIN 9
-#define MCP2515_INT_PIN 11
+#define MCP2515_IRQ_PIN 11
 
 // Multicore buffer settings.
 #define IO_CORE_BUFFER_SIZE 32

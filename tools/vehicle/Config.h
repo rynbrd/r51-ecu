@@ -8,7 +8,7 @@
 
 // CAN hardware configuration.
 #define MCP2515_CS_PIN 9
-#define MCP2515_INT_PIN 11
+#define MCP2515_IRQ_PIN 11
 
 // Vehicle CAN bus mode and speed. This is CAN 2.0 at 500K for the R51.
 #define VEHICLE_CAN_MODE Canny::CAN20_500K
