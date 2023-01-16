@@ -38,6 +38,9 @@ bool RotaryEncoder::begin(uint8_t addr) {
     if (!encoder_.begin(addr) || !neopixel_.begin(addr)) {
         return false;
     }
+    if (irq_pin_ > -1) {
+        pinMode(irq_pin_, INPUT);
+    }
     encoder_.pinMode(kSwitchPin, INPUT_PULLUP);
     delay(10);
     encoder_.setGPIOInterrupts((uint32_t)1 << kSwitchPin, 1);
@@ -98,6 +101,10 @@ void RotaryEncoder::showPixel() {
     neopixel_.show();
 }
 
+int RotaryEncoder::getIRQPin() const {
+    return irq_pin_;
+}
+
 void RotaryEncoder::setPixelColor(uint32_t color) {
     neopixel_.setPixelColor(0, neopixel_.Color(
                 (color & 0xFF0000) >> 16,
@@ -106,9 +113,7 @@ void RotaryEncoder::setPixelColor(uint32_t color) {
 }
 
 RotaryEncoderGroup::RotaryEncoderGroup(uint8_t keypad, RotaryEncoder** encoders, uint8_t count) :
-        encoders_(encoders), count_(count),
-        intr_enable_(false), intr_read_(0),
-        pause_intr_cb_(nullptr), resume_intr_cb_(nullptr) {
+        encoders_(encoders), count_(count) {
     encoder_event_.keypad(keypad);
     keypress_event_.keypad(keypad);
 }
@@ -138,10 +143,8 @@ void RotaryEncoderGroup::handleIndicatorCommand(const IndicatorCommand* cmd) {
         return;
     }
     RotaryEncoder* encoder = encoders_[cmd->led()];
-    pauseInterrupts(cmd->led());
     encoder->setColor(cmd->mode(), cmd->color());
     encoder->showPixel();
-    resumeInterrupts(cmd->led());
 }
 
 void RotaryEncoderGroup::handleBrightnessCommand(const BrightnessCommand* cmd) {
@@ -149,10 +152,8 @@ void RotaryEncoderGroup::handleBrightnessCommand(const BrightnessCommand* cmd) {
         return;
     }
     for (uint8_t i = 0; i < count_; ++i) {
-        pauseInterrupts(i);
         encoders_[i]->setBrightness(cmd->brightness());
         encoders_[i]->showPixel();
-        resumeInterrupts(i);
     }
 }
 
@@ -161,10 +162,8 @@ void RotaryEncoderGroup::handleBacklightCommand(const BacklightCommand* cmd) {
         return;
     }
     for (uint8_t i = 0; i < count_; ++i) {
-        pauseInterrupts(i);
         encoders_[i]->setBacklight(cmd->color(), cmd->brightness());
         encoders_[i]->showPixel();
-        resumeInterrupts(i);
     }
 }
 
@@ -172,15 +171,14 @@ void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
     RotaryEncoder* encoder;
     int8_t sw;
     for (uint8_t i = 0; i < count_; ++i) {
-        if (intr_enable_ && ((0x01 << i) & intr_read_) == 0) {
+        encoder = encoders_[i];
+
+        if (encoder->getIRQPin() != -1 && digitalRead(encoder->getIRQPin()) != LOW) {
             continue;
         }
 
-        encoder = encoders_[i];
-        pauseInterrupts(i);
         sw = encoder->getSwitch();
         encoder_event_.delta(encoder->getDelta());
-        resumeInterrupts(i);
 
         if (sw != 0) {
             keypress_event_.key(i);
@@ -191,42 +189,6 @@ void RotaryEncoderGroup::emit(const Yield<Message>& yield) {
             encoder_event_.encoder(i);
             yield(MessageView(&encoder_event_));
         }
-    }
-    intr_read_ = 0;
-}
-
-void RotaryEncoderGroup::enableInterrupts(
-        void (*pause_cb)(uint8_t), void (*resume_cb)(uint8_t)) {
-    intr_enable_ = true;
-    intr_read_ = 0;
-    pause_intr_cb_ = pause_cb;
-    resume_intr_cb_ = resume_cb;
-}
-
-void RotaryEncoderGroup::disableInterrupts() {
-    intr_enable_ = false;
-    intr_read_ = 0;
-    pause_intr_cb_ = 0;
-    resume_intr_cb_ = 0;
-}
-
-void RotaryEncoderGroup::interrupt(uint8_t read) {
-    if (read >= 8) {
-        intr_read_ = 0xFF;
-        return;
-    }
-    intr_read_ = 0x01 << read;
-}
-
-void RotaryEncoderGroup::pauseInterrupts(uint8_t n) {
-    if (intr_enable_ && pause_intr_cb_ != nullptr) {
-        pause_intr_cb_(n);
-    }
-}
-
-void RotaryEncoderGroup::resumeInterrupts(uint8_t n) {
-    if (intr_enable_ && resume_intr_cb_ != nullptr) {
-        resume_intr_cb_(n);
     }
 }
 

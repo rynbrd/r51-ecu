@@ -9,17 +9,21 @@
 
 namespace R51 {
 
-// A single Adafruit Seesaw rotary encoder. All methods rely on hardware
-// interrupts and are not safe to execute concurrently with user defined
-// interrupts. Interrupts should be detached while calling methods on this
-// class.
+// A single Adafruit Seesaw rotary encoder.
 class RotaryEncoder {
     public:
-        RotaryEncoder(TwoWire* wire) : encoder_(wire),
+        // Construct a new rotary encoder connected over I2C. The specific I2C
+        // connection must be provided with the wire arg. If the encoder's IRQ
+        // pin is connected to a GPIO then that GPIO pin may be provided via
+        // the irq_pin arg. The IRQ pin is driven low by the rotary encoder and
+        // may be checked by the caller before calling getDelta or getSwitch.
+        // It is used by RotaryEncoderGroup if set.
+        RotaryEncoder(TwoWire* wire, int irq_pin=-1) : encoder_(wire),
                 neopixel_(1, 6, NEO_GRB + NEO_KHZ800, wire),
                 color_(0x000000), brightness_(0xFF),
                 backlight_color_(0x000000), backlight_brightness_(0xFF),
-                pos_(0), new_pos_(0), sw_(false), new_sw_(false) {}
+                pos_(0), new_pos_(0), sw_(false), new_sw_(false),
+                irq_pin_(irq_pin) {}
 
         // Connect to the encoder on the given I2C address.
         bool begin(uint8_t addr);
@@ -48,6 +52,12 @@ class RotaryEncoder {
         // Update the neopixel with the new color and brightness.
         void showPixel();
 
+        // Return the GPIO pin that is connected to the rotary encoder's IRQ
+        // pin. This pin is driven low by the rotary encoder board when data is
+        // available to read. This pin may be read by the caller before calling
+        // getDelta  and getSwitch.
+        int getIRQPin() const;
+
     private:
         void setPixelColor(uint32_t color);
 
@@ -64,6 +74,8 @@ class RotaryEncoder {
         int32_t new_pos_;
         bool sw_;
         bool new_sw_;
+
+        int irq_pin_;
 
         static const int kSwitchPin = 24;
 };
@@ -86,31 +98,10 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
 
         // Emit encoder and keypad events.
         void emit(const Caster::Yield<Message>& yield) override;
-
-        // Enable interrupts and set the interrupts callbacks. When interrupts
-        // are enabled the ISR for an encoder must call interrupt(n) where n is
-        // the index of the encoder whose interrupt was triggered. A value of
-        // 0xFF should be used if all encoders are wired to the same interrupt
-        // pin. The callbacks are used to pause and resume interrupts to avoid
-        // hanging the I2C bus. ISRs must be attached before the node's handle
-        // method is called for the first time.
-        void enableInterrupts(void (*pause_cb)(uint8_t), void (*resume_cb)(uint8_t));
-
-        // Disable interrupts. Emit will read events on each iteration instead
-        // of waiting for an interrupt.
-        void disableInterrupts();
-
-        // Called by an ISR to trigger a read for a specific encoder. If n is
-        // 0xFF then all encoders are read.
-        void interrupt(uint8_t n);
     private:
-
         void handleIndicatorCommand(const IndicatorCommand* cmd);
         void handleBrightnessCommand(const BrightnessCommand* cmd);
         void handleBacklightCommand(const BacklightCommand* cmd);
-
-        void pauseInterrupts(uint8_t n);
-        void resumeInterrupts(uint8_t n);
 
         EncoderState encoder_event_;
         KeyState keypress_event_;
@@ -118,11 +109,6 @@ class RotaryEncoderGroup : public Caster::Node<Message> {
         uint8_t keypad_;
         RotaryEncoder** encoders_;
         uint8_t count_;
-
-        bool intr_enable_;
-        volatile uint8_t intr_read_;
-        void (*pause_intr_cb_)(uint8_t);
-        void (*resume_intr_cb_)(uint8_t);
 };
 
 }  // namespace R51 {

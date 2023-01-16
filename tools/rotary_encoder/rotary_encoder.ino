@@ -15,28 +15,14 @@ using ::Caster::Node;
 ConsoleNode console(&SERIAL_DEVICE, false);
 
 // Rotary Encoder Hardware
-RotaryEncoder rotary_encoder0(&I2C_DEVICE);
-RotaryEncoder rotary_encoder1(&I2C_DEVICE);
+RotaryEncoder rotary_encoder0(&I2C_DEVICE, ROTARY_ENCODER_IRQ_PIN);
+RotaryEncoder rotary_encoder1(&I2C_DEVICE, ROTARY_ENCODER_IRQ_PIN);
 RotaryEncoder* rotary_encoders[] = {
     &rotary_encoder0,
     &rotary_encoder1,
 };
 RotaryEncoderGroup rotary_encoder_group(ROTARY_ENCODER_ID, rotary_encoders,
         sizeof(rotary_encoders)/sizeof(rotary_encoders[0]));
-
-#if defined(ROTARY_ENCODER_INTR_PIN)
-void rotaryEncoderISR() {
-    rotary_encoder_group.interrupt(0xFF);
-}
-
-void rotaryEncoderAttachISR(uint8_t) {
-    attachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN), rotaryEncoderISR, FALLING);
-}
-
-void rotaryEncoderDetachISR(uint8_t) {
-    detachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN));
-}
-#endif
 
 // Internal Bus
 Node<Message>* nodes[] = {
@@ -61,13 +47,6 @@ void setup() {
 #endif
 
     DEBUG_MSG("setup: configuring rotary encoders");
-    // Enable rotary encoder interrupts if configured.
-#if defined(ROTARY_ENCODER_INTR_PIN)
-    DEBUG_MSG("setup: enabling interrupts for rotary encoders");
-    rotaryEncoderAttachISR(0xFF);
-    rotary_encoder_group.enableInterrupts(&rotaryEncoderDetachISR, &rotaryEncoderAttachISR);
-#endif
-
     if (!rotary_encoder0.begin(ROTARY_ENCODER_ADDR0)) {
         DEBUG_MSG("setup: failed to start encoder 0");
         while (true) { delay(100); }

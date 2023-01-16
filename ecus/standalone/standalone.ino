@@ -104,28 +104,14 @@ BlinkKeybox blink_keybox(BLINK_KEYBOX_ADDR, BLINK_KEYBOX_ID);
 HMI hmi(&HMI_DEVICE, ROTARY_ENCODER_ID, BLINK_KEYBOX_ID);
 
 // Rotary encoder hardware. This node lives on the I/O core.
-RotaryEncoder rotary_encoder0(&I2C_DEVICE);
-RotaryEncoder rotary_encoder1(&I2C_DEVICE);
+RotaryEncoder rotary_encoder0(&I2C_DEVICE, ROTARY_ENCODER_IRQ_PIN);
+RotaryEncoder rotary_encoder1(&I2C_DEVICE, ROTARY_ENCODER_IRQ_PIN);
 RotaryEncoder* rotary_encoders[] = {
     &rotary_encoder0,
     &rotary_encoder1,
 };
 RotaryEncoderGroup rotary_encoder_group(ROTARY_ENCODER_ID, rotary_encoders,
         sizeof(rotary_encoders)/sizeof(rotary_encoders[0]));
-
-#if defined(ROTARY_ENCODER_INTR_PIN)
-void rotaryEncoderISR() {
-    rotary_encoder_group.interrupt(0xFF);
-}
-
-void rotaryEncoderAttachISR(uint8_t) {
-    attachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN), rotaryEncoderISR, FALLING);
-}
-
-void rotaryEncoderDetachISR(uint8_t) {
-    detachInterrupt(digitalPinToInterrupt(ROTARY_ENCODER_INTR_PIN));
-}
-#endif
 
 /**
  * Controller Nodes
@@ -263,13 +249,6 @@ void setup_steering() {
 
 void setup_rotary_encoders() {
     DEBUG_MSG("setup: Rotary Encoders");
-
-// Enable rotary encoder interrupts if configured.
-#if defined(ROTARY_ENCODER_INTR_PIN)
-    rotaryEncoderAttachISR(0xFF);
-    rotary_encoder_group.enableInterrupts(&rotaryEncoderDetachISR, &rotaryEncoderAttachISR);
-#endif
-
     rotary_encoder0.begin(ROTARY_ENCODER_ADDR0);
     rotary_encoder1.begin(ROTARY_ENCODER_ADDR1);
 }
