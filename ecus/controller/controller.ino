@@ -121,6 +121,13 @@ void setup_watchdog()  {
 #endif
 }
 
+void setup_spi() {
+    DEBUG_MSG("setup: SPI");
+    pinMode(MCP2515_CS_PIN, OUTPUT);
+    digitalWrite(MCP2515_CS_PIN, LOW);
+    SPI.begin();
+}
+
 void setup_i2c() {
 #if defined(I2C_SDA_PIN) && defined(I2C_SCL_PIN)
     DEBUG_MSG("setup: I2C");
@@ -157,6 +164,7 @@ void setup_rotary_encoders() {
 
 void setup() {
     setup_serial();
+    setup_spi();
     setup_watchdog();
     setup_i2c();
     setup_j1939();

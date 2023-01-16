@@ -194,6 +194,19 @@ void setup_watchdog()  {
 #endif
 }
 
+void setup_spi() {
+    DEBUG_MSG("setup: SPI");
+    pinMode(MCP2515_CS_PIN, OUTPUT);
+    digitalWrite(MCP2515_CS_PIN, LOW);
+    pinMode(MCP2518_CS_PIN, OUTPUT);
+    digitalWrite(MCP2518_CS_PIN, LOW);
+#if defined(BLUETOOTH_ENABLE)
+    pinMode(BLUETOOTH_SPI_CS_PIN, OUTPUT);
+    digitalWrite(BLUETOOTH_SPI_CS_PIN, LOW);
+#endif
+    SPI.begin();
+}
+
 void setup_i2c() {
 #if defined(I2C_SDA_PIN) && defined(I2C_SCL_PIN)
     DEBUG_MSG("setup: I2C");
@@ -265,6 +278,7 @@ void setup_rotary_encoders() {
 void setup() {
     setup_serial();
     setup_watchdog();
+    setup_spi();
     setup_i2c();
     setup_can();
     setup_j1939();
