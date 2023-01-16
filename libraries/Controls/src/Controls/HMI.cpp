@@ -297,7 +297,17 @@ void HMI::handlePowerState(const PowerState* power) {
             setVal("shared.light_bar", (uint8_t)(power->mode() == PowerMode::ON));
             refresh();
             break;
-        default:
+        case PDMDevice::CHASE_LIGHTS:
+            setVal("shared.chase_lights", (uint8_t)(power->mode() == PowerMode::ON));
+            refresh();
+            break;
+        case PDMDevice::ROCK_LIGHTS:
+            setVal("shared.rock_lights", (uint8_t)(power->mode() == PowerMode::ON));
+            refresh();
+            break;
+        case PDMDevice::SPOT_LIGHTS:
+            setVal("shared.spot_lights", (uint8_t)(power->mode() == PowerMode::ON));
+            refresh();
             break;
     }
 }

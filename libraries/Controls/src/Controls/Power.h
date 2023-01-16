@@ -15,7 +15,7 @@ enum class PDMDevice : uint8_t {
     LIGHT_BAR    = 1,   // E1
     CHASE_LIGHTS = 6,   // E3
     ROCK_LIGHTS  = 2,   // F1
-    DITCH_LIGHTS = 10,  // F2
+    SPOT_LIGHTS  = 10,  // F2
 };
 
 class PowerControls : public Controls {
