@@ -14,6 +14,9 @@ using namespace ::R51;
 using ::Caster::Bus;
 using ::Caster::Node;
 
+// Core Synchronization
+SyncWait sync;
+
 // Serial Console
 ConsoleNode console(&SERIAL_DEVICE, false);
 
@@ -56,21 +59,19 @@ void setup() {
             delay(100);
         }
     }
-    DEBUG_MSG("setup: initializing IO core");
 
-    DEBUG_MSG("setup: initializing bluetooth");
+    DEBUG_MSG("setup: Bluetooth");
     while (!ble_conn.begin()) {
-        DEBUG_MSG("setup: failed to init bluetooth");
+        DEBUG_MSG("setup: Bluetooth failed");
         delay(500);
     }
     ble_conn.setName(BLUETOOTH_DEVICE_NAME);
     ble_conn.setOnConnect(onBluetoothConnect, nullptr);
     ble_conn.setOnDisconnect(onBluetoothDisconnect, nullptr);
 
-    DEBUG_MSG("setup: initializing IO bus");
+    sync.wait();
+    DEBUG_MSG("setup: ECU running");
     io_bus.init();
-
-    DEBUG_MSG("setup: IO core started");
 }
 
 void setup1() {
@@ -80,12 +81,9 @@ void setup1() {
             delay(100);
         }
     }
-    DEBUG_MSG("setup: initializing processing core");
 
-    DEBUG_MSG("setup: initializing processing bus");
     proc_bus.init();
-
-    DEBUG_MSG("setup: processing core started");
+    sync.wait();
 }
 
 void loop() {

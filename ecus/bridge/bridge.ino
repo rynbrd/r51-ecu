@@ -26,6 +26,9 @@ using namespace ::R51;
 using ::Caster::Bus;
 using ::Caster::Node;
 
+// core synchronization
+SyncWait sync;
+
 // debug console
 #if defined(CONSOLE_ENABLE)
 #include <Console.h>
@@ -131,18 +134,18 @@ void setup_watchdog()  {
 }
 
 void setup_can() {
-    DEBUG_MSG("setup: connecting to CAN");
+    DEBUG_MSG("setup: CAN");
     while (!can_conn.begin()) {
-        DEBUG_MSG("setup: failed to connect to CAN");
+        DEBUG_MSG("setup: CAN failed");
         delay(500);
     }
 }
 
 void setup_j1939() {
 #if defined(J1939_ENABLE)
-    DEBUG_MSG("setup: connecting to J1939");
+    DEBUG_MSG("setup: J1939");
     while (!j1939_conn.begin()) {
-        DEBUG_MSG("setup: failed to connect to J1939");
+        DEBUG_MSG("setup: J1939 failed");
         delay(500);
     }
 #endif
@@ -150,9 +153,9 @@ void setup_j1939() {
 
 void setup_ble() {
 #if defined(BLUETOOTH_ENABLE)
-    DEBUG_MSG("setup: initializing bluetooth");
+    DEBUG_MSG("setup: Bluetooth");
     while (!ble_conn.begin()) {
-        DEBUG_MSG("setup: failed to init bluetooth");
+        DEBUG_MSG("setup: Bluetooth failed");
         delay(500);
     }
 #if defined(BLUETOOTH_DEVICE_NAME)
@@ -164,32 +167,32 @@ void setup_ble() {
 }
 
 void setup_defrost() {
-    DEBUG_MSG("setup: initializing defrost GPIO");
+    DEBUG_MSG("setup: Defrost");
     defrost.begin();
 }
 
 void setup_steering() {
-    DEBUG_MSG("setup: initializing steering keypad GPIO");
+    DEBUG_MSG("setup: Steering Keypad");
     steering_keypad.begin();
 }
 
 void setup() {
     setup_serial();
-    DEBUG_MSG("setup: core0 initializing");
     setup_watchdog();
     setup_can();
     setup_j1939();
     setup_ble();
-    DEBUG_MSG("setup: core0 online");
     setup_defrost();
     setup_steering();
     io_bus.init();
+    sync.wait();
+    DEBUG_MSG("setup: ECU running");
 }
 
 void setup1() {
     setup_serial();
-    DEBUG_MSG("setup: core1 online");
     proc_bus.init();
+    sync.wait();
 }
 
 void loop() {

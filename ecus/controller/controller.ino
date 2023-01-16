@@ -5,6 +5,7 @@
 #include <Blink.h>
 #include <Canny.h>
 #include <Controls.h>
+#include <Platform.h>
 #include <RotaryEncoder.h>
 #include "J1939.h"
 #include "Pipe.h"
@@ -21,6 +22,9 @@ using namespace ::R51;
 using ::Canny::J1939Message;
 using ::Caster::Bus;
 using ::Caster::Node;
+
+// Init core synchronization.
+SyncWait sync;
 
 // Init console support if enabled. 
 #if defined(CONSOLE_ENABLE)
@@ -119,27 +123,27 @@ void setup_watchdog()  {
 
 void setup_i2c() {
 #if defined(I2C_SDA_PIN) && defined(I2C_SCL_PIN)
-    DEBUG_MSG("setup: configuring I2C");
+    DEBUG_MSG("setup: I2C");
     I2C_DEVICE.setSDA(I2C_SDA_PIN);
     I2C_DEVICE.setSCL(I2C_SCL_PIN);
 #endif
 }
 
 void setup_j1939() {
-    DEBUG_MSG("setup: connecting to J1939");
+    DEBUG_MSG("setup: J1939");
     while (!j1939_conn.begin()) {
-        DEBUG_MSG("setup: failed to connect to J1939");
+        DEBUG_MSG("setup: J1939 failed");
         delay(500);
     }
 }
 
 void setup_hmi() {
-    DEBUG_MSG("setup: configuring HMI");
+    DEBUG_MSG("setup: HMI");
     HMI_DEVICE.begin(HMI_BAUDRATE);
 }
 
 void setup_rotary_encoders() {
-    DEBUG_MSG("setup: configuring rotary encoders");
+    DEBUG_MSG("setup: Rotary Encoders");
 
 // Enable rotary encoder interrupts if configured.
 #if defined(ROTARY_ENCODER_INTR_PIN)
@@ -153,20 +157,19 @@ void setup_rotary_encoders() {
 
 void setup() {
     setup_serial();
-    DEBUG_MSG("setup: core0 initializing");
     setup_watchdog();
     setup_i2c();
     setup_j1939();
     setup_rotary_encoders();
-    DEBUG_MSG("setup: core0 online");
+    sync.wait();
+    DEBUG_MSG("setup: ECU running");
     io_bus.init();
 }
 
 void setup1() {
     setup_serial();
-    DEBUG_MSG("setup: core1 initializing");
     setup_hmi();
-    DEBUG_MSG("setup: core1 online");
+    sync.wait();
     proc_bus.init();
 }
 
