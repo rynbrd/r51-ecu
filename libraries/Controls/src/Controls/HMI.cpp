@@ -297,6 +297,8 @@ void HMI::handlePowerState(const PowerState* power) {
             setVal("shared.light_bar", (uint8_t)(power->mode() == PowerMode::ON));
             refresh();
             break;
+        default:
+            break;
     }
 }
 
