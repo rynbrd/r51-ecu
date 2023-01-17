@@ -152,7 +152,7 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
             break;
         case SubSystem::POWER:
             if (event->id == (uint8_t)PowerEvent::POWER_STATE) {
-                handlePowerState((PowerState*)&event);
+                handlePowerState((PowerState*)event);
             }
             break;
         case SubSystem::CLIMATE:
