@@ -70,7 +70,7 @@
 
 // HMI display configuration.
 #define HMI_DEVICE Serial1
-#define HMI_BAUDRATE 115200
+#define HMI_BAUDRATE 512000
 
 // External J1939 keypad configuration.
 #define BLINK_KEYPAD_ID 0x02
