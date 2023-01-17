@@ -79,8 +79,8 @@ void HMI::init(const Caster::Yield<Message>& yield) {
         stream_->read();
     }
     // load splash page and set initial brightness
-    page(ScreenPage::SPLASH);
     brightness(yield, kBrightnessHigh);
+    page(ScreenPage::SPLASH);
 }
 
 void HMI::handle(const Message& msg, const Yield<Message>& yield) {
