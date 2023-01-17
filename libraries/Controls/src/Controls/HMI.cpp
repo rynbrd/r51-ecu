@@ -74,6 +74,11 @@ HMI::HMI(Stream* stream, uint8_t encoder_keypad_id, uint8_t pdm_id) :
     audio_settings_page_(0), audio_settings_count_(0) {}
 
 void HMI::init(const Caster::Yield<Message>& yield) {
+    // drain serial before loading splash page
+    while (stream_->available()) {
+        stream_->read();
+    }
+    // load splash page and set initial brightness
     page(ScreenPage::SPLASH);
     brightness(yield, kBrightnessHigh);
 }
