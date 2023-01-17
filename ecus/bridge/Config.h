@@ -9,7 +9,7 @@
 // Serial configuration for the debug console.
 #define SERIAL_DEVICE Serial
 #define SERIAL_BAUDRATE 115200
-#define SERIAL_WAIT true
+#define SERIAL_WAIT false
 
 // CAN hardware configuration.
 #define MCP2515_CS_PIN 9

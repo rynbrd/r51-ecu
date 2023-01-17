@@ -8,7 +8,7 @@
 // Serial configuration for the debug console.
 #define SERIAL_DEVICE Serial
 #define SERIAL_BAUDRATE 115200
-#define SERIAL_WAIT true
+#define SERIAL_WAIT false
 
 // I2C hardware configuration.
 #define I2C_DEVICE Wire1
