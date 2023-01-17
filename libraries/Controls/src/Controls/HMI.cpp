@@ -399,28 +399,10 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
     }
 }
 
-int8_t eqProgressBarValue(int8_t value, int8_t min, int8_t max) {
-    int8_t range = max - min;
-    value -= min;
-    value = 100 * value / range;
-    if (value < 50) {
-        value -= 2;
-        if (value < 0) {
-            value = 0;
-        }
-    } else if (value > 50) {
-        value += 2;
-        if (value > 100) {
-            value = 100;
-        }
-    }
-    return value;
-}
-
 void HMI::handleAudioVolume(const AudioVolumeState* event) {
     setVal("audio.mute", event->mute());
-    setVal("audio_eq.fade_bar", eqProgressBarValue(event->fade(), kFadeMin, kFadeMax));
-    setVal("audio_eq.balance_bar", eqProgressBarValue(event->balance(), kBalanceMin, kBalanceMax));
+    setVal("audio.fade", event->fade());
+    setVal("audio.balance", event->balance());
     setVolume(event->volume());
     if (audio_system_ == AudioSystem::ON && event->volume() != volume_ &&
             !mute_ && !event->mute() && !isPage(ScreenPage::SPLASH)) {
@@ -435,9 +417,9 @@ void HMI::handleAudioVolume(const AudioVolumeState* event) {
 }
 
 void HMI::handleAudioTone(const AudioToneState* event) {
-    setVal("audio_eq.bass_bar", eqProgressBarValue(event->bass(), kToneMin, kToneMax));
-    setVal("audio_eq.mid_bar", eqProgressBarValue(event->mid(), kToneMin, kToneMax));
-    setVal("audio_eq.treble_bar", eqProgressBarValue(event->treble(), kToneMin, kToneMax));
+    setVal("audio.bass", event->bass());
+    setVal("audio.mid", event->mid());
+    setVal("audio.treble", event->treble());
     if (isPage(ScreenPage::AUDIO_EQ)) {
         refresh();
     }
