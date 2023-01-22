@@ -7,8 +7,8 @@
 namespace R51 {
 
 // Steering keypad button count and resistance thresholds.
-// Values are set for use with a 1k pull-up resistor.
-static constexpr const int kSteeringKeypadValues[] = {12, 80, 240};
+// Values are set for use with a 2k pull-up resistor.
+static constexpr const int kSteeringKeypadValues[] = {22, 332, 1012};
 static const int kSteeringKeypadCount = 3;
 
 SteeringKeypad::SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,
@@ -44,11 +44,11 @@ void SteeringKeypad::emit(const Caster::Yield<Message>& yield) {
         key_.pressed(true);
         yield(MessageView(&key_));
     } else if (sw_a_.onPress(1)) {
-        key_.key((uint8_t)SteeringKey::SEEK_DOWN);
+        key_.key((uint8_t)SteeringKey::SEEK_UP);
         key_.pressed(true);
         yield(MessageView(&key_));
     } else if (sw_a_.onPress(2)) {
-        key_.key((uint8_t)SteeringKey::VOLUME_DOWN);
+        key_.key((uint8_t)SteeringKey::VOLUME_UP);
         key_.pressed(true);
         yield(MessageView(&key_));
     } else if (sw_a_.onRelease(0))  {
@@ -56,11 +56,11 @@ void SteeringKeypad::emit(const Caster::Yield<Message>& yield) {
         key_.pressed(false);
         yield(MessageView(&key_));
     } else if (sw_a_.onRelease(1)) {
-        key_.key((uint8_t)SteeringKey::SEEK_DOWN);
+        key_.key((uint8_t)SteeringKey::SEEK_UP);
         key_.pressed(false);
         yield(MessageView(&key_));
     } else if (sw_a_.onRelease(2)) {
-        key_.key((uint8_t)SteeringKey::VOLUME_DOWN);
+        key_.key((uint8_t)SteeringKey::VOLUME_UP);
         key_.pressed(false);
         yield(MessageView(&key_));
     }
@@ -71,11 +71,11 @@ void SteeringKeypad::emit(const Caster::Yield<Message>& yield) {
         key_.pressed(true);
         yield(MessageView(&key_));
     } else if (sw_b_.onPress(1)) {
-        key_.key((uint8_t)SteeringKey::SEEK_UP);
+        key_.key((uint8_t)SteeringKey::SEEK_DOWN);
         key_.pressed(true);
         yield(MessageView(&key_));
     } else if (sw_b_.onPress(2)) {
-        key_.key((uint8_t)SteeringKey::VOLUME_UP);
+        key_.key((uint8_t)SteeringKey::VOLUME_DOWN);
         key_.pressed(true);
         yield(MessageView(&key_));
     } else if (sw_b_.onRelease(0))  {
@@ -83,11 +83,11 @@ void SteeringKeypad::emit(const Caster::Yield<Message>& yield) {
         key_.pressed(false);
         yield(MessageView(&key_));
     } else if (sw_b_.onRelease(1)) {
-        key_.key((uint8_t)SteeringKey::SEEK_UP);
+        key_.key((uint8_t)SteeringKey::SEEK_DOWN);
         key_.pressed(false);
         yield(MessageView(&key_));
     } else if (sw_b_.onRelease(2)) {
-        key_.key((uint8_t)SteeringKey::VOLUME_UP);
+        key_.key((uint8_t)SteeringKey::VOLUME_DOWN);
         key_.pressed(false);
         yield(MessageView(&key_));
     }

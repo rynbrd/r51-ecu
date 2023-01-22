@@ -3,11 +3,15 @@
 
 #define SW_A_PIN A1
 #define SW_B_PIN A2
+#define SW_PRINT false
 #define RDEF_PIN 24
+#define RDEF_TIME 300
 
-// Values for a 1k pullup resistor.
-static constexpr const int sw_values[] = {12, 80, 240};
+// Values for a 2k pullup resistor.
+static constexpr const int sw_values[] = {22, 332, 1012};
 static constexpr const int sw_count = 3;
+
+int sw_print_ms = 0;
 
 class DigitalToggle {
     public:
@@ -64,7 +68,7 @@ class DigitalToggle {
 
 AnalogMultiButton swA(SW_A_PIN, sw_count, sw_values);
 AnalogMultiButton swB(SW_B_PIN, sw_count, sw_values);
-DigitalToggle rdef(RDEF_PIN, 300);
+DigitalToggle rdef(RDEF_PIN, RDEF_TIME);
 
 void setup() {
     pinMode(SW_A_PIN, INPUT);
@@ -85,41 +89,43 @@ void setup() {
 }
 
 void loop() {
-/*
-    Serial.print(analogRead(SW_A_PIN));
-    Serial.print(", ");
-    Serial.println(analogRead(SW_B_PIN));
-    delay(1000);
-*/
+    if (SW_PRINT) {
+        if (sw_print_ms == 0 || millis() - sw_print_ms >= 1000) {
+            Serial.print(analogRead(SW_A_PIN));
+            Serial.print(", ");
+            Serial.println(analogRead(SW_B_PIN));
+            sw_print_ms = millis();
+        }
+    } else {
+        swA.update();
+        if (swA.onPress(0))  {
+            Serial.println("press POWER");
+        } else if (swA.onPress(1)) {
+            Serial.println("press SEEK_UP");
+        } else if (swA.onPress(2)) {
+            Serial.println("press VOLUME_UP");
+        } else if (swA.onRelease(0))  {
+            Serial.println("release POWER");
+        } else if (swA.onRelease(1)) {
+            Serial.println("release SEEK_UP");
+        } else if (swA.onRelease(2)) {
+            Serial.println("release VOLUME_UP");
+        }
 
-    swA.update();
-    if (swA.onPress(0))  {
-        Serial.println("press POWER");
-    } else if (swA.onPress(1)) {
-        Serial.println("press SEEK_DOWN");
-    } else if (swA.onPress(2)) {
-        Serial.println("press VOLUME_DOWN");
-    } else if (swA.onRelease(0))  {
-        Serial.println("release POWER");
-    } else if (swA.onRelease(1)) {
-        Serial.println("release SEEK_DOWN");
-    } else if (swA.onRelease(2)) {
-        Serial.println("release VOLUME_DOWN");
-    }
-
-    swB.update();
-    if (swB.onPress(0))  {
-        Serial.println("press MODE");
-    } else if (swB.onPress(1)) {
-        Serial.println("press SEEK_UP");
-    } else if (swB.onPress(2)) {
-        Serial.println("press VOLUME_UP");
-    } else if (swB.onRelease(0))  {
-        Serial.println("release MODE");
-    } else if (swB.onRelease(1)) {
-        Serial.println("release SEEK_UP");
-    } else if (swB.onRelease(2)) {
-        Serial.println("release VOLUME_UP");
+        swB.update();
+        if (swB.onPress(0))  {
+            Serial.println("press MODE");
+        } else if (swB.onPress(1)) {
+            Serial.println("press SEEK_DOWN");
+        } else if (swB.onPress(2)) {
+            Serial.println("press VOLUME_DOWN");
+        } else if (swB.onRelease(0))  {
+            Serial.println("release MODE");
+        } else if (swB.onRelease(1)) {
+            Serial.println("release SEEK_DOWN");
+        } else if (swB.onRelease(2)) {
+            Serial.println("release VOLUME_DOWN");
+        }
     }
 
     rdef.loop();

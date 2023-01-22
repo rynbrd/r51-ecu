@@ -12,7 +12,7 @@ using ::Faker::FakeGPIO;
 
 class SteeringKeypadTest : public TestOnce {
     public:
-        static constexpr const int values[] = {12, 80, 240};
+        static constexpr const int values[] = {22, 332, 1012};
         static const int pin_a = 1;
         static const int pin_b = 2;
         static const uint8_t keypad_id = 0x10;
@@ -28,8 +28,8 @@ class SteeringKeypadTest : public TestOnce {
             // initialize keypad
             SteeringKeypad keypad(keypad_id, pin_a, pin_b, &clock, &gpio);
             keypad.begin();
-            gpio.analogWrite(pin_a, 1023);
-            gpio.analogWrite(pin_b, 1023);
+            gpio.analogWrite(pin_a, 4000);
+            gpio.analogWrite(pin_b, 4000);
 
             // ensure button not yet pressed
             keypad.emit(yield);
@@ -62,11 +62,11 @@ testF(SteeringKeypadTest, Power) {
 }
 
 testF(SteeringKeypadTest, SeekDown) {
-    assertButtonPress(pin_a, values[1], SteeringKey::SEEK_DOWN);
+    assertButtonPress(pin_a, values[1], SteeringKey::SEEK_UP);
 }
 
 testF(SteeringKeypadTest, VolumeDown) {
-    assertButtonPress(pin_a, values[2], SteeringKey::VOLUME_DOWN);
+    assertButtonPress(pin_a, values[2], SteeringKey::VOLUME_UP);
 }
 
 testF(SteeringKeypadTest, Mode) {
@@ -74,11 +74,11 @@ testF(SteeringKeypadTest, Mode) {
 }
 
 testF(SteeringKeypadTest, SeekUp) {
-    assertButtonPress(pin_b, values[1], SteeringKey::SEEK_UP);
+    assertButtonPress(pin_b, values[1], SteeringKey::SEEK_DOWN);
 }
 
 testF(SteeringKeypadTest, VolumeUp) {
-    assertButtonPress(pin_b, values[2], SteeringKey::VOLUME_UP);
+    assertButtonPress(pin_b, values[2], SteeringKey::VOLUME_DOWN);
 }
 
 }  // namespace R51

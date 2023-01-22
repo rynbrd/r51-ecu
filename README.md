@@ -71,7 +71,7 @@ The controller integrates with the following aftermarket J1939 systems:
 ## Wiring
 
 The bridge and standalone controllers need to be wired to the steering wheel
-and defrost controls. The steering wheel analog lines require 1k ohm pull-up
+and defrost controls. The steering wheel analog lines require 2k ohm pull-up
 resistors. The defrost activation requires a 1k ohm resistor wired in series
 between the Arduino pin and the vehicle pin. See the
 [pinout docs](docs/pinouts.md) to determine which vehicle harness pins to
