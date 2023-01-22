@@ -222,6 +222,28 @@ inputs.
 | 106 | G     |  PKB_SIG          | parking break enable signal  |
 | 107 | LG    |  SPEED_8P         | 8-pulse vehicle speed signal |
 
+### Connector M98
+
+This connects the AV switch assembly to the AV unit and BCM. It contains the
+internal switch panel CAN bus connection and the defrost heater activation pin.
+
+The CAN bus on this connector connects only to the AV unit. It is only used to
+carry commands between the AV switch assembly and AV unit.
+
+The defrost heaters are activated by momentarily connecting RR_DEFOG (pin 16)
+to ground. It is safe to connect this to a GPIO with a series resistor. The
+GPIO can be momentarily set to open drain mode to toggle the defrost heaters.
+The GPIO should be in high impedence mode the remainder of time. The series
+resistor is needed so that the BCM does not see the high impedence GPIO as a
+ground. A 1k resistor works on the RP2040 which is a 3.3V chip. This may also
+work for other chips but is unverified.
+
+| Pin | Color | Signal Name       | Purpose                      |
+| --- | ----- | ----------------- | ---------------------------- |
+|   1 | B     | GND               | ground                       |
+|   2 | G/Y   | ACC               | accessory power              |
+|   5 | L     | CAN_H             | AV CAN high for switch panel |
+|  16 | Y     | RR_DEFOG          | defrost heater switch        |
 
 ["Upgraded" Metra 70-7552]: https://www.amazon.com/20-pin-Subaru-Headunit-Harness-Steering/dp/B01D9K3L44/
 [Metra 40-NI12]: https://www.amazon.com/Metra-Electronics-40-NI12-Aftermarket-Infiniti/dp/B000PANZ7U/
