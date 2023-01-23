@@ -383,19 +383,11 @@ void HMI::handleSettings(const Event& event) {
 void HMI::handleAudioSystem(const AudioSystemState* event) {
     audio_system_ = event->state();
     setVal("audio.state", (uint8_t)event->state());
+    if (event->state() == AudioSystem::OFF) {
+        setVal("audio.device", false);
+    }
     if (isAudioPage()) {
-        switch (event->state()) {
-            case AudioSystem::UNAVAILABLE:
-                page(ScreenPage::AUDIO_NO_STEREO);
-                break;
-            case AudioSystem::OFF:
-            case AudioSystem::BOOT:
-                page(ScreenPage::AUDIO_POWER_OFF);
-                break;
-            default:
-                page(ScreenPage::AUDIO);
-                break;
-        }
+        page(ScreenPage::AUDIO);
     }
 }
 
