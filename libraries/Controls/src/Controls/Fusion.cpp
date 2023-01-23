@@ -1254,7 +1254,7 @@ void Fusion::bootComplete(const Yield<Message>& yield) {
     // disable boot mode
     boot_state_ = UNKNOWN;
     boot_timer_.pause();
-    //hb_timer_.resume();
+    hb_timer_.resume();
 
     // send all state events
     yield(MessageView(&volume_));
