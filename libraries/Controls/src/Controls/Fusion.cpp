@@ -123,7 +123,46 @@ Fusion::Fusion(Clock* clock) :
 void Fusion::handle(const Message& msg, const Yield<Message>& yield) {
     switch (msg.type()) {
         case Message::EVENT:
-            //TODO: Handle controller request command.
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SYSTEM_STATE))) {
+                yield(MessageView(&system_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::VOLUME_STATE))) {
+                yield(MessageView(&volume_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::TONE_STATE))) {
+                yield(MessageView(&tone_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::SOURCE_STATE))) {
+                yield(MessageView(&source_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::TRACK_PLAYBACK_STATE))) {
+                yield(MessageView(&track_playback_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::TRACK_TITLE_STATE))) {
+                yield(MessageView(&track_title_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::TRACK_ARTIST_STATE))) {
+                yield(MessageView(&track_artist_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::TRACK_ALBUM_STATE))) {
+                yield(MessageView(&track_album_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::RADIO_STATE))) {
+                yield(MessageView(&radio_));
+            }
+            if ((RequestCommand::match(*msg.event(), SubSystem::AUDIO,
+                    (uint8_t)AudioEvent::INPUT_STATE))) {
+                yield(MessageView(&input_));
+            }
             if (msg.event()->subsystem == (uint8_t)SubSystem::AUDIO) {
                 handleCommand(*msg.event(), yield);
             }
