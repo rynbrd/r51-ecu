@@ -24,7 +24,7 @@ class FilteredPipe : public Pipe {
         }
 
         void onBufferOverrun(const Message& msg) override {
-            DEBUG_MSG_OBJ("pipe: dropped frame: ", msg);
+            DEBUG_MSG_OBJ("pipe: drop message: ", msg);
         }
 
     private:
