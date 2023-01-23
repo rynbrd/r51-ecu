@@ -10,8 +10,6 @@
 namespace R51 {
 namespace {
 
-static const uint32_t kBootTimeout = 5000;
-
 template <typename T>
 void clamp(T* var, T min, T max) {
     if (*var < min) {
@@ -25,9 +23,18 @@ using ::Canny::J1939Message;
 using ::Caster::Yield;
 using ::Faker::Clock;
 
-static const uint32_t kAvailabilityTimeout = 5000;
+static const uint32_t kBootInitTimeout = 500;
+static const uint32_t kBootRequestTimeout = 5000;
+static const uint32_t kHeartbeatTimeout = 5000;
 static const uint32_t kDiscoveryTick = 5000;
 static const int8_t kFadeMultiplier = 3;
+
+enum BootState : uint8_t {
+    UNKNOWN = 0,    // not in a boot mode
+    DISCOVERED = 1, // stereo discovered, processing discovery response
+    ANNOUNCED = 2,  // announced ourselves, processing announcement response
+    REQUESTED = 3,  // requested initial state from stereo, waiting for all of it
+};
 
 // Mapping of Fusion state identifiers.
 enum FusionState : uint8_t {
@@ -51,8 +58,9 @@ enum FusionState : uint8_t {
     HEARTBEAT = 0x20,
     POWER = 0x39,
 
-    // PGN 1F014 announcement
-    ANNOUNCE = 0xF0,
+    // Response to J1939 request messages.
+    PGN_01F014 = 0xF4,
+    PGN_01F016 = 0xF6,
 
     // Invalid state detected.
     INVALID = 0xFF,
@@ -107,10 +115,10 @@ bool match(const uint8_t* data, const uint8_t (&match)[N]) {
 
 Fusion::Fusion(Clock* clock) :
         clock_(clock), address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
-        hb_timer_(kAvailabilityTimeout, false, clock),
+        boot_state_(UNKNOWN), hb_timer_(kHeartbeatTimeout, false, clock),
         disco_timer_(kDiscoveryTick, false, clock),
-        boot_timer_(kBootTimeout, true, clock),
-        state_(0xFF), state_ignore_next_(false), state_counter_(0xFF),
+        boot_timer_(kBootInitTimeout, true, clock),
+        state_(0xFF), state_ignore_next_(false), state_pgn_(0), state_counter_(0xFF),
         cmd_counter_(0x00), cmd_(0x1EF00, Canny::NullAddress),
         secondary_source_((AudioSource)0xFF) {
     cmd_.resize(8);
@@ -182,7 +190,8 @@ void Fusion::handleCommand(const Event& event, const Yield<Message>& yield) {
     if (system_.state() == AudioSystem::OFF) {
         if (event.id == (uint8_t)AudioEvent::POWER_ON_CMD ||
                 event.id == (uint8_t)AudioEvent::POWER_TOGGLE_CMD) {
-            boot(yield);
+            sendPowerCmd(yield, true);
+            sendStereoRequest(yield);
         }
         return;
     } else if (system_.state() == AudioSystem::BOOT) {
@@ -421,11 +430,16 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
 
     // Detect state.
     if (msg.pgn() == 0x1F014) {
-        state_ = FusionState::ANNOUNCE;
+        state_ = FusionState::PGN_01F014;
+        state_pgn_ = msg.pgn();
+        state_counter_ = counter(msg);
+    } else if (msg.pgn() == 0x1F016) {
+        state_ = FusionState::PGN_01F016;
+        state_pgn_ = msg.pgn();
         state_counter_ = counter(msg);
     } else if (msg.pgn() == 0x1FF04 && msg.source_address() == hu_address_) {
         if (counter_seq(msg) == 0) {
-            if (counter_id(msg) != counter_id(state_counter_) &&
+            if ((msg.pgn() != state_pgn_ || counter_id(msg) != counter_id(state_counter_)) &&
                     match(msg.data() + 2, {0xA3, 0x99, 0xFF, 0x80})) {
                 // first state message
                 state_ = (FusionState)msg.data()[4];
@@ -441,6 +455,7 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
             state_ = FusionState::INVALID;
         }
         // else use current state 
+        state_pgn_ = msg.pgn();
         state_counter_ = counter(msg);
     } else if (msg.source_address() == hu_address_) {
         state_counter_ = counter(msg);
@@ -452,8 +467,11 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
     uint8_t seq = counter_seq(msg);
     switch (state_) {
         // System state messages.
-        case ANNOUNCE:
-            handleAnnounce(seq, msg, yield);
+        case PGN_01F014:
+            handlePGN01F014(seq, msg, yield);
+            break;
+        case PGN_01F016:
+            handlePGN01F016(seq, msg, yield);
             break;
         case POWER:
             handlePower(seq, msg, yield);
@@ -515,21 +533,25 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
     }
 }
 
-void Fusion::handleAnnounce(uint8_t seq, const Canny::J1939Message& msg,
+void Fusion::handlePGN01F014(uint8_t seq, const Canny::J1939Message& msg,
         const Yield<Message>& yield) {
     // 19F0140A#A0:86:35:08:8E:12:4D:53
-    if (seq != 0 || !match(msg.data() + 1, {0x86, 0x35})) {
-        return;
+    if (seq == 0) {
+        // first message triggers boot init
+        bootInit(msg.source_address(), yield);
     }
-    hu_address_ = msg.source_address();
-    cmd_.dest_address(hu_address_);
+    if (msg.data()[7] == 0xFF && boot_state_ == DISCOVERED) {
+        // last message triggers boot announce
+        bootAnnounce(yield);
+    }
+}
 
-    // configure timers
-    disco_timer_.pause();   // disable periodic discovery
-    hb_timer_.resume();     // listen for heartbeats
-
-    // start the boot process
-    boot(yield);
+void Fusion::handlePGN01F016(uint8_t, const Canny::J1939Message& msg,
+        const Yield<Message>& yield) {
+    if (msg.data()[7] == 0xFF && boot_state_ == ANNOUNCED) {
+        // last message triggers boot request
+        bootRequest(yield);
+    }
 }
 
 void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
@@ -537,29 +559,7 @@ void Fusion::handlePower(uint8_t seq, const Canny::J1939Message& msg,
     if (seq != 0) {
         return;
     }
-    bool power = msg.data()[6] != 0x00;
-    switch (system_.state()) {
-        case AudioSystem::BOOT:
-            if (power) {
-                system_.state(AudioSystem::ON);
-            }
-            // fall through
-        case AudioSystem::ON:
-            if (!power) {
-                // cancel boot
-                boot_timer_.pause();
-
-                // tell our followers that we're signing off
-                system_.state(AudioSystem::OFF);
-                yield(MessageView(&system_));
-            }
-            break;
-        case AudioSystem::UNAVAILABLE:
-            // this shouldn't happen, we should rely on the discovery timer to
-            // find the unit if it's connected
-        default:
-            break;
-    }
+    updatePower(msg.data()[6] != 0x00, yield);
 }
 
 void Fusion::handleHeartbeat(uint8_t seq, const Canny::J1939Message& msg,
@@ -567,13 +567,7 @@ void Fusion::handleHeartbeat(uint8_t seq, const Canny::J1939Message& msg,
     if (seq != 0) {
         return;
     }
-    hb_timer_.reset();
-    bool power = msg.data()[6] != 0x02;
-    if (power && system_.state() == AudioSystem::OFF) {
-        // we're out of sync with the head unit or
-        // something else turned it on
-        boot(yield);
-    }
+    updatePower(msg.data()[6] != 0x02, yield);
 }
 
 void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
@@ -665,7 +659,9 @@ void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
                             break;
                     }
                 }
-                if (system_.state() == AudioSystem::ON) {
+                if (system_.state() == AudioSystem::BOOT) {
+                    bootComplete(yield);
+                } else if (system_.state() == AudioSystem::ON) {
                     yield(MessageView(&source_));
                 }
             }
@@ -966,40 +962,22 @@ void Fusion::emit(const Yield<Message>& yield) {
     if (hb_timer_.active()) {
         // trigger loss of connectivity if no heartbeat has been received
         hb_timer_.pause();
-        boot_timer_.pause();
         hu_address_ = Canny::NullAddress;
         cmd_.dest_address(Canny::NullAddress);
         system_.state(AudioSystem::UNAVAILABLE);
         yield(MessageView(&system_));
+        disco_timer_.resume();
         return;
     }
 
     if (boot_timer_.active()) {
-        // if we're online, send initial state when boot completes
-        boot_timer_.pause();
-        system_.state(AudioSystem::ON);
-        yield(MessageView(&volume_));
-        yield(MessageView(&tone_));
-        yield(MessageView(&source_));
-        switch (source_.source()) {
-            case AudioSource::AM:
-            case AudioSource::FM:
-                yield(MessageView(&radio_));
-                break;
-            case AudioSource::AUX:
-            case AudioSource::OPTICAL:
-                yield(MessageView(&input_));
-                break;
-            case AudioSource::BLUETOOTH:
-                yield(MessageView(&track_playback_));
-                yield(MessageView(&track_title_));
-                yield(MessageView(&track_artist_));
-                yield(MessageView(&track_album_));
-                break;
-            default:
-                break;
+        if (boot_state_ == DISCOVERED) {
+            bootAnnounce(yield);
+        } else if (boot_state_ == ANNOUNCED) {
+            bootRequest(yield);
+        } else if (boot_state_ == REQUESTED) {
+            bootComplete(yield);
         }
-        yield(MessageView(&system_));
     }
 }
 
@@ -1008,10 +986,22 @@ void Fusion::sendStereoRequest(const Yield<Message>& yield) {
     sendCmd(yield, 0x04, 0x01);
 }
 
-void Fusion::sendStereoDiscovery(const Yield<Message>& yield) {
+void Fusion::sendStereoDiscovery(const Caster::Yield<Message>& yield) {
     disco_timer_.reset();
+    sendPGN01F014Request(yield);
+}
+
+void Fusion::sendPGN01F014Request(const Yield<Message>& yield) {
+    // 18EAFF21#14:F0:01
     J1939Message msg(0xEAFF, address_, 0xFF, 0x06);
     msg.data({0x14, 0xF0, 0x01});
+    yield(MessageView(&msg));
+}
+
+void Fusion::sendPGN01F016Request(const Yield<Message>& yield) {
+    // 18EAFF21#16:F0:01
+    J1939Message msg(0xEAFF, address_, 0xFF, 0x06);
+    msg.data({0x16, 0xF0, 0x01});
     yield(MessageView(&msg));
 }
 
@@ -1185,12 +1175,8 @@ void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
     sendCmdPayload(yield, {0x03});
 }
 
-// Starts the boot process. The boot process is simply a 5s timer that triggers
-// a full "power on" event, broadcasting the initial state to any listeners.
-// This gives the head unit time to transmit all of its state messages and
-// enter a steady operating state.
-void Fusion::boot(const Yield<Message>& yield) {
-    // reset some state to default
+void Fusion::reset() {
+    boot_state_ = UNKNOWN;
     source_.source(AudioSource::AM);
     source_.bt_connected(false);
     volume_.balance(0);
@@ -1206,17 +1192,93 @@ void Fusion::boot(const Yield<Message>& yield) {
     track_artist_scratch_.clear();
     track_album_scratch_.clear();
     settings_menu_.page(0);
+}
 
-    // start boot countdown
-    boot_timer_.resume();
+void Fusion::updatePower(bool power, const Yield<Message>& yield) {
+    AudioSystem state = power ? AudioSystem::ON : AudioSystem::OFF;
+    if (system_.state() == AudioSystem::UNAVAILABLE) {
+        // Rely on discovery to transition from unavailable as doing so
+        // here would put us into an invalid state.
+        sendStereoDiscovery(yield);
+    } else if (system_.state() == AudioSystem::BOOT) {
+        // Request current operational state from stereo.
+        system_.state(state);
+        bootRequest(yield);
+    } else if (system_.state() != state) {
+        // Power state got out of sync, refresh current state.
+        system_.state(state);
+        yield(MessageView(&system_));
+        if (power) {
+            sendStereoRequest(yield);
+        }
+    }
+}
 
-    // inform listeners that we're booting
+// Reset internal state and start the boot process.
+void Fusion::bootInit(uint8_t hu_address, const Yield<Message>& yield) {
+    // reset internal state
+    reset();
+
+    // configure head unit address
+    hu_address_ = hu_address;
+    cmd_.dest_address(hu_address);
+
+    // disable discovery and heartbeat timers
+    disco_timer_.pause();
+    hb_timer_.pause();
+
+    // set system state to booting
+    boot_state_ = DISCOVERED;
+    boot_timer_.resume(kBootInitTimeout);
     system_.state(AudioSystem::BOOT);
     yield(MessageView(&system_));
+}
 
-    // power on and request initial state from unit
-    sendPowerCmd(yield, true);
+// Send PGN request for system state and wait for boot to complete.
+void Fusion::bootAnnounce(const Yield<Message>& yield) {
+    // send PGN 01F016 request to get system state
+    sendPGN01F016Request(yield);
+    boot_state_ = ANNOUNCED;
+    boot_timer_.reset();
+}
+
+// Request source and track information.
+void Fusion::bootRequest(const Yield<Message>& yield) {
+    boot_state_ = REQUESTED;
+    boot_timer_.reset(kBootRequestTimeout);
     sendStereoRequest(yield);
+}
+
+// Send all state events and exit boot.
+void Fusion::bootComplete(const Yield<Message>& yield) {
+    // disable boot mode
+    boot_state_ = UNKNOWN;
+    boot_timer_.pause();
+    //hb_timer_.resume();
+
+    // send all state events
+    yield(MessageView(&volume_));
+    yield(MessageView(&tone_));
+    yield(MessageView(&source_));
+    switch (source_.source()) {
+        case AudioSource::AM:
+        case AudioSource::FM:
+            yield(MessageView(&radio_));
+            break;
+        case AudioSource::AUX:
+        case AudioSource::OPTICAL:
+            yield(MessageView(&input_));
+            break;
+        case AudioSource::BLUETOOTH:
+            yield(MessageView(&track_playback_));
+            yield(MessageView(&track_title_));
+            yield(MessageView(&track_artist_));
+            yield(MessageView(&track_album_));
+            break;
+        default:
+            break;
+    }
+    yield(MessageView(&system_));
 }
 
 }  // namespace R51

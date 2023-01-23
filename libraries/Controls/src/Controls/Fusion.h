@@ -36,9 +36,9 @@ class Fusion : public Caster::Node<Message> {
                 const Caster::Yield<Message>& yield);
 
         // Handle Fusion J1939 state messages. 
-        void handleState(uint8_t seq, const Canny::J1939Message& msg,
+        void handlePGN01F014(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
-        void handleAnnounce(uint8_t seq, const Canny::J1939Message& msg,
+        void handlePGN01F016(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
         void handlePower(uint8_t seq, const Canny::J1939Message& msg,
                 const Caster::Yield<Message>& yield);
@@ -90,6 +90,9 @@ class Fusion : public Caster::Node<Message> {
         void sendStereoRequest(const Caster::Yield<Message>& yield);
         void sendStereoDiscovery(const Caster::Yield<Message>& yield);
 
+        void sendPGN01F014Request(const Caster::Yield<Message>& yield);
+        void sendPGN01F016Request(const Caster::Yield<Message>& yield);
+
         void sendCmd(const Caster::Yield<Message>& yield,
                 uint8_t cs, uint8_t id, uint8_t payload0 = 0xFF, uint8_t payload1 = 0xFF);
         void sendCmdPayload(const Caster::Yield<Message>& yield, uint32_t payload);
@@ -115,12 +118,18 @@ class Fusion : public Caster::Node<Message> {
         void sendMenuReqItemCount(const Caster::Yield<Message>& yield);
         void sendMenuReqItemList(const Caster::Yield<Message>& yield, uint8_t count);
 
-        void boot(const Caster::Yield<Message>& yield);
+        void reset();
+        void bootInit(uint8_t hu_address, const Caster::Yield<Message>& yield);
+        void bootAnnounce(const Caster::Yield<Message>& yield);
+        void bootRequest(const Caster::Yield<Message>& yield);
+        void bootComplete(const Caster::Yield<Message>& yield);
+        void updatePower(bool power, const Caster::Yield<Message>& yield);
 
         Faker::Clock* clock_;
 
         uint8_t address_;
         uint8_t hu_address_;
+        uint8_t boot_state_;
         Ticker hb_timer_;
         Ticker disco_timer_;
         Ticker boot_timer_;
@@ -146,8 +155,8 @@ class Fusion : public Caster::Node<Message> {
 
         uint8_t state_;
         bool state_ignore_next_;
-        uint8_t state_counter_;
         uint32_t state_pgn_;
+        uint8_t state_counter_;
         uint8_t cmd_counter_;
         Canny::J1939Message cmd_;
 
