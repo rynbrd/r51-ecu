@@ -34,7 +34,7 @@ SyncWait sync;
 // Init console support if enabled. 
 #if defined(CONSOLE_ENABLE)
 #include <Console.h>
-ConsoleNode console(&SERIAL_DEVICE);
+ConsoleNode console(&SERIAL_DEVICE, CONSOLE_INITIAL_MUTE);
 #endif
 
 PlatformConfigStore config;

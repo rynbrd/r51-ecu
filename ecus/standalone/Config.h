@@ -5,6 +5,7 @@
 // interactive console.
 #define DEBUG_ENABLE
 #define CONSOLE_ENABLE
+#define CONSOLE_INITIAL_MUTE true
 
 // Serial configuration for the debug console.
 #define SERIAL_DEVICE Serial
