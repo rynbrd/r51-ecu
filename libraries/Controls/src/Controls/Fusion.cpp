@@ -1208,9 +1208,6 @@ void Fusion::updatePower(bool power, const Yield<Message>& yield) {
         // Power state got out of sync, refresh current state.
         system_.state(state);
         yield(MessageView(&system_));
-        if (power) {
-            sendStereoRequest(yield);
-        }
     }
 }
 
