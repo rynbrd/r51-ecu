@@ -1203,7 +1203,9 @@ void Fusion::updatePower(bool power, const Yield<Message>& yield) {
     } else if (system_.state() == AudioSystem::BOOT) {
         // Request current operational state from stereo.
         system_.state(state);
-        bootRequest(yield);
+        if (boot_state_ == ANNOUNCED) {
+            bootRequest(yield);
+        }
     } else if (system_.state() != state) {
         // Power state got out of sync, refresh current state.
         system_.state(state);
