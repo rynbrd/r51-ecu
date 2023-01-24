@@ -26,7 +26,7 @@ uint32_t toNeopixelColor(LEDColor color) {
         case LEDColor::MAGENTA:
             return 0xFF00FF;
         case LEDColor::AMBER:
-            return 0xFF6000;
+            return 0xFF4000;
         default:
             return 0x000000;
     }
