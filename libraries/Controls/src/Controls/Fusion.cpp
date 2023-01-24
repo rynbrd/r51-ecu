@@ -1177,7 +1177,7 @@ void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
 
 void Fusion::reset() {
     boot_state_ = UNKNOWN;
-    source_.source(AudioSource::AM);
+    source_.source(AudioSource::BLUETOOTH);
     source_.bt_connected(false);
     volume_.balance(0);
     volume_.mute(false);
