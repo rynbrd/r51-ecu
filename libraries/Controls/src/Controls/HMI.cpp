@@ -430,7 +430,7 @@ void HMI::handleAudioSource(const AudioSourceState* event) {
             setTxt("audio_radio.freq_txt", "");
             setTxt("audio_radio.freq_label", "");
             if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_RADIO)) {
-                page(ScreenPage::AUDIO_RADIO);
+                page(ScreenPage::AUDIO);
             } else if (isPageWithHeader()) {
                 refresh();
             }
@@ -439,7 +439,7 @@ void HMI::handleAudioSource(const AudioSourceState* event) {
             setVal("audio.playback", 0);
             setTxt("audio_aux.input_txt", "Aux Input");
             if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
-                page(ScreenPage::AUDIO_AUX);
+                page(ScreenPage::AUDIO);
             } else if (isPageWithHeader()) {
                 refresh();
             }
@@ -448,7 +448,7 @@ void HMI::handleAudioSource(const AudioSourceState* event) {
             setVal("audio.playback", 0);
             setTxt("audio_aux.input_txt", "Optical Input");
             if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_AUX)) {
-                page(ScreenPage::AUDIO_AUX);
+                page(ScreenPage::AUDIO);
             } else if (isPageWithHeader()) {
                 refresh();
             }
@@ -456,7 +456,7 @@ void HMI::handleAudioSource(const AudioSourceState* event) {
         default:
             setVal("audio.device", event->bt_connected());
             if (isAudioSourcePage() && !isPage(ScreenPage::AUDIO_TRACK)) {
-                page(ScreenPage::AUDIO_TRACK);
+                page(ScreenPage::AUDIO);
             } else if (isPageWithHeader()) {
                 refresh();
             }
