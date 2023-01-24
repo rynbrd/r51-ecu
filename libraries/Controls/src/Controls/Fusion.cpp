@@ -34,6 +34,7 @@ enum BootState : uint8_t {
     DISCOVERED = 1, // stereo discovered, processing discovery response
     ANNOUNCED = 2,  // announced ourselves, processing announcement response
     REQUESTED = 3,  // requested initial state from stereo, waiting for all of it
+    POWERING = 4,   // powering on and waiting for source
 };
 
 // Mapping of Fusion state identifiers.
@@ -191,10 +192,10 @@ void Fusion::handleCommand(const Event& event, const Yield<Message>& yield) {
         if (event.id == (uint8_t)AudioEvent::POWER_ON_CMD ||
                 event.id == (uint8_t)AudioEvent::POWER_TOGGLE_CMD) {
             sendPowerCmd(yield, true);
-            sendStereoRequest(yield);
         }
         return;
-    } else if (system_.state() == AudioSystem::BOOT) {
+    } else if (system_.state() == AudioSystem::BOOT ||
+            system_.state() == AudioSystem::POWER_ON) {
         if (event.id == (uint8_t)AudioEvent::POWER_OFF_CMD ||
                 event.id == (uint8_t)AudioEvent::POWER_TOGGLE_CMD) {
             sendPowerCmd(yield, false);
@@ -457,8 +458,6 @@ void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& y
         // else use current state 
         state_pgn_ = msg.pgn();
         state_counter_ = counter(msg);
-    } else if (msg.source_address() == hu_address_) {
-        state_counter_ = counter(msg);
     } else {
         return;
     }
@@ -659,7 +658,8 @@ void Fusion::handleSource(uint8_t seq, const J1939Message& msg,
                             break;
                     }
                 }
-                if (system_.state() == AudioSystem::BOOT) {
+                if (system_.state() == AudioSystem::POWER_ON) {
+                    system_.state(AudioSystem::ON);
                     bootComplete(yield);
                 } else if (system_.state() == AudioSystem::ON) {
                     yield(MessageView(&source_));
@@ -975,7 +975,8 @@ void Fusion::emit(const Yield<Message>& yield) {
             bootAnnounce(yield);
         } else if (boot_state_ == ANNOUNCED) {
             bootRequest(yield);
-        } else if (boot_state_ == REQUESTED) {
+        } else if (boot_state_ == REQUESTED || boot_state_ == POWERING) {
+            system_.state(AudioSystem::OFF);
             bootComplete(yield);
         }
     }
@@ -984,6 +985,13 @@ void Fusion::emit(const Yield<Message>& yield) {
 void Fusion::sendStereoRequest(const Yield<Message>& yield) {
     // 1DEF0A10#A0:04:A3:99:01:00:FF:FF
     sendCmd(yield, 0x04, 0x01);
+}
+
+void Fusion::send0CRequest(const Yield<Message>& yield) {
+    // 1DEF0A20#40:08:A3:99:0C:00:39:24
+    // 1DEF0A20#41:00:00:FF:FF:FF:FF:FF
+    sendCmd(yield, 0x08, 0x0C, 0x39, 0x24);
+    sendCmdPayload(yield, {0x00, 0x00});
 }
 
 void Fusion::sendStereoDiscovery(const Caster::Yield<Message>& yield) {
@@ -1177,7 +1185,7 @@ void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
 
 void Fusion::reset() {
     boot_state_ = UNKNOWN;
-    source_.source(AudioSource::BLUETOOTH);
+    source_.source(AudioSource::AM);
     source_.bt_connected(false);
     volume_.balance(0);
     volume_.mute(false);
@@ -1200,16 +1208,8 @@ void Fusion::updatePower(bool power, const Yield<Message>& yield) {
         // Rely on discovery to transition from unavailable as doing so
         // here would put us into an invalid state.
         sendStereoDiscovery(yield);
-    } else if (system_.state() == AudioSystem::BOOT) {
-        // Request current operational state from stereo.
-        system_.state(state);
-        if (boot_state_ == ANNOUNCED) {
-            bootRequest(yield);
-        }
     } else if (system_.state() != state) {
-        // Power state got out of sync, refresh current state.
-        system_.state(state);
-        yield(MessageView(&system_));
+        bootPower(power, yield);
     }
 }
 
@@ -1246,6 +1246,28 @@ void Fusion::bootRequest(const Yield<Message>& yield) {
     boot_state_ = REQUESTED;
     boot_timer_.reset(kBootRequestTimeout);
     sendStereoRequest(yield);
+    send0CRequest(yield);
+}
+
+void Fusion::bootPower(bool power, const Caster::Yield<Message>& yield) {
+    if (power && system_.state() != AudioSystem::POWER_ON) {
+        boot_timer_.reset();
+        system_.state(AudioSystem::POWER_ON);
+        yield(MessageView(&system_));
+        if (boot_state_ != REQUESTED) {
+            sendStereoRequest(yield);
+            send0CRequest(yield);
+        }
+        boot_state_ = POWERING;
+    } else if (!power) {
+        if (system_.state() == AudioSystem::BOOT) {
+            system_.state(AudioSystem::OFF);
+            bootComplete(yield);
+        } else {
+            system_.state(AudioSystem::OFF);
+            yield(MessageView(&system_));
+        }
+    }
 }
 
 // Send all state events and exit boot.

@@ -89,6 +89,7 @@ class Fusion : public Caster::Node<Message> {
 
         void sendStereoRequest(const Caster::Yield<Message>& yield);
         void sendStereoDiscovery(const Caster::Yield<Message>& yield);
+        void send0CRequest(const Caster::Yield<Message>& yield);
 
         void sendPGN01F014Request(const Caster::Yield<Message>& yield);
         void sendPGN01F016Request(const Caster::Yield<Message>& yield);
@@ -122,6 +123,7 @@ class Fusion : public Caster::Node<Message> {
         void bootInit(uint8_t hu_address, const Caster::Yield<Message>& yield);
         void bootAnnounce(const Caster::Yield<Message>& yield);
         void bootRequest(const Caster::Yield<Message>& yield);
+        void bootPower(bool power, const Caster::Yield<Message>& yield);
         void bootComplete(const Caster::Yield<Message>& yield);
         void updatePower(bool power, const Caster::Yield<Message>& yield);
 

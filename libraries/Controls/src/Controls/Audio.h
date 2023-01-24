@@ -20,8 +20,9 @@ static const int8_t kToneMax = 15;
 enum class AudioSystem : uint8_t {
     UNAVAILABLE = 0x00, // No audio system is connected.
     OFF         = 0x01, // System is connected but powered down.
-    BOOT        = 0x02, // Audio system is powering on.
+    BOOT        = 0x02, // Audio system is initializing.
     ON          = 0x03, // System is on.
+    POWER_ON    = 0x04, // Audio system is powering on.
 };
 
 // Audio source.
