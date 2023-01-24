@@ -69,7 +69,7 @@ HMI::HMI(Stream* stream, uint8_t encoder_keypad_id, uint8_t pdm_id) :
     encoder_keypad_id_(encoder_keypad_id), pdm_id_(pdm_id),
     climate_system_(CLIMATE_SYSTEM_OFF), climate_fan_(0xFF),
     climate_driver_temp_(0xFF), climate_pass_temp_(0xFF),
-    climate_out_temp_(0xFF), mute_(false), volume_(0),
+    climate_out_temp_(0xFF), mute_(false), volume_(0xFF),
     audio_system_(AudioSystem::UNAVAILABLE), audio_source_(AudioSource::AM),
     audio_settings_page_(0), audio_settings_count_(0) {}
 
@@ -384,6 +384,7 @@ void HMI::handleAudioSystem(const AudioSystemState* event) {
     audio_system_ = event->state();
     setVal("audio.state", (uint8_t)event->state());
     if (event->state() == AudioSystem::OFF) {
+        volume_ = 0xFF;
         setVal("audio.device", false);
     }
     if (isAudioPage()) {
@@ -397,7 +398,9 @@ void HMI::handleAudioVolume(const AudioVolumeState* event) {
     setVal("audio.balance", event->balance());
     setVolume(event->volume());
     if (audio_system_ == AudioSystem::ON && event->volume() != volume_ &&
-            !mute_ && !event->mute() && !isPage(ScreenPage::SPLASH)) {
+            volume_ != 0xFF && !mute_ && !event->mute() &&
+            !isPage(ScreenPage::SPLASH) &&
+            !isPage(ScreenPage::AUDIO_POWER_OFF)) {
         page(ScreenPage::AUDIO_VOLUME);
     }
     if (event->mute() != mute_ || event->volume() != volume_ ||
