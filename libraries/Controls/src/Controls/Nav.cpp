@@ -13,15 +13,15 @@ using ::Caster::Yield;
 
 static const uint32_t kPowerLongPressTimeout = 3000;
 
-static const uint8_t kBrightnessLow = 0x10;
-static const uint8_t kBrightnessHigh = 0x40;
+static const uint8_t kBrightnessLow = 0x60;
+static const uint8_t kBrightnessHigh = 0xFF;
 static const uint8_t kBacklight = 0x10;
 static const LEDColor kBacklightColor = LEDColor::AMBER;
 
 }
 
 NavControls::NavControls(uint8_t encoder_keypad_id, Faker::Clock* clock) :
-    keypad_id_(encoder_keypad_id), power_(true),
+    keypad_id_(encoder_keypad_id), power_(true), illum_(false),
     power_btn_(kPowerLongPressTimeout, clock),
     page_(NavPage::NONE) {}
 
@@ -33,7 +33,7 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
         case SubSystem::SCREEN:
             switch ((ScreenEvent)msg.event()->id)  {
                 case ScreenEvent::POWER_STATE:
-                    handlePowerState((ScreenPowerState*)msg.event());
+                    handlePowerState((ScreenPowerState*)msg.event(), yield);
                     break;
                 case ScreenEvent::PAGE_STATE:
                     handlePageState((ScreenPageState*)msg.event());
@@ -65,15 +65,8 @@ void NavControls::handle(const Message& msg, const Yield<Message>& yield) {
             break;
         case SubSystem::BCM:
             if (msg.event()->id == (uint8_t)BCMEvent::ILLUM_STATE) {
-                if (msg.event()->data[0] == 0x00) {
-                    // daytime: no backlight, high brightness indicators
-                    setBrightness(yield, keypad_id_, kBrightnessHigh);
-                    setBacklight(yield, keypad_id_, 0);
-                } else {
-                    // nighttime: backlight, low brightness indicators
-                    setBrightness(yield, keypad_id_, kBrightnessLow);
-                    setBacklight(yield, keypad_id_, kBacklight, kBacklightColor);
-                }
+                illum_ = msg.event()->data[0] != 0x00;
+                illum(yield);
             }
         default:
             break;
@@ -95,8 +88,9 @@ void NavControls::emit(const Yield<Message>& yield) {
     }
 }
 
-void NavControls::handlePowerState(const ScreenPowerState* event) {
+void NavControls::handlePowerState(const ScreenPowerState* event, const Yield<Message>& yield) {
     power_ = event->power();
+    illum(yield);
 }
 
 void NavControls::handlePageState(const ScreenPageState* event) {
@@ -226,6 +220,18 @@ void NavControls::setPage(NavPage page) {
         power_btn_.release();
     }
     page_ = page;
+}
+
+void NavControls::illum(const Caster::Yield<Message>& yield) {
+    if (illum_) {
+        // nighttime: backlight, low brightness indicators
+        setBrightness(yield, keypad_id_, kBrightnessLow);
+        setBacklight(yield, keypad_id_, power_ ? kBacklight : 0, kBacklightColor);
+    } else {
+        // daytime: no backlight, high brightness indicators
+        setBrightness(yield, keypad_id_, kBrightnessHigh);
+        setBacklight(yield, keypad_id_, 0);
+    }
 }
 
 };

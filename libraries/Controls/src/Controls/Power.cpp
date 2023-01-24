@@ -21,8 +21,8 @@ static const LEDColor kLightColor = LEDColor::YELLOW;
 }  // namespace
 
 PowerControls::PowerControls(uint8_t keypad_id, uint8_t pdm_id) :
-    keypad_id_(keypad_id), pdm_id_(pdm_id),
-    indicator_cmd_(keypad_id_) {}
+    keypad_id_(keypad_id), pdm_id_(pdm_id), power_(true), illum_(false),
+    indicator_cmd_(keypad_id_)  {}
 
 void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
     if (msg.type() != Message::EVENT) {
@@ -36,17 +36,13 @@ void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
             msg.event()->id == (uint8_t)PowerEvent::POWER_STATE &&
             msg.event()->data[0] == pdm_id_) {
         handlePower((PowerState*)msg.event(), yield);
+    } else if (msg.event()->subsystem == (uint8_t)SubSystem::SCREEN &&
+            msg.event()->id == (uint8_t)ScreenEvent::POWER_STATE) {
+        handlePowerState((ScreenPowerState*)msg.event(), yield);
     } else if (msg.event()->subsystem == (uint8_t)SubSystem::BCM &&
             msg.event()->id == (uint8_t)BCMEvent::ILLUM_STATE) {
-        if (msg.event()->data[0] == 0x00) {
-            // daytime: no backlight, high brightness indicators
-            setBrightness(yield, keypad_id_, kBrightnessHigh);
-            setBacklight(yield, keypad_id_, 0);
-        } else {
-            // nighttime: backlight, low brightness indicators
-            setBrightness(yield, keypad_id_, kBrightnessLow);
-            setBacklight(yield, keypad_id_, kBacklight, kBacklightColor);
-        }
+        illum_ = msg.event()->data[0] != 0x00;
+        illum(yield);
     }
 }
 
@@ -110,6 +106,11 @@ void PowerControls::handlePower(const PowerState* power, const Yield<Message>& y
     }
 }
 
+void PowerControls::handlePowerState(const ScreenPowerState* event, const Yield<Message>& yield) {
+    power_ = event->power();
+    illum(yield);
+}
+
 void PowerControls::sendIndicatorCmd(const Yield<Message>& yield, uint8_t led,
         PowerMode mode, uint8_t duty_cycle, LEDColor color) {
     indicator_cmd_.led(led);
@@ -139,6 +140,18 @@ void PowerControls::sendIndicatorCmd(const Yield<Message>& yield, uint8_t led,
 
 void PowerControls::sendPowerCmd(const Yield<Message>& yield, PDMDevice device, PowerCmd cmd) {
     Controls::sendPowerCmd(yield, pdm_id_, (uint8_t)device, cmd);
+}
+
+void PowerControls::illum(const Caster::Yield<Message>& yield) {
+        if (illum_) {
+            // nighttime: backlight, low brightness indicators
+            setBrightness(yield, keypad_id_, kBrightnessLow);
+            setBacklight(yield, keypad_id_, power_ ? kBacklight : 0, kBacklightColor);
+        } else {
+            // daytime: no backlight, high brightness indicators
+            setBrightness(yield, keypad_id_, kBrightnessHigh);
+            setBacklight(yield, keypad_id_, 0);
+        }
 }
 
 }  // namespace R51
