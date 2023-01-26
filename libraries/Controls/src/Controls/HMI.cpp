@@ -328,7 +328,7 @@ void HMI::handleClimateSystem(const ClimateSystemState* event) {
 }
 
 void HMI::handleClimateAirflow(const ClimateAirflowState* event) {
-    setVal("climate.fan_bar", (int32_t)(100 * event->fan_speed() / 7));
+    setVal("climate.fan", event->fan_speed());
     setVal("climate.vface", event->face());
     setVal("climate.vfeet", event->feet());
     setVal("climate.vdefog", event->windshield());
