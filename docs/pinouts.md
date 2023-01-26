@@ -243,6 +243,7 @@ work for other chips but is unverified.
 |   1 | B     | GND               | ground                       |
 |   2 | G/Y   | ACC               | accessory power              |
 |   5 | L     | CAN_H             | AV CAN high for switch panel |
+|   6 | P     | CAN_L             | AV CAN low for switch panel  |
 |  16 | Y     | RR_DEFOG          | defrost heater switch        |
 
 ["Upgraded" Metra 70-7552]: https://www.amazon.com/20-pin-Subaru-Headunit-Harness-Steering/dp/B01D9K3L44/
