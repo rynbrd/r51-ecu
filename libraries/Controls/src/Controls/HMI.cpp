@@ -574,6 +574,9 @@ void HMI::handleSerial(const Yield<Message>& yield) {
             if (scratch_.size >= 4 && scratch_.bytes[3] == 0) {
                 uint8_t button = scratch_.bytes[2];
                 switch ((ScreenPage)scratch_.bytes[1]) {
+                    case ScreenPage::HOME:
+                        handleHomeButton(button, yield);
+                        break;
                     case ScreenPage::CLIMATE:
                         handleClimateButton(button, yield);
                         break;
@@ -624,6 +627,16 @@ void HMI::handleSerial(const Yield<Message>& yield) {
                     }
                 }
             }
+            break;
+        default:
+            break;
+    }
+}
+
+void HMI::handleHomeButton(uint8_t button, const Yield<Message>& yield) {
+    switch (button) {
+        case 6:
+            request(yield, SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE);
             break;
         default:
             break;

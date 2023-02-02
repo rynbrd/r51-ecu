@@ -51,6 +51,7 @@ class HMI : public Controls {
 
         // HMI serial handling.
         void handleSerial(const Caster::Yield<Message>& yield);
+        void handleHomeButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleClimateButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioRadioButton(uint8_t button, const Caster::Yield<Message>& yield);
         void handleAudioTrackButton(uint8_t button, const Caster::Yield<Message>& yield);
