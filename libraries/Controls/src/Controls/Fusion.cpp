@@ -584,9 +584,10 @@ void Fusion::handleVolume(uint8_t seq, const J1939Message& msg,
             changed |= volume_.volume(zone2);
         }
         if (zone1 != zone2 && volume_.fade() == 0) {
+            // calculate the fade value if we don't have one stored
             changed |= volume_.fade((zone1 - zone2) / kFadeMultiplier);
         }
-        if (changed && system_.state() == AudioSystem::ON) {
+        if (changed) {
             yield(MessageView(&volume_));
         }
     }
@@ -1187,6 +1188,8 @@ void Fusion::reset() {
     boot_state_ = UNKNOWN;
     source_.source(AudioSource::AM);
     source_.bt_connected(false);
+    volume_.volume(0);
+    volume_.fade(0);
     volume_.balance(0);
     volume_.mute(false);
     tone_.bass(0);
