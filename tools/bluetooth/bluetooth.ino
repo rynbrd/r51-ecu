@@ -14,9 +14,6 @@ using namespace ::R51;
 using ::Caster::Bus;
 using ::Caster::Node;
 
-// Core Synchronization
-SyncWait sync;
-
 // Serial Console
 ConsoleNode console(&SERIAL_DEVICE, false);
 
@@ -38,6 +35,10 @@ RealDashGateway realdash_gw(&realdash_conn, REALDASH_FRAME_ID,
         REALDASH_HB_ID, REALDASH_HB_MS);
 
 // Internal Bus
+#if defined MULTICORE
+// Core Synchronization
+SyncWait sync;
+
 Pipe pipe(IO_CORE_BUFFER_SIZE, PROC_CORE_BUFFER_SIZE);
 Node<Message>* io_nodes[] = {
     pipe.left(),
@@ -51,6 +52,36 @@ Node<Message>* proc_nodes[] = {
     &console,
 };
 Bus<Message> proc_bus(proc_nodes, sizeof(proc_nodes)/sizeof(proc_nodes[0]));
+#else
+Node<Message>* io_nodes[] = {
+    &ble_monitor,
+    &realdash_gw,
+    &console,
+};
+Bus<Message> io_bus(io_nodes, sizeof(io_nodes)/sizeof(io_nodes[0]));
+#endif
+
+void setup_spi() {
+    DEBUG_MSG("setup: SPI");
+    pinMode(MCP2515_CS_PIN, OUTPUT);
+    digitalWrite(MCP2515_CS_PIN, LOW);
+    pinMode(MCP2518_CS_PIN, OUTPUT);
+    digitalWrite(MCP2518_CS_PIN, LOW);
+    pinMode(BLUETOOTH_SPI_CS_PIN, OUTPUT);
+    digitalWrite(BLUETOOTH_SPI_CS_PIN, LOW);
+    SPI.begin();
+}
+
+void setup_bluetooth() {
+    DEBUG_MSG("setup: Bluetooth");
+    while (!ble_conn.begin()) {
+        DEBUG_MSG("setup: Bluetooth failed");
+        delay(500);
+    }
+    ble_conn.setName(BLUETOOTH_DEVICE_NAME);
+    ble_conn.setOnConnect(onBluetoothConnect, nullptr);
+    ble_conn.setOnDisconnect(onBluetoothDisconnect, nullptr);
+}
 
 void setup() {
     // Pico Core starts serial before setup so no need for begin().
@@ -60,30 +91,15 @@ void setup() {
         }
     }
 
-    DEBUG_MSG("setup: Bluetooth");
-    while (!ble_conn.begin()) {
-        DEBUG_MSG("setup: Bluetooth failed");
-        delay(500);
-    }
-    ble_conn.setName(BLUETOOTH_DEVICE_NAME);
-    ble_conn.setOnConnect(onBluetoothConnect, nullptr);
-    ble_conn.setOnDisconnect(onBluetoothDisconnect, nullptr);
+    setup_spi();
+    setup_bluetooth();
 
+#if defined(MULTICORE)
     sync.wait();
+#endif
     DEBUG_MSG("setup: ECU running");
     io_bus.init();
-}
-
-void setup1() {
-    // Pico Core starts serial before setup so no need for begin().
-    if (SERIAL_WAIT) {
-        while(!SERIAL_DEVICE) {
-            delay(100);
-        }
-    }
-
-    proc_bus.init();
-    sync.wait();
+    DEBUG_MSG("setup: bus init complete");
 }
 
 void loop() {
@@ -92,7 +108,21 @@ void loop() {
     delay(10);
 }
 
+#if defined(MULTICORE)
+void setup1() {
+    // Pico Core starts serial before setup so no need for begin().
+    if (SERIAL_WAIT) {
+        while(!SERIAL_DEVICE) {
+            delay(100);
+        }
+    }
+
+    sync.wait();
+    proc_bus.init();
+}
+
 void loop1() {
     proc_bus.loop();
     delay(10);
 }
+#endif

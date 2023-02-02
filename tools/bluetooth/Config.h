@@ -1,6 +1,8 @@
 #ifndef _R51_TOOLS_BLUETOOTH_CONFIG_H_
 #define _R51_TOOLS_BLUETOOTH_CONFIG_H_
 
+#define MULTICORE
+
 // Serial configuration for the debug console.
 #define SERIAL_DEVICE Serial
 #define SERIAL_WAIT true
@@ -8,6 +10,10 @@
 // Multicore buffer settings.
 #define IO_CORE_BUFFER_SIZE 2
 #define PROC_CORE_BUFFER_SIZE 2
+
+// CAN hardware configuration.
+#define MCP2515_CS_PIN 9
+#define MCP2518_CS_PIN 12
 
 // Bluetooth configuration.
 #define BLUETOOTH_SPI_CS_PIN 22
