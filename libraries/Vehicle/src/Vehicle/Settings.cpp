@@ -553,7 +553,7 @@ class SettingsReset : public SettingsSequence {
         bool state2x_;
 };
 
-Settings::Settings(bool init, Faker::Clock* clock) :
+Settings::Settings(Faker::Clock* clock) :
         initE_(new SettingsInit(SETTINGS_FRAME_E, clock)),
         retrieveE_(new SettingsRetrieve(SETTINGS_FRAME_E, clock)),
         updateE_(new SettingsUpdate(SETTINGS_FRAME_E, clock)),
@@ -564,9 +564,6 @@ Settings::Settings(bool init, Faker::Clock* clock) :
         resetF_(new SettingsReset(SETTINGS_FRAME_F, clock)),
         available_(false), frame_(0, 0, 8),
         event_((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::STATE, (uint8_t[]){0x00, 0x00, 0x00, 0x00}) {
-    if (init) {
-        this->init();
-    }
 }
 
 Settings::~Settings() {
@@ -804,11 +801,9 @@ void Settings::emit(const Caster::Yield<Message>& yield) {
     }
 }
 
-bool Settings::init() {
-    if (!ready()) {
-        return false;
-    }
-    return initE_->trigger() && initF_->trigger();
+void Settings::init(const Caster::Yield<Message>&) {
+    initE_->trigger();
+    initF_->trigger();
 }
 
 bool Settings::readyE() const {

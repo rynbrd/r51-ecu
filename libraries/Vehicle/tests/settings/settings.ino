@@ -199,7 +199,8 @@ testF(SettingsTest, Init) {
     CAN20Frame frameF;
 
     // Trigger settings initialization.
-    Settings settings(true, &clock);
+    Settings settings(&clock);
+    settings.init(yield);
     settings.emit(yield);
 
     // Receive enter frames.
@@ -288,7 +289,7 @@ testF(SettingsTest, Init) {
 
 testF(SettingsTest, RequestState) {
     FakeYield yield;
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     CAN20Frame frameE;
     CAN20Frame frameF;
@@ -369,7 +370,7 @@ testF(SettingsTest, RequestState) {
 
 testF(SettingsTest, FactoryReset) {
     FakeYield yield;
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     CAN20Frame frameE;
     CAN20Frame frameF;
@@ -464,7 +465,7 @@ testF(SettingsTest, FactoryReset) {
 }
 
 testF(SettingsTest, ToggleAutoInteriorIllumination) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_AUTO_INTERIOR_ILLUM_CMD);
@@ -490,7 +491,7 @@ testF(SettingsTest, ToggleAutoInteriorIllumination) {
 }
 
 testF(SettingsTest, ToggleSlideDriverSeat) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SLIDE_DRIVER_SEAT_CMD);
@@ -514,7 +515,7 @@ testF(SettingsTest, ToggleSlideDriverSeat) {
 }
 
 testF(SettingsTest, ToggleSpeedSensingWipers) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SPEED_SENSING_WIPER_CMD);
@@ -540,7 +541,7 @@ testF(SettingsTest, ToggleSpeedSensingWipers) {
 }
 
 testF(SettingsTest, AutoHeadlightSensitivity) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::NEXT_AUTO_HEADLIGHT_SENS_CMD);
@@ -588,7 +589,7 @@ testF(SettingsTest, AutoHeadlightSensitivity) {
 }
 
 testF(SettingsTest, AutoHeadlightOffDelay) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     byte value = 0x00;
@@ -691,7 +692,7 @@ testF(SettingsTest, AutoHeadlightOffDelay) {
 }
 
 testF(SettingsTest, ToggleSelectiveDoorUnlock) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_SELECTIVE_DOOR_UNLOCK_CMD);
@@ -717,7 +718,7 @@ testF(SettingsTest, ToggleSelectiveDoorUnlock) {
 }
 
 testF(SettingsTest, AutoReLockTime) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     byte value = 0x00;
@@ -760,7 +761,7 @@ testF(SettingsTest, AutoReLockTime) {
 }
 
 testF(SettingsTest, RemoteKeyResponseHorn) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     Event control((uint8_t)SubSystem::SETTINGS, (uint8_t)SettingsEvent::TOGGLE_REMOTE_KEY_RESP_HORN_CMD);
@@ -786,7 +787,7 @@ testF(SettingsTest, RemoteKeyResponseHorn) {
 }
 
 testF(SettingsTest, RemoteKeyResponseLights) {
-    Settings settings(false, &clock);
+    Settings settings(&clock);
 
     // Initial state.
     byte value = 0x00;
