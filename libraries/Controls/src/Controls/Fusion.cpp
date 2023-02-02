@@ -306,10 +306,18 @@ void Fusion::handleCommand(const Event& event, const Yield<Message>& yield) {
             }
             break;
         case AudioEvent::VOLUME_INC_CMD:
-            sendVolumeSetCmd(yield, volume_.volume() + 1, volume_.fade());
+            if (volume_.volume() < kVolumeMax) {
+                sendVolumeSetCmd(yield, volume_.volume() + 1, volume_.fade());
+            } else {
+                sendVolumeSetCmd(yield, volume_.volume(), volume_.fade());
+            }
             break;
         case AudioEvent::VOLUME_DEC_CMD:
-            sendVolumeSetCmd(yield, volume_.volume() - 1, volume_.fade());
+            if (volume_.volume() > kVolumeMin) {
+                sendVolumeSetCmd(yield, volume_.volume() - 1, volume_.fade());
+            } else {
+                sendVolumeSetCmd(yield, volume_.volume(), volume_.fade());
+            }
             break;
         case AudioEvent::VOLUME_MUTE_CMD:
             sendVolumeMuteCmd(yield, true);

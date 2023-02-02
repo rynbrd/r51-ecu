@@ -8,6 +8,7 @@
 
 namespace R51 {
 
+static const uint8_t kVolumeMin = 0;
 static const uint8_t kVolumeMax = 24;
 static const int8_t kBalanceMin = -7;
 static const int8_t kBalanceMax = 7;
