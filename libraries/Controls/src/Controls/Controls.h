@@ -6,7 +6,6 @@
 #include <Caster.h>
 #include <Core.h>
 #include <Faker.h>
-#include <Foundation.h>
 #include <Vehicle.h>
 #include "Audio.h"
 #include "Screen.h"
@@ -42,7 +41,7 @@ class Controls : public Caster::Node<Message> {
 class RepeatButton {
     public:
         RepeatButton(uint32_t interval, Faker::Clock* clock = Faker::Clock::real()) :
-            ticker_(interval, true, clock) {}
+            clock_(clock), interval_(interval), pressed_(0), state_(0) {}
 
         // Press the button.
         void press();
@@ -55,7 +54,10 @@ class RepeatButton {
         bool release();
 
     private:
-        Ticker ticker_;
+        Faker::Clock* clock_;
+        uint32_t interval_;
+        uint32_t pressed_;
+        uint8_t state_;
 };
 
 // A button that may perform a separate action on long press.
