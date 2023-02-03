@@ -213,22 +213,22 @@ testF(SteeringTest, VolumeDownLongPress) {
 
 testF(SteeringTest, SeekUpShortPress) {
     shortPress(SteeringKey::SEEK_UP,
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_PREV_CMD));
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_NEXT_CMD));
 }
 
 testF(SteeringTest, SeekUpLongPress) {
     repeatPress(SteeringKey::SEEK_UP,
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_PREV_CMD));
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_NEXT_CMD));
 }
 
 testF(SteeringTest, SeekDownShortPress) {
     shortPress(SteeringKey::SEEK_DOWN,
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_NEXT_CMD));
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_PREV_CMD));
 }
 
 testF(SteeringTest, SeekDownLongPress) {
     repeatPress(SteeringKey::SEEK_DOWN,
-            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_NEXT_CMD));
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_PREV_CMD));
 }
 
 }
