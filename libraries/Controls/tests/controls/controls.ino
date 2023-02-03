@@ -18,6 +18,13 @@ test(ControlsTest, RepeatButtonShortPress) {
     clock.delay(100);
     assertFalse(button.trigger());
     assertTrue(button.release());
+
+    clock.delay(10000);
+
+    button.press();
+    clock.delay(100);
+    assertFalse(button.trigger());
+    assertTrue(button.release());
 }
 
 test(ControlsTest, RepeatButtonLongPress) {

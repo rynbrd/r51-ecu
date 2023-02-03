@@ -19,6 +19,26 @@ class SteeringTest : public TestOnce {
             KeyState event(1, (uint8_t)key);
             FakeYield yield;
 
+            // press once
+            event.pressed(true);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            clock.delay(100);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            event.pressed(false);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 1);
+            assertIsEvent(yield.messages()[0], expect);
+            yield.clear();
+
+            clock.delay(10000);
+
+            // press again
             event.pressed(true);
             steering.handle(MessageView(&event), yield);
             steering.emit(yield);
@@ -35,12 +55,13 @@ class SteeringTest : public TestOnce {
             assertIsEvent(yield.messages()[0], expect);
         }
 
-        void longPress(SteeringKey key, const Event& expect) {
+        void longPress(SteeringKey key, const Event& expect_short, const Event& expect_long) {
             FakeClock clock;
             SteeringControls steering(1, &clock);
             KeyState event(1, (uint8_t)key);
             FakeYield yield;
 
+            // long press once
             event.pressed(true);
             steering.handle(MessageView(&event), yield);
             steering.emit(yield);
@@ -53,7 +74,7 @@ class SteeringTest : public TestOnce {
             clock.delay(3000);
             steering.emit(yield);
             assertSize(yield, 1);
-            assertIsEvent(yield.messages()[0], expect);
+            assertIsEvent(yield.messages()[0], expect_long);
             yield.clear();
 
             clock.delay(300);
@@ -61,6 +82,24 @@ class SteeringTest : public TestOnce {
             steering.handle(MessageView(&event), yield);
             steering.emit(yield);
             assertSize(yield, 0);
+
+            clock.delay(10000);
+
+            // short press
+            event.pressed(true);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            clock.delay(100);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            event.pressed(false);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 1);
+            assertIsEvent(yield.messages()[0], expect_short);
         }
 
         void repeatPress(SteeringKey key, const Event& expect) {
@@ -69,6 +108,26 @@ class SteeringTest : public TestOnce {
             KeyState event(1, (uint8_t)key);
             FakeYield yield;
 
+            // short press
+            event.pressed(true);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            clock.delay(100);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            event.pressed(false);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 1);
+            assertIsEvent(yield.messages()[0], expect);
+            yield.clear();
+
+            clock.delay(10000);
+
+            // press and hold
             event.pressed(true);
             steering.handle(MessageView(&event), yield);
             steering.emit(yield);
@@ -94,6 +153,25 @@ class SteeringTest : public TestOnce {
             steering.handle(MessageView(&event), yield);
             steering.emit(yield);
             assertSize(yield, 0);
+
+            clock.delay(10000);
+
+            // short press again
+            event.pressed(true);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            clock.delay(100);
+            steering.emit(yield);
+            assertSize(yield, 0);
+
+            event.pressed(false);
+            steering.handle(MessageView(&event), yield);
+            steering.emit(yield);
+            assertSize(yield, 1);
+            assertIsEvent(yield.messages()[0], expect);
+            yield.clear();
         }
 };
 
@@ -104,6 +182,7 @@ testF(SteeringTest, PowerShortPress) {
 
 testF(SteeringTest, PowerLongPress) {
     longPress(SteeringKey::POWER,
+            Event(SubSystem::AUDIO, (uint8_t)AudioEvent::PLAYBACK_TOGGLE_CMD),
             Event(SubSystem::AUDIO, (uint8_t)AudioEvent::POWER_TOGGLE_CMD));
 }
 
