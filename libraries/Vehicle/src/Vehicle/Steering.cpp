@@ -8,7 +8,7 @@ namespace R51 {
 
 // Steering keypad button count and resistance thresholds.
 // Values are set for use with a 2k pull-up resistor.
-static constexpr const int kSteeringKeypadValues[] = {22, 332, 1012};
+static constexpr const int kSteeringKeypadValues[] = {20, 332, 1016};
 static const int kSteeringKeypadCount = 3;
 
 SteeringKeypad::SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,

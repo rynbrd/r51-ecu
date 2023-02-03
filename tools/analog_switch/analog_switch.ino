@@ -8,7 +8,7 @@
 #define RDEF_TIME 300
 
 // Values for a 2k pullup resistor.
-static constexpr const int sw_values[] = {22, 332, 1012};
+static constexpr const int sw_values[] = {20, 332, 1016};
 static constexpr const int sw_count = 3;
 
 int sw_print_ms = 0;
