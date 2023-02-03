@@ -416,7 +416,6 @@ testF(ClimateTest, TickOffState) {
     ClimateAirflowState airflow;
     ClimateSystemState system;
     system.mode(CLIMATE_SYSTEM_OFF);
-    system.dual(true);
 
     climate.handle(MessageView(&state54A), yield);
     climate.handle(MessageView(&state54B), yield);

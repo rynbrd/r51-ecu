@@ -123,10 +123,7 @@ void Climate::handleSystemFrame(const Canny::CAN20Frame& frame, const Caster::Yi
             break;
     }
 
-    bool system_state_changed = (
-        system_state_.ac(getBit(frame.data(), 0, 3)) |
-        system_state_.dual(!getBit(frame.data(), 3, 7)));
-
+    bool system_state_changed = false;
     if (airflow_state_.windshield()) {
         system_state_changed |= system_state_.mode(CLIMATE_SYSTEM_DEFOG);
     } else if (getBit(frame.data(), 0, 7)) {
@@ -136,6 +133,12 @@ void Climate::handleSystemFrame(const Canny::CAN20Frame& frame, const Caster::Yi
     } else {
         system_state_changed |= system_state_.mode(CLIMATE_SYSTEM_MANUAL);
     }
+
+    bool dual = (!getBit(frame.data(), 3, 7) &&
+        system_state_.mode() != CLIMATE_SYSTEM_OFF);
+    system_state_changed = (
+        system_state_.ac(getBit(frame.data(), 0, 3)) |
+        system_state_.dual(dual));
 
     if (system_state_changed) {
         yield(MessageView(&system_state_));
