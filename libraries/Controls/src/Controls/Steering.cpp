@@ -83,10 +83,10 @@ void SteeringControls::emit(const Yield<Message>& yield) {
         sendCmd(yield, AudioEvent::POWER_TOGGLE_CMD);
     }
     if (seek_up_.trigger()) {
-        sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
+        sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
     }
     if (seek_down_.trigger()) {
-        sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
+        sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
     }
     if (volume_up_.trigger()) {
         sendCmd(yield, AudioEvent::VOLUME_INC_CMD);
