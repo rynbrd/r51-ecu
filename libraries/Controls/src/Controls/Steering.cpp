@@ -51,14 +51,14 @@ void SteeringControls::handle(const Message& msg, const Yield<Message>& yield) {
             if (key->pressed()) {
                 seek_up_.press();
             } else if (seek_up_.release()) {
-                sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
+                sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
             }
             break;
         case SteeringKey::SEEK_DOWN:
             if (key->pressed()) {
                 seek_down_.press();
             } else if (seek_down_.release()) {
-                sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
+                sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
             }
             break;
         case SteeringKey::VOLUME_UP:
@@ -83,10 +83,10 @@ void SteeringControls::emit(const Yield<Message>& yield) {
         sendCmd(yield, AudioEvent::POWER_TOGGLE_CMD);
     }
     if (seek_up_.trigger()) {
-        sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
+        sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
     }
     if (seek_down_.trigger()) {
-        sendCmd(yield, AudioEvent::PLAYBACK_PREV_CMD);
+        sendCmd(yield, AudioEvent::PLAYBACK_NEXT_CMD);
     }
     if (volume_up_.trigger()) {
         sendCmd(yield, AudioEvent::VOLUME_INC_CMD);
