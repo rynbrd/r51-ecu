@@ -51,6 +51,21 @@ class ClimateTest : public TestOnce {
             yield.clear();
         }
 
+        void testFanSpeed(uint8_t can_fan_speed, uint8_t event_fan_speed) {
+            Climate climate(0, &clock);
+            initClimate(&climate);
+            enableClimate(&climate);
+
+            CAN20Frame state(0x54B, 0, (uint8_t[]){0x59, 0x8C, can_fan_speed, 0x24, 0x00, 0x00, 0x00, 0x02});
+            ClimateAirflowState event;
+            event.fan_speed(event_fan_speed);
+            event.feet(1);
+
+            climate.handle(MessageView(&state), yield);
+            assertSize(yield, 1);
+            assertIsEvent(yield.messages()[0], event);
+        }
+
         FakeClock clock;
         FakeYield yield;
 };
@@ -312,6 +327,38 @@ testF(ClimateTest, TriggerFanSpeedDown) {
 
     expect = CAN20Frame(0x541, 0, (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     assertYieldFrame(control, expect);
+}
+
+testF(ClimateTest, FanSpeedZero) {
+    testFanSpeed(0x00, 0x00);
+}
+
+testF(ClimateTest, FanSpeedOne) {
+    testFanSpeed(0x01, 0x01);
+}
+
+testF(ClimateTest, FanSpeedMiddle) {
+    testFanSpeed(0x08, 0x04);
+}
+
+testF(ClimateTest, FanSpeedMiddleMinusOne) {
+    testFanSpeed(0x07, 0x04);
+}
+
+testF(ClimateTest, FanSpeedMaxMinusOne) { 
+    testFanSpeed(0x0E, 0x07);
+}
+
+testF(ClimateTest, FanSpeedMax) {
+    testFanSpeed(0x0F, 0x07);
+}
+
+testF(ClimateTest, FanSpeedMiddleExtraBits) {
+    testFanSpeed(0x28, 0x04);
+}
+
+testF(ClimateTest, FanSpeedMaxExtraBits) {
+    testFanSpeed(0x2F, 0x07);
 }
 
 testF(ClimateTest, TriggerDriverTempWhenOn) {

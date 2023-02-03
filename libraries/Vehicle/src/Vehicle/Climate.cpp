@@ -77,8 +77,12 @@ void Climate::handleSystemFrame(const Canny::CAN20Frame& frame, const Caster::Yi
         return;
     }
 
+    uint8_t fan_speed = ((frame.data()[2] & 0x0F) + 1) / 2;
+    if (fan_speed > 7) {
+        fan_speed = 7;
+    }
     bool airflow_state_changed = (
-        airflow_state_.fan_speed((frame.data()[2] + 1) / 2) |
+        airflow_state_.fan_speed(fan_speed) |
         airflow_state_.recirculate(getBit(frame.data(), 3, 4)));
 
     switch((AirflowMode)frame.data()[1]) {
