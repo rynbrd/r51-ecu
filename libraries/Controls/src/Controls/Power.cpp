@@ -55,7 +55,8 @@ void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) 
             sendPowerCmd(yield, PDMDevice::LIGHT_BAR, PowerCmd::TOGGLE);
             break;
         case 1:
-            sendPowerCmd(yield, PDMDevice::SPOT_LIGHTS, PowerCmd::TOGGLE);
+            sendPowerCmd(yield, PDMDevice::LEFT_SPOT_LIGHT, PowerCmd::TOGGLE);
+            sendPowerCmd(yield, PDMDevice::RIGHT_SPOT_LIGHT, PowerCmd::TOGGLE);
             break;
         case 2:
             sendPowerCmd(yield, PDMDevice::CHASE_LIGHTS, PowerCmd::TOGGLE);
@@ -85,7 +86,7 @@ void PowerControls::handlePower(const PowerState* power, const Yield<Message>& y
         case PDMDevice::LIGHT_BAR:
             sendIndicatorCmd(yield, 0, power->mode(), power->duty_cycle(), kLightColor);
             break;
-        case PDMDevice::SPOT_LIGHTS:
+        case PDMDevice::LEFT_SPOT_LIGHT:
             sendIndicatorCmd(yield, 1, power->mode(), power->duty_cycle(), kLightColor);
             break;
         case PDMDevice::CHASE_LIGHTS:

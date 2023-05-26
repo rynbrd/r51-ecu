@@ -310,7 +310,7 @@ void HMI::handlePowerState(const PowerState* power) {
             setVal("shared.rock_lights", (uint8_t)(power->mode() == PowerMode::ON));
             refresh();
             break;
-        case PDMDevice::SPOT_LIGHTS:
+        case PDMDevice::LEFT_SPOT_LIGHT:
             setVal("shared.spot_lights", (uint8_t)(power->mode() == PowerMode::ON));
             refresh();
             break;
