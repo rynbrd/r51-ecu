@@ -47,8 +47,9 @@ class PowerControls : public Controls {
 
     private:
         void handleKey(const KeyState* key, const Caster::Yield<Message>& yield);
+        void handleIPDM(const Event* event, const Caster::Yield<Message>& yield);
         void handlePower(const PowerState* power, const Caster::Yield<Message>& yield);
-        void handlePowerState(const ScreenPowerState* even, const Caster::Yield<Message>& yield);
+        void handlePowerState(const ScreenPowerState* event, const Caster::Yield<Message>& yield);
         void sendIndicatorCmd(const Caster::Yield<Message>& yield, uint8_t led,
                 PowerMode mode, uint8_t duty_cycle, LEDColor color);
         void sendPowerCmd(const Caster::Yield<Message>& yield, PDMDevice device, PowerCmd cmd);

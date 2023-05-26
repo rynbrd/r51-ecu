@@ -32,6 +32,9 @@ void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
             msg.event()->id == (uint8_t)KeypadEvent::KEY_STATE &&
             msg.event()->data[0] == keypad_id_) {
         handleKey((KeyState*)msg.event(), yield);
+    } else if (msg.event()->subsystem == (uint8_t)SubSystem::IPDM &&
+            msg.event()->id == (uint8_t)IPDMEvent::POWER_STATE) {
+        handleIPDM(msg.event(), yield);
     } else if (msg.event()->subsystem == (uint8_t)SubSystem::POWER &&
             msg.event()->id == (uint8_t)PowerEvent::POWER_STATE &&
             msg.event()->data[0] == pdm_id_) {
@@ -79,6 +82,14 @@ void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) 
         default:
             break;
     }
+}
+
+void PowerControls::handleIPDM(const Event* event, const Yield<Message>& yield) {
+    if (event->id != (uint8_t)IPDMEvent::POWER_STATE) {
+        return;
+    }
+    bool power = getBit(event->data, 0,  2);
+    sendPowerCmd(yield, PDMDevice::RUNNING_LIGHTS, power ? PowerCmd::ON : PowerCmd::OFF);
 }
 
 void PowerControls::handlePower(const PowerState* power, const Yield<Message>& yield) {
