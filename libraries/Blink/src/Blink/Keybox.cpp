@@ -21,7 +21,7 @@ BlinkKeybox::BlinkKeybox(uint8_t address, uint8_t pdm_id, Faker::Clock* clock) :
         hb_msg_(0xEE00, Canny::NullAddress, address, 0x06),
         pin_cmd_(0xEF00, Canny::NullAddress, address, 0x06),
         pwm_cmd_(0xEF00, Canny::NullAddress, address, 0x06),
-        pin_state_(0), pin_fault_(0), pin11_pwm_(0), pin12_pwm_(0),
+        pin_state_(0), pin_fault_(0), pin12_pwm_(0), pin13_pwm_(0),
         power_(pdm_id) {
     hb_msg_.resize(4);
     pin_cmd_.resize(8);
@@ -66,19 +66,19 @@ void BlinkKeybox::emit(const Yield<Message>& yield) {
 }
 
 void BlinkKeybox::handlePowerCommand(const PowerCommand* cmd, const Yield<Message>& yield) {
-    if (cmd->pdm() != power_.pdm() || pin_cmd_.source_address() == Canny::NullAddress || cmd->pin() > 12) {
+    if (cmd->pdm() != power_.pdm() || pin_cmd_.source_address() == Canny::NullAddress || cmd->pin() > 13) {
         return;
     }
     switch (cmd->cmd()) {
         case PowerCmd::ON:
-            if (cmd->pin() == 11 || cmd->pin() == 12) {
+            if (cmd->pin() == 12 || cmd->pin() == 13) {
                 setPWM(cmd->pin(), 0xFF, yield);
             } else {
                 setOutput(cmd->pin(), true, yield);
             }
             break;
         case PowerCmd::OFF:
-            if (cmd->pin() == 11 || cmd->pin() == 12) {
+            if (cmd->pin() == 12 || cmd->pin() == 13) {
                 setPWM(cmd->pin(), 0x00, yield);
             } else {
                 setOutput(cmd->pin(), false, yield);
@@ -89,13 +89,13 @@ void BlinkKeybox::handlePowerCommand(const PowerCommand* cmd, const Yield<Messag
             break;
         case PowerCmd::TOGGLE:
             {
-                if (cmd->pin() == 11) {
+                if (cmd->pin() == 12) {
                     if (pwm_cmd_.data()[3] == 0x00) {
                         setPWM(cmd->pin(), 0xFF, yield);
                     } else {
                         setPWM(cmd->pin(), 0x00, yield);
                     }
-                } else if (cmd->pin() == 12) {
+                } else if (cmd->pin() == 13) {
                     if (pwm_cmd_.data()[4] == 0x00) {
                         setPWM(cmd->pin(), 0xFF, yield);
                     } else {
@@ -117,19 +117,19 @@ void BlinkKeybox::handlePowerStateRequest(const Caster::Yield<Message>& yield) {
     bool state;
     bool fault;
     power_.duty_cycle(0xFF);
-    for (uint8_t pin = 0; pin < 12; ++pin) {
+    for (uint8_t pin = 0; pin < 13; ++pin) {
         state = (pin_state_ >> pin) & 1;
         fault = (pin_fault_ >> pin) & 1;
         power_.pin(pin);
         if (fault) {
             power_.mode(PowerMode::FAULT);
             power_.duty_cycle(0xFF);
-        } else if (pin == 11) {
-            power_.mode(PowerMode::PWM);
-            power_.duty_cycle(pin11_pwm_);
         } else if (pin == 12) {
             power_.mode(PowerMode::PWM);
             power_.duty_cycle(pin12_pwm_);
+        } else if (pin == 13) {
+            power_.mode(PowerMode::PWM);
+            power_.duty_cycle(pin13_pwm_);
         } else if (state) {
             power_.mode(PowerMode::ON);
         } else {
@@ -164,9 +164,9 @@ void BlinkKeybox::handleJ1939Message(const Canny::J1939Message& msg, const Yield
     }
     if (value) {
         pin_fault_ |= (1 << pin);
-        if (pin == 11) {
+        if (pin == 12) {
             pwm_cmd_.data()[3] = 0x00;
-        } else if (pin == 12) {
+        } else if (pin == 13) {
             pwm_cmd_.data()[4] = 0x00;
         }
     } else {
@@ -204,14 +204,14 @@ void BlinkKeybox::setOutput(uint8_t pin, bool value, const Yield<Message>& yield
 
 void BlinkKeybox::setPWM(uint8_t pin, uint8_t duty_cycle, const Yield<Message>& yield) {
     uint8_t current;
-    if (pin == 11) {
-        current = pin11_pwm_;
-        pwm_cmd_.data()[3] = duty_cycle;
-        pin11_pwm_ = duty_cycle;
-    } else if (pin == 12) {
+    if (pin == 12) {
         current = pin12_pwm_;
-        pwm_cmd_.data()[4] = duty_cycle;
+        pwm_cmd_.data()[3] = duty_cycle;
         pin12_pwm_ = duty_cycle;
+    } else if (pin == 13) {
+        current = pin13_pwm_;
+        pwm_cmd_.data()[4] = duty_cycle;
+        pin13_pwm_ = duty_cycle;
     } else {
         return;
     }

@@ -40,8 +40,8 @@ class BlinkKeybox : public Caster::Node<Message> {
         Canny::J1939Message pwm_cmd_;
         uint16_t pin_state_;
         uint16_t pin_fault_;
-        uint8_t pin11_pwm_;
         uint8_t pin12_pwm_;
+        uint8_t pin13_pwm_;
         PowerState power_;
 };
 

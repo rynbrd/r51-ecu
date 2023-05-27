@@ -63,7 +63,7 @@ test(KeyboxTest, PWM) {
     // turn on
     PowerCommand cmd;
     cmd.pdm(pdm_id);
-    cmd.pin(11);
+    cmd.pin(12);
     cmd.cmd(PowerCmd::ON);
     keybox.handle(MessageView(&cmd), yield);
 
@@ -72,7 +72,7 @@ test(KeyboxTest, PWM) {
 
     PowerState expect_event;
     expect_event.pdm(pdm_id);
-    expect_event.pin(11);
+    expect_event.pin(12);
     expect_event.mode(PowerMode::PWM);
     expect_event.duty_cycle(0xFF);
 
@@ -83,14 +83,14 @@ test(KeyboxTest, PWM) {
 
     // turn off
     cmd.pdm(pdm_id);
-    cmd.pin(11);
+    cmd.pin(12);
     cmd.cmd(PowerCmd::OFF);
     keybox.handle(MessageView(&cmd), yield);
 
     expect_msg.data({0x04, 0x1B, 0x03, 0x00, 0x00, 0xFF, 0xFF, 0xFF});
 
     expect_event.pdm(pdm_id);
-    expect_event.pin(11);
+    expect_event.pin(12);
     expect_event.mode(PowerMode::PWM);
     expect_event.duty_cycle(0x00);
 
@@ -101,7 +101,7 @@ test(KeyboxTest, PWM) {
 
     // set specific value
     cmd.pdm(pdm_id);
-    cmd.pin(11);
+    cmd.pin(12);
     cmd.cmd(PowerCmd::PWM);
     cmd.duty_cycle(0xB3);
     keybox.handle(MessageView(&cmd), yield);
@@ -109,7 +109,7 @@ test(KeyboxTest, PWM) {
     expect_msg.data({0x04, 0x1B, 0x03, 0xB3, 0x00, 0xFF, 0xFF, 0xFF});
 
     expect_event.pdm(pdm_id);
-    expect_event.pin(11);
+    expect_event.pin(12);
     expect_event.mode(PowerMode::PWM);
     expect_event.duty_cycle(0xB3);
 
@@ -120,7 +120,7 @@ test(KeyboxTest, PWM) {
 
     // set second PWM
     cmd.pdm(pdm_id);
-    cmd.pin(12);
+    cmd.pin(13);
     cmd.cmd(PowerCmd::PWM);
     cmd.duty_cycle(0x51);
     keybox.handle(MessageView(&cmd), yield);
@@ -128,7 +128,7 @@ test(KeyboxTest, PWM) {
     expect_msg.data({0x04, 0x1B, 0x03, 0xB3, 0x51, 0xFF, 0xFF, 0xFF});
 
     expect_event.pdm(pdm_id);
-    expect_event.pin(12);
+    expect_event.pin(13);
     expect_event.mode(PowerMode::PWM);
     expect_event.duty_cycle(0x51);
 
@@ -139,7 +139,7 @@ test(KeyboxTest, PWM) {
 
     // set same value
     cmd.pdm(pdm_id);
-    cmd.pin(11);
+    cmd.pin(12);
     cmd.cmd(PowerCmd::PWM);
     cmd.duty_cycle(0xB3);
     keybox.handle(MessageView(&cmd), yield);
