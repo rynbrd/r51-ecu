@@ -10,32 +10,32 @@
 namespace R51 {
 
 // PDM pin mappings:
-//  1   B3
-//  2   E1
-//  3   F1
-//  4   C1
-//  5   B1
-//  6   A1
-//  7   E3
-//  8   F3
-//  9   A2
-//  10  A3
-//  11  F2
-//  12  C2 (PWM)
-//  13  D1 (PWM)
+//  0   B3
+//  1   E1
+//  2   F1
+//  3   C1
+//  4   B1
+//  5   A1
+//  6   E3
+//  7   F3
+//  8   A2
+//  9   A3
+//  10  F2
+//  11  C2 (PWM)
+//  12  D1 (PWM)
 
 enum class PDMDevice : uint8_t {
-    LIGHT_BAR        = 6,   // A1
-    LEFT_SPOT_LIGHT  = 9,   // A2
-    RIGHT_SPOT_LIGHT = 10,  // A3
-    RUNNING_LIGHTS   = 12,  // C2
-    ROCK_LIGHTS      = 4,   // C1
-    CHASE_LIGHTS     = 13,  // D1
-    REVERSE_LIGHTS   = 2,   // E1
-    EXTRA            = 7,   // E3
-    AIR_COMP         = 3,   // F1
-    FRONT_LOCKER     = 11,  // F2
-    REAR_LOCKER      = 8,   // F3
+    LIGHT_BAR        = 5,   // A1
+    LEFT_SPOT_LIGHT  = 8,   // A2
+    RIGHT_SPOT_LIGHT = 9,   // A3
+    RUNNING_LIGHTS   = 11,  // C2
+    ROCK_LIGHTS      = 3,   // C1
+    CHASE_LIGHTS     = 12,  // D1
+    REVERSE_LIGHTS   = 1,   // E1
+    EXTRA            = 6,   // E3
+    AIR_COMP         = 2,   // F1
+    FRONT_LOCKER     = 10,  // F2
+    REAR_LOCKER      = 7,   // F3
 };
 
 class PowerControls : public Controls {
