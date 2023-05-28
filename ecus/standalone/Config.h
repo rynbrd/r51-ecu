@@ -12,6 +12,9 @@
 #define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT false
 
+// Arduino board constants.
+#define ARDUINO_ANALOG_RESOLUTION 4096
+
 // I2C hardware configuration.
 #define I2C_DEVICE Wire1
 #define I2C_SDA_PIN 6
@@ -50,6 +53,7 @@
 #define STEERING_KEYPAD_ENABLE
 #define STEERING_PIN_A A1
 #define STEERING_PIN_B A2
+#define STEERING_DEBOUNCE_MS 20
 
 // Uncomment to enable Bluetooth via SPI.
 #define BLUETOOTH_ENABLE

@@ -50,7 +50,8 @@ CANGateway can_gw(&can_conn);
 
 // Vehicle hardware integration modules. These integrate with the vehicle via GPIO.
 Defrost defrost(DEFROST_HEATER_PIN, DEFROST_HEATER_MS);
-SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_B);
+SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_B,
+        STEERING_DEBOUNCE_MS, ARDUINO_ANALOG_RESOLUTION);
 
 // Vehicle CAN controller modules. These translace between CAN frames and Events.
 Climate climate;

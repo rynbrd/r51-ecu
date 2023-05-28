@@ -75,7 +75,8 @@ TirePressure tire_pressure(&config);
 Defrost defrost(DEFROST_HEATER_PIN, DEFROST_HEATER_MS);
 #endif
 #if defined(STEERING_KEYPAD_ENABLE)
-SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_B);
+SteeringKeypad steering_keypad(STEERING_KEYPAD_ID, STEERING_PIN_A, STEERING_PIN_B,
+        STEERING_DEBOUNCE_MS, ARDUINO_ANALOG_RESOLUTION);
 #endif
 
 // Create internal bus.

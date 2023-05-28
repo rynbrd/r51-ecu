@@ -12,16 +12,15 @@ static constexpr const int kSteeringKeypadValues[] = {20, 332, 1016};
 static const int kSteeringKeypadCount = 3;
 
 SteeringKeypad::SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,
+    uint32_t debounce_ms, uint32_t analog_resolution,
     Faker::Clock* clock, Faker::GPIO* gpio) :
         sw_a_(
             sw_a_pin, kSteeringKeypadCount, kSteeringKeypadValues,
-            AnalogMultiButton::DEFAULT_DEBOUNCE_DURATION,
-            AnalogMultiButton::DEFAULT_ANALOG_RESOLUTION,
+            debounce_ms, analog_resolution,
             clock, gpio),
         sw_b_(
             sw_b_pin, kSteeringKeypadCount, kSteeringKeypadValues,
-            AnalogMultiButton::DEFAULT_DEBOUNCE_DURATION,
-            AnalogMultiButton::DEFAULT_ANALOG_RESOLUTION,
+            debounce_ms, analog_resolution,
             clock, gpio),
         key_(keypad), clock_(clock), gpio_(gpio),
         a_pin_(sw_a_pin), b_pin_(sw_b_pin) {}

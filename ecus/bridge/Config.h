@@ -11,6 +11,9 @@
 #define SERIAL_BAUDRATE 115200
 #define SERIAL_WAIT false
 
+// Resolution of analogRead return value.
+#define ARDUINO_ANALOG_RESOLUTION 4096
+
 // CAN hardware configuration.
 #define MCP2515_CS_PIN 9
 #define MCP2515_IRQ_PIN 11
@@ -46,6 +49,7 @@
 #define STEERING_KEYPAD_ENABLE
 #define STEERING_PIN_A A1
 #define STEERING_PIN_B A2
+#define STEERING_DEBOUNCE_MS 20
 
 // Uncomment to enable Bluetooth via SPI.
 #define BLUETOOTH_ENABLE

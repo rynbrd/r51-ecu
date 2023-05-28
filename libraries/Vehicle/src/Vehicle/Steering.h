@@ -24,6 +24,7 @@ class SteeringKeypad : public Caster::Node<Message> {
         // Construct a new steering switch keypad node. Switches are
         // connected to GPIO pins sw_a_pin and sw_b_pin.
         SteeringKeypad(uint8_t keypad, int sw_a_pin, int sw_b_pin,
+                uint32_t debounce_ms, uint32_t analog_resolution,
                 Faker::Clock* clock = Faker::Clock::real(),
                 Faker::GPIO* gpio = Faker::GPIO::real());
 

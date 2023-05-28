@@ -10,6 +10,8 @@
 // Values for a 2k pullup resistor.
 static constexpr const int sw_values[] = {20, 332, 1016};
 static constexpr const int sw_count = 3;
+static constexpr const uint32_t sw_debounce_ms = 20;
+static constexpr const uint32_t analog_resolution = 4096;
 
 int sw_print_ms = 0;
 
@@ -66,8 +68,8 @@ class DigitalToggle {
         uint16_t cooldown_ms_;
 };
 
-AnalogMultiButton swA(SW_A_PIN, sw_count, sw_values);
-AnalogMultiButton swB(SW_B_PIN, sw_count, sw_values);
+AnalogMultiButton swA(SW_A_PIN, sw_count, sw_values, sw_debounce_ms, analog_resolution);
+AnalogMultiButton swB(SW_B_PIN, sw_count, sw_values, sw_debounce_ms, analog_resolution);
 DigitalToggle rdef(RDEF_PIN, RDEF_TIME);
 
 void setup() {
