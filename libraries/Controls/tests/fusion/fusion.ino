@@ -50,7 +50,7 @@ testF(FusionTest, StateDetectionDoesntCrash) {
     Fusion f(&clock);
     start(&f);
 
-    // this crashes, because the messages from Fusion cause the moduel to
+    // this crashes, because the messages from Fusion cause the module to
     // generate event messages that pass the detectState checks, causing a
     // feedback loop
     // 1DFF040A#20:0D:A3:99:0B:80:00:01
@@ -72,7 +72,7 @@ testF(FusionTest, StateDetectionDoesntCrash) {
     assertSize(yield, 0);
 
     f.handle(MessageView(&msg1), yield);
-    assertSize(yield, 1);
+    assertSize(yield, 0);
     yield.clear();
 
     f.handle(MessageView(&msg2), yield);

@@ -132,7 +132,6 @@ class Fusion : public Caster::Node<Message> {
         uint8_t address_;
         uint8_t hu_address_;
         uint8_t boot_state_;
-        Ticker hb_timer_;
         Ticker disco_timer_;
         Ticker boot_timer_;
 

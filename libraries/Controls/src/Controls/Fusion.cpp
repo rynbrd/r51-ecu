@@ -116,7 +116,7 @@ bool match(const uint8_t* data, const uint8_t (&match)[N]) {
 
 Fusion::Fusion(Clock* clock) :
         clock_(clock), address_(Canny::NullAddress), hu_address_(Canny::NullAddress),
-        boot_state_(UNKNOWN), hb_timer_(kHeartbeatTimeout, false, clock),
+        boot_state_(UNKNOWN),
         disco_timer_(kDiscoveryTick, false, clock),
         boot_timer_(kBootInitTimeout, true, clock),
         state_(0xFF), state_ignore_next_(false), state_pgn_(0), state_counter_(0xFF),
@@ -432,9 +432,6 @@ void Fusion::handleJ1939Claim(const J1939Claim& claim, const Yield<Message>& yie
 void Fusion::handleJ1939Message(const J1939Message& msg, const Yield<Message>& yield) {
     if (address_ == Canny::NullAddress) {
         return;
-    }
-    if (msg.source_address() == hu_address_) {
-        hb_timer_.reset();
     }
 
     // Detect state.
@@ -968,17 +965,6 @@ void Fusion::emit(const Yield<Message>& yield) {
         return;
     }
 
-    if (hb_timer_.active()) {
-        // trigger loss of connectivity if no heartbeat has been received
-        hb_timer_.pause();
-        hu_address_ = Canny::NullAddress;
-        cmd_.dest_address(Canny::NullAddress);
-        system_.state(AudioSystem::UNAVAILABLE);
-        yield(MessageView(&system_));
-        disco_timer_.resume();
-        return;
-    }
-
     if (boot_timer_.active()) {
         if (boot_state_ == DISCOVERED) {
             bootAnnounce(yield);
@@ -1233,9 +1219,8 @@ void Fusion::bootInit(uint8_t hu_address, const Yield<Message>& yield) {
     hu_address_ = hu_address;
     cmd_.dest_address(hu_address);
 
-    // disable discovery and heartbeat timers
+    // disable discovery timer
     disco_timer_.pause();
-    hb_timer_.pause();
 
     // set system state to booting
     boot_state_ = DISCOVERED;
@@ -1286,7 +1271,6 @@ void Fusion::bootComplete(const Yield<Message>& yield) {
     // disable boot mode
     boot_state_ = UNKNOWN;
     boot_timer_.pause();
-    hb_timer_.resume();
 
     // send all state events
     yield(MessageView(&volume_));
