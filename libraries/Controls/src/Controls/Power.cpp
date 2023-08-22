@@ -2,6 +2,7 @@
 
 #include <Caster.h>
 #include <Core.h>
+#include <Faker.h>
 #include <Vehicle.h>
 #include "Screen.h"
 
@@ -17,11 +18,13 @@ static const LEDColor kBacklightColor = LEDColor::AMBER;
 static const LEDColor kLockerColor = LEDColor::RED;
 static const LEDColor kAirColor = LEDColor::CYAN;
 static const LEDColor kLightColor = LEDColor::YELLOW;
+static const uint32_t kNavLongPressTimeout = 1000;
 
 }  // namespace
 
-PowerControls::PowerControls(uint8_t keypad_id, uint8_t pdm_id) :
+PowerControls::PowerControls(uint8_t keypad_id, uint8_t pdm_id, Faker::Clock* clock) :
     keypad_id_(keypad_id), pdm_id_(pdm_id), power_(true), illum_(false),
+    nav_button_(kNavLongPressTimeout, clock),
     indicator_cmd_(keypad_id_)  {}
 
 void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
@@ -49,8 +52,17 @@ void PowerControls::handle(const Message& msg, const Yield<Message>& yield) {
     }
 }
 
+void PowerControls::emit(const Yield<Message>& yield) {
+    if (nav_button_.trigger()) {
+        sendCmd(yield, ScreenEvent::NAV_HOME_CMD);
+    }
+}
+
 void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) {
     if (key->pressed()) {
+        if (key->key() == 7) {
+            nav_button_.press();
+        }
         return;
     }
     switch (key->key()) {
@@ -77,7 +89,9 @@ void PowerControls::handleKey(const KeyState* key, const Yield<Message>& yield) 
             sendPowerCmd(yield, PDMDevice::AIR_COMP, PowerCmd::TOGGLE);
             break;
         case 7:
-            sendCmd(yield, ScreenEvent::NAV_PAGE_NEXT_CMD);
+            if (nav_button_.release()) {
+                sendCmd(yield, ScreenEvent::NAV_PAGE_NEXT_CMD);
+            }
             break;
         default:
             break;
