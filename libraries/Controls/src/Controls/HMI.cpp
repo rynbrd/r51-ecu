@@ -1105,11 +1105,7 @@ void HMI::navPageNext(const Caster::Yield<Message>& yield) {
             sendCmd(yield, AudioEvent::SETTINGS_EXIT_CMD);
             break;
         case ScreenPage::CLIMATE:
-            if (audio_system_ != AudioSystem::UNAVAILABLE) {
-                page(ScreenPage::AUDIO);
-            } else {
-                page(ScreenPage::VEHICLE);
-            }
+            page(ScreenPage::AUDIO);
             break;
         case ScreenPage::AUDIO:
         case ScreenPage::AUDIO_TRACK:
@@ -1118,8 +1114,6 @@ void HMI::navPageNext(const Caster::Yield<Message>& yield) {
         case ScreenPage::AUDIO_POWER_OFF:
         case ScreenPage::AUDIO_NO_STEREO:
         case ScreenPage::AUDIO_EQ:
-            page(ScreenPage::VEHICLE);
-            break;
         case ScreenPage::VEHICLE:
             page(ScreenPage::CLIMATE);
             break;
