@@ -41,9 +41,10 @@ enum class ScreenEvent : uint8_t {
     NAV_LEFT_CMD        = 0x22,
     NAV_RIGHT_CMD       = 0x23,
     NAV_ACTIVATE_CMD    = 0x24,
-    NAV_PAGE_NEXT_CMD   = 0x25, // Move to the next page. Rotates between
+    NAV_HOME_CMD        = 0x25, // Move to the home page.
+    NAV_PAGE_NEXT_CMD   = 0x26, // Move to the next page. Rotates between
                                 // climate, audio, and vehicle
-    NAV_PAGE_PREV_CMD   = 0x26, // Move to the previous page. Rotates between
+    NAV_PAGE_PREV_CMD   = 0x27, // Move to the previous page. Rotates between
                                 // vehicle, audio, and climate.
 };
 

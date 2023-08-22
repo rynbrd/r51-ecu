@@ -2,8 +2,9 @@
 #define _R51_CONTROLS_POWER_H_
 
 #include <Arduino.h>
-#include <Core.h>
 #include <Blink.h>
+#include <Core.h>
+#include <Faker.h>
 #include "Controls.h"
 #include "Screen.h"
 
@@ -40,10 +41,14 @@ enum class PDMDevice : uint8_t {
 
 class PowerControls : public Controls {
     public:
-        PowerControls(uint8_t keypad_id, uint8_t pdm_id);
+        PowerControls(uint8_t keypad_id, uint8_t pdm_id,
+                Faker::Clock* clock = Faker::Clock::real());
 
         // Handle keypad, PDM, and illum events.
         void handle(const Message& msg, const Caster::Yield<Message>& yield) override;
+
+        // Emit timed key events.
+        void emit(const Caster::Yield<Message>& yield) override;
 
     private:
         void handleKey(const KeyState* key, const Caster::Yield<Message>& yield);
@@ -59,6 +64,7 @@ class PowerControls : public Controls {
         uint8_t pdm_id_;
         bool power_;
         bool illum_;
+        LongPressButton nav_button_;
 
         IndicatorCommand indicator_cmd_;
 };

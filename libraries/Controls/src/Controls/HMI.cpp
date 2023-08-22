@@ -122,6 +122,9 @@ void HMI::handle(const Message& msg, const Yield<Message>& yield) {
                 case ScreenEvent::NAV_ACTIVATE_CMD:
                     navActivate(yield);
                     break;
+                case ScreenEvent::NAV_HOME_CMD:
+                    page(ScreenPage::HOME);
+                    break;
                 case ScreenEvent::NAV_PAGE_NEXT_CMD:
                     navPageNext(yield);
                     break;
