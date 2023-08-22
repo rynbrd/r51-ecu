@@ -1178,27 +1178,6 @@ void Fusion::sendMenuReqItemList(const Yield<Message>& yield, uint8_t count) {
     sendCmdPayload(yield, {0x03});
 }
 
-void Fusion::reset() {
-    boot_state_ = UNKNOWN;
-    source_.source(AudioSource::AM);
-    source_.bt_connected(false);
-    volume_.volume(0);
-    volume_.fade(0);
-    volume_.balance(0);
-    volume_.mute(false);
-    tone_.bass(0);
-    tone_.mid(0);
-    tone_.treble(0);
-    input_.gain(0);
-    track_playback_.playback(AudioPlayback::NO_TRACK);
-    track_playback_.time_elapsed(0);
-    track_playback_.time_total(0);
-    track_title_scratch_.clear();
-    track_artist_scratch_.clear();
-    track_album_scratch_.clear();
-    settings_menu_.page(0);
-}
-
 void Fusion::updatePower(bool power, const Yield<Message>& yield) {
     AudioSystem state = power ? AudioSystem::ON : AudioSystem::OFF;
     if (system_.state() == AudioSystem::UNAVAILABLE) {
@@ -1212,9 +1191,6 @@ void Fusion::updatePower(bool power, const Yield<Message>& yield) {
 
 // Reset internal state and start the boot process.
 void Fusion::bootInit(uint8_t hu_address, const Yield<Message>& yield) {
-    // reset internal state
-    reset();
-
     // configure head unit address
     hu_address_ = hu_address;
     cmd_.dest_address(hu_address);

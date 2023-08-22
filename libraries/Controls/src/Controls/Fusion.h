@@ -119,7 +119,6 @@ class Fusion : public Caster::Node<Message> {
         void sendMenuReqItemCount(const Caster::Yield<Message>& yield);
         void sendMenuReqItemList(const Caster::Yield<Message>& yield, uint8_t count);
 
-        void reset();
         void bootInit(uint8_t hu_address, const Caster::Yield<Message>& yield);
         void bootAnnounce(const Caster::Yield<Message>& yield);
         void bootRequest(const Caster::Yield<Message>& yield);
