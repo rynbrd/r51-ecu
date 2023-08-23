@@ -399,8 +399,9 @@ void HMI::handleAudioVolume(const AudioVolumeState* event) {
     setVal("audio.fade", event->fade());
     setVal("audio.balance", event->balance());
     setVolume(event->volume());
-    if (audio_system_ == AudioSystem::ON && event->volume() != volume_ &&
-            !mute_ && !event->mute() && !isPage(ScreenPage::SPLASH)) {
+    if (audio_system_ == AudioSystem::ON && volume_ != 0 &&
+            event->volume() != volume_ && !mute_ && !event->mute() &&
+            !isPage(ScreenPage::SPLASH)) {
         page(ScreenPage::AUDIO_VOLUME);
     }
     if (event->mute() != mute_ || event->volume() != volume_ ||
